@@ -15,7 +15,9 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
-#$Id$
+#
+# $Id$
+#
 # Shell script to set up the InterBase directory structure
 # And now the super server directory structure  
 
@@ -420,7 +422,7 @@ refreshLink source/builds/make.journal_ss super/journal/makefile
 # Jrd
 refreshLink .. jrd/source
 refreshLink yachts.gdb jrd/yachts.lnk
-refreshLink source/msgs/msg.gdb jrd/msg.gdb  ## TMC 081100
+refreshLink source/msgs/msg.gdb jrd/msg.gdb   # TMC 081100
 #refreshLink $3/jrd/yachts.gdb jrd/yachts.gdb
 #refreshLink $3/jrd/isc.gdb jrd/isc.gdb
 refreshLink source/builds/make.jrd jrd/makefile
@@ -524,9 +526,9 @@ refreshLink source/builds/make.pyxis pyxis/makefile
 refreshLink .. qli/source
 refreshLink source/jrd/yachts.gdb qli/yachts.lnk
 refreshLink source/jrd/yachts.gdb qli/yachts.link
-#refreshLink $3/qli/help.gdb qli/help.gdb ?
-refreshLink $3/interbase/help/help.gdb qli/help.gdb
-refreshLink $3/interbase/help/help.gdb qli/master_help_db
+refreshLink $3/qli/help.gdb qli/help.gdb              # TMC 081700
+#refreshLink $3/interbase/help/help.gdb qli/help.gdb  # TMC 081700
+refreshLink $3/qli/help.gdb qli/master_help_db        # TMC 081700
 refreshLink source/builds/make.qli qli/makefile
 # Register
 # Probably registration code - no source from Inprise
