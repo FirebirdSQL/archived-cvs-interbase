@@ -1326,7 +1326,7 @@ if (objtype == type_charset)
     pVector = &dbb->dbb_charsets;
     id = TTYPE_TO_CHARSET (parm1);
     if (id == CS_dynamic)
-	id = tdbb->tdbb_attachment->att_charset;
+        id = tdbb->tdbb_attachment->att_charset;
     }
 else
     {
@@ -2417,16 +2417,11 @@ if (function == NULL)
     if (LD2_lookup (objtype, &function, parm1, parm2) != 0) 
 	function = NULL;
 #else
-#ifndef WINDOWS_ONLY
-    gds__prefix (path, INTL_MODULE2); 
-#else
-    /* The flu.c uses searchpath which expects a file name not a path */
     strcpy (path, INTL_MODULE2);         
-#endif
     INTL_TRACE (("INTL: trying %s %s\n", path, INTL_LOOKUP_ENTRY2));
     if (lookup_fn = ISC_lookup_entrypoint (path, INTL_LOOKUP_ENTRY2, NULL))
 	{
-	INTL_TRACE (("INTL: calling lookup %s %s\n", path, INTL_LOOKUP_ENTRY2));
+	INTL_TRACE (("INTL: calling lookup %s %s (%d 0x%x (%d %d) 0x%x)\n", path, INTL_LOOKUP_ENTRY2, objtype, parm1, (parm1 / 256), (parm1%256), parm2));
 	if ((*lookup_fn) (objtype, &function, parm1, parm2) != 0) 
 	    {
 	    function = NULL;
@@ -2483,6 +2478,8 @@ if (function == NULL)
 
 if (function != NULL)
     {
+        INTL_TRACE(("INTL: initializing ttype %d parm2 %d",
+                    parm1, parm2 ));
     if ((USHORT) (*function) (text_object, parm1, parm2) == 0)
 	{
 	INTL_TRACE (("INTL: object %d, ttype %d init ok\n", objtype, parm1));
