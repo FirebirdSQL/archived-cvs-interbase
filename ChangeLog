@@ -1,3 +1,28 @@
+2001-09-19 10:38  robocop
+
+	* interbase/extlib/fbudf.cpp:
+	
+	Return NULL properly when using the RETURNS PARAMETER <n> syntax.
+
+2001-09-19 10:37  robocop
+
+	* interbase/extlib/fbudf.sql:
+	
+	Avoid phantom errors in the script.
+
+2001-09-19 10:36  robocop
+
+	* interbase/jrd/fun.e:
+	
+	An UDF using an input parameter by descriptor as return parameter
+	should be able to signal that it's returning NULL.
+
+2001-09-19 10:34  robocop
+
+	* interbase/dsql/: array.e, blob.e:
+	
+	Fix for embedded blanks in names
+
 2001-09-18 20:42  awharrison
 
 	* interbase/jrd/dfw.e:
