@@ -53,6 +53,7 @@
 #include "../jrd/isc_f_proto.h"
 #include "../jrd/thd_proto.h"
 #include "../jrd/vio_proto.h"
+#include "../jrd/dsc_proto.h"
 #ifndef WINDOWS_ONLY
 #include "../jrd/ail_proto.h"
 #endif
@@ -489,6 +490,15 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 		    switch (new_dom->dyn_dtype)
 			{
+
+            case blr_text:
+            case blr_text2:
+            case blr_varying:
+            case blr_varying2:
+            case blr_cstring:
+            case blr_cstring2:
+                new_dom->dyn_dsc.dsc_length = DSC_string_length (new_dom);
+                break; 
 			case blr_short :	
 			    new_dom->dyn_dsc.dsc_length = 2; 
 			    break;
@@ -1223,7 +1233,7 @@ void DYN_modify_procedure (
  *
  *	D Y N _ m o d i f y _ p r o c e d u r e
  *
-/**************************************
+ **************************************
  *
  * Functional description
  *	Execute a dynamic ddl statement.
@@ -2209,10 +2219,19 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 		case gds__dyn_fld_type:
 		    dtype = TRUE;
-                    new_fld->dyn_dtype = DYN_get_number (ptr);
+            new_fld->dyn_dtype = DYN_get_number (ptr);
 
 		    switch (new_fld->dyn_dtype)
 			{
+            case blr_text:
+            case blr_text2:
+            case blr_varying:
+            case blr_varying2:
+            case blr_cstring:
+            case blr_cstring2:
+                new_fld->dyn_dsc.dsc_length = DSC_string_length (new_fld);
+                break; 
+
 			case blr_short :	
 			    new_fld->dyn_dsc.dsc_length = 2; 
 			    break;
