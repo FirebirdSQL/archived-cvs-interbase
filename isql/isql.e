@@ -7507,7 +7507,8 @@ if (Sqlda_display)
 	    ISQL_warning (isc_status);
 	}
 
-    if (input_sqlda->sqld > 0)
+ if ((statement_type == isc_info_sql_stmt_select) 
+    || statement_type == isc_info_sql_stmt_select_for_upd)
 	{
 	UCHAR	buffer [100];
 	USHORT	i;
@@ -7581,7 +7582,8 @@ if (Plan)
 	
 /* If the statement isn't a select, execute it and be done */
 
-if (!sqlda->sqld)
+if (statement_type != isc_info_sql_stmt_select 
+    && statement_type != isc_info_sql_stmt_select_for_upd)
     {
     /* If this is an autocommit, put the DDL stmt on a special trans */
 
@@ -7767,7 +7769,8 @@ if (Sqlda_display)
 
 nullind = (SSHORT*) ISQL_ALLOC ((SLONG) (n_cols * sizeof(SSHORT)));
 #ifdef DEBUG_GDS_ALLOC
-gds_alloc_flag_unfreed ((void *) nullind);
+if (nullind)
+	gds_alloc_flag_unfreed ((void *) nullind);
 #endif
 for (nullp = nullind, var = sqlda->sqlvar, end = var + sqlda->sqld; var < end; var++)
     {
