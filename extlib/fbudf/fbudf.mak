@@ -49,7 +49,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "../../interbase/include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /Fp"$(INTDIR)\fbudf.pch" /Yu"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c
+CPP_PROJ=/nologo /MD /W3 /GX /O2 /I "$(INTERBASE)/include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /Fp"$(INTDIR)\fbudf.pch" /Yu"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -89,7 +89,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\fbudf.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=GDS32_MS.LIB /nologo /dll /incremental:no /pdb:"$(OUTDIR)\fbudf.pdb" /machine:I386 /out:"$(OUTDIR)\fbudf.dll" /implib:"$(OUTDIR)\fbudf.lib" /libpath:"H:\ibdev\fbbuild\interbase\interbase\lib" 
+LINK32_FLAGS=GDS32_MS.LIB /nologo /dll /incremental:no /pdb:"$(OUTDIR)\fbudf.pdb" /machine:I386 /out:"$(OUTDIR)\fbudf.dll" /implib:"$(OUTDIR)\fbudf.lib" /libpath:"$(INTERBASE)/lib" 
 LINK32_OBJS= \
 	"$(INTDIR)\fbudf.obj" \
 	"$(INTDIR)\StdAfx.obj"
@@ -126,7 +126,7 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MDd /W4 /Gm /GX /ZI /Od /I "../../interbase/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /Fp"$(INTDIR)\fbudf.pch" /Yu"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c
+CPP_PROJ=/nologo /MTd /W4 /Gm /GX /ZI /Od /I "$(INTERBASE)/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /D "_WINDLL" /Fp"$(INTDIR)\fbudf.pch" /Yu"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -198,7 +198,7 @@ SOURCE=.\StdAfx.cpp
 
 !IF  "$(CFG)" == "fbudf - Win32 Release"
 
-CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../interbase/include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /Fp"$(INTDIR)\fbudf.pch" /Yc"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c
+CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "$(INTERBASE)/include" /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /Fp"$(INTDIR)\fbudf.pch" /Yc"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 "$(INTDIR)\StdAfx.obj"	"$(INTDIR)\fbudf.pch" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<
@@ -208,7 +208,7 @@ CPP_SWITCHES=/nologo /MD /W3 /GX /O2 /I "../../interbase/include" /D "WIN32" /D 
 
 !ELSEIF  "$(CFG)" == "fbudf - Win32 Debug"
 
-CPP_SWITCHES=/nologo /MDd /W4 /Gm /GX /ZI /Od /I "../../interbase/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /Fp"$(INTDIR)\fbudf.pch" /Yc"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c
+CPP_SWITCHES=/nologo /MTd /W4 /Gm /GX /ZI /Od /I "$(INTERBASE)/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "FBUDF_EXPORTS" /D "_WINDLL" /Fp"$(INTDIR)\fbudf.pch" /Yc"stdafx.h" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 "$(INTDIR)\StdAfx.obj"	"$(INTDIR)\fbudf.pch" : $(SOURCE) "$(INTDIR)"
 	$(CPP) @<<

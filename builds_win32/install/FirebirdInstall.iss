@@ -349,7 +349,7 @@ if CurStep=csFinished then begin
   if ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes then begin
     AppStr := StartApp('')+' -a';
 
-    RegWriteStringValue (HKCU, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 'Firebird', AppStr);
+    RegWriteStringValue (HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 'Firebird', AppStr);
 
   end;
 end;

@@ -169,8 +169,8 @@ if errorlevel 1 goto fail
 
 ::Add in command-line build of fbudf
 cd fbudf
-nmake %FLAGS% -ffbudf.mak
-if errorlevel 1 goto fail
+nmake %FLAGS% /f "fbudf.mak" CFG="fbudf - Win32 Release"
+if errorlevel 1 ((cd ..) & (goto fail) )
 cd ..\..
 
 
