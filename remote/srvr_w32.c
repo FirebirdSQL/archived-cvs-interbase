@@ -66,6 +66,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.11.20: Claudio Valderrama: Honor -b in SS for high priority.
 */
 
 /*
@@ -194,6 +195,12 @@ else
 	 server_flag |= SRVR_inet;
 
 server_flag |= SRVR_ipc;
+
+/* CVC: Honor -b for SS on Win32. */
+#ifdef SUPERSERVER
+if (server_flag & SRVR_high_priority)
+	SetPriorityClass (GetCurrentProcess (), HIGH_PRIORITY_CLASS);
+#endif
 
 /* Initialize the service and
 	Setup sig_mutex for the process
