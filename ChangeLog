@@ -1,3 +1,15 @@
+2001-10-17 07:02  tamlin
+
+	* interbase/remote/srvr_w32.c:
+	
+	Win32 CPU affinity
+
+2001-10-17 07:02  tamlin
+
+	* interbase/jrd/: ibase.h, isc.c, isc.h, winnt.c:
+	
+	Win32: CPU affinity and open DB files in non-shared mode.
+
 2001-10-15 12:14  nmcc
 
 	* interbase/isql/isql.e:
