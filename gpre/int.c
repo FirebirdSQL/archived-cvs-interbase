@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings in generated code
  */
 
 #include "../jrd/ib_stdio.h"
@@ -332,7 +333,7 @@ db = request->req_database;
 symbol = db->dbb_name;
 ib_fprintf (out_file, "if (!%s)", request->req_handle);
 align (column);
-ib_fprintf (out_file, "%s = (BLK) CMP_compile2 (tdbb, jrd_%d, TRUE);",
+ib_fprintf (out_file, "%s = (BLK) CMP_compile2 (tdbb, (UCHAR*)jrd_%d, TRUE);",
 	request->req_handle, request->req_ident);
 }
 
@@ -610,7 +611,7 @@ static void gen_receive (
  *
  **************************************/
 
-ib_fprintf (out_file, "EXE_receive (tdbb, %s, %d, %d, &jrd_%d);",
+ib_fprintf (out_file, "EXE_receive (tdbb, (REQ)%s, %d, %d, (UCHAR*)&jrd_%d);",
     request->req_handle,	port->por_msg_number,
     port->por_length,		port->por_ident);
 }
@@ -755,7 +756,7 @@ static void gen_send (
  *
  **************************************/
 align (column);
-ib_fprintf (out_file, "EXE_send (tdbb, %s, %d, %d, &jrd_%d);",
+ib_fprintf (out_file, "EXE_send (tdbb, (REQ)%s, %d, %d, (UCHAR*)&jrd_%d);",
     request->req_handle,
     port->por_msg_number,
     port->por_length,
@@ -779,7 +780,7 @@ static void gen_start (
  **************************************/
 align (column);
 
-ib_fprintf (out_file, "EXE_start (tdbb, %s, %s);", request->req_handle, request->req_trans);
+ib_fprintf (out_file, "EXE_start (tdbb, (REQ)%s, %s);", request->req_handle, request->req_trans);
 
 if (port)
     gen_send (request, port, column);
