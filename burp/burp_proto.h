@@ -38,7 +38,7 @@ extern void	BURP_print_status (STATUS *);
 extern void	BURP_error_redirect (STATUS *, USHORT, void *, void *);
 extern void	BURP_msg_partial (USHORT, void *, void *, void *, void *, void *);
 extern void	BURP_msg_put (USHORT, void *, void *, void *, void *, void *);
-extern void	BURP_msg_get (USHORT, void *, void *, void *, void *, void *, void *);
+extern void	BURP_msg_get (USHORT, TEXT *, void *, void *, void *, void *, void *);
 extern void	BURP_output_version (TEXT *, TEXT *);
 extern void	BURP_print (USHORT, void *, void *, void *, void *, void *);
 extern void	BURP_print_warning (STATUS*);
