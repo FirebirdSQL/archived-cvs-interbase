@@ -332,6 +332,17 @@ fixFilePermissions() {
     chmod ug=rw,o= isc4.gdb
 
 
+    # Set a default of read all files in includes
+
+    cd include
+
+    for i in `ls`
+      do
+         chmod a=r  $i
+    done
+
+    cd ..
+
     # Set a default of read all files in examples
 
     cd examples
