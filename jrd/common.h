@@ -565,6 +565,7 @@ typedef unsigned int64	UATOM;
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
 #define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
 #define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
+#define SYSCALL_INTERRUPTED(err)        (((err) == EINTR) || ((err) == ERESTART)) /* pjpg 20001102 */
 #define INTL
 #define VOLATILE	volatile
 #else           /* AIX PowerPC */
@@ -586,6 +587,7 @@ typedef unsigned int64	UATOM;
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
 #define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
 #define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
+#define SYSCALL_INTERRUPTED(err)        (((err) == EINTR) || ((err) == ERESTART)) /* pjpg 20001102 */
 #define INTL
 #define VOLATILE	volatile
 
