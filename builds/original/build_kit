@@ -79,9 +79,9 @@ export PATH
 
 #Build superserver if directory source/super exists
 if [ $2 = SUPER ]; then
-    make super_firebird 
+    make -f make_kit super_firebird 
 else
-    make firebird  
+    make -f make_kit firebird  
 fi
 
 #if [ $2 = SUPER ]; then
