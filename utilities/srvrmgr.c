@@ -20,6 +20,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Id$
  */
  
 #include "../jrd/ib_stdio.h"
@@ -485,6 +486,8 @@ gds__prefix (path, SERVER_GUARDIAN);
 argv[0] = path;
 if (data->suboperation == SOP_START_ONCE)
     argv[1] = "-o";
+else if (data->suboperation == SOP_START_SIGNORE)
+    argv[1] = "-s";
 else
     argv[1] = "-f";
 argv[2] = NULL;

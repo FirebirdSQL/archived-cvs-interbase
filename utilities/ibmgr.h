@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Id$
  */
 
 #ifndef _UTILITIES_IBMGR_H_
@@ -73,7 +74,7 @@
 #define SOP_SHUT_NOTR		5
 #define SOP_SHUT_IGN		6
 #define SOP_PRINT_POOL		7
-
+#define SOP_START_SIGNORE        8
 
 /* Flags that are used in "par_entered" field of the IBMGR_DATA.
 */

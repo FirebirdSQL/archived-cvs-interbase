@@ -20,6 +20,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Id$
  */
 
 #include "../jrd/ib_stdio.h"
@@ -411,6 +412,7 @@ for (--argc; argc > 0; argc--)
 	    case IN_SW_IBMGR_START:
 	    case IN_SW_IBMGR_ONCE:
 	    case IN_SW_IBMGR_FOREVER:
+	    case IN_SW_IBMGR_SIGNORE:
 	    case IN_SW_IBMGR_SHUT:
 	    case IN_SW_IBMGR_NOW:
 	    case IN_SW_IBMGR_NOAT:
@@ -604,6 +606,7 @@ for (--argc; argc > 0; argc--)
 
 	    case IN_SW_IBMGR_ONCE:
 	    case IN_SW_IBMGR_FOREVER:
+	    case IN_SW_IBMGR_SIGNORE:
 	    case IN_SW_IBMGR_NOW:
 	    case IN_SW_IBMGR_NOAT:
 	    case IN_SW_IBMGR_NOTR:
@@ -638,13 +641,16 @@ for (--argc; argc > 0; argc--)
 		    {
 		    case IN_SW_IBMGR_ONCE:
 		    case IN_SW_IBMGR_FOREVER:
-			if (ibmgr_data->operation != OP_START)
+                    case IN_SW_IBMGR_SIGNORE:
+                    if (ibmgr_data->operation != OP_START)
 			    {
 			    err_msg_no = MSG_INVSWOP;
 			    break;
 			    }
 			if (in_sw == IN_SW_IBMGR_ONCE)
 			    ibmgr_data->suboperation = SOP_START_ONCE;
+			else if (in_sw == IN_SW_IBMGR_SIGNORE)
+			    ibmgr_data->suboperation = SOP_START_SIGNORE;
 			else
 			    ibmgr_data->suboperation = SOP_START_FOREVER;
 			break;
@@ -795,7 +801,7 @@ ib_fprintf (OUTFILE, "\n\n");
 ib_fprintf (OUTFILE, "Usage:		ibmgr -command [-option [parameter]]\n\n");
 ib_fprintf (OUTFILE, "or		ibmgr<RETURN>\n");
 ib_fprintf (OUTFILE, "		IBMGR> command [-option [parameter]]\n\n");
-ib_fprintf (OUTFILE, "Commands are:	start [-once|-forever]	start server\n");
+ib_fprintf (OUTFILE, "Commands are:	start [-once|-signore|-forever]	start server\n");
 ib_fprintf (OUTFILE, "		shut  [-now]		shutdown server\n");
 ib_fprintf (OUTFILE, "		show			show host and user\n");
 ib_fprintf (OUTFILE, "		user <user_name>	set user name\n");
@@ -805,7 +811,7 @@ ib_fprintf (OUTFILE, "		quit			quit prompt mode\n\n");
 ib_fprintf (OUTFILE, "Command switches 'user' and 'password' can also be used\n");
 ib_fprintf (OUTFILE, "as an option switches for commands like start or shut.\n");
 ib_fprintf (OUTFILE, "For example, to shutdown server you can: \n\n");
-ib_fprintf (OUTFILE, "ibmgr -shut -password <password>\n\ \n");
+ib_fprintf (OUTFILE, "ibmgr -shut -password <password>\n\n");
 ib_fprintf (OUTFILE, "or\n\n");
 ib_fprintf (OUTFILE, "ibmgr<RETURN>\n");
 ib_fprintf (OUTFILE, "IBMGR> shut -password <password>\n\n");

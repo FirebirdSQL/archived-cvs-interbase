@@ -15,11 +15,13 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Id$
  */
-/* contains the main() and not shared routines for ibguard */
+ /* contains the main() and not shared routines for ibguard */
 
 #define FOREVER		1
 #define ONETIME		2
+#define IGNORE          3
 #define NORMAL_EXIT	0
 
 #define SUPER_SERVER_BINARY	"bin/ibserver"
@@ -81,8 +83,11 @@ while (argv < end)
             case 'O' :
                 option = ONETIME;
                 break;
+            case 'S':
+                option = IGNORE;
+                break;
             default  :
-		ib_fprintf (ib_stderr, "Usage: %s [-onetime | -forever (default)]\n",
+		ib_fprintf (ib_stderr, "Usage: %s [-signore | -onetime | -forever (default)]\n",
 			 prog_name);
 		exit (-1);
 		break;
@@ -150,15 +155,29 @@ do
 	    gds__log ("%s: %s terminated due to startup error (%d)\n", 
                 prog_name, server_args [1] ? server_args [1] : 
                    SUPER_SERVER_BINARY, ret_code);
-	    done = TRUE; /* do not restart we have a startup problem */
-
+	    if (option == IGNORE)
+	        {
+	         gds__log ("%s: %s terminated due to startup error (%d)\n Trying again\n",
+	                    prog_name, server_args [1] ? server_args [1] :
+	                    SUPER_SERVER_BINARY, ret_code);
+	                                                 
+	        done = FALSE; /* Try it again, Sam (even if it is a startup error) FSG 8.11.2000*/
+                }
+            else
+                {
+                gds__log ("%s: %s terminated due to startup error (%d)\n",
+                          prog_name, server_args [1] ? server_args [1] :
+                          SUPER_SERVER_BINARY, ret_code);
+                                                         
+                done = TRUE;  /* do not restart we have a startup problem */
+                } 
 	    }
 	else
 	    {
             gds__log ("%s: %s terminated abnormally (%d)\n", prog_name, 
 		server_args [1] ? server_args [1] : SUPER_SERVER_BINARY,
 		ret_code);
-	    if (option == FOREVER)
+	    if (option == FOREVER || option == IGNORE)
 	        done = FALSE;
 	    }
         }
