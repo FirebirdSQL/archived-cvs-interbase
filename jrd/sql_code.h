@@ -520,6 +520,7 @@ static CONST SSHORT FAR_VARIABLE gds__sql_code [] = {
 -607 /* 495 generator_name                   */,
 -607 /* 496 udf_name                         */,
 -204 /* 497 bad_limit_param                  */,
+-204 /* 498 bad_skip_param                   */,
 -901 /*   1 gfix_db_name                     */,
 -901 /*   2 gfix_invalid_sw                  */,
 -901 /*   4 gfix_incmp_sw                    */,

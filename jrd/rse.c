@@ -743,8 +743,9 @@ while (TRUE)
 	    ((IRSB_SKIP)impure)->irsb_count =
 		MOV_get_int64 (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
 
-            if (((IRSB_SKIP)impure)->irsb_count < 1)
-                ERR_post (gds__bad_limit_param, 0);
+            if (((IRSB_SKIP)impure)->irsb_count < 0)
+                ERR_post (gds__bad_skip_param, 0);
+            ((IRSB_SKIP)impure)->irsb_count++;
 
 	    rsb = rsb->rsb_next;
 	    break;
