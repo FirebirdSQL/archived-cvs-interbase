@@ -31,8 +31,10 @@
 #include "../alice/aliceswi.h"
 #include "../alice/all.h" 
 #include "../alice/all_proto.h"
+#include "../alice/met_proto.h"
 #include "../alice/tdr_proto.h"
 #include "../jrd/gds_proto.h"
+#include "../jrd/thd_proto.h"
 
 #ifdef APOLLO
 #include <apollo/base.h>
@@ -56,7 +58,7 @@ static TEXT             val_errors [] = {
 #define MAXPATHLEN	1024
 #endif
 
-#define STUFF_DPB(blr)  {*d++ = (blr);}
+#define STUFF_DPB(blr)  {*d++ = (UCHAR)(blr);}
 #define STUFF_DPB_INT(blr)      {STUFF_DPB (blr); STUFF_DPB ((blr) >> 8); STUFF_DPB ((blr) >> 16); STUFF_DPB ((blr) >> 24);}
 
 
@@ -254,7 +256,9 @@ else if (switches & sw_housekeeping)
     *d++ = gds__dpb_sweep_interval;
     *d++ = 4;
     for (i = 0; i < 4; i++, tdgbl->ALICE_data.ua_sweep_interval = tdgbl->ALICE_data.ua_sweep_interval >> 8)
-        *d++ = tdgbl->ALICE_data.ua_sweep_interval;
+        /* TMN: Here we should really have the following assert */
+        /* assert(tdgbl->ALICE_data.ua_sweep_interval <= MAX_UCHAR); */
+        *d++ = (UCHAR)tdgbl->ALICE_data.ua_sweep_interval;
     }
 else if (switches & sw_begin_log)
     {
@@ -268,7 +272,9 @@ else if (switches & sw_buffers)
     *d++ = isc_dpb_set_page_buffers;
     *d++ = 4;
     for (i = 0; i < 4; i++, tdgbl->ALICE_data.ua_page_buffers = tdgbl->ALICE_data.ua_page_buffers >> 8)
-        *d++ = tdgbl->ALICE_data.ua_page_buffers;
+        /* TMN: Here we should really have the following assert */
+        /* assert(tdgbl->ALICE_data.ua_page_buffers <= MAX_UCHAR); */
+        *d++ = (UCHAR)tdgbl->ALICE_data.ua_page_buffers;
     }
 else if (switches & sw_quit_log)
     {
@@ -316,8 +322,11 @@ else if (switches & sw_shut)
     d++;
     *d++ = gds__dpb_shutdown_delay;
     *d++ = 2;			/* Build room for shutdown delay */
-    *d++ = tdgbl->ALICE_data.ua_shutdown_delay;
-    *d++ = tdgbl->ALICE_data.ua_shutdown_delay >> 8;
+    /* TMN: Here we should really have the following assert */
+    /* assert(tdgbl->ALICE_data.ua_page_buffers <= MAX_USHORT); */
+    /* or maybe even compare with MAX_SSHORT */
+    *d++ = (UCHAR)tdgbl->ALICE_data.ua_shutdown_delay;
+    *d++ = (UCHAR)(tdgbl->ALICE_data.ua_shutdown_delay >> 8);
     }
 else if (switches & sw_online)
     {
@@ -381,7 +390,7 @@ static void extract_db_info (
  *
  **************************************/
 UCHAR	item;
-UCHAR	*d, *p;
+UCHAR	*p;
 SLONG	length;
 TGBL	tdgbl;
 
@@ -393,40 +402,44 @@ while ((item = *p++) != gds__info_end)
     {
     length = gds__vax_integer (p, 2);
     p += 2;
+
+    /* TMN: Here we should really have the following assert */
+    /* assert(length <= MAX_SSHORT); */
+	/* for all cases that use 'length' as input to 'gds__vax_integer' */
     switch (item)
 	{
 	case isc_info_page_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_PAGE_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_PAGE_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
 	case isc_info_record_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_RECORD_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_RECORD_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
 	case isc_info_bpage_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_BLOB_PAGE_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_BLOB_PAGE_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
 	case isc_info_dpage_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_DATA_PAGE_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_DATA_PAGE_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
 	case isc_info_ipage_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_INDEX_PAGE_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_INDEX_PAGE_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
 	case isc_info_ppage_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_POINTER_PAGE_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_POINTER_PAGE_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
 	case isc_info_tpage_errors:
-	    tdgbl->ALICE_data.ua_val_errors [VAL_TIP_PAGE_ERRORS] = gds__vax_integer (p, length);
+	    tdgbl->ALICE_data.ua_val_errors [VAL_TIP_PAGE_ERRORS] = gds__vax_integer (p, (SSHORT)length);
 	    p += length;
 	    break;
 
