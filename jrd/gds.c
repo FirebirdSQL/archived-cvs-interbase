@@ -3483,9 +3483,13 @@ the memory back to a system-wide heap.
 against of previos sun releases */
 
 memory = mmap (NULL, size, (PROT_READ | PROT_WRITE),
+#ifndef MAP_ANON
 	       (MAP_ANONYMOUS | 
-#ifndef LINUX
-/* In LINUX and Solaris are is no such thing as MAP_VARIABLE. Hence, it gives 
+#else
+	       (MAP_ANON | 
+#endif
+#if (!defined LINUX && !defined DARWIN)
+/* In LINUX, Solaris, and Darwin there is no such thing as MAP_VARIABLE. Hence, it gives 
    compilation error. The equivalent functionality is default, 
    if you do not specify MAP_FIXED */
 		MAP_VARIABLE | 
