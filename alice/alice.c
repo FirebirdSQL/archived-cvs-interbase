@@ -440,7 +440,7 @@ while (--argc > 0)
     if (table->in_sw_value & (sw_set_db_dialect))
 	{
 	if (--argc <= 0)
-	    ALICE_error (9,0,0,0,0,0); /* msg 9: dialect info is required XXX */
+	    ALICE_error (113,0,0,0,0,0); /* msg 113: dialect number required */
 
 	ALICE_down_case (*argv++, string);
 
