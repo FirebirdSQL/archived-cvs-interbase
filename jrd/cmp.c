@@ -20,6 +20,7 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.07.28: John Bellardo: Added code to handle rse_skip.
+ * 2001.07.17 Claudio Valderrama: Stop crash when parsing user-supplied SQL plan.
  */
 /*
 $Id$
@@ -5042,9 +5043,13 @@ if (tail->csb_map)
 	    /* match the user-supplied alias with the alias supplied
                with the view definition; failing that, try the base
 	       table name itself */
+		/* CVC: I found that "relation" can be NULL, too. This may be an
+		indication of a logic flaw while parsing the user supplied SQL plan
+		and not an oversight here. It's hard to imagine a csb->csb_rpt with
+		a NULL relation. See exe.h for csb struct and its inner csb_repeat struct. */
 
 	    if ((alias && !strcmp_space (alias->str_data, p)) ||
-	        !strcmp_space (relation->rel_name, p))
+	        (relation && !strcmp_space (relation->rel_name, p)))
 		break;
 	    }
 
