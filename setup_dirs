@@ -309,6 +309,7 @@ then
 
         cd super/jrd                                  # TMC 081100
         refreshLink ../../jrd/yachts.gdb yachts.gdb   # TMC 081100
+        refreshLink ../../jrd/isc.gdb    isc.gdb      # FSG 090800
         cd ../..                                      # TMC 081100 
 
 echo "- Creating messages link"

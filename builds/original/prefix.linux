@@ -62,7 +62,12 @@ BACKEND_BRIDGE_MISC=	head5.o allp.o
 BIN_PATH=		/usr/isc/bin
 BRIDGE_MISC=		head5.o allp.o
 CHMOD_VAL=		666
-CURSES_LIB=             -lbsd
+
+#NOTE: I removed CURSES_LIB=  -lbsd because it breaks the build on SuSE systems
+#      and isn't necessary anymore. 
+#FSG  091500    
+
+CURSES_LIB=             
 DSQL_P_OBJS=		dsql_p_objects
 FORM_OBJECTS=		form.o
 FORM_TRN_OBJECTS=	form_trn.o
