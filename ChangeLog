@@ -1,3 +1,34 @@
+2002-06-05 02:23  bellardo
+
+	* interbase/: this_build (1.827), this_build (1.826), this_build
+	(1.825), this_build (1.829), this_build (1.828), this_build
+	(1.831), this_build (1.830), this_build (1.833), this_build
+	(1.832):
+	
+	inc_build_no
+
+2002-06-05 02:23  bellardo
+
+	* interbase/: Configure.sh (1.12),
+	builds/original/boot.sfx.interbase (1.6),
+	builds/original/prefix.sinixz (1.2), dsql/make.c (1.10),
+	gpre/c_cxx.c (1.4), gpre/cmd.c (1.3), gpre/cmp.c (1.3),
+	isql/extract.e (1.12), jrd/build_no.h (1.5), jrd/event.c (1.4),
+	jrd/event_proto.h (1.2), jrd/gds.c (1.14), jrd/ibase.h (1.19),
+	jrd/isc_file.c (1.9), jrd/perf.c (1.2), jrd/rec.c (1.2),
+	jrd/rec_proto.h (1.2), jrd/unix.c (1.9), jrd/val.c (1.2),
+	jrd/vmsevent.c (1.2), qli/mov.c (1.2), remote/protocol.c (1.2),
+	utilities/dropv3.c (1.4), utilities/drpv3_proto.h (1.2):
+	
+	More contributions from Erik Kunze:	improved SINUZ support 
+	warning cleanup 	function return type cleanup
+
+2002-05-02 11:43  fsg
+
+	* interbase/this_build (1.824):
+	
+	inc_build_no
+
 2002-04-30 11:28  kkuznetsov
 
 	* interbase/: builds/original/prefix.solx86 (1.5), jrd/intl.c
