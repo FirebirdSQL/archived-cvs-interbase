@@ -1,3 +1,21 @@
+2001-08-27 15:03  nmcc
+
+	* interbase/jrd/idx.h:
+	
+	This backs out the made to the index RDB$INDEX_16 on RDB$FORMATS
+	made in v1.2 as it breaks TCS test C_DSQL_RI_ALT_ADD.  The problem
+	that some system tables are updated immediately and have no
+	transaction rollback capabilities. For more details see the
+	firebird-devel mailing list :- 06-Aug-2001 subject: Domains,
+	constraints and visibility of changes 12-Aug-2001 subject: TCS
+	failure in C_DSQL_RI_ALT_ADD - possible bug
+
+2001-08-27 10:59  kkuznetsov
+
+	* interbase/firebird/kkuznetsov/install.solx86/install.ksh:
+	
+	[no log message]
+
 2001-08-24 02:42  bellardo
 
 	* interbase/: builds/original/prefix.darwin,
