@@ -1,3 +1,12 @@
+2001-08-21 18:22  skywalker
+
+	* interbase/firebird/skywalker/install/: classic/CSpreinstall.sh,
+	super/SSpostinstall.sh, super/SSpreinstall.sh,
+	super/SSpreuninstall.sh:
+	
+	Changed to check for port 3050 listen and to move init.d scripts
+	into /etc/rc.d/init.d which then also works on RedHat6.2
+
 2001-08-19 05:49  robocop
 
 	* interbase/dsql/: ddl.c, dsql.c, node.h, parse.c, parse.y,
