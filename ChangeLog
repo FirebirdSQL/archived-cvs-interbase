@@ -1,3 +1,24 @@
+2002-12-09 19:28  paul_reeves
+
+	* interbase/: builds_win32/install/BuildExecutableInstall.bat,
+	builds_win32/install/FirebirdInstall.iss,
+	builds_win32/install/Readme.txt,
+	builds_win32/install/installation_readme.txt,
+	builds_win32/original/build_lib.bat, extlib/fbudf/fbudf.dsp,
+	extlib/fbudf/fbudf.mak:
+	
+	Updated Firebird1 install script for Win32. Updated readme and
+	install notes for Win32.
+
+2002-12-09 18:26  paul_reeves
+
+	* interbase/: builds_win32/original/build_no.ksh,
+	firebird/install/linux/Makefile,
+	firebird/install/linux/misc/README,
+	firebird/install/linux/super/postinstall.sh:
+	
+	Update Linux readme and install scripts
+
 2002-12-04 16:14  pcisar
 
 	* interbase/firebird/install/linux/: misc/firebird.init.d.suse,
