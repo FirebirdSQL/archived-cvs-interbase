@@ -1,3 +1,10 @@
+2001-08-16 13:25  kkuznetsov
+
+	* interbase/jrd/common.h:
+	
+	
+	for offset cast added
+
 2001-08-15 08:59  kkuznetsov
 
 	* interbase/builds/original/prefix.solx86:
