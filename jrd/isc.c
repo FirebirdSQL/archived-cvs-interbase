@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -2512,8 +2515,13 @@ SLONG ISC_get_user_group_id (
  *                  ---  for UNIX platform  ---
  *
  **************************************/        
-
+#ifdef AIX_PPC
+#define _UNIX95
+#endif
 #include <grp.h>
+#ifdef AIX_PPC
+#undef _UNIX95
+#endif
 extern	struct	group	*getgrnam();
 struct	group	*user_group;
 SLONG	n;
