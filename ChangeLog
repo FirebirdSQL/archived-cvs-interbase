@@ -1,3 +1,21 @@
+2000-11-27 10:26  fsg
+
+	* interbase/gpre/: form.c, form_trn.c, gpre.h, par.c:
+	
+	Fixed bugs in gpre to handle PYXIS forms and allow edit.e and
+	fred.e to go through gpre without errors (and correct result).
+	
+	This is a partial fix until all PYXIS datatypes are adjusted in
+	frm_trn.c
+	
+	removed some compiler warnings too
+
+2000-11-24 18:33  fsg
+
+	* interbase/ChangeLog:
+	
+	Updated ChangeLog
+
 2000-11-24 18:23  fsg
 
 	* interbase/pyxis/debug.c:
