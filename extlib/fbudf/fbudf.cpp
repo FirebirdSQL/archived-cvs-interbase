@@ -21,6 +21,7 @@
  * 2002.01.07 Claudio Valderrama: change the impolite way truncate and round work,
  *	make null handling more consistent and add dpower(x,y).
  *	Beware the SQL declaration for those functions has changed.
+ * 2002.01.20 Claudio Valderrama: addMonth should work with negative values, too.
  */
 
 
@@ -435,6 +436,11 @@ FBUDF_API ISC_TIMESTAMP* addMonth(ISC_TIMESTAMP* v, int& nmonths)
 	{
 		times.tm_year++;
 		times.tm_mon -= 12;
+	}
+	else if (times.tm_mon < 1)
+	{
+		times.tm_year--;
+		times.tm_mon += 12;
 	}
 	int md[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
 	int ly = times.tm_year + 1900;
