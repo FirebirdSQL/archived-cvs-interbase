@@ -19,10 +19,14 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ *
  * 17-Oct-2001 Mike Nordell: Non-shared file access
+ *
+ * 20-Nov-2001 Ann Harrison: More non-shared file access
  */
 
 #ifdef _MSC_VER
@@ -71,9 +75,11 @@
 #ifdef SUPERSERVER_V2
 static void	release_io_event (FIL, OVERLAPPED *);
 #endif
+static ULONG	get_number_of_pages (FIL, USHORT);
+static BOOL	MaybeCloseFile(SLONG *);
+static BOOLEAN	nt_error (TEXT *, FIL, STATUS, STATUS *);
 static FIL	seek_file (FIL, BDB, STATUS *, OVERLAPPED *, OVERLAPPED **);
 static FIL	setup_file (DBB, TEXT *, USHORT, HANDLE);
-static BOOLEAN	nt_error (TEXT *, FIL, STATUS, STATUS *);
 
 static USHORT	ostype;
 
@@ -92,52 +98,46 @@ static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
 #endif
 
 
-/* A little helper function to clean up closing of file handles. */
-static BOOL MaybeCloseFile(SLONG* pFile)
+
+
+int PIO_add_file(
+	DBB	dbb,
+	FIL	main_file,
+	TEXT*	file_name,
+	SLONG	start)
 {
-	if (pFile && (HANDLE)*pFile != INVALID_HANDLE_VALUE)
-	{
-		CloseHandle((HANDLE)*pFile);
-		*pFile = (SLONG) INVALID_HANDLE_VALUE;
-		return TRUE;
-	}
-	return FALSE;
-}
-
-
 
 /**************************************
+ *
+ *	P I O _ a d d _ f i l e
+ *
+ **************************************
  *
  *	Add a file to an existing database.  Return the sequence
  *	number of the new file.  If anything goes wrong, return a
  *	sequence of 0.
  *
  **************************************/
-int PIO_add_file(
-	DBB		dbb,
-	FIL		main_file,
-	TEXT*	file_name,
-	SLONG	start)
-{
-USHORT	sequence;
-	FIL	file;
+    USHORT	sequence;
+    FIL	file;
 
-	FIL	new_file = PIO_create(dbb, file_name, strlen (file_name), FALSE);
-	if (!new_file) {
-    return 0;
-	}
+    FIL	new_file = PIO_create(dbb, file_name, strlen (file_name), FALSE);
 
-new_file->fil_min_page = start;
-sequence = 1;
+    if (!new_file) 
+       return 0;
 
-	for (file = main_file; file->fil_next; file = file->fil_next) {
-    ++sequence;
-	}
 
-file->fil_max_page = start - 1;
-file->fil_next = new_file;
+    new_file->fil_min_page = start;
+    sequence = 1;
 
-return sequence;
+    for (file = main_file; file->fil_next; file = file->fil_next) 
+	++sequence;
+	
+
+    file->fil_max_page = start - 1;
+    file->fil_next = new_file;
+
+    return sequence;
 }
 
 
@@ -152,26 +152,24 @@ void PIO_close(FIL main_file)
  * Functional description
  *
  **************************************/
-	FIL	file;
+    FIL	file;
 
-	for (file = main_file; file; file = file->fil_next)
+    for (file = main_file; file; file = file->fil_next)
+    {
+	if (MaybeCloseFile(&file->fil_desc) ||
+		MaybeCloseFile(&file->fil_force_write_desc))
 	{
-		if (MaybeCloseFile(&file->fil_desc) ||
-			MaybeCloseFile(&file->fil_force_write_desc))
-		{
 #ifdef SUPERSERVER_V2
-			for (i = 0; i < MAX_FILE_IO; i++)
-			{
-				if (file->fil_io_events [i])
-				{
-					CloseHandle ((HANDLE) file->fil_io_events [i]);
-					file->fil_io_events[i] = 0;
-				}
-			}
-#endif
-			THD_MUTEX_DESTROY (file->fil_mutex);
+	    for (i = 0; i < MAX_FILE_IO; i++)
+		if (file->fil_io_events [i])
+		{
+		    CloseHandle ((HANDLE) file->fil_io_events [i]);
+		    file->fil_io_events[i] = 0;
 		}
+#endif
+	    THD_MUTEX_DESTROY (file->fil_mutex);
 	}
+    }
 }
 
 
@@ -197,18 +195,20 @@ int PIO_connection (
 return 0;
 }
 
-
-
+FIL PIO_create(	DBB	dbb,
+		TEXT*	string,
+		SSHORT	length,
+		BOOLEAN	overwrite)
+{
 /**************************************
+ *
+ *	P I O _ c r e a t e
+ *
+ **************************************
  *
  *	Create a new database file.
  *
  **************************************/
-FIL PIO_create(	DBB		dbb,
-				TEXT*	string,
-				SSHORT	length,
-				BOOLEAN	overwrite)
-{
 HANDLE	desc;
 FIL	file;
 	TEXT	workspace[MAXPATHLEN];
@@ -223,28 +223,26 @@ if (length)
     file_name = workspace;
     }
 
-	desc = CreateFile(	file_name,
-	GENERIC_READ | GENERIC_WRITE,
-						g_dwShareFlags,
-	NULL,
-	(overwrite ? CREATE_ALWAYS : CREATE_NEW) ,
-	FILE_ATTRIBUTE_NORMAL |
-						g_dwExtraFlags,
-						0);
+desc = CreateFile( file_name, GENERIC_READ | GENERIC_WRITE,
+		    g_dwShareFlags, NULL,
+		    (overwrite ? CREATE_ALWAYS : CREATE_NEW) ,
+		    FILE_ATTRIBUTE_NORMAL |
+		    g_dwExtraFlags,
+		    0);
 
-	if (desc == INVALID_HANDLE_VALUE)
-	{
+if (desc == INVALID_HANDLE_VALUE)
+    {
     ERR_post (isc_io_error,
 	gds_arg_string, "CreateFile (create)",
-					gds_arg_cstring,
-					length,
-					ERR_string(string, length),
-					isc_arg_gds,
-					isc_io_create_err,
-					gds_arg_win32,
-					GetLastError(),
-					0);
-	}
+			gds_arg_cstring,
+			length,
+			ERR_string(string, length),
+			isc_arg_gds,
+			isc_io_create_err,
+			gds_arg_win32,
+			GetLastError(),
+			0);
+    }
 
 /* File open succeeded.  Now expand the file name. */
 /* workspace is the exapnded name here */
@@ -327,38 +325,32 @@ if (flag)
 	/* the files for exclusive access */
 	MaybeCloseFile(&file->fil_desc);
 	desc = CreateFile (file->fil_string,
-	    GENERIC_READ | GENERIC_WRITE,
-								g_dwShareFlags,
-	    NULL,
-	    OPEN_EXISTING,
-	    FILE_ATTRIBUTE_NORMAL |
-	    FILE_FLAG_WRITE_THROUGH |
-								g_dwExtraFlags,
-	    0);
+		GENERIC_READ | GENERIC_WRITE,
+		g_dwShareFlags,
+		NULL,
+		OPEN_EXISTING,
+		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH | g_dwExtraFlags,
+		0);
 
 	if (desc == INVALID_HANDLE_VALUE)
-			{
 	    ERR_post (isc_io_error,
-							gds_arg_string,
-							"CreateFile (force write)",
-							gds_arg_cstring,
-							file->fil_length,
-							ERR_string(file->fil_string, file->fil_length),
-            	isc_arg_gds, isc_io_access_err,
-							gds_arg_win32,
-							GetLastError(),
-							0);
-			}
+		    gds_arg_string,
+ 			"CreateFile (force write)",
+			gds_arg_cstring,
+			file->fil_length,
+			ERR_string(file->fil_string, file->fil_length),
+                   	isc_arg_gds, isc_io_access_err,
+			gds_arg_win32,
+			GetLastError(),
+			0);
 
-			/* TMN: Take note! Assumes sizeof(long) == sizeof(void*) ! */
+	/* TMN: Take note! Assumes sizeof(long) == sizeof(void*) ! */
 	file->fil_force_write_desc = (SLONG) desc;
 	}
     file->fil_flags |= (FIL_force_write | FIL_force_write_init);
     }
 else
-	{
     file->fil_flags &= ~FIL_force_write;
-}
 }
 
 
@@ -447,68 +439,51 @@ else
     }
 
 #ifdef SUPERSERVER_V2
-CloseHandle (overlapped.hEvent);
+    CloseHandle (overlapped.hEvent);
 #endif
 
-	if (ostype == OS_CHICAGO) {
-    THD_MUTEX_UNLOCK (file->fil_mutex);
+    if (ostype == OS_CHICAGO) 
+	THD_MUTEX_UNLOCK (file->fil_mutex);
+
 }
-}
 
 
-
-/**************************************
- *
- *	Compute number of pages in file, based only on file size.
- *
- **************************************/
-static ULONG private_PIO_get_number_of_pages(
-	FIL		file,
-	USHORT	pagesize)
+SLONG PIO_max_alloc (
+    DBB dbb)
 {
-	HANDLE		hFile = (HANDLE)file->fil_desc;
-	DWORD		dwFileSizeLow;
-	DWORD		dwFileSizeHigh;
-	ULONGLONG	ullFileSize;
-
-	dwFileSizeLow = GetFileSize(hFile, &dwFileSizeHigh);
-
-	if (dwFileSizeLow == -1) {
-    nt_error ("GetFileSize", file, isc_io_access_err, NULL_PTR);
-	}
-
-	ullFileSize = (((ULONGLONG)dwFileSizeHigh) << 32) + dwFileSizeLow;
-	return (ULONG)((ullFileSize + pagesize - 1) / pagesize);
-}
-
-
 /**************************************
+ *
+ *	P I O _ m a x _ a l l o c
+ *
+ **************************************
  *
  *	Compute last physically allocated page of database.
  *
  **************************************/
-SLONG PIO_max_alloc(DBB dbb)
-{
-	FIL			file = dbb->dbb_file;
-	ULONG		nPages;
+    FIL			file = dbb->dbb_file;
+    ULONG		nPages;
 
-	while (file->fil_next) {
-		file = file->fil_next;
-	}
+    while (file->fil_next) 
+	    file = file->fil_next;
 
-	nPages = private_PIO_get_number_of_pages(file, dbb->dbb_page_size);
 
-	return file->fil_min_page - file->fil_fudge + nPages;
+    nPages = get_number_of_pages(file, dbb->dbb_page_size);
+
+    return file->fil_min_page - file->fil_fudge + nPages;
 }
 
-
+SLONG PIO_act_alloc (
+    DBB dbb)
+{
 /**************************************
+ *
+ *	P I O _ a c t _ a l l o c
+ *
+ **************************************
  *
  *  Compute actual number of physically allocated pages of database.
  *
  **************************************/
-SLONG PIO_act_alloc(DBB dbb)
-{
 FIL	file;
 SLONG tot_pages=0;
 
@@ -517,22 +492,12 @@ SLONG tot_pages=0;
  **  in each file
  **/
 for (file = dbb->dbb_file; file != NULL; file = file->fil_next)
-    {
-		tot_pages +=
-			private_PIO_get_number_of_pages(file, dbb->dbb_page_size);
-    }
+    tot_pages += get_number_of_pages(file, dbb->dbb_page_size);
 
 return tot_pages;
 }
 
 
-
-/**************************************
- *
- *	Open a database file.  If a "connection" block is provided, use
- *	the connection to communication with a page/lock server.
- *
- **************************************/
 FIL PIO_open (
     DBB		dbb,
     TEXT	*string,
@@ -542,6 +507,16 @@ FIL PIO_open (
     TEXT	*file_name,
     USHORT	file_length)
 {
+/**************************************
+ *
+ *	P I O _ o p e n
+ *
+ **************************************
+ *
+ *	Open a database file.  If a "connection" block is provided, use
+ *	the connection to communication with a page/lock server.
+ *
+ **************************************/
 TEXT	temp [MAXPATHLEN], *ptr;
 HANDLE	desc;
 
@@ -566,43 +541,42 @@ else
         }
     }
 
-	desc = CreateFile(	ptr,
+desc = CreateFile(	ptr,
 	GENERIC_READ | GENERIC_WRITE,
-						g_dwShareFlags,
+	g_dwShareFlags,
 	NULL,
 	OPEN_EXISTING,
-	FILE_ATTRIBUTE_NORMAL |
-						g_dwExtraFlags,
-						0);
+	FILE_ATTRIBUTE_NORMAL | g_dwExtraFlags,
+	0);
 
-	if (desc == INVALID_HANDLE_VALUE)
+if (desc == INVALID_HANDLE_VALUE)
     {
-		/* Try opening the database file in ReadOnly mode.
-		 * The database file could be on a RO medium (CD-ROM etc.).
-		 * If this fileopen fails, return error.
+    /* Try opening the database file in ReadOnly mode.
+     * The database file could be on a RO medium (CD-ROM etc.).
+     * If this fileopen fails, return error.
      */
-		desc = CreateFile(	ptr,
+    desc = CreateFile(	ptr,
 	    GENERIC_READ,
 	    FILE_SHARE_READ,
 	    NULL,
 	    OPEN_EXISTING,
 	    FILE_ATTRIBUTE_NORMAL |
-							g_dwExtraFlags,
-							0);
+	    g_dwExtraFlags,
+	    0);
 
-		if (desc == INVALID_HANDLE_VALUE)
+if (desc == INVALID_HANDLE_VALUE)
 	{
 	ERR_post (isc_io_error,
-						gds_arg_string,
-						"CreateFile (open)",
-						gds_arg_cstring,
-						file_length,
-						ERR_string(file_name, file_length),
-						isc_arg_gds,
-						isc_io_open_err,
-						gds_arg_win32,
-						GetLastError(),
-						0);
+		gds_arg_string,
+		"CreateFile (open)",
+		gds_arg_cstring,
+		file_length,
+		ERR_string(file_name, file_length),
+		isc_arg_gds,
+		isc_io_open_err,
+		gds_arg_win32,
+		GetLastError(),
+		0);
 	}
     else
 	{
@@ -644,10 +618,10 @@ OVERLAPPED	overlapped, *overlapped_ptr;
 dbb = bdb->bdb_dbb;
 size = dbb->dbb_page_size;
 
-	file = seek_file(file, bdb, status_vector, &overlapped, &overlapped_ptr);
-	if (!file) {
+file = seek_file(file, bdb, status_vector, &overlapped, &overlapped_ptr);
+if (!file) 
     return FALSE;
-	}
+	
 
 desc = (HANDLE) ((file->fil_flags & FIL_force_write) ?
     file->fil_force_write_desc : file->fil_desc);
@@ -671,8 +645,8 @@ if (dbb->dbb_encrypt_key)
 else
 #endif
     {
-		if (!ReadFile(desc, page, size, &actual_length, overlapped_ptr) ||
-			actual_length != size)
+    if (!ReadFile(desc, page, size, &actual_length, overlapped_ptr) ||
+	    actual_length != size)
 		{
 #ifdef SUPERSERVER_V2
 			if (!GetOverlappedResult (desc, overlapped_ptr, &actual_length, TRUE) ||
@@ -684,9 +658,8 @@ else
 #else
 	{
 	if (ostype == OS_CHICAGO)
-				{
 	    THD_MUTEX_UNLOCK (file->fil_mutex);
-				}
+
 	return nt_error ("ReadFile", file, isc_io_read_err, status_vector);
 	}
 #endif
@@ -753,11 +726,9 @@ while (pages)
     bdb.bdb_dbb = dbb;
     bdb.bdb_page = start_page;
 
-		file = seek_file (dbb->dbb_file, &bdb, status_vector, overlapped_ptr, &overlapped_ptr);
-		if (!file)
-		{
+    file = seek_file (dbb->dbb_file, &bdb, status_vector, overlapped_ptr, &overlapped_ptr);
+    if (!file)
     	return FALSE;
-		}
 
     /* Check that every page within the set resides in the same database
        file. If not read what you can and loop back for the rest. */
@@ -823,22 +794,21 @@ int PIO_status (
  **************************************/
 DWORD		actual_length;
 
-	if (!(piob->piob_flags & PIOB_success))
-	{
-		if (piob->piob_flags & PIOB_error)
-		{
-    return FALSE;
-		}
-		if (!GetOverlappedResult(	(HANDLE)piob->piob_desc,
-									(OVERLAPPED*)&piob->piob_io_event,
-									&actual_length,
-									piob->piob_wait) ||
-    actual_length != piob->piob_io_length)
+if (!(piob->piob_flags & PIOB_success))
     {
-    release_io_event (piob->piob_file, (OVERLAPPED *) &piob->piob_io_event);
-    return nt_error ("GetOverlappedResult", piob->piob_file, isc_io_error, status_vector);
-    }
+    if (piob->piob_flags & PIOB_error)
+	return FALSE;
+
+    if (!GetOverlappedResult((HANDLE)piob->piob_desc,
+			    (OVERLAPPED*)&piob->piob_io_event,
+			    &actual_length,
+			    piob->piob_wait) ||
+			    actual_length != piob->piob_io_length)
+	{
+	release_io_event (piob->piob_file, (OVERLAPPED *) &piob->piob_io_event);
+	return nt_error ("GetOverlappedResult", piob->piob_file, isc_io_error, status_vector);
 	}
+    }
 
 release_io_event (piob->piob_file, (OVERLAPPED *) &piob->piob_io_event);
 return TRUE;
@@ -924,6 +894,36 @@ if (ostype == OS_CHICAGO)
 return TRUE;
 }
 
+static ULONG get_number_of_pages (
+	FIL	file,
+	USHORT	pagesize)
+{
+/**************************************
+ *
+ *	g e t _ n u m b e r _ o f _ p a g e s
+ *
+ **************************************
+ *
+ *	Compute number of pages in file, based only on file size.
+ *
+**************************************/
+HANDLE		hFile;
+DWORD		dwFileSizeLow;
+DWORD		dwFileSizeHigh;
+ULONGLONG	ullFileSize;
+
+hFile = (HANDLE) ((file->fil_flags & FIL_force_write) ?
+    file->fil_force_write_desc : file->fil_desc);
+
+dwFileSizeLow = GetFileSize(hFile, &dwFileSizeHigh);
+
+if (dwFileSizeLow == -1) 
+    nt_error ("GetFileSize", file, isc_io_access_err, NULL_PTR);
+
+
+ullFileSize = (((ULONGLONG)dwFileSizeHigh) << 32) + dwFileSizeLow;
+return (ULONG)((ullFileSize + pagesize - 1) / pagesize);
+}
 
 #ifdef SUPERSERVER_V2
 static void release_io_event (
@@ -984,7 +984,7 @@ static FIL seek_file (
 ULONG	page;
 DBB	dbb;
 HANDLE	desc;
-	LARGE_INTEGER liOffset;
+LARGE_INTEGER liOffset;
 
 #ifdef SUPERSERVER_V2
 USHORT	i;
@@ -993,19 +993,18 @@ USHORT	i;
 dbb = bdb->bdb_dbb;
 page = bdb->bdb_page;
 
-	for (;; file = file->fil_next) {
-		if (!file) {
+for (;; file = file->fil_next) 
+    {
+    if (!file) 
 	CORRUPT (158); /* msg 158 cannot sort on a field that does not exist */
-		}
-		else
-		if (page >= file->fil_min_page && page <= file->fil_max_page) {
+
+    else if (page >= file->fil_min_page && page <= file->fil_max_page) 
 	break;
-		}
-	}
+    }
 
 page -= file->fil_min_page - file->fil_fudge;
 
-	liOffset.QuadPart = UInt32x32To64((DWORD)page, (DWORD)dbb->dbb_page_size);
+liOffset.QuadPart = UInt32x32To64((DWORD)page, (DWORD)dbb->dbb_page_size);
 
 if (ostype == OS_CHICAGO)
     {
@@ -1013,43 +1012,43 @@ if (ostype == OS_CHICAGO)
     desc = (HANDLE) ((file->fil_flags & FIL_force_write) ?
 	file->fil_force_write_desc : file->fil_desc);
 
-		if (SetFilePointer(	desc,
-							(LONG)liOffset.LowPart,
-							&liOffset.HighPart,
-							FILE_BEGIN) == 0xffffffff)
+    if (SetFilePointer(desc,
+			(LONG)liOffset.LowPart,
+			&liOffset.HighPart,
+			FILE_BEGIN) == 0xffffffff)
 	{
 	THD_MUTEX_UNLOCK (file->fil_mutex);
 	return (FIL) nt_error ("SetFilePointer", file, isc_io_access_err,
-            status_vector);
+	    status_vector);
 	}
     *overlapped_ptr = NULL;
     }
 else
     {
-		overlapped->Offset			= liOffset.LowPart;
-		overlapped->OffsetHigh		= liOffset.HighPart;
-		overlapped->Internal		= 0;
-		overlapped->InternalHigh	= 0;
-		overlapped->hEvent			= (HANDLE)0;
+    overlapped->Offset			= liOffset.LowPart;
+    overlapped->OffsetHigh		= liOffset.HighPart;
+    overlapped->Internal		= 0;
+    overlapped->InternalHigh	= 0;
+    overlapped->hEvent			= (HANDLE)0;
 
      *overlapped_ptr = overlapped;
 
 #ifdef SUPERSERVER_V2
     THD_MUTEX_LOCK (file->fil_mutex);
     for (i = 0; i < MAX_FILE_IO; i++)
-		{
+	{
 	if (overlapped->hEvent = (HANDLE) file->fil_io_events [i])
 	    {
 	    file->fil_io_events [i] = 0;
 	    break;
 	    }
-		}
+	}
     THD_MUTEX_UNLOCK (file->fil_mutex);
     if (!overlapped->hEvent &&
 	!(overlapped->hEvent = CreateEvent (NULL, TRUE, FALSE, NULL)))
-		{
+	{
 	return (FIL) nt_error ("CreateEvent", file, isc_io_access_err, status_vector);
-		}
+	}
     ResetEvent (overlapped->hEvent);
 #endif
     }
@@ -1143,6 +1142,28 @@ if (!LCK_lock (NULL_TDBB, lock, LCK_EX, LCK_NO_WAIT))
 return file;
 }
 
+static BOOL MaybeCloseFile(SLONG* pFile)
+{
+/**************************************
+ *
+ *	M a y b e C l o s e F i l e
+ *
+ **************************************
+ *
+ * Functional description
+ *	If the file is open, close it.
+ *
+ **************************************/
+
+    if (pFile && (HANDLE)*pFile != INVALID_HANDLE_VALUE)
+    {
+	CloseHandle((HANDLE)*pFile);
+	*pFile = (SLONG) INVALID_HANDLE_VALUE;
+	return TRUE;
+    }
+    return FALSE;
+}
+
 
 static BOOLEAN nt_error (
     TEXT	*string,
@@ -1186,3 +1207,5 @@ if (status_vector)
 
 	return TRUE;
 }
+
+
