@@ -1,3 +1,16 @@
+2000-12-18 19:39  fsg
+
+	* interbase/: builds/original/bind_gds_s.im,
+	builds/original/bind_gds_s.sco, builds/original/sfx.jrd,
+	jrd/builtin.c, jrd/flu_proto.h, jrd/opt.c:
+	
+	Removed ugly security hole from jrd/builtins.c related to this I
+	removed qatest from bind_gds_s.sco, bind_gds_s.im and jrd.sfx
+	Removed asserts from jrd/opt.c that caused debug version to stop
+	for no reason.
+	
+	fsg
+
 2000-12-17 17:37  skywalker
 
 	* interbase/remote/inet_server.c:
