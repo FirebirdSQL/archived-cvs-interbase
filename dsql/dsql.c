@@ -1519,7 +1519,7 @@ switch (node->nod_type)
 	if (string)
 	    PRINTF ("%s.", string->str_data);
 	string = (STR) node->nod_arg [e_fln_name];
-	PRINTF ("%s\"\n", string->str_data);
+	PRINTF ("%s\"\n", string ? string->str_data: "*");
 	FREE_MEM_RETURN;
 
     case nod_map:

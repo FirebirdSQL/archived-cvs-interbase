@@ -3685,6 +3685,10 @@ att_charset = character_set;
 line_start_bk = line_start;
 lines_bk = lines;
 first_time = TRUE;
+#ifdef DEV_BUILD
+if (DSQL_debug > 10)
+    printf("%.*s\n", (int)length, string);
+#endif
 }
 
 #ifndef WINDOWS_ONLY
