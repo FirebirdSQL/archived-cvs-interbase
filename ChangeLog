@@ -1,3 +1,41 @@
+2001-05-21 09:14  robocop
+
+	* interbase/jrd/dyn_mod.e:
+	
+	Fixed bug with rdb$dimensions's rdb$field_name out of sync
+
+2001-05-21 09:12  robocop
+
+	* interbase/extlib/ib_udf.sql:
+	
+	Added definition of substrlen
+
+2001-05-21 09:11  robocop
+
+	* interbase/dsql/ddl.c:
+	
+	Incomplete alter domain syntax fatal bug was squashed
+
+2001-05-21 09:07  robocop
+
+	* interbase/builds_win32/original/ib_udf.bind:
+	
+	Add substrlen(str, start, length)
+
+2001-05-21 02:20  nmcc
+
+	* interbase/isql/isql.e:
+	
+	Add new option PLANONLY - if on and plan on isql will display query
+	plan but not execute query.  Requires changes to messages file if
+	it is to be displayed in help output.
+
+2001-05-20 20:09  nmcc
+
+	* interbase/dsql/: parse.c, parse.y, pass1.c:
+	
+	Allow a udf to be used in a 'group by' clause.
+
 2001-05-19 10:26  robocop
 
 	* interbase/isql/show.e:
