@@ -1,3 +1,15 @@
+2001-06-07 01:54  bellardo
+
+	* interbase/jrd/flu.c:
+	
+	Fixed a missing #include that caused Darwin port not to compile.
+
+2001-06-07 01:06  bellardo
+
+	* interbase/jrd/flu.c:
+	
+	Added loadable module support for Darwin.
+
 2001-06-06 02:41  bellardo
 
 	* interbase/: builds/original/prefix.darwin, jrd/sort.c:
