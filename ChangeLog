@@ -1,3 +1,12 @@
+2001-06-22 17:27  fsg
+
+	* interbase/intl/anhun.h:
+	
+	Added a new hungarian collation order that was created and tested
+	by "Sandor Szollosi" <ssani@freemail.hu>
+	
+	fsg
+
 2001-06-20 18:02  nmcc
 
 	* interbase/builds/original/sfx.jrd:
