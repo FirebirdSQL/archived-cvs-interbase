@@ -1,3 +1,10 @@
+2003-10-14 08:14  eku
+
+	* interbase/extlib/ib_udf.c:
+	
+	Backport of bug fixes from firebird/firebird2/src/extlib/ib_udf.c
+	1.6
+
 2003-09-25 14:12  eku
 
 	* interbase/jrd/: pag.c, unix.c:
