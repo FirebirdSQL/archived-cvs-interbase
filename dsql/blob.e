@@ -19,6 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.09.10 Claudio Valderrama: get_name() was preventing the API calls
+ *   isc_blob_default_desc, isc_blob_lookup_desc & isc_blob_set_desc
+ *   from working properly with dialect 3 names. Therefore, incorrect names
+ *   could be returned or a lookup for a blob field could fail. In addition,
+ *   a possible buffer overrun due to unchecked bounds was closed. The fc
+ *   get_name() as been renamed copy_exact_name().
  */
 
 #include "../jrd/common.h"
@@ -33,8 +39,8 @@ DATABASE
 
 static STATUS	copy_status (STATUS *, STATUS *);
 static STATUS	error (STATUS *, SSHORT, ...);
-static void	get_name (UCHAR *, UCHAR *);
-
+static void	copy_exact_name (UCHAR *, UCHAR *, SSHORT);
+
 void API_ROUTINE isc_blob_default_desc (
     ISC_BLOB_DESC	*desc,
     UCHAR		*relation_name,
@@ -56,8 +62,10 @@ void API_ROUTINE isc_blob_default_desc (
 desc->blob_desc_subtype = BLOB_text;
 desc->blob_desc_charset = CS_dynamic;
 desc->blob_desc_segment_size = 80;
-get_name (field_name, desc->blob_desc_field_name);
-get_name (relation_name, desc->blob_desc_relation_name);
+copy_exact_name (field_name, desc->blob_desc_field_name,
+	sizeof(desc->blob_desc_field_name));
+copy_exact_name (relation_name, desc->blob_desc_relation_name,
+	sizeof(desc->blob_desc_relation_name));
 }
 
 STATUS API_ROUTINE isc_blob_gen_bpb (
@@ -111,7 +119,7 @@ p = bpb_buffer;
 
 return error (status, 1, (STATUS) SUCCESS);
 }
-
+
 STATUS API_ROUTINE isc_blob_lookup_desc (
     STATUS		*status,
     void		**db_handle,
@@ -143,8 +151,10 @@ if (DB && DB != *db_handle)
 
 DB = *db_handle;
 gds__trans = *trans_handle;
-get_name (field_name, desc->blob_desc_field_name);
-get_name (relation_name, desc->blob_desc_relation_name);
+copy_exact_name (field_name, desc->blob_desc_field_name, 
+	sizeof(desc->blob_desc_field_name));
+copy_exact_name (relation_name, desc->blob_desc_relation_name, 
+	sizeof(desc->blob_desc_relation_name));
 
 flag = FALSE;
 
@@ -159,7 +169,8 @@ FOR X IN RDB$RELATION_FIELDS CROSS Y IN RDB$FIELDS
     desc->blob_desc_segment_size = Y.RDB$SEGMENT_LENGTH;
 
     if (global)
-	get_name ((UCHAR *) Y.RDB$FIELD_NAME, global);
+	copy_exact_name ((UCHAR *) Y.RDB$FIELD_NAME, global, 
+		sizeof(Y.RDB$FIELD_NAME));
 END_FOR
     ON_ERROR
 	return copy_status (gds__status, status);
@@ -172,7 +183,7 @@ if (!flag)
 
 return error (status, 1, (STATUS) SUCCESS);
 }
-
+
 STATUS API_ROUTINE isc_blob_set_desc (
     STATUS		*status,
     UCHAR		*relation_name,
@@ -197,8 +208,10 @@ STATUS API_ROUTINE isc_blob_set_desc (
  *
  **************************************/
 
-get_name (field_name, desc->blob_desc_field_name);
-get_name (relation_name, desc->blob_desc_relation_name);
+copy_exact_name (field_name, desc->blob_desc_field_name, 
+	sizeof(desc->blob_desc_field_name));
+copy_exact_name (relation_name, desc->blob_desc_relation_name, 
+	sizeof(desc->blob_desc_relation_name));
 
 desc->blob_desc_subtype = subtype;
 desc->blob_desc_charset = charset;
@@ -260,24 +273,30 @@ for (; count; --count)
 
 return status [1];
 }
-
-static void get_name (
+
+static void copy_exact_name (
     UCHAR	*from,
-    UCHAR	*to)
+    UCHAR	*to,
+    SSHORT	bsize)
 {
 /**************************************
  *
- *	g e t _ n a m e 
+ *	c o p y _ e x a c t _ n a m e 
  *
  **************************************
  *
  * Functional description
- *	Copy null or blank terminated name.
+ *	Copy null terminated name ot stops at bsize - 1.
+ *	CVC: This is just another fc like DYN_terminate.
  *
  **************************************/
 
-while (*from && *from != ' ')
-    *to++ = *from++;
-
-*to = 0;
+UCHAR *from_end = from + bsize - 1, *to2 = to - 1;
+while (*from && from < from_end)
+{
+	if (*from != ' ')
+		to2 = to;
+	*to++ = *from++;
+}
+*++to2 = 0;
 }
