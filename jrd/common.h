@@ -777,6 +777,7 @@ typedef unsigned __int64 UINT64;
 #define THREAD_ROUTINE  __stdcall
 #define INTERNAL_API_ROUTINE	API_ROUTINE
 
+#define SYNC_WRITE_DEFAULT      1
 
 #define BOOLEAN_DEFINED
 typedef unsigned char   BOOLEAN;

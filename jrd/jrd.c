@@ -667,11 +667,12 @@ if (options.dpb_gstat_attach)
 if (options.dpb_gfix_attach)
     attachment->att_flags |= ATT_gfix_attachment;
 
-if (options.dpb_working_directory) {
+if (options.dpb_working_directory) 
+   {
     attachment->att_working_directory =
         copy_string (options.dpb_working_directory,
                      (USHORT)strlen(options.dpb_working_directory));
-}
+   }
 
 /* If we're a not a secondary attachment, initialize some stuff */
 
@@ -1659,6 +1660,7 @@ opt_ptr = opt_buffer;
 #endif
 
 get_options ((UCHAR *)dpb, dpb_length, &opt_ptr, &options);
+
 if (invalid_client_SQL_dialect == FALSE && options.dpb_sql_dialect == 99)
     options.dpb_sql_dialect = 0;
 
@@ -1808,16 +1810,8 @@ if (options.dpb_sweep_interval != -1)
     dbb->dbb_sweep_interval = options.dpb_sweep_interval;
     }
 
-/* Sean Leyne 2001.07.09 for Firebird v1.0
- *    Restore default setting to Force Write = "On", Windows NT platform, for new database files
- */
-#ifdef WIN_NT
-PAG_set_force_write (dbb, options.dpb_force_write);
-#else
 if (options.dpb_set_force_write)
     PAG_set_force_write (dbb, options.dpb_force_write);
-#endif
-/* SJL - 2001.07.09 */
 
 /* initialize shadowing semaphore as soon as the database is ready for it
    but before any real work is done */
@@ -4696,6 +4690,7 @@ options->dpb_sweep_interval = -1;
 options->dpb_wal_grp_cmt_wait = -1;
 options->dpb_overwrite = TRUE;
 options->dpb_sql_dialect = 99;
+
 invalid_client_SQL_dialect = FALSE;
 p = dpb;
 end_dpb = p + dpb_length;
