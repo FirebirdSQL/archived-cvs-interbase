@@ -1,3 +1,22 @@
+2001-09-20 23:03  awharrison
+
+	* interbase/jrd/ext.c:
+	
+	Make READONLY_DATABASE by default again
+
+2001-09-20 18:41  awharrison
+
+	* interbase/jrd/: common.h, ibase.h, inf.c, license.h, utl.c:
+	
+	Add new types of information and update isc_version to say we're
+	firebird
+
+2001-09-20 18:39  awharrison
+
+	* interbase/jrd/ext.c:
+	
+	Allow the max possible external files on Windows ~2040 - Paul Beach
+
 2001-09-19 10:38  robocop
 
 	* interbase/extlib/fbudf.cpp:
