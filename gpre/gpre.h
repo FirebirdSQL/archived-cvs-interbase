@@ -19,6 +19,19 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/16 15:54:29  fsg
+ * Added new switch -verbose to gpre that will dump
+ * parsed lines to stderr
+ *
+ * Fixed gpre bug in handling row names in WHERE clauses
+ * that are reserved words now (DATE etc)
+ * (this caused gpre to dump core when parsing tan.e)
+ *
+ * Fixed gpre bug in handling lower case table aliases
+ * in WHERE clauses for sql dialect 2 and 3.
+ * (cause a core dump in a test case from C.R. Zamana)
+ *
  */
 
 #ifndef _GPRE_GPRE_H_
@@ -1406,7 +1419,10 @@ typedef struct usn {
 #define EXTERN	extern
 #endif
 
-EXTERN USHORT	sw_auto, sw_sql, sw_gen_sql, sw_raw, sw_cstring, sw_dsql, 
+/* Added sw_verbose
+   FSG 14.Nov.2000 */
+
+EXTERN USHORT	sw_verbose,sw_auto, sw_sql, sw_gen_sql, sw_raw, sw_cstring, sw_dsql, 
 		sw_dyn_using, sw_ada, sw_standard_out, sw_ansi, sw_lines, 
 		sw_ids, sw_trace, sw_case, sw_external, sw_pyxis,
 		sw_version, sw_window_scope, sw_alsys, sw_d_float,

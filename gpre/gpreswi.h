@@ -19,6 +19,19 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/16 15:54:29  fsg
+ * Added new switch -verbose to gpre that will dump
+ * parsed lines to stderr
+ *
+ * Fixed gpre bug in handling row names in WHERE clauses
+ * that are reserved words now (DATE etc)
+ * (this caused gpre to dump core when parsing tan.e)
+ *
+ * Fixed gpre bug in handling lower case table aliases
+ * in WHERE clauses for sql dialect 2 and 3.
+ * (cause a core dump in a test case from C.R. Zamana)
+ *
  */
 
 
@@ -70,9 +83,20 @@ typedef struct sw_tab_t {
 #define IN_SW_GPRE_PASSWORD 	28	/* default password to use in attaching database */
 #define IN_SW_GPRE_INTERP	29	/* default character set/collation */
 
-#define IN_SW_GPRE_COUNT 	30	/* number of IN_SW values */
-#define	IN_SW_GPRE_CPLUSPLUS	31	/* source is platform dependant C++ */
-#define	IN_SW_GPRE_SQLDIALECT	32	/* SQL dialect passed */
+#define	IN_SW_GPRE_CPLUSPLUS	30	/* source is platform dependant C++ */
+#define	IN_SW_GPRE_SQLDIALECT	31	/* SQL dialect passed */
+
+/* Added this to let gpre dump the lines that it is parsing to stderr
+   FSG 14.Nov.2000 
+*/
+#define IN_SW_GPRE_VERBOSE      32
+
+/* As mentioned above: This should always be one larger than the largest 
+   switch value.
+   FSG 14.Nov.2000
+*/
+
+#define IN_SW_GPRE_COUNT 	33	/* number of IN_SW values */
 
 static struct in_sw_tab_t gpre_in_sw_table [] = {
 #ifdef ADA
@@ -110,6 +134,8 @@ static struct in_sw_tab_t gpre_in_sw_table [] = {
     IN_SW_GPRE_SQLDA,	0,	"SQLDA",	0, 0, 0, FALSE,	0,	0,	"\t\t***** Deprecated feature. ********",
     IN_SW_GPRE_T,	0,	"TRACE",	0, 0, 0, FALSE,	0,	0,	NULL,
     IN_SW_GPRE_USER,	0,	"USER",		0, 0, 0, FALSE,	0,	0,	"\t\tdefault user name",
+/* FSG 14.Nov.2000 */
+    IN_SW_GPRE_VERBOSE, 0,      "VERBOSE",      0, 0, 0, FALSE, 0,      0,      "\t\tVerbose Output to stderr",
 #ifdef VMS
     IN_SW_GPRE_X,	0,	"EXTERNAL",	0, 0, 0, FALSE,	0,	0,	"\t\tEXTERNAL database (used with /DATABASE)",
 #else

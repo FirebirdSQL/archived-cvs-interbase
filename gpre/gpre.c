@@ -19,6 +19,19 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/16 15:54:29  fsg
+ * Added new switch -verbose to gpre that will dump
+ * parsed lines to stderr
+ *
+ * Fixed gpre bug in handling row names in WHERE clauses
+ * that are reserved words now (DATE etc)
+ * (this caused gpre to dump core when parsing tan.e)
+ *
+ * Fixed gpre bug in handling lower case table aliases
+ * in WHERE clauses for sql dialect 2 and 3.
+ * (cause a core dump in a test case from C.R. Zamana)
+ *
  */
 
 #define GPRE_MAIN
@@ -317,7 +330,8 @@ override_case = 0;
 
 sw_know_interp = FALSE;
 sw_interp = 0;
-
+/* FSG 14.Nov.2000 */
+sw_verbose = FALSE;
 sw_sql_dialect = compiletime_db_dialect = SQL_DIALECT_V5;
 
 /* 
@@ -649,7 +663,10 @@ for (sw_tab = sw_table; sw_tab->sw_in_sw; sw_tab++)
 	case IN_SW_GPRE_T :
 	    sw_trace = TRUE;
 	    break;
-
+/* FSG 14.Nov.2000 */	    
+        case IN_SW_GPRE_VERBOSE :
+           sw_verbose = TRUE;
+           break;
 	default:
 	    break;
 	}  
@@ -1761,11 +1778,29 @@ static get_char (
  *	Return a character to the input stream.
  *
  **************************************/
+USHORT pc;
+
 
 if (input_char != input_buffer)
+{
     return (int) *--input_char;
+ 
+}
 else
-    return ib_getc (file);
+{
+
+    pc=ib_getc (file);
+
+/* Dump this char to stderr, so we can see
+   what input line will cause this ugly
+   core dump.
+   FSG 14.Nov.2000 */    
+    if (sw_verbose)
+     ib_fprintf (ib_stderr, "%c",pc);
+  return pc;    
+}
+
+
 }
 
 static BOOLEAN get_switches (
@@ -2514,6 +2549,10 @@ static SLONG pass1 (void)
 ACT	action;
 SLONG	start;
 
+/* FSG 14.Nov.2000 */
+   if (sw_verbose)
+   ib_fprintf (ib_stderr, "*********************** PASS 1 ***************************\n");
+  
 while (CPR_token())
     while (token.tok_symbol)
 	{
@@ -2594,6 +2633,10 @@ BOOLEAN suppress_output, continue_flag, sw_block_comments;
 
 c = 0;
 
+/* FSG 14.Nov.2000 */
+if (sw_verbose)
+   ib_fprintf (ib_stderr, "*********************** PASS 2 ***************************\n");
+  
 suppress_output = FALSE;
 sw_block_comments = sw_language == lan_c ||
 		    sw_language == lan_cxx || 

@@ -19,8 +19,21 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.3  2000/11/16 15:54:29  fsg
+ * Added new switch -verbose to gpre that will dump
+ * parsed lines to stderr
+ *
+ * Fixed gpre bug in handling row names in WHERE clauses
+ * that are reserved words now (DATE etc)
+ * (this caused gpre to dump core when parsing tan.e)
+ *
+ * Fixed gpre bug in handling lower case table aliases
+ * in WHERE clauses for sql dialect 2 and 3.
+ * (cause a core dump in a test case from C.R. Zamana)
+ *
  */
-
+#include <stdio.h>
 #include <string.h>
 #include "../gpre/gpre.h"
 #include "../gpre/parse.h"
@@ -1218,7 +1231,7 @@ if (!bool_flag)
 
 MATCH (KW_PLUS);
 node = par_multiply (request, aster_ok, paren_count, bool_flag);
-
+assert_IS_NOD (node);
 if (node->nod_type == nod_asterisk)
     {
     par_terminating_parens (paren_count, &local_count);
@@ -2261,26 +2274,24 @@ NOD		node, arg;
 enum nod_t	operator;
 
 assert_IS_REQ (request);
-
 node = par_primitive_value (request, aster_ok, paren_count, bool_flag);
+	if (node->nod_type == nod_asterisk)
+	   return node;
 
-if (node->nod_type == nod_asterisk)
-    return node;
+	if (KEYWORD (KW_COLLATE))
+	    return par_collate (request, node);
 
-if (KEYWORD (KW_COLLATE))
-    return par_collate (request, node);
-
-while (TRUE)
-    {
-    if (MATCH (KW_ASTERISK))
-	operator = nod_times;
-    else if (MATCH (KW_SLASH))
-	operator = nod_divide;
-    else 
-	return node;
-    arg = node;
-    node = MSC_binary (operator, arg, par_primitive_value (request, FALSE, paren_count, bool_flag));
-    }
+	while (TRUE)
+	    {
+	    if (MATCH (KW_ASTERISK))
+		operator = nod_times;
+	    else if (MATCH (KW_SLASH))
+		operator = nod_divide;
+	    else 
+		return node;
+	    arg = node;
+	    node = MSC_binary (operator, arg, par_primitive_value (request, FALSE, paren_count, bool_flag));
+	    }
 }
 
 static NOD par_not (
@@ -2640,6 +2651,8 @@ KWWORDS kw_word;
 
 assert_IS_REQ (request);
 
+node = FALSE;
+
 if (!paren_count)
     {
     local_count = 0;
@@ -2752,15 +2765,11 @@ if (token.tok_type == tok_number  ||
     return node;
     }
 
-/** Begin date/time/timestamp support **/
-kw_word = token.tok_keyword;
-if (MATCH(KW_DATE) || MATCH(KW_TIME) || MATCH(KW_TIMESTAMP))
-    {
-    token.tok_keyword = kw_word;
-    node = EXP_literal();
-    return node;
-    }
-/** End date/time/timestamp support **/
+/* moved this timestamp support down some lines, because it caused
+   gpre to segfault when it was done here.
+   FSG 15.Nov.2000
+*/
+
 
 /* If the next token is a colon, it is a variable reference */
 
@@ -2782,14 +2791,33 @@ if ((int) token.tok_keyword == (int) KW_COLON)
     return node;
     }
 
-/* Must be a field or a udf.  If there is a map, post the field to it. */
 
-node = par_udf_or_field (request, aster_ok);
+
+/* Must be a field or a udf.  If there is a map, post the field to it. */
+node= par_udf_or_field (request, aster_ok);
 
 /*
 if (request && (map = request->req_map))
     return post_map (node, map);
 */
+
+if (!node)  
+/* I don't know what it's good for, but let's try it anyway if we haven't found 
+   anything that makes sense until now */
+{
+/** Begin date/time/timestamp support **/
+kw_word = token.tok_keyword;
+
+if (MATCH(KW_DATE) || MATCH(KW_TIME) || MATCH(KW_TIMESTAMP))
+    {
+        token.tok_keyword = kw_word;
+         node = EXP_literal();
+         return node;
+    }
+                    
+/** End date/time/timestamp support **/
+                    
+}
 
 return node;
 }
@@ -3728,9 +3756,22 @@ else
     /* Now search alternatives for the qualifier */
 
     symbol = HSH_lookup (q_token->tok_string);
-    if ( (symbol == NULL) && (sw_case || sw_sql_dialect == SQL_DIALECT_V5))
+ 
+ /* This caused gpre to dump core if there are lower case 
+    table aliases in a where clause used with dialect 2 or 3 
+   
+     if ( (symbol == NULL)&& (sw_case || sw_sql_dialect == SQL_DIALECT_V5))
 	symbol = HSH_lookup2 (q_token->tok_string);
-
+ */
+ 
+ /* So I replaced it with the following, don't know
+    why we don't do a HSH_lookup2 in any case, but so it may be.
+    FSG 16.Nov.2000
+ */
+     if ( (symbol == NULL))
+	symbol = HSH_lookup2 (q_token->tok_string);
+ 
+ 
     for (temp_symbol = symbol; temp_symbol; temp_symbol = temp_symbol->sym_homonym)
 		{
 		if (temp_symbol->sym_type == SYM_context)
