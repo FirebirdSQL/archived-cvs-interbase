@@ -1,3 +1,16 @@
+2003-06-02 15:12  paul_reeves
+
+	* interbase/firebird/install/linux/misc/README:
+	
+	[no log message]
+
+2003-06-01 12:57  paul_reeves
+
+	* interbase/: builds_win32/install/FirebirdInstall.iss,
+	utilities/fbcpl/FBControl.dsp, utilities/fbcpl/FBControl.mak:
+	
+	Fix some minor install issues
+
 2003-05-30 11:56  paul_reeves
 
 	* interbase/: builds/original/prefix.linux,
