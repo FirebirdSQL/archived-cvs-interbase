@@ -1,33 +1,5 @@
-COPYRIGHT NOTICE
-This document is copyright 2000 by Reed Mideke. All rights
-not specifically granted are reserved. Certain rights 
-are hereby granted to all persons who are identified by the following
-criteria:
-	Persons who are NOT employees, executives or board members of
-	Inprise corporation, it's agents, subcontractors or
-	subsidiaries.
-
-All persons meeting this criteria are henceforth referred to as 'you'.
-
-The rights granted to you are:
-1) You are granted the right to copy this document verbatim.
-2) You are granted the right to create and distribute modified versions
-of this document (derivative works), so long as all of the following
-conditions are met:
-	a) this notice is included in unmodified form
-	b) You distribute the modified document under the terms of
-	this notice.
-	c) You do not mis-represent your changes as being authored
-	by Reed Mideke.
-
-NO OTHER RIGHTS ARE GRANTED TO ANY PERSONS. NO RIGHTS ARE GRANTED TO
-PERSONS NOT MEETING THE CRITERIA ABOVE.
-
-This information is provided as is, without ANY WARRANTY OF ANY KIND.
-END OF COPYRIGHT NOTICE
-
 -the purpose of yachts.gdb/metadata.gdb- 
-metadata_gdb.txt version 1.0.1 last revised 7/31/2000
+metadata_gdb.txt version 1.0.3 last revised 8/12/2000
 
 The latest version of this file is available at
 http://www.cruzers.com/~rfm/metadata_gdb.txt

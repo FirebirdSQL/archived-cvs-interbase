@@ -1,33 +1,5 @@
-COPYRIGHT NOTICE
-This document is copyright 2000 by Reed Mideke. All rights
-not specifically granted are reserved. Certain rights 
-are hereby granted to all persons who are identified by the following
-criteria:
-	Persons who are NOT employees, executives or board members of
-	Inprise corporation, it's agents, subcontractors or
-	subsidiaries.
-
-All persons meeting this criteria are henceforth referred to as 'you'.
-
-The rights granted to you are:
-1) You are granted the right to copy this document verbatim.
-2) You are granted the right to create and distribute modified versions
-of this document (derivative works), so long as all of the following
-conditions are met:
-	a) this notice is included in unmodified form
-	b) You distribute the modified document under the terms of
-	this notice.
-	c) You do not mis-represent your changes as being authored
-	by Reed Mideke.
-
-NO OTHER RIGHTS ARE GRANTED TO ANY PERSONS. NO RIGHTS ARE GRANTED TO
-PERSONS NOT MEETING THE CRITERIA ABOVE.
-
-This information is provided as is, without ANY WARRANTY OF ANY KIND.
-END OF COPYRIGHT NOTICE
-
 -Building the *****Base server on win32 platforms- 
-ibbuild-win32.txt version 1.0.4 last revised 7/31/2000
+ibbuild-win32.txt version 1.0.6 last revised 8/10/2000
 
 The latest version of this file is available at
 http://www.cruzers.com/~rfm/ibbuild-win32.txt
@@ -37,10 +9,18 @@ rfm@cruzers.com or the ib-build mailing list at mers.com
 the ib-build mailing list is also available as a newsgroup at
 news.mers.com:mers.interbase.build
 
+For more information see the firebird and interbase projects 
+on sourceforge.net
+
 Introduction:
 	This document describes the steps I took to compile the server
 under windows NT 4.0, service pack 6. This information should
 apply on other windows platforms, but I have not tested it.
+	This document was written in reference to the orginal
+source download made available by Inprise. Since then, several
+CVS servers have popped up. These instruction should be
+generally applicable to all of them, but as time goes
+on, you can expect differences to pop up.
 
 Directory structure:
 I refer to the directory in which you unpacked the source as
@@ -120,8 +100,20 @@ path.
 path
 
 additional downloads:
-	codes.tgz from the interbase.com download area. Unzip this
-	into the {BUILD_DIR}/jrd directory.
+	All of these downloads may be reached from
+	http://www.interbase.com/open/downloads/ib_download.html
+
+	"Additional source files related to codes.h and the message file"
+	codes.tgz or codes.zip Unzip this into the {BUILD_DIR}/jrd directory.
+	
+	"Qli binary for Windows 6.0 kit"
+	qli.wi-v60.zip You only need this if you want to build qli.
+
+	"Missing Incons from Windows source code tree"
+	ib_icons.zip Unzip this in the the root (interbase) of your
+	source tree. 
+	NOTE: This is not required for the 'firebird' cvs tree,
+	because these icons are included.
 
 Databases:
 Create the following file structure. The subdirectories 
@@ -159,6 +151,8 @@ should not be the same as the ones in {BUILD_DIR}
 	have the data. But it doesn't hurt.
 
 Binary icon resources:
+NOTE: This is not required for the 'firebird' cvs tree,
+because these icons are included.
 The windows resources used be the server and guardian executables
 expect to find binary icon. These were not provided with the source
 you need to create the following:
@@ -208,7 +202,7 @@ setup_dirs.ksh for the first time.
  * builds_win32/original/include.mak
  	change UNIX_DEV_ROOT to {DB_DIR}
  	change MSGSDIR to {DB_DIR}/msgs
-NOTE: These should be changed so the one refers to the other
+NOTE: In the future, these should be changed so the one refers to the other
 
 Commented build commands:
  If your not interested in building QLI or the examples,
