@@ -1,3 +1,110 @@
+2001-12-21 20:20  skywalker
+
+	* interbase/firebird/install/linux/: classic/makeInstallImage.sh,
+	classic/postinstall.sh, classic/postuninstall.sh,
+	classic/preinstall.sh, classic/preuninstall.sh,
+	classic/tarMainInstall.sh, classic/taruninstall.sh, misc/README,
+	misc/changeDBAPassword.sh, misc/firebird.init.d.generic,
+	misc/firebird.init.d.mandrake, misc/firebird.init.d.suse,
+	super/makeInstallImage.sh, super/postinstall.sh,
+	super/postuninstall.sh, super/preinstall.sh, super/preuninstall.sh,
+	super/rpmfiles.txt, super/tarMainInstall.sh:
+	
+	
+	Many changes related to testing the install procedures for linux
+	both rpm and .tar.gz
+	
+	1) The .tar.gz install is doing two tar -x operations, one of which
+	is not used and goes into the install directory.
+	
+	2) fix uninstall: rm: cannot remove `/usr/sbin/rcfirebird': No such
+	file or directory check file exists prior to delete.
+	
+	3) got uninstall: error reading information on service firebird: No
+	such file or directory execution of FirebirdSS-1.0.0.691-0.RC2
+	script failed, exit status 1
+	
+	This is probably caused by the chkconfig call in the
+	postuninstall.sh, after the file has been removed.  I changed the
+	order of the call for insserv and chkconfig to before rm of the
+	/init.d files.
+	
+	4) Start of super service failed.  If you do a /etc/init.d/firebird
+	start with environment variables set already it doesn't start. 
+	This happens often after a build has just been performed which
+	wants to be followed by an install (happens to me when testing
+	installs).
+	
+	In super init script /etc/init.d/firebird environment variables are
+	set only if not already set.  I change them to be explicitly set.
+	
+	Updated changeDBApassword.sh script as well.
+	
+	This may also explain problems you had getting the service to start
+	on install.  So I did the suse ones as well, but feel free to
+	change them back if you want.
+	
+	6) Reinstated some missing bits of super install script they were
+	the robusting of autochange password, and autoupdate of
+	/etc/init.d/firebird script.  Not important unless the unless the
+	mkpasswd thing was being done,
+	
+	I think I've got it now, the super install comes from the classic
+	install, there were some extra bits in super and some not required.
+	 So it makes sense now :-).  [ merge from prev super install ]
+	
+	7) Changed the fixFilePermissions to reflect super install  related
+	to the above - old one was inline set permissions.  [ merge from
+	prev super install ]
+	
+	8) Change to create bin/ibmgr old one used to do this as part of
+	postinstall script and I got it from an example somewhere I assume
+	it's better to create it for path reasons, but open to change.	[
+	merge from prev super install ]
+	
+	9) In building lock files restored isc_guard1.`hostname`.  I assume
+	it was needed for super but happy to be wrong ? [ merge from prev
+	super install ]
+	
+	11) couldn't find rcfirebird in uninstall.  In looking at the
+	uninstall script.  (which had changed from
+	/etc/rc.d/init.d/firebird stop to rcfirebird stop.
+	
+	15)  in makeImage for super, links, whatsnew.txt and service.isc
+	
+	16)  removed libgds.a from the super install, I assume this is just
+	an oversight,  since it wasn't in the normal super installs, but
+	correct me if Im wrong.   I've just commented it out for now.
+	
+	17)  Updated README file to add a troubleshooting section.
+
+2001-12-21 20:13  skywalker
+
+	* interbase/build_docs/: README.linux, ibbuild-unix-overview.txt,
+	linux.txt:
+	
+	Updated the doco with a few notes
+
+2001-12-21 08:55  robocop
+
+	* interbase/jrd/gdsold.h:
+	
+	Sync again gds_err_max with codes.h that's the most current.
+
+2001-12-21 08:49  robocop
+
+	* interbase/dsql/pass1.c:
+	
+	Fix SF Bug #494832 Recreate procedure should treat variables and
+	input procedure arguments same as create procedure.
+
+2001-12-21 02:10  skywalker
+
+	* interbase/firebird/install/linux/super/postinstall.sh:
+	
+	test for SuSE which has a few unique bits, is a bit poor at the
+	moment but is currently if [ -x /bin/fillup ]
+
 2001-12-20 20:17  skywalker
 
 	* interbase/firebird/install/linux/: classic/postinstall.sh,
