@@ -1815,7 +1815,7 @@ PAG_set_force_write (dbb, options.dpb_force_write);
 if (options.dpb_set_force_write)
     PAG_set_force_write (dbb, options.dpb_force_write);
 #endif
-// SJL - 2001.07.09
+/* SJL - 2001.07.09 */
 
 /* initialize shadowing semaphore as soon as the database is ready for it
    but before any real work is done */
