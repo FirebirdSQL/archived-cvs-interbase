@@ -2575,8 +2575,6 @@ first_clause	: FIRST long_integer
 			{ $$ = $3; }
 		| FIRST parameter
 			{ $$ = $2; }
-		|
-			{ $$ = 0; }
 		;
 
 skip_clause	: SKIP long_integer
@@ -2585,13 +2583,15 @@ skip_clause	: SKIP long_integer
 			{ $$ = $3; }
 		| SKIP parameter
 			{ $$ = $2; }
-		|
-			{ $$ = 0; }
 		;
 
 limit_clause	: first_clause skip_clause
 			{ $$ = make_node (nod_limit, e_limit_count, $2, $1); }
-		|
+        |   first_clause
+			{ $$ = make_node (nod_limit, e_limit_count, NULL, $1); }
+        |   skip_clause 
+			{ $$ = make_node (nod_limit, e_limit_count, $1, NULL); }
+		| 
 			{ $$ = 0; }
 		;
 
