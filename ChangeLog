@@ -1,3 +1,76 @@
+2002-02-10 21:28  pcisar
+
+	* interbase/: FB_Build_Win32_Build_No.bat (1.6.2.1),
+	builds_win32/original/build_no.ksh (1.13.2.1),
+	firebird/install/linux/Makefile (1.2.2.1),
+	firebird/install/linux/misc/firebird.init.d.suse (1.2.2.1),
+	gpre/gpre.h (1.4.2.1), jrd/sort.c (1.15.2.1):
+	
+	P
+
+2002-02-10 21:28  pcisar
+
+	* interbase/: this_build (1.738), this_build (1.737), this_build
+	(1.736), this_build (1.742), this_build (1.741), this_build
+	(1.740), this_build (1.739):
+	
+	inc_build_no
+
+2002-02-04 12:18  paul_reeves
+
+	* interbase/utilities/registry.h (1.1):
+	
+	file registry.h was initially added on branch V1-0-0_731.
+
+2002-02-04 12:18  paul_reeves
+
+	* interbase/: iscguard/iscguard_utils.c (1.2.2.1), jrd/isc.c
+	(1.7.2.1), utilities/install_nt.h (1.1.1.1.2.1),
+	utilities/install_svc.c (1.1.1.1.2.1), utilities/registry.c
+	(1.1.1.1.2.1), utilities/registry.h (1.1.2.1), utilities/services.c
+	(1.1.1.1.2.1):
+	
+	added support to install guardian as a service under WinNT etc.
+
+2002-02-04 12:18  paul_reeves
+
+	* interbase/: this_build (1.734), this_build (1.733), this_build
+	(1.732), this_build (1.735):
+	
+	inc_build_no
+
+2002-01-24 20:09  awharrison
+
+	* interbase/jrd/winnt.c (1.14):
+	
+	
+	This time, turn off forced writes if asked nicely.
+
+2002-01-24 20:09  awharrison
+
+	* interbase/this_build (1.731):
+	
+	inc_build_no
+
+2002-01-24 18:20  awharrison
+
+	* interbase/this_build (1.730):
+	
+	inc_build_no
+
+2002-01-24 18:20  awharrison
+
+	* interbase/jrd/winnt.c (1.13):
+	
+	
+	Missed a level of indirection.
+
+2002-01-24 08:56  fsg
+
+	* interbase/this_build (1.729):
+	
+	inc_build_no
+
 2002-01-20 08:48  robocop
 
 	* interbase/this_build (1.728):
