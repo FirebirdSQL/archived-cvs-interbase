@@ -732,6 +732,9 @@ classicrpmfile: force
 	make -f firebird/skywalker/install/Makefile classicrpmfile
 
 
+runsuperinstall: force
+	make -f firebird/skywalker/install/Makefile runsuperinstall
+
 superpackages: force
 	make -f firebird/skywalker/install/Makefile superpackages
 
