@@ -15,10 +15,12 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
+#$Id$
 # Shell script to set up the InterBase directory structure
 # And now the super server directory structure  
 
-if [ $# != 3 ]; then
+if [ $# != 3 ]
+then
     echo 'Usage: setup_dirs {AIX   | AP      | AX   } {DEV}  master_source_dir '
     	echo '                  {DELTA | DG      | EPSON} {PROD}'
     	echo '                  {HP700 | HP800   | HP9.0 | HP10 }'
@@ -44,9 +46,9 @@ if [ $SYS_TYPE = 'SUNOS4' -o $1 = 'DG' -o $1 = 'SOLARIS' ]; then
     LOCK_HEADER=lock_header_mmap
 fi
 #
-	echo "Setting up the directory structure, "
-	echo "creating links "
-	echo "and generating makefiles "
+echo "Setting up the directory structure, "
+echo "creating links "
+echo "and generating makefiles "
 
 mkdir super
 mkdir super/alice
@@ -67,9 +69,9 @@ mkdir super/wal
 
 for dir in alice burp dsql intl journal jrd lock register remote utilities wal
 do
-    cd super/$dir
-    ln -s ../../$dir/[a-z]* .
-    cd ../..
+	cd super/$dir
+	ln -s ../../$dir/[a-z]* .
+	cd ../..
 done
 
 #
@@ -88,8 +90,45 @@ ln -s builds/refresh refresh
 ln -s builds/refresh.all refresh.all
 ln -s builds/special_opt special_opt
 if [ $1 = 'SCO' ]; then
-    ln -s builds/original/sco_ship sco_ship
+	ln -s builds/original/sco_ship sco_ship
 fi
+
+if [ $SYS_TYPE = 'LINUX' ]
+then
+	mkdir interbase
+	cd interbase
+	cp $INTERBASE/interbase.msg .
+	cp $INTERBASE/ib_license.dat .
+	mkdir bin
+	cp $INTERBASE/bin/gpre bin
+	cp $INTERBASE/bin/gbak bin
+	cp $INTERBASE/bin/gds_lock_mgr bin
+	mkdir lib
+	mkdir help
+	cp $INTERBASE/help/help.gdb help
+	mkdir UDF
+	mkdir -p examples/v5
+	mkdir include
+# create metadata.gdb (run one level above root) 
+	if [ ! -f ../metadata.gdb ]; then
+		$INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
+	fi
+#
+	cd ..
+#
+# for purely legal reasons
+	cp $INTERBASE/isc4.gdb isc.gdb
+	rm jrd/isc.gdb
+# replace old "yachts"
+	cd jrd
+	rm yachts.gdb
+	ln -s ../metadata.gdb yachts.gdb
+	cd ..
+#
+   cp $INTERBASE/lib/gds.so.0 jrd/libgds.so
+   cp $INTERBASE/lib/gds_pyxis.a jrd/libgds_pyxis.a
+fi
+
 # Alice
 ln -s .. alice/source
 ln -s source/jrd/yachts.gdb alice/yachts.lnk
@@ -166,16 +205,16 @@ ln -s source/builds/make.journal_ss super/journal/makefile
 ln -s .. jrd/source
 ln -s yachts.gdb jrd/yachts.lnk
 ln -s source/msgs/master_msg_db jrd/msg.gdb
-ln -s $3/jrd/yachts.gdb jrd/yachts.gdb
-ln -s $3/jrd/isc.gdb jrd/isc.gdb
+#ln -s $3/jrd/yachts.gdb jrd/yachts.gdb
+#ln -s $3/jrd/isc.gdb jrd/isc.gdb
 ln -s source/builds/make.jrd jrd/makefile
 ln -s source/pipe/allp.c jrd/allp.c
 ln -s source/pipe/foot.c jrd/foot.c
 ln -s source/pipe/head.c jrd/head.c
 ln -s .. super/jrd/source
-ln -s yachts.gdb super/jrd/yachts.lnk
-ln -s $3/jrd/yachts.gdb super/jrd/yachts.gdb
-ln -s $3/jrd/isc.gdb super/jrd/isc.gdb
+#ln -s yachts.gdb super/jrd/yachts.lnk
+#ln -s $3/jrd/yachts.gdb super/jrd/yachts.gdb
+#ln -s $3/jrd/isc.gdb super/jrd/isc.gdb
 ln -s gds_ss.a super/jrd/libgds_ss.a
 ln -s $3/msgs/msg.gdb super/jrd/msg.gdb
 ln -s source/builds/make.jrd_ss super/jrd/makefile
@@ -194,10 +233,6 @@ if [ $SYS_TYPE = 'SUNOS4' ]; then
     ln -s source/interbase/lib/gdslib.so.1.0 jrd/libgdslib.so.1.0
     ln -s source/interbase/lib/gdslib.so.0.1 jrd/libgdslib.so.0.1
     ln -s source/interbase/lib/gdsflib.so.0.0 jrd/libgdsflib.so.0.0
-    ln -s source/interbase/lib/gds_pyxis.a jrd/libgds_pyxis.a
-fi
-if [ $SYS_TYPE = 'LINUX' ]; then
-    ln -s source/interbase/lib/gds.so jrd/libgds.so
     ln -s source/interbase/lib/gds_pyxis.a jrd/libgds_pyxis.a
 fi
 if [ $1 = 'AIX' -o $1 = 'AIX_PPC' -o $1 = 'DECOSF' -o $1 = 'SGI' ]; then
@@ -259,7 +294,7 @@ ln -s source/lock/$LOCK_HEADER lock/lock_header
 # Msgs
 ln -s .. msgs/source
 ln -s $3/msgs/msg.gdb msgs/master_msg_db
-ln -s master_msg_db msgs/msg.gdb
+#ln -s master_msg_db msgs/msg.gdb
 ln -s source/builds/make.msgs msgs/makefile
 # Pipe
 ln -s .. pipe/source
@@ -274,12 +309,14 @@ ln -s source/builds/make.pyxis pyxis/makefile
 ln -s .. qli/source
 ln -s source/jrd/yachts.gdb qli/yachts.lnk
 ln -s source/jrd/yachts.gdb qli/yachts.link
-ln -s $3/qli/help.gdb qli/help.gdb
-ln -s help.gdb qli/master_help_db
+#ln -s $3/qli/help.gdb qli/help.gdb ?
+ln -s $3/interbase/help/help.gdb qli/help.gdb
+ln -s $3/interbase/help/help.gdb qli/master_help_db
 ln -s source/builds/make.qli qli/makefile
 # Register
-ln -s .. register/source
-ln -s .. super/register/source
+# Probably registration code - no source from Inprise
+#ln -s .. register/source
+#ln -s .. super/register/source
 # Remote
 ln -s .. remote/source
 ln -s source/builds/make.remote remote/makefile
@@ -297,7 +334,8 @@ if [ $1 = "DG" ]; then
 fi
 # Utilities
 ln -s .. utilities/source
-ln -s source/jrd/isc.gdb utilities/isc.gdb
+ln -s source/isc.gdb jrd/isc.gdb
+ln -s source/isc.gdb utilities/isc.gdb
 ln -s source/jrd/yachts.gdb utilities/yachts.lnk
 ln -s source/builds/make.utilities utilities/makefile
 ln -s $3/utilities/rebuild.gdb utilities/rebuild.gdb

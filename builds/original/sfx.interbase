@@ -33,19 +33,23 @@ CMP=		cmp
 
 CODES=/netapp/apps/isc/bin/codes
 
-interbase:	run_codes gds.h includes executables examples help msgs msgs_intl extlib
+# removed examples 03-Aug-00 TMC
+#interbase:	run_codes gds.h includes executables examples help msgs msgs_intl extlib
+interbase:	run_codes gds.h includes executables help msgs msgs_intl extlib
 
 # Run the codes program, thus generating codes.h, iberror.h, etc
 # compare and copy the file only if the files are different
-run_codes:	force $(CODES)
-	$(SH) '$(CD) source/jrd; $(CODES)'
+run_codes:	
+#	force $(CODES)
+#	$(SH) '$(CD) source/jrd; $(CODES)'
 	$(SH) '$(CMP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; if [ $$? != 0 ]; then $(CP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; fi'
 
 # NOTE: "journals" removed from "executables" as it currently doesn't
 #	build and isn't used for V4 anyway.
 # 1995-June-7 David Schnepper 
+# removed pyxis 3-Aug-00 TMC
 executables:	alice burp dudley gpre install $(INTL) isql locks \
-	$(SUPER_SERVER) pyxis qli remote spit utilities \
+	$(SUPER_SERVER) qli remote spit utilities \
 	$(SHARED_AM) $(LINKABLE_LIBS)
 	
 super_targets: 	s_run_codes s_alice s_burp s_dba s_security_c super_client super_server super_utils 
@@ -208,9 +212,10 @@ security_c: force
 
 # Run the codes program (for SUPERSERVER hierarchy), 
 # thus generating codes.h, iberror.h, etc
-s_run_codes:	force $(CODES)
+s_run_codes:	
+#	force $(CODES)
 	$(QUIET_ECHO) "Running codes in super ..."
-	$(SH) '$(CD) source/super/jrd; $(CODES)'
+#	$(SH) '$(CD) source/super/jrd; $(CODES)'
 
 s_security_c: force
 	$(QUIET_ECHO) "Building security.c ..."
@@ -239,10 +244,10 @@ $(GPRE):
 
 help:		gbak force
 	$(QUIET_ECHO) "Building the QLI help database..."
-	$(SETUP_ISC_REMOTE) $(GBAK) $(HLPDIR)master_help_db $(HELP_GBAK)
+	$(SETUP_ISC_REMOTE) $(GBAK) $(DBALOGIN) $(HLPDIR)master_help_db $(HELP_GBAK)
 	-$(RM) $(HELP_GDB)
 	$(SETUP_ISC_LOCAL) \
-	$(GBAK) -r $(HELP_GBAK) $(HELP_GDB)
+	$(GBAK) $(DBALOGIN) -r $(HELP_GBAK) $(HELP_GDB)
 
 include_generic:	force
 	$(QUIET_ECHO) "Building the include directory..."
