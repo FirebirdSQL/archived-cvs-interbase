@@ -136,7 +136,7 @@ REMOTE_P_OBJS=		rem_p_objects
 SCREEN_LIBS=		-lcurses -ltermlib
 SERVER_LINK=		$(GDSSHR_LINK)
 SETUP_ISC_LOCAL=	ISC_USER=sysdba; ISC_PASSWORD=masterkey; export ISC_USER ISC_PASSWORD;
-SETUP_ISC_REMOTE=	ISC_USER=builder; ISC_PASSWORD=builder; export ISC_USER ISC_PASSWORD;
+SETUP_ISC_REMOTE=	ISC_USER=sysdba; ISC_PASSWORD=masterkey; export ISC_USER ISC_PASSWORD;
 SPECIAL_OPT=		source/special_opt
 SO_NETWORK_LIB=		-lnsl
 SO_SOCKET_LIB=		-lsocket
