@@ -22,6 +22,13 @@
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ *
+ * 2001.07.09 Sean Leyne - Restore default setting to Force Write = "On", for
+ *                         Windows NT platform, for new database files. This was changed
+ *                         with IB 6.0 to OFF and has introduced many reported database
+ *                         corruptions.
+ *
+*/
  */
 
 #ifdef SHLIB_DEFS
@@ -1800,8 +1807,16 @@ if (options.dpb_sweep_interval != -1)
     dbb->dbb_sweep_interval = options.dpb_sweep_interval;
     }
 
+/* Sean Leyne 2001.07.09 for Firebird v1.0
+ *    Restore default setting to Force Write = "On", Windows NT platform, for new database files
+ */
+#ifdef WIN_NT
+PAG_set_force_write (dbb, options.dpb_force_write);
+#else
 if (options.dpb_set_force_write)
     PAG_set_force_write (dbb, options.dpb_force_write);
+#endif
+// SJL - 2001.07.09
 
 /* initialize shadowing semaphore as soon as the database is ready for it
    but before any real work is done */
