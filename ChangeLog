@@ -1,3 +1,9 @@
+2002-10-24 13:17  dimitr
+
+	* interbase/jrd/why.c:
+	
+	More complete implementation of my 2PC related fix.
+
 2002-10-18 16:51  dimitr
 
 	* interbase/jrd/: jrd.c, why.c:
