@@ -409,7 +409,7 @@ return function;
 /*
 #if (defined AIX || defined AIX_PPC)
 */
-#ifdef OLD_AIX || OLD_AIX_PPC)
+#if (defined OLD_AIX || defined OLD_AIX_PPC)
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
     TEXT	*module,
