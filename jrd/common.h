@@ -19,21 +19,26 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
  * Added TCP_NO_DELAY option for superserver on Linux
  * FSG 16.03.2001
  *
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
- */
-/*
-$Id$
+ *
+ * $Id$
+ *
+ * 2001.11.20  Ann Harrison - make 64bitio.h conditional on not windows.
 */
 
 #ifndef _JRD_COMMON_H_
 #define _JRD_COMMON_H_
 
-#ifndef _64_BIT_IO_H
+/* configure.sh builds the file 64bitio.h on all platforms
+   except windows.  Windows doesn't need it, happily */
+
+#ifndef WIN32
 #include "../jrd/64bitio.h"
 #endif
 
@@ -752,19 +757,26 @@ typedef unsigned __int64 UINT64;
 #define IMPLEMENTATION	isc_info_db_impl_winnt_ppc /* 57 */
 #endif
 
+#ifndef DLL_EXPORT  
+#ifndef SUPERSERVER
+#define DLL_EXPORT 
+#else
+#define DLL_EXPORT
+#endif
+
+
+#endif
+
 #define ATEXIT(c)       atexit (c)
 #define                 IEEE
 #define INTL
 #define VA_START(list,parmN)    va_start (list, parmN)
-#define API_ROUTINE     __stdcall
+#define API_ROUTINE      __stdcall
 #define API_ROUTINE_VARARG      __cdecl
 #define CLIB_ROUTINE    __cdecl
 #define THREAD_ROUTINE  __stdcall
 #define INTERNAL_API_ROUTINE	API_ROUTINE
 
-#ifndef DLL_EXPORT
-#define DLL_EXPORT
-#endif
 
 #define BOOLEAN_DEFINED
 typedef unsigned char   BOOLEAN;
