@@ -741,7 +741,7 @@ void ISQL_copy_SQL_id (
  * Functional description
  *
  *	Copy/rebuild the SQL identifier by adding escape double quote if
- *	double quote is part of the SQL identifier and raps around the 
+ *	double quote is part of the SQL identifier and wraps around the 
  *	SQL identifier with delimited double quotes 
  *
  **************************************/
