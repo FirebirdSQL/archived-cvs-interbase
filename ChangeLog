@@ -1,3 +1,23 @@
+2003-07-16 00:14  awharrison
+
+	* interbase/jrd/: btr.c, btr.h, dfw.e, idx.c, idx_proto.h, jrd.h,
+	pag.c, val.c, vio.c:
+	
+	
+	
+	 Modified Files:
+	  Tag: V1-0-0_731
+		interbase/jrd/btr.c interbase/jrd/btr.h interbase/jrd/dfw.e
+		interbase/jrd/idx.c interbase/jrd/idx_proto.h
+		interbase/jrd/jrd.h interbase/jrd/pag.c interbase/jrd/val.c
+		interbase/jrd/vio.c
+	
+	Reapply change for increased number of indexes.  Some debugging
+	changes were included in the last set of changes so Claudio backed
+	them out.  This time should be better.
+	-------------------------------------------------------------------
+	---
+
 2003-07-15 19:54  awharrison
 
 	* interbase/utilities/dba.e:
