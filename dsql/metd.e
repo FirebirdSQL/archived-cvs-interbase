@@ -25,6 +25,8 @@
  * 2001.12.06 Claudio Valderrama: METD_get_charset_bpc() was added to
  *    get only the bytes per char of a field, given its charset id.
  *   This request is not cached.
+ * 2001.02.23 Claudio Valderrama: Fix SF Bug #228135 with views spoiling
+ *    NULLs in outer joins.
  */
 
 #include <string.h>
@@ -1616,7 +1618,8 @@ else /* V4 ODS8 dbb */
 	else if (!FLX.RDB$COLLATION_ID.NULL)
 	    field->fld_collation_id = FLX.RDB$COLLATION_ID;
 
-	if (!(RFR.RDB$NULL_FLAG || FLX.RDB$NULL_FLAG))
+	if (!(RFR.RDB$NULL_FLAG || FLX.RDB$NULL_FLAG)
+	    || (relation->rel_flags & REL_view))
 	    field->fld_flags |= FLD_nullable;
 
 	THREAD_EXIT;
