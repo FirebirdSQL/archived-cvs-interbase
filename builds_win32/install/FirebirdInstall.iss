@@ -29,9 +29,6 @@
 ;   theirs. Currently, we are allowing a new install over an
 ;   existing install.
 ;
-; o The script should pick up the build number and use it in the
-;   generated install_image file name
-;
 ; o Better support for Win9x needed. We could set ibserver to
 ;   run automatically, for instance.
 ;
@@ -39,7 +36,8 @@
 
 [Setup]
 AppName=Firebird Database Server 1.0
-;this is important - all ISS install packages should duplicate this for v1
+;The following is important - all ISS install packages should
+;duplicate this for v1. See the InnoSetup help for details.
 AppID=FBDBServer1
 AppVerName=Firebird 1.0.0
 AppPublisher=Firebird Project
@@ -61,7 +59,7 @@ WizardImageFile=builds_win32\install\firebird_install_logo1.bmp
 AdminPrivilegesRequired=true
 UninstallDisplayIcon={app}\bin\ibserver.exe
 OutputDir=builds_win32\install\install_image
-OutputBaseFilename=Firebird-1.0.0.731-Win32
+OutputBaseFilename=Firebird-1.0.0-Win32
 Compression=bzip
 ;WizardDebug=true
 
@@ -113,27 +111,21 @@ Source: interbase\intl\*.*; DestDir: {app}\intl; Components: Server DevTools; Co
 Source: interbase\lib\*.*; DestDir: {app}\lib; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\UDF\*.*; DestDir: {app}\UDF; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\examples\v5\*.*; DestDir: {app}\examples; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: Server; CopyMode: alwaysskipifsameorolder; Flags: confirmoverwrite overwritereadonly sharedfile;
-Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: DevTools Client; CopyMode: alwaysskipifsameorolder; Flags: confirmoverwrite overwritereadonly sharedfile;
-Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: Server DevTools Client; CopyMode: alwaysskipifsameorolder; Flags: confirmoverwrite uninsneveruninstall overwritereadonly sharedfile;
+Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: Server; CopyMode: normal; Flags: overwritereadonly sharedfile;
+Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: DevTools Client; CopyMode: normal; Flags: overwritereadonly sharedfile;
+Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: Server DevTools Client; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall sharedfile;
 
 [Icons]
 Name: {group}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: group; IconIndex: 0
 Name: {userdesktop}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: desktopicon; IconIndex: 0
 
 [Registry]
-;This section is more or less redundant. Instreg.exe now handles all the registry stuff.
-;Root: HKLM; Subkey: SOFTWARE\Borland; Flags: uninsdeletekeyifempty
-;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase; Flags: uninsdeletekey
-;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; Flags: uninsdeletekey
-;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
-;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
-;These will be the Firebird entries
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
+;These will be the future Firebird entries
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
 
 [Run]
 ;Register Firebird
@@ -150,13 +142,13 @@ Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg:  "Updating the r
 
 [UninstallDelete]
 Type: files; Name: "{app}\{%COMPUTERNAME}.lck"
+Type: files; Name: "{app}\{%COMPUTERNAME}.evn"
 
 [_ISTool]
 EnableISX=true
 
 [Code]
 program Setup;
-
 
 function InitializeSetup(): Boolean;
 var
@@ -166,27 +158,28 @@ begin
 
   //Look for a running copy of InterBase, or an old version of Firebird.
   i:=0;
-  i:=FindWindowByWindowName('InterBase Server');
+  i:=FindWindowByClassName('IB_Server') ;
   if i<>0 then begin
     result := false;
     //We could be clever and try to stop the server.
     //If that fails we could try to close the app.
     //For now, let's be cowards and take the easy way out and
     //leave the user to do the work.
-    MsgBox('IBServer is running. You must close the '+
+    MsgBox('An existing Firebird or InterBase Server is running. You must close the '+
            'application or stop the service before continuing.', mbError, MB_OK);
-    end
-  else begin
-    //sooner or later Firebird will have its own name
+    end;
+    
+  //sooner or later Firebird will have its own class name for the server
+  if i<>0 then begin
     i:=0;
-    i:=FindWindowByWindowName('Firebird Database Server');
+    i:=FindWindowByClassName('FB_Server') ;
     if i<>0 then begin
       result := false;
-      MsgBox('FBServer is running. You must close the '+
+      MsgBox('An existing Firebird Server is running. You must close the '+
              'application or stop the service before continuing.', mbError, MB_OK);
-      end;
+    end;
   end;
-  
+
 end;
 
 function InstallDir(Default: String): String;
@@ -194,15 +187,29 @@ var
 	sRootDir: String;
 begin
 	sRootDir := '';
-// Try to find the value of "RootDirectory" in the Firebird registry settings
-	if (RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion', 'RootDirectory', sRootDir) = False) then
-// If the Firebird registry settings don't exits try to find the Borland ones
-		RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Borland\InterBase\CurrentVersion', 'RootDirectory', sRootDir);
-// Only if the Firebird or InterBase "RootKey" was found create a result
-	if (sRootDir <> '') then
-		Result := ChangeDirConst(sRootDir);
-end;
+  // Try to find the value of "RootDirectory" in the Firebird
+  // registry settings
+  if (RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion',
+    'RootDirectory', sRootDir) = False) then
+      // If the Firebird registry settings doesn't exist try to
+      // find the Borland ones
+      RegQueryStringValue(HKEY_LOCAL_MACHINE,
+        'SOFTWARE\Borland\InterBase\CurrentVersion',
+        'RootDirectory', sRootDir);
 
+  //if we still haven't found anything then try the INTERBASE env var
+  if (sRootDir = '') then
+    sRootDir:=getenv('INTERBASE');
+
+  //Suggestion from Michael Rimov that returns the specified default
+  //if no existing registry setting is found.
+  if (sRootDir = '') then
+    sRootDir := Default;
+
+  Result := ChangeDirConst(sRootDir);
+
+end;
 
 begin
 end.
