@@ -2,7 +2,7 @@
  * The contents of this file are subject to the Interbase Public
  * License Version 1.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy
- * of the License at http://www.Inprise.com/IPL/
+ * of the License at http://www.Inprise.com/IPL.html
  * 
  * Software distributed under the License is distributed on an
  * "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express
@@ -13,7 +13,6 @@
  * and its predecessors. Portions created by Inprise Corporation are
  * Copyright (C) Inprise Corporation.
  * 
- * Copyright (C) 2000 Inprise Corporation
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
@@ -590,6 +589,7 @@
 #define gds__dyn_char_fld_too_small           336068816L
 #define gds__dyn_invalid_dtype_conversion     336068817L
 #define gds__dyn_dtype_conv_invalid           336068818L
+#define gds__dyn_zero_len_id                  336068820L
 #define gds__gbak_unknown_switch              336330753L
 #define gds__gbak_page_size_missing           336330754L
 #define gds__gbak_page_size_toobig            336330755L
@@ -731,7 +731,7 @@
 #define gds__gstat_open_err                   336920605L
 #define gds__gstat_read_err                   336920606L
 #define gds__gstat_sysmemex                   336920607L
-#define gds_err_max                          689
+#define gds_err_max                          690
 
 /***********************/
 /*   ISC Error Codes   */
@@ -1305,6 +1305,7 @@
 #define isc_dyn_char_fld_too_small           336068816L
 #define isc_dyn_invalid_dtype_conversion     336068817L
 #define isc_dyn_dtype_conv_invalid           336068818L
+#define isc_dyn_zero_len_id                  336068820L
 #define isc_gbak_unknown_switch              336330753L
 #define isc_gbak_page_size_missing           336330754L
 #define isc_gbak_page_size_toobig            336330755L
@@ -1446,5 +1447,5 @@
 #define isc_gstat_open_err                   336920605L
 #define isc_gstat_read_err                   336920606L
 #define isc_gstat_sysmemex                   336920607L
-#define isc_err_max                          689
+#define isc_err_max                          690
 

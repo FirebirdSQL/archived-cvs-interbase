@@ -35,7 +35,7 @@ extern void	DYN_delete_local_field (GBL, UCHAR **, TEXT *, TEXT *);
 extern void	DYN_delete_parameter (GBL, UCHAR **, TEXT *);
 extern void	DYN_delete_procedure (GBL, UCHAR **);
 extern void	DYN_delete_relation (GBL, UCHAR **, TEXT *);
-extern void	DYN_delete_role     (GBL, UCHAR **);
+extern void	DYN_delete_role (GBL, UCHAR **);
 extern void	DYN_delete_security_class (GBL, UCHAR **);
 extern void	DYN_delete_shadow (GBL, UCHAR **);
 extern void	DYN_delete_trigger (GBL, UCHAR **);

@@ -19,8 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- *    20-Apr-2001 Claudio Valderrama  - Fix bug in grant/revolk by making user
+ *    20-Apr-2001 Claudio Valderrama  - Fix bug in grant/revoke by making user
  *                                      case insensitive.
+ *    24-May-2001 Claudio Valderrama - Move DYN_delete_role to dyn_del.e.
  *                                      
  */
 
@@ -189,138 +190,6 @@ V4_JRD_MUTEX_UNLOCK (dbb->dbb_mutexes + DBB_MUTX_dyn);
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
 ALL_rlpool (tdbb->tdbb_default);
 tdbb->tdbb_default = old_pool;
-}
-
-void DYN_delete_role (
-    GBL		gbl,
-    UCHAR	**ptr)
-{
-/**************************************
- *
- *	D Y N _ d e l e t e _ r o l e
- *
- **************************************
- *
- * Functional description
- *
- *	Execute a dynamic ddl statement that deletes a role with all its 
- *      members of the role.
- *
- **************************************/
-TDBB	tdbb;
-DBB	dbb;
-BLK	request;
-VOLATILE USHORT	id, err_num;
-TEXT	role_name [32], security_class [32], role_owner [32], user [32];
-TEXT    *ptr1, *ptr2;
-JMP_BUF	env, *old_env;
-BOOLEAN del_role_ok = TRUE;
-USHORT  major_version, minor_original;
-
-tdbb = GET_THREAD_DATA;
-dbb = tdbb->tdbb_database;
-
-major_version  = (SSHORT) dbb->dbb_ods_version;
-minor_original = (SSHORT) dbb->dbb_minor_original;
-
-if (ENCODE_ODS(major_version, minor_original) < ODS_9_0)
-    {
-    DYN_error (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
-    ERR_punt();
-    }
-else
-    {
-
-old_env = (JMP_BUF*) tdbb->tdbb_setjmp;
-tdbb->tdbb_setjmp = (UCHAR*) env;
-
-if (SETJMP (env))
-    {
-    DYN_rundown_request (old_env, request, -1);
-    if (id == drq_drop_role)
-	DYN_error_punt (TRUE, 191, NULL, NULL, NULL, NULL, NULL);
-	/* msg 191: "ERASE RDB$ROLES failed" */
-    else
-	DYN_error_punt (TRUE, 62, NULL, NULL, NULL, NULL, NULL);
-	/* msg 62: "ERASE RDB$USER_PRIVILEGES failed" */
-    }
-
-for (ptr1 = tdbb->tdbb_attachment->att_user->usr_user_name, ptr2 = user; 
-     *ptr1; ptr1++, ptr2++)
-    *ptr2 = UPPER7 (*ptr1);
-
-*ptr2 = '\0';
-
-GET_STRING (ptr, role_name);
-
-request = (BLK) CMP_find_request (tdbb, drq_drop_role, DYN_REQUESTS);
-id = drq_drop_role;
-
-FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
-	XX IN RDB$ROLES WITH 
-    XX.RDB$ROLE_NAME EQ role_name
-
-    if (!DYN_REQUEST (drq_drop_role))
-	DYN_REQUEST (drq_drop_role) = request;
-
-    DYN_terminate (XX.RDB$OWNER_NAME, sizeof (XX.RDB$OWNER_NAME));
-    strcpy (role_owner, XX.RDB$OWNER_NAME);
-
-    if ((tdbb->tdbb_attachment->att_user->usr_flags & USR_locksmith) ||
-        (strcmp (role_owner, user) == 0))
-        {
-        ERASE XX;
-        }
-    else
-        {
-        del_role_ok = FALSE;
-        }
-
-END_FOR;
-
-if (!DYN_REQUEST (drq_drop_role))
-    DYN_REQUEST (drq_drop_role) = request;
-
-if (del_role_ok)
-    {
-    request = (BLK) CMP_find_request (tdbb, drq_del_role_1, DYN_REQUESTS);
-    id = drq_del_role_1;
-
-
-    /* The first OR clause Finds all members of the role
-       The 2nd OR clause  Finds all privileges granted to the role */ 
-    FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
-        PRIV IN RDB$USER_PRIVILEGES WITH 
-            ( PRIV.RDB$RELATION_NAME EQ role_name AND 
-              PRIV.RDB$OBJECT_TYPE = obj_sql_role )
-	 OR ( PRIV.RDB$USER EQ role_name AND
-              PRIV.RDB$USER_TYPE = obj_sql_role )
-
-        if (!DYN_REQUEST (drq_del_role_1))
-            DYN_REQUEST (drq_del_role_1) = request;
-
-        ERASE PRIV;
-
-    END_FOR;
-
-    if (!DYN_REQUEST (drq_del_role_1))
-        DYN_REQUEST (drq_del_role_1) = request;
-
-    }
-else
-    {
-    /****************************************************
-    **
-    **  only owner of SQL role or USR_locksmith could drop SQL role
-    **
-    *****************************************************/
-    DYN_error (FALSE, 191, user, role_name, NULL, NULL, NULL);
-    tdbb->tdbb_setjmp = (UCHAR*) old_env;
-    ERR_punt();
-    }
-
-tdbb->tdbb_setjmp = (UCHAR*) old_env;
-    }
 }
 
 void DYN_error (
@@ -1317,8 +1186,7 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 	case isc_dyn_sql_role_name:      /* role name in role_name_list */
             if (ENCODE_ODS(major_version, minor_original) < ODS_9_0)
                 {
-                DYN_error (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
-                ERR_punt();
+                DYN_error_punt (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
                 }
             else
                 {
@@ -1450,8 +1318,7 @@ for (p = privileges; *p; p++)
         {
         if (ENCODE_ODS(major_version, minor_original) < ODS_9_0)
             {
-            DYN_error (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
-            ERR_punt();
+            DYN_error_punt (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
             }
         id = drq_get_role_nm;
  
@@ -1472,9 +1339,7 @@ for (p = privileges; *p; p++)
             ** could be reused for blocking cycles of role grants
             **
             *****************************************************/
-            DYN_error (FALSE, 192, user, NULL, NULL, NULL, NULL);
-            tdbb->tdbb_setjmp = (UCHAR*) old_env;
-            ERR_punt();
+            DYN_error_punt (FALSE, 192, user, NULL, NULL, NULL, NULL);
             }
         }
     else
@@ -1993,8 +1858,7 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 	case isc_dyn_sql_role_name:       /* role name in role_name_list */
             if (ENCODE_ODS(major_version, minor_original) < ODS_9_0)
                 {
-                DYN_error (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
-                ERR_punt();
+                DYN_error_punt (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
                 }
             else
                 {

@@ -21,6 +21,8 @@
  * Contributor(s): ______________________________________.
  * 2001.5.20: Claudio Valderrama: when changing a domain's name,
  * if it has dimensions, rdb$field_dimensions should be updated, too.
+ *    23-May-2001 Claudio Valderrama - Forbid zero length identifiers,
+ *                                   they are not ANSI SQL compliant.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -493,6 +495,8 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
                             /* msg 204: Cannot rename domain %s to %s.  A domain with that name already exists. */
 			    }
  			}
+			else DYN_error_punt (TRUE, isc_dyn_zero_len_id, NULL, NULL, NULL, NULL, NULL);
+				/* msg 212: "Zero length identifiers not allowed" */
 		    break;
 		    }
 
@@ -1170,8 +1174,12 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 	if (nnflag)
 	    {
-	    TEXT  new_fld[FLD_NAME_LEN];
-            GET_STRING (&new_name, new_fld);
+	    TEXT new_fld[FLD_NAME_LEN];
+		new_fld[0] = 0;
+        GET_STRING (&new_name, new_fld);
+		if (!new_fld[0])
+			DYN_error_punt (TRUE, isc_dyn_zero_len_id, NULL, NULL, NULL, NULL, NULL);
+			/* msg 212: "Zero length identifiers not allowed" */
 
 	    check_view_dependency (tdbb, dbb, gbl, r, f);
 	    check_sptrig_dependency (tdbb, dbb, gbl, r, f);
@@ -1384,7 +1392,7 @@ JMP_BUF	env, *old_env;
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 
-field_name[0] = '\0';
+field_name[0] = 0;
 GET_STRING (ptr, name);
 
 request = (BLK) CMP_find_request (tdbb, drq_m_relation, DYN_REQUESTS);
@@ -1524,7 +1532,17 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	    switch (verb)
 		{
 		case gds__dyn_trg_name:
-		    GET_STRING (ptr, X.RDB$TRIGGER_NAME);
+			{
+			TEXT new_trigger_name [32];
+			new_trigger_name[0] = 0;
+			/* GET_STRING (ptr, X.RDB$TRIGGER_NAME); */
+			GET_STRING (ptr, new_trigger_name);
+			if (!new_trigger_name[0])
+			DYN_error_punt (TRUE, isc_dyn_zero_len_id, NULL, NULL, NULL, NULL, NULL);
+			/* msg 212: "Zero length identifiers not allowed" */
+
+		    strcpy (X.RDB$TRIGGER_NAME, new_trigger_name);
+			}
 		    break;
 
 		case gds__dyn_trg_type:

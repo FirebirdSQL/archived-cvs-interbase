@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *    24-May-2001 Claudio Valderrama - Forbid zero length identifiers,
+ *                                   they are not ANSI SQL compliant.
+ *    23-May-2001 Claudio Valderrama - Move here DYN_delete_role.
  */
 
 #include <stdio.h>
@@ -28,6 +31,7 @@
 #include "../jrd/common.h"
 #include <stdarg.h>
 #include "../jrd/jrd.h"
+#include "../jrd/ods.h"
 #include "../jrd/tra.h"
 #include "../jrd/scl.h"
 #include "../jrd/drq.h"
@@ -1214,6 +1218,135 @@ while (*(*ptr)++ != gds__dyn_end)
     {
     --(*ptr);
     DYN_execute (gbl, ptr, relation_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
+    }
+}
+
+void DYN_delete_role (
+    GBL		gbl,
+    UCHAR	**ptr)
+{
+/**************************************
+ *
+ *	D Y N _ d e l e t e _ r o l e
+ *
+ **************************************
+ *
+ * Functional description
+ *
+ *	Execute a dynamic ddl statement that deletes a role with all its 
+ *      members of the role.
+ *
+ **************************************/
+TDBB	tdbb;
+DBB	dbb;
+BLK	request;
+VOLATILE USHORT	id, err_num;
+TEXT	role_name [32], security_class [32], role_owner [32], user [32];
+TEXT    *ptr1, *ptr2;
+JMP_BUF	env, *old_env;
+BOOLEAN del_role_ok = TRUE;
+USHORT  major_version, minor_original;
+
+tdbb = GET_THREAD_DATA;
+dbb = tdbb->tdbb_database;
+
+major_version  = (SSHORT) dbb->dbb_ods_version;
+minor_original = (SSHORT) dbb->dbb_minor_original;
+
+if (ENCODE_ODS(major_version, minor_original) < ODS_9_0)
+    {
+    DYN_error_punt (FALSE, 196, NULL, NULL, NULL, NULL, NULL);
+    }
+else
+    {
+
+old_env = (JMP_BUF*) tdbb->tdbb_setjmp;
+tdbb->tdbb_setjmp = (UCHAR*) env;
+
+if (SETJMP (env))
+    {
+    DYN_rundown_request (old_env, request, -1);
+    if (id == drq_drop_role)
+	DYN_error_punt (TRUE, 191, NULL, NULL, NULL, NULL, NULL);
+	/* msg 191: "ERASE RDB$ROLES failed" */
+    else
+	DYN_error_punt (TRUE, 62, NULL, NULL, NULL, NULL, NULL);
+	/* msg 62: "ERASE RDB$USER_PRIVILEGES failed" */
+    }
+
+for (ptr1 = tdbb->tdbb_attachment->att_user->usr_user_name, ptr2 = user; 
+     *ptr1; ptr1++, ptr2++)
+    *ptr2 = UPPER7 (*ptr1);
+
+*ptr2 = '\0';
+
+GET_STRING (ptr, role_name);
+
+request = (BLK) CMP_find_request (tdbb, drq_drop_role, DYN_REQUESTS);
+id = drq_drop_role;
+
+FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+	XX IN RDB$ROLES WITH 
+    XX.RDB$ROLE_NAME EQ role_name
+
+    if (!DYN_REQUEST (drq_drop_role))
+	DYN_REQUEST (drq_drop_role) = request;
+
+    DYN_terminate (XX.RDB$OWNER_NAME, sizeof (XX.RDB$OWNER_NAME));
+    strcpy (role_owner, XX.RDB$OWNER_NAME);
+
+    if ((tdbb->tdbb_attachment->att_user->usr_flags & USR_locksmith) ||
+        (strcmp (role_owner, user) == 0))
+        {
+        ERASE XX;
+        }
+    else
+        {
+        del_role_ok = FALSE;
+        }
+
+END_FOR;
+
+if (!DYN_REQUEST (drq_drop_role))
+    DYN_REQUEST (drq_drop_role) = request;
+
+if (del_role_ok)
+    {
+    request = (BLK) CMP_find_request (tdbb, drq_del_role_1, DYN_REQUESTS);
+    id = drq_del_role_1;
+
+
+    /* The first OR clause Finds all members of the role
+       The 2nd OR clause  Finds all privileges granted to the role */ 
+    FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+        PRIV IN RDB$USER_PRIVILEGES WITH 
+            ( PRIV.RDB$RELATION_NAME EQ role_name AND 
+              PRIV.RDB$OBJECT_TYPE = obj_sql_role )
+	 OR ( PRIV.RDB$USER EQ role_name AND
+              PRIV.RDB$USER_TYPE = obj_sql_role )
+
+        if (!DYN_REQUEST (drq_del_role_1))
+            DYN_REQUEST (drq_del_role_1) = request;
+
+        ERASE PRIV;
+
+    END_FOR;
+
+    if (!DYN_REQUEST (drq_del_role_1))
+        DYN_REQUEST (drq_del_role_1) = request;
+
+    }
+else
+    {
+    /****************************************************
+    **
+    **  only owner of SQL role or USR_locksmith could drop SQL role
+    **
+    *****************************************************/
+    DYN_error_punt (FALSE, 191, user, role_name, NULL, NULL, NULL);
+    }
+
+tdbb->tdbb_setjmp = (UCHAR*) old_env;
     }
 }
 

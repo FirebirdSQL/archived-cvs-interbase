@@ -2,7 +2,7 @@
  * The contents of this file are subject to the Interbase Public
  * License Version 1.0 (the "License"); you may not use this file
  * except in compliance with the License. You may obtain a copy
- * of the License at http://www.Inprise.com/IPL/
+ * of the License at http://www.Inprise.com/IPL.html
  * 
  * Software distributed under the License is distributed on an
  * "AS IS" basis, WITHOUT WARRANTY OF ANY KIND, either express
@@ -13,7 +13,6 @@
  * and its predecessors. Portions created by Inprise Corporation are
  * Copyright (C) Inprise Corporation.
  * 
- * Copyright (C) 2000 Inprise Corporation
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
@@ -570,6 +569,7 @@
 "dyn_char_fld_too_small", 336068816,
 "dyn_invalid_dtype_conversion", 336068817,
 "dyn_dtype_conv_invalid", 336068818,
+"dyn_zero_len_id", 336068820,
 "gbak_unknown_switch", 336330753,
 "gbak_page_size_missing", 336330754,
 "gbak_page_size_toobig", 336330755,
