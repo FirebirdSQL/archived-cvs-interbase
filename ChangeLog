@@ -1,3 +1,18 @@
+2001-04-05 19:05  skywalker
+
+	* interbase/: builds_win32/original/metadata.sql, burp/backup.e,
+	burp/burp.c, burp/burp.h, burp/mvol.c, burp/restore.e,
+	dsql/pass1.c, dudley/ddl.h, iscguard/cntl_guard.c,
+	iscguard/iscguard.c, iscguard/iscguard.rc, jrd/event.c, jrd/ini.e,
+	jrd/ods.h, jrd/pag.h, jrd/sdw.c, jrd/utl.c, jrd/winnt.c,
+	remote/cntl.c, remote/ibconfig.c, remote/ibconfig.rc,
+	remote/inet.c, remote/property.c, remote/property.rc,
+	utilities/dba.e, utilities/dba_full.e, utilities/sbc_print.c,
+	utilities/security.e:
+	
+	Committed Changes made in the borland tree Committed Changes made
+	by Mike Nordel re, 64 bit io for win32 and bug fixes
+
 2001-03-26 00:29  nmcc
 
 	* interbase/builds/original/prefix.solx86:
