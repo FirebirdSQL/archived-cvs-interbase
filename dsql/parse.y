@@ -26,7 +26,8 @@
  * 2001.06.13: Claudio Valderrama: SUBSTRING is being surfaced.
  * 2001.06.30: Claudio valderrama: Feed (line,column) for each node. See node.h.
  * 2001.07.10: Claudio Valderrama: Better (line,column) report and "--" for comments.
- * 2001.07.28: John Bellardo: Changes to support parsing LIMIT and FIRST/
+ * 2001.07.28: John Bellardo: Changes to support parsing LIMIT and FIRST
+ * 2001.08.03: John Bellardo: Finalized syntax for LIMIT, change LIMIT to SKIP
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -358,7 +359,7 @@ static SSHORT	log_defined, cache_defined;
 %token SUBSTRING
 %token KW_DESCRIPTOR
 %token FIRST
-%token LIMIT
+%token SKIP
 
 /* special aggregate token types returned by lex in v6.0 */
 
@@ -1506,10 +1507,10 @@ union_view_expr	: select_view_expr
                         { $$ = make_flag_node (nod_list, NOD_UNION_ALL, 2, $1, $4); }
 		;
 
-select_view_expr: SELECT distinct_clause
+select_view_expr: SELECT limit_clause
+			 distinct_clause
 			 select_list 
 			 from_view_clause 
-			 limit_clause
 			 where_clause 
 			 group_clause 
 			 having_clause
@@ -2454,10 +2455,10 @@ for_update_list	: OF column_list
 
 /* SELECT expression */
 
-select_expr	: SELECT distinct_clause
+select_expr	: SELECT limit_clause
+			 distinct_clause
 			 select_list 
 			 from_clause 
-			 limit_clause
 			 where_clause 
 			 group_clause 
 			 having_clause
@@ -2571,10 +2572,10 @@ join_type	: INNER
 
 limit_clause	: FIRST value
 			{ $$ = make_node (nod_limit, e_limit_count, NULL, $2); }
-		| LIMIT '(' value ')'
-			{ $$ = make_node (nod_limit, e_limit_count, NULL, $3); }
-		| LIMIT '(' value ',' value ')'
-			{ $$ = make_node (nod_limit, e_limit_count, $5, $3); }
+		| FIRST value SKIP value
+			{ $$ = make_node (nod_limit, e_limit_count, $4, $2); }
+		| SKIP value
+			{ $$ = make_node (nod_limit, e_limit_count, $2, NULL); }
 		|
 			{ $$ = 0; }
 		;
@@ -2941,28 +2942,28 @@ scalar_set	: '(' constant_list ')'
 			{ $$ = $2; }
 		;
 
-column_select	: SELECT distinct_clause
+column_select	: SELECT limit_clause
+			distinct_clause
 			value 
 			from_clause 
-			limit_clause
 			where_clause 
 			group_clause
 			having_clause
 			plan_clause
 		    { $$ = make_node (nod_select_expr, e_sel_count, 
-				$2, make_list ($3), $4, $5, $6, $7, $8, $9, NULL); }
+				$2, $3, make_list($4), $5, $6, $7, $8, $9, NULL); }
 		;
 
-column_singleton : SELECT distinct_clause
+column_singleton : SELECT limit_clause
+			distinct_clause
 			value 
 			from_clause 
-			limit_clause
 			where_clause 
 			group_clause
 			having_clause
 			plan_clause
 		    { $$ = make_node (nod_select_expr, e_sel_count, 
-		 		$2, make_list ($3), $4, $5, $6, $7, $8, $9,
+		 		$2, $3, make_list($4), $5, $6, $7, $8, $9,
 				MAKE_constant ((STR) 1, CONSTANT_SLONG)); }
 		;
 

@@ -17,7 +17,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): 
- *       2001.7.28   John Bellardo added tokens for FIRST and LIMIT
+ *       2001.08.03   John Bellardo changed LIMIT token to SKIP
+ *       2001.07.28   John Bellardo added tokens for FIRST and LIMIT
    See dsql/parse.y for a chronological list. */
 
 NOT_LSS,  "!<", 1,
@@ -142,7 +143,6 @@ LEFT,	  "LEFT", 1,
 LENGTH,	  "LENGTH", 1,
 LEVEL,	  "LEVEL", 1,
 LIKE,	  "LIKE", 1,
-LIMIT,    "LIMIT", 2,
 LOGFILE,  "LOGFILE", 1,
 LOG_BUF_SIZE, "LOG_BUFFER_SIZE", 1,
 KW_LONG,  "LONG", 1,
@@ -212,6 +212,7 @@ SHADOW,	  "SHADOW", 1,
 SHARED,	  "SHARED", 1,
 SINGULAR, "SINGULAR", 1,
 SIZE,     "SIZE", 1,
+SKIP,     "SKIP", 2,
 SMALLINT, "SMALLINT", 1,
 SNAPSHOT, "SNAPSHOT", 1,
 SOME,	  "SOME", 1,

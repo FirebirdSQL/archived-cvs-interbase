@@ -22,7 +22,8 @@
  * 2001.6.12 Claudio Valderrama: add break_* constants.
  * 2001.6.30 Claudio valderrama: Jim Starkey suggested to hold information
  * about source line in each node that's created.
- * 2001.7.28 John Bellardo: Added e_rse_limit to nod_rse and nod_limit.
+ * 2001.07.28 John Bellardo: Added e_rse_limit to nod_rse and nod_limit.
+ * 2001.08.03 John Bellardo: Reordered args to no_sel for new LIMIT syntax
  */
 
 #ifndef _DSQL_NODE_H_
@@ -513,10 +514,10 @@ typedef struct nod {
 #define e_msg_text	1
 #define e_msg_count	2
 
-#define e_sel_distinct	0	/* nod_select_expr */
-#define e_sel_list	1
-#define e_sel_from	2
-#define e_sel_limit	3
+#define e_sel_limit	0	/* nod_select_expr */
+#define e_sel_distinct	1
+#define e_sel_list	2
+#define e_sel_from	3
 #define e_sel_where	4
 #define e_sel_group	5
 #define e_sel_having	6
