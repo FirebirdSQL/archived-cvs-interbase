@@ -187,8 +187,8 @@ EXEC_EXT=
 V3PRINTER=		source/lock/printv3.o
 
 MSG_INSTALL_CMD=	$(CP) source/interbase/interbase.msg source/interbase/Firebird.framework/Resources/English.lproj
-#CARBONCORE_DIR_FLAG=	-F/System/Library/Frameworks/CoreServices.framework/Frameworks
-CARBONCORE_DIR_FLAG=	
+CARBONCORE_DIR_FLAG=	-F/System/Library/Frameworks/CoreServices.framework/Frameworks
+#CARBONCORE_DIR_FLAG=	
 COREFOUNDATION_LINK=	-framework CoreFoundation
 
 #   End of file prefix.darwin:	$(VERSION)	$(PLATFORM)
