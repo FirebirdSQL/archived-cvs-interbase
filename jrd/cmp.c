@@ -5173,7 +5173,7 @@ if (rse->nod_flags & rse_stream)
     rsb->rsb_flags |= rsb_stream_type;
 #endif
 
-/* mark all the substreams as active */
+/* mark all the substreams as inactive */
 
 for (ptr = rse->rse_relation, end = ptr + rse->rse_count;
      ptr < end; ptr++)
