@@ -1221,6 +1221,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	    TEXT new_fld[FLD_NAME_LEN];
 		new_fld[0] = 0;
         GET_STRING (&new_name, new_fld);
+		MET_exact_name(new_fld);
 		if (!new_fld[0])
 			DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 			/* msg 212: "Zero length identifiers not allowed" */
@@ -1581,6 +1582,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			new_trigger_name[0] = 0;
 			/* GET_STRING (ptr, X.RDB$TRIGGER_NAME); */
 			GET_STRING (ptr, new_trigger_name);
+			MET_exact_name(new_trigger_name);
 			if (!new_trigger_name[0])
 			DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 			/* msg 212: "Zero length identifiers not allowed" */

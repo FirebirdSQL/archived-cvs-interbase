@@ -246,9 +246,14 @@ UCHAR   	  ri_action = 0;
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 
-if (!GET_STRING (ptr, constraint_name))
+constraint_name[0] = 0;
+GET_STRING (ptr, constraint_name);
+MET_exact_name(constraint_name);
+if (!constraint_name[0])
+{
     DYN_UTIL_generate_constraint_name (tdbb, gbl, constraint_name);
-
+	MET_exact_name(constraint_name);
+}
 if (!constraint_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -665,6 +670,7 @@ dbb = tdbb->tdbb_database;
 exception_name[0] = 0;
 GET_STRING (ptr, exception_name);
 
+MET_exact_name(exception_name);
 if (!exception_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -850,6 +856,7 @@ dbb = tdbb->tdbb_database;
 filter_name[0] = 0;
 GET_STRING (ptr, filter_name);
 
+MET_exact_name(filter_name);
 if (!filter_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -949,6 +956,7 @@ dbb = tdbb->tdbb_database;
 function_name[0] = 0;
 GET_STRING (ptr, function_name);
 
+MET_exact_name(function_name);
 if (!function_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -1183,6 +1191,7 @@ dbb = tdbb->tdbb_database;
 generator_name[0] = 0;
 GET_STRING (ptr, generator_name);
 
+MET_exact_name(generator_name);
 if (!generator_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -1244,9 +1253,13 @@ tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 
 global_field_name[0] = 0;
-if (!GET_STRING (ptr, global_field_name))
+GET_STRING (ptr, global_field_name);
+MET_exact_name(global_field_name);
+if (!global_field_name[0])
+{
 	DYN_UTIL_generate_field_name (tdbb, gbl, global_field_name);
-
+	MET_exact_name(global_field_name);
+}
 if (!global_field_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -1528,9 +1541,13 @@ tdbb = GET_THREAD_DATA;
 dbb =  tdbb->tdbb_database;
 
 index_name[0] = 0;
-if (!GET_STRING (ptr, index_name))
+GET_STRING (ptr, index_name);
+MET_exact_name(index_name);
+if (!index_name[0])
+{
 	DYN_UTIL_generate_index_name (tdbb, gbl, index_name, index_type);
-
+	MET_exact_name(index_name);
+}
 if (!index_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -1734,6 +1751,10 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 	    case gds__dyn_idx_foreign_key:
  		GET_STRING (ptr, referenced_relation);
+		MET_exact_name(referenced_relation);
+		if (!referenced_relation [0])
+			DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
+			/* msg 212: "Zero length identifiers not allowed" */
 		break;
 
 	    case gds__dyn_idx_ref_column:
@@ -2057,6 +2078,7 @@ dbb =  tdbb->tdbb_database;
 local_field_name[0] = 0;
 GET_STRING (ptr, local_field_name);
 
+MET_exact_name(local_field_name);
 if (!local_field_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -2573,6 +2595,7 @@ dbb =  tdbb->tdbb_database;
 parameter_name[0] = 0;
 GET_STRING (ptr, parameter_name);
 
+MET_exact_name(parameter_name);
 if (!parameter_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -2807,6 +2830,7 @@ JMP_BUF* VOLATILE old_env;
 procedure_name[0] = 0;
 GET_STRING (ptr, procedure_name);
 
+MET_exact_name(procedure_name);
 if (!procedure_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -2988,6 +3012,7 @@ sql_prot = is_a_view = FALSE;
 relation_name[0] = 0;
 GET_STRING (ptr, relation_name);
 
+MET_exact_name(relation_name);
 if (!relation_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -3239,6 +3264,7 @@ for (p = owner_name; *p; p++)
 role_name[0] = 0;
 GET_STRING (ptr, role_name);
 
+MET_exact_name(role_name);
 if (!role_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -3422,6 +3448,7 @@ dbb = tdbb->tdbb_database;
 sql_field_name[0] = 0;
 GET_STRING (ptr, sql_field_name);
 
+MET_exact_name(sql_field_name);
 if (!sql_field_name[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
@@ -3800,8 +3827,13 @@ JMP_BUF* VOLATILE old_env;
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 
-if (!GET_STRING (ptr, t))
+GET_STRING (ptr, t);
+MET_exact_name(t);
+if (!t[0])
+{
     DYN_UTIL_generate_trigger_name (tdbb, gbl, t);
+	MET_exact_name(t);
+}
 
 if (!t[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
@@ -4041,6 +4073,7 @@ JMP_BUF* VOLATILE old_env;
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 
+MET_exact_name(view);
 if (!view[0])
 	DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 	/* msg 212: "Zero length identifiers not allowed" */
