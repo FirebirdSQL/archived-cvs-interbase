@@ -211,6 +211,7 @@
 #define QUADCONST(n) (n##LL)
 #define KILLER_SIGNALS
 #define MMAP_SUPPORTED
+#define MAP_ANONYMOUS
 #define SIGACTION_SUPPORTED
 #define NO_NFS        /* no MTAB_OPEN or MTAB_CLOSE in isc_file.c */
 
