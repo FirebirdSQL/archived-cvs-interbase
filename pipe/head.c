@@ -31,6 +31,7 @@
 #include <signal.h>
 #include <errno.h>
 
+#include "../jrd/ibase.h"
 #include "../pipe/pipe.h"
 #include "../jrd/codes.h"
 #include "../jrd/license.h"
