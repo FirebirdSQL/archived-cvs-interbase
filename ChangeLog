@@ -1,3 +1,21 @@
+2001-11-05 10:46  paul_reeves
+
+	* interbase/FB_Build_Win32_BSCMake.bat:
+	
+	Added licence header to FB_Build_Win32_BSCMake.bat
+
+2001-11-05 10:38  paul_reeves
+
+	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_BSCMake.bat,
+	FB_Build_Win32_Build_DBs.bat, FB_Build_Win32_Build_No.bat,
+	FB_Build_Win32_Clean.bat, FB_Build_Win32_Readme.txt,
+	builds_win32/original/build_no.ksh, iscguard/iscguard.rc,
+	jrd/version_95.rc:
+	
+	Updated resource files for Win32 to reflect RC1. Added
+	FB_Build_Win32 batch files to simplify Win32 build process. Updated
+	build_no.ksh to RC1
+
 2001-11-04 19:10  nmcc
 
 	* interbase/jrd/dyn.e:
