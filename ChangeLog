@@ -1,6 +1,38 @@
+2002-02-17 18:56  paul_reeves
+
+	* interbase/builds_win32/install/FirebirdInstall.iss (1.1.2.2):
+	
+	updated Win32 install to detect location of existing installation
+
+2002-02-17 18:56  paul_reeves
+
+	* interbase/this_build (1.745):
+	
+	inc_build_no
+
+2002-02-16 04:22  robocop
+
+	* interbase/this_build (1.744):
+	
+	inc_build_no
+
+2002-02-16 04:22  robocop
+
+	* interbase/jrd/: evl.c (1.11), opt.c (1.7):
+	
+	Fixes Bug #518273 - numeric div in dialect 3 mangles data and Bug
+	#518276 - Selectable proc obfuscates plan output
+
+2002-02-12 09:40  fsg
+
+	* interbase/this_build (1.743):
+	
+	inc_build_no
+
 2002-02-10 21:28  pcisar
 
 	* interbase/: FB_Build_Win32_Build_No.bat (1.6.2.1),
+	builds_win32/install/Readme.txt (1.1.2.1),
 	builds_win32/original/build_no.ksh (1.13.2.1),
 	firebird/install/linux/Makefile (1.2.2.1),
 	firebird/install/linux/misc/firebird.init.d.suse (1.2.2.1),
@@ -24,11 +56,11 @@
 
 2002-02-04 12:18  paul_reeves
 
-	* interbase/: iscguard/iscguard_utils.c (1.2.2.1), jrd/isc.c
-	(1.7.2.1), utilities/install_nt.h (1.1.1.1.2.1),
-	utilities/install_svc.c (1.1.1.1.2.1), utilities/registry.c
-	(1.1.1.1.2.1), utilities/registry.h (1.1.2.1), utilities/services.c
-	(1.1.1.1.2.1):
+	* interbase/: builds_win32/install/FirebirdInstall.iss (1.1.2.1),
+	iscguard/iscguard_utils.c (1.2.2.1), jrd/isc.c (1.7.2.1),
+	utilities/install_nt.h (1.1.1.1.2.1), utilities/install_svc.c
+	(1.1.1.1.2.1), utilities/registry.c (1.1.1.1.2.1),
+	utilities/registry.h (1.1.2.1), utilities/services.c (1.1.1.1.2.1):
 	
 	added support to install guardian as a service under WinNT etc.
 
@@ -77,6 +109,12 @@
 	
 	inc_build_no
 
+2002-01-20 08:48  robocop
+
+	* interbase/extlib/fbudf/fbudf.cpp (1.2):
+	
+	addMonth should work with negative values, too.
+
 2002-01-19 02:23  robocop
 
 	* interbase/builds_win32/original/ibconfig (1.3):
@@ -117,6 +155,21 @@
 	Added Mike Nordell's forced write to non-forced write fix from FB2
 	Hope I got it right.
 
+2002-01-14 08:08  robocop
+
+	* interbase/extlib/fbudf/: fbudf.dsp (1.3), fbudf.dsw (1.3),
+	fbudf.plg (1.3):
+	
+	Re-add as binary. They are text files but they shouldn't be
+	modified by CVS revision/tracking messages
+
+2002-01-14 08:05  robocop
+
+	* interbase/extlib/fbudf/: fbudf.dsp (1.2), fbudf.dsw (1.2),
+	fbudf.plg (1.2):
+	
+	Delete to re-add as binary
+
 2002-01-14 08:05  robocop
 
 	* interbase/: this_build (1.723), this_build (1.724):
@@ -143,11 +196,53 @@
 	
 	inc_build_no
 
+2002-01-14 07:35  robocop
+
+	* interbase/extlib/fbudf/: MSReadMe.txt (1.1), StdAfx.cpp (1.1),
+	StdAfx.h (1.1), fbudf.cpp (1.1), fbudf.dsp (1.1), fbudf.dsw (1.1),
+	fbudf.h (1.1), fbudf.plg (1.1), fbudf.sql (1.1), fbudf.txt (1.1):
+	
+	Initial revision
+
+2002-01-14 07:35  robocop
+
+	* interbase/extlib/fbudf/: MSReadMe.txt (1.1.1.1), StdAfx.cpp
+	(1.1.1.1), StdAfx.h (1.1.1.1), fbudf.cpp (1.1.1.1), fbudf.dsp
+	(1.1.1.1), fbudf.dsw (1.1.1.1), fbudf.h (1.1.1.1), fbudf.plg
+	(1.1.1.1), fbudf.sql (1.1.1.1), fbudf.txt (1.1.1.1):
+	
+	Change some functions that shouldn't modify input params and add
+	the dpower function.
+
 2002-01-14 06:59  robocop
 
 	* interbase/this_build (1.719):
 	
 	inc_build_no
+
+2002-01-14 06:59  robocop
+
+	* interbase/firebird/robocop/isql_for_scripts/: isql.e (1.1),
+	isql_proto.h (1.1):
+	
+	Initial revision
+
+2002-01-14 06:59  robocop
+
+	* interbase/firebird/robocop/isql_for_scripts/: isql.e (1.1.1.1),
+	isql_proto.h (1.1.1.1):
+	
+	Put the isql changed files to report script-related line numbers
+	when errors arise
+
+2002-01-11 17:54  paul_reeves
+
+	* interbase/builds_win32/install/: FirebirdInstall.iss (1.1),
+	IDPLicense.txt (1.1), IPLicense.txt (1.1), Readme.txt (1.1),
+	firebird_install_logo1.bmp (1.1), installation_readme.txt (1.1):
+	
+	added script and associated files for building Win32 install
+	packages
 
 2002-01-11 17:54  paul_reeves
 
