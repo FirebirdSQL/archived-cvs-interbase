@@ -19,9 +19,6 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
- *                         conditionals, as the engine now fully supports
- *                         readonly databases.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -131,15 +128,22 @@ CHECK_DBB (dbb);
 
 /* if we already have a external file associated with this relation just
  * return the file structure */
-if (relation->rel_file)
+if (relation->rel_file) 
 {
     EXT_fini(relation);
 }
 relation->rel_file = file = (EXT) ALLOCPV (type_ext, strlen (file_name) + 1);
 strcpy (file->ext_filename, file_name);
 
+#ifdef WIN32
+/* Default number of file handles stdio.h on Windows is 512, use this 
+ * call to increase and set to the maximum */
+_setmaxstdio(2048);
+#endif
+
 #ifndef mpexl
 file->ext_flags = 0;
+#ifdef READONLY_DATABASE
 file->ext_ifi = (int*)NULL;
 /* If the database is updateable, then try opening the external files in
  * RW mode. If the DB is ReadOnly, then open the external files only in
@@ -148,18 +152,21 @@ file->ext_ifi = (int*)NULL;
 if (!(dbb->dbb_flags & DBB_read_only))
     file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_TYPE);
 if (!(file->ext_ifi))
+#else
+if (!(file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_TYPE)))
+#endif
     {
     /* could not open the file as read write attempt as read only */
     if (!(file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_READ_ONLY)))
-        ERR_post (isc_io_error,
-    	    gds_arg_string, "ib_fopen",
+        ERR_post (isc_io_error, 
+    	    gds_arg_string, "ib_fopen", 
     	    gds_arg_string, ERR_cstring (file->ext_filename),
             isc_arg_gds, isc_io_open_err,
     	    SYS_ERR, errno, 0);
-    else
+    else 
 	file->ext_flags |= EXT_readonly;
     }
-
+    
 #else
 file->ext_ifi = (int*)NULL;
 open_mpexl (file);
@@ -375,7 +382,7 @@ TDBB		tdbb;
 register CSB	csb;
 REL		relation;
 RSB		rsb;
-/* all these are un refrenced due to the code commented below
+/* all these are un refrenced due to the code commented below 
 NOD		node, inversion;
 register struct opt_repeat	*tail, *opt_end;
 SSHORT		i, size;
@@ -407,19 +414,19 @@ if (opt->opt_count)
 	for (tail = opt->opt_rpt; tail < opt_end; tail++)
 	    {
 	    node = tail->opt_conjunct;
-	    if (!(tail->opt_flags & opt_used) &&
+	    if (!(tail->opt_flags & opt_used) && 
 		computable (csb, node, -1))
 		match (opt, stream, node, idx);
 	    if (node->nod_type == nod_starts)
-		compose (&inversion,
+		compose (&inversion, 
 			 make_starts (opt, node, stream, idx), nod_bit_and);
 	    }
-	compose (&inversion, make_index (opt, relation, idx),
+	compose (&inversion, make_index (opt, relation, idx), 
 		nod_bit_and);
 	idx = idx->idx_rpt + idx->idx_count;
 	}
 */
-
+	
 
 rsb = (RSB) ALLOCDV (type_rsb, 0);
 rsb->rsb_type = rsb_ext_sequential;
@@ -486,10 +493,11 @@ format = record->rec_format;
    or the missing value */
 
 #ifndef mpexl
-/* check if file is read only if read only then
+/* check if file is read only if read only then 
    post error we cannot write to this file */
 if (file->ext_flags & EXT_readonly)
     {
+#ifdef READONLY_DATABASE
     DBB	dbb;
 
     dbb = GET_DBB;
@@ -498,6 +506,7 @@ if (file->ext_flags & EXT_readonly)
     if (dbb->dbb_flags & DBB_read_only)
 	ERR_post (isc_read_only_database, 0);
     else
+#endif  /* READONLY_DATABASE */
 	ERR_post (isc_io_error,
 	    gds_arg_string, "insert",
 	    gds_arg_string, file->ext_filename,
@@ -653,8 +662,8 @@ if (!status)
     ISC_file_unlock ((SSHORT) file->ext_ifi);
     }
 
-ERR_post (isc_io_error,
-	gds_arg_string, string,
+ERR_post (isc_io_error, 
+	gds_arg_string, string, 
 	gds_arg_string, file->ext_filename,
     isc_arg_gds, operation,
 	gds_arg_mpexl, status, 0);
@@ -734,3 +743,4 @@ if (access == ACCESS_READ)
     file->ext_flags |= EXT_readonly;
 }
 #endif
+
