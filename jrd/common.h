@@ -479,6 +479,8 @@ $Id$
 #define IEEE                            /* IEEE floating point arith.  */
 #define CONST           const
 
+#define LSEEK_OFFSET_CAST	/* LSEEK_OFFSET_CAST not needed on Windows */
+
 #ifdef WINDOWS_ONLY
 #define IMPLEMENTATION  isc_info_db_impl_win_only /* 55 */
 #define ALIGNMENT       4
@@ -715,6 +717,7 @@ typedef unsigned int64	UATOM;
 
 typedef          __int64 SINT64;
 typedef unsigned __int64 UINT64;
+#define LSEEK_OFFSET_CAST	/* LSEEK_OFFSET_CAST not needed on Windows */
 #define INT64_DEFINED
 
 /* The following define is the prefix to go in front of a "d" or "u"
