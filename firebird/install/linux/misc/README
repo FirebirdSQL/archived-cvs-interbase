@@ -1,27 +1,65 @@
-Firebird 1.0.0 for Linux
-
+Firebird 1.0.2 for Linux
+========================
 
 More information can be found about the Firebird 
 database engine from: 
 
-http://www.firebirdsql.org
+  http://www.firebirdsql.org
 
 or affiliated sites: 
 
-http://www.ibphoenix.com
-http://www.interbase2000.com
+  http://www.ibphoenix.com
 
 
-The Firebird database engine is derived from the
-InterBase(tm) product currently owned by Borland.  
-The documentation for InterBase v 6.0 applies also to
-the current FireBird release.  InterBase documentation 
-is available in Adobe Acrobat format from 
-http://www.interbase.com.
+The Firebird database engine is derived from the InterBase(tm) 
+product currently owned by Borland.  The documentation for 
+InterBase v 6.0 applies also to the current FireBird release.  
+InterBase documentation is available in Adobe Acrobat format from 
+http://info.borland.com/techpubs/interbase/.
 
 
-WHATS NEW
-============
+WHATS NEW IN FIREBIRD 1.0.2
+===========================
+
+There are no new features in this release.
+
+There was no official Firebird 1.0.1 release for any platform except 
+Mac OS X. That release was made to cater for an operating system upgrade.
+
+The main bugs fixed in this release (all platforms)
+ are:
+
+o There was problem with connection strings on Unix platforms that
+  could lead to database corruption.
+
+o 64-bit file i/o is now properly supported under Linux
+
+o Table name aliases are now allowed in INSERT statements. 
+
+o String expression evaluation now throws an error if the expression 
+  could be greater than 64k. Previously an error was thrown if the 
+  expression evaluated to a possible size of greater than 32k.
+
+o Minor problems with Two-Phase commit were fixed.
+
+o INT64 datatype now supported correctly in Arrays.
+
+o SF Bug #545725 - internal connections to database now reported 
+  as user.
+
+o SF Bug #538201 - crash with extract from null date.
+
+o SF Bug #534208 - select failed when udf was returning blob.
+
+o SF Bug #533915 - Deferred work trashed the contents of 
+  RDB$RUNTIME.
+
+o SF Bug #526204 - GPRE Cobol Variable problems fixed.
+
+
+
+WHAT WAS NEW IN FIREBIRD 1.0.0
+==============================
 
 For complete list of all new features, enhancements and bugfixes
 refer to files stored in /opt/interbase/doc directory.
@@ -231,7 +269,7 @@ your circumstance.
     (The ib-support newsgroups is a good starting point).
 
 
-3)  PROBLEMS CONNECTING TO SERVER
+6)  PROBLEMS CONNECTING TO SERVER
 
     Most network connect problems come down to the /etc/hosts.equiv file.
     It needs to have the host from which you want your clients to connect
@@ -251,7 +289,6 @@ your circumstance.
     most common one, the server is not running.
  
 
-3)  WHY ARE MY DATABASES OWNED BY ROOT
 
 
-4)  WHAT IS THE DIFFERENCE
+

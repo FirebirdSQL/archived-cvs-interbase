@@ -351,7 +351,8 @@ installInitdScript() {
 
 # SuSE specific
 
-    elif [ -x /bin/fillup ]; then
+    elif [ -r /etc/SuSE-release ]; then
+#    elif [ -x /bin/fillup ]; then
 #    elif [ -d /etc/init.d ]; then
 
 # I'm not sure if this is enough to detect SuSE, but it works for now
@@ -419,7 +420,11 @@ startInetService() {
 
     if [ -f $initScript ]
       then
-        $initScript start
+        #don't start at install time if running SuSE
+        if [ ! -r /etc/SuSE-release ]; then
+    	    $initScript start
+	fi
+	
     fi
 }
 
