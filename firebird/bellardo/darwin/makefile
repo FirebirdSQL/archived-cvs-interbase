@@ -42,7 +42,7 @@ updatemakefiles: force
 	tcsh -ec 'setenv PATH .:`./binpath`:$$PATH; cd $(ROOT); chmod a+x setup_build; ./setup_build $(BUILDTYPE)'
 	-rm -f .codes >> /dev/null
 
-install_package:
+install_package: files/addServEnt
 	rm -rf firebird_install
 	mkdir firebird_install
 	-rm -f Firebird.framework/Resources/English.lproj/var/isc_lock* Firebird.framework/Resources/English.lproj/var/isc_init* Firebird.framework/Resources/English.lproj/var/isc_event*
