@@ -1,3 +1,9 @@
+2001-06-18 11:02  tamlin
+
+	* interbase/jrd/winnt.c:
+	
+	Allow DB file sharing again.
+
 2001-06-11 13:27  tamlin
 
 	* interbase/jrd/winnt.c:
