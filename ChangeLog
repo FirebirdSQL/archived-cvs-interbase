@@ -1,3 +1,9 @@
+2001-06-11 13:27  tamlin
+
+	* interbase/jrd/winnt.c:
+	
+	Fixed file sharing flags
+
 2001-06-09 06:28  bellardo
 
 	* interbase/firebird/bellardo/stress/: Makefile, main.cpp:
