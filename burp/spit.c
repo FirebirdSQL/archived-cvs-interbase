@@ -35,8 +35,14 @@
 #include <stdarg.h>
 
 #include <fcntl.h>
+#include <ctype.h>
+#include <time.h>
 #include "../burp/spit.h"
 #include "../burp/burpswi.h"
+
+#ifdef WIN_NT
+#include <io.h>	/* usage of non-ANSI open/read/write/close functions */
+#endif
 
 #define	MODE_READ	O_RDONLY
 
@@ -144,14 +150,14 @@ SLONG main (
    char		*argv[])
 {
 
-SCHAR		c, **end, *prog_name, *p, *q, *string;
+SCHAR		**end, *prog_name, *string;
 IN_SW_TAB	in_sw_tab;
 USHORT		sw_replace;
-B_FIL		file_ptr, file_list, prev_file, next_file;
+B_FIL		file_ptr, file_list, prev_file;
 BOOLEAN		file_nm_sw = FALSE;
 SLONG		ret_cd, file_num = 0;
 double		file_size;
-FILE_DESC	input_file_desc, output_file_desc;
+FILE_DESC	input_file_desc;
 
 prog_name = argv[0];
 
@@ -443,7 +449,7 @@ static int get_file_size (
 *********************************************************************
 */
 
-SCHAR		c, *p, *q;
+SCHAR		c, *p;
 SLONG		size_indicator;
 SLONG		ret_cd;
 
@@ -577,9 +583,9 @@ static int gen_multy_bakup_files (
 */
 
 FILE_DESC	output_fl_desc;
-SLONG		byte_write, clock, indx, io_size, len1, remaining_io_len,
-			ret_cd, temp_cnt, arr_size, pos;
-B_FIL		fl_ptr, next_fl;
+SLONG		byte_write, clock, indx, io_size, remaining_io_len,
+			ret_cd, pos;
+B_FIL		fl_ptr;
 BOOLEAN		end_of_input = FALSE, flush_done = FALSE;
 TEXT		*file_name, header_str[HEADER_REC_LEN], num_arr[5];
 UCHAR		*io_buffer, *remaining_io;
@@ -683,7 +689,7 @@ while (TRUE)
 		}
 
 	if (file_size < IO_BUFFER_SIZE)
-		io_size = file_size;
+		io_size = (SLONG)file_size;
 	else
 		io_size = IO_BUFFER_SIZE;
 
@@ -862,7 +868,7 @@ SLONG	read_cnt, last_read_size, write_cnt;
 
 if (*byte_read + io_size > file_size)
 	{
-	last_read_size	= file_size - *byte_read;
+	last_read_size	= (SLONG)(file_size - *byte_read);
 	read_cnt	= read (input_file_desc, *io_buffer, last_read_size);
 	}
 else
@@ -1272,7 +1278,7 @@ static int write_header (
 *********************************************************************
 */
 TEXT	*file_name, num_arr[5];
-SLONG	end, indx, len1, pos, ret_cd, write_cnt;
+SLONG	end, indx, pos, ret_cd, write_cnt;
 
 ret_cd	  = conv_ntoc (fl_ptr->b_fil_number, num_arr);
 if (ret_cd == FAILURE)
@@ -1352,7 +1358,7 @@ if (file_size > remaining_io_len)
 	}
 else	/* file_size <= remaining_io_len */
 	{
-	write_cnt = write (output_fl_desc, remaining_io, file_size);
+	write_cnt = write (output_fl_desc, remaining_io, (unsigned int)file_size);
 	}
 
 switch ( write_cnt )
