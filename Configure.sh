@@ -21,6 +21,7 @@
 #       Tom Coleman TMC Systems <tcoleman@autowares.com>
 #	    Reed Mideke <rfm@cruzers.com>
 #       Mark O'Donohue <mark.odonohue@ludwig.edu.au>
+#       Neil McCalden <nm@zizz.org>
 
 #
 # $Id$
@@ -53,6 +54,23 @@
 # $export NOPROMPT_SETUP
 # before running this script file.
 
+# Bourne shell (eg: /bin/sh) on Solaris can not do export and
+# assignment in one command, do assignment and export as two commands
+
+# EOL suppression is also different
+# Bash (BSD?) variations: echo -n "xyz"
+# Solaris (SYSV) : echo "xyz\c"
+
+SUPP=`echo -n "x"`
+
+if [ "${SUPP}" = "x" ]; then
+   MN="-n"
+   SC=""
+else
+   MN=""
+   SC="\c"
+fi
+
 
 #------------------------------------------------------------------------
 # Prompt for response, store result in Answer
@@ -62,7 +80,7 @@ Answer=""
 AskQuestion() {
     Test=$1
     DefaultAns=$2
-    echo -n "${1}"
+    echo ${MN} "${1}${SC}"
     Answer="$DefaultAns"
 
     if [ -z "$NOPROMPT_SETUP" ]
@@ -76,7 +94,7 @@ AskQuestion() {
 # Prompt for yes or no answer - returns non-zero for no
 
 AskYNQuestion() {
-    while echo -n "${*} (y/n): "
+    while echo ${MN} "${*} (y/n): ${SC}"
     do
         read answer rest
         case $answer in
@@ -117,7 +135,11 @@ buildSuperDir() {
     mkdir -p $SuperDirName
 
     cd $SuperDirName
-    ln -s ../../$ClassicDirName/[a-z]*[^oa] .  
+    if [ $BuildHostType = "SOLARIS" ]; then
+      ln -s ../../$ClassicDirName/[a-z]*[!oa] .  
+    else   
+      ln -s ../../$ClassicDirName/[a-z]*[^oa] .  
+    fi
     cd ../..
 
 }
@@ -149,12 +171,17 @@ buildSuperDirs() {
 refreshLink() {
    RealFile=$1
    LinkFile=$2
-   
-   if [ -L $LinkFile ]
-     then
-       rm -f $LinkFile
-   fi
 
+   if [ $BuildHostType = "SOLARIS" ]; then   
+      if [ -h $LinkFile ]; then
+         rm -f $LinkFile
+      fi    
+   else 
+      if [ -L $LinkFile ]; then
+         rm -f $LinkFile
+      fi
+   fi
+   
    ln -s $RealFile $LinkFile
 
 }
@@ -224,6 +251,22 @@ getDefaultSystemType() {
        ;;
     IRIX*) 
        BuildHostType=SGI
+       ;;
+    SUNOS) 
+        #test it is Solaris not SunOS
+        OSversion=`uname -r`
+        case $OSversion in
+            5.*)
+                BuildHostType=SOLARIS
+                ;;
+            *)
+                echo
+                echo "The SunOS 4.x port needs dusting off and testing."
+                echo
+                exit 1
+        esac
+
+        Arch=`uname -p`
        ;;
     *)
        BuildHostType=""
@@ -867,7 +910,14 @@ if [ $BuildBootFlg = "Yes" ]
     cp boot.sfx.interbase sfx.interbase
 fi
 
-
+# pick correct file based on arch and compiler used
+if [ $BuildHostType = "SOLARIS" ]; then 
+    if [ "$Arch" = "i386" ]; then   
+        cp -p prefix.solaris cvs-$$.prefix.solaris
+        cp prefix.solx86 prefix.solaris
+    fi
+fi
+   
 chmod +x setup_prots
 ./setup_prots
 
@@ -885,6 +935,13 @@ if [ $BuildBootFlg = "Yes" ]
     if [ -f noboot.sfx.interbase ]
       then
         cp noboot.sfx.interbase sfx.interbase
+    fi
+fi
+
+if [ $BuildHostType = "SOLARIS" ]; then
+    if [ "$Arch" = "i386" ]; then   
+        cp -p cvs-$$.prefix.solaris prefix.solaris 
+        rm cvs-$$.prefix.solaris
     fi
 fi
 

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+# $Id$
+
 # This file builds the reference databases for both the boot build
 # and the normal builds.
 
@@ -19,18 +21,22 @@ checkVariables() {
 
      if [ "$INTERBASE" = "" ]
        then
-         export INTERBASE="/opt/interbase"
+         INTERBASE="/opt/interbase"
+         export INTERBASE
 
      fi
 
      if [ "$ISC_PASSWORD" = "" ]
        then
-         export ISC_USER="sysdba"
-         export ISC_PASSWORD="masterkey"
+         ISC_USER="sysdba"
+         export ISC_USER
+         ISC_PASSWORD="masterkey"
+         export ISC_PASSWORD
      fi
 
-     export IBBin=$INTERBASE/bin
-
+     IBBin=$INTERBASE/bin
+     export IBBin
+     
 # This has become a more core activity of the build process and prompting
 # or confirmation is not required since it is always done.
 
@@ -237,8 +243,11 @@ fi
 
 # Now check the rest of the parameters
 
-export IBSrc=`pwd`
-export IBRefDir=refDatabases
+IBSrc=`pwd`
+export IBSrc
+
+IBRefDir=refDatabases
+export IBRefDir
 
 checkVariables
 
