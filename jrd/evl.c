@@ -19,7 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Id$ 
+  * $Id$ 
  */
 
 /*
@@ -1415,7 +1415,7 @@ while (state != 2)
 		}
 	    else
 		{
-		EVL_make_value (tdbb, desc, impure);
+	    EVL_make_value (tdbb, desc, impure);
 		if (!vtemp.vlu_desc.dsc_address ||
 		    MOV_compare (&vtemp.vlu_desc, desc))
 		    goto break_out;
@@ -2079,7 +2079,9 @@ return FALSE;
 #define SLEUTH_CLASS_NAME       nc_sleuth_class
 #define SLEUTHTYPE              UCHAR
 
+#define EVL_LIKE_INCLUDED_BY_EVL_C
 #include "../jrd/evl_like.c"
+#undef EVL_LIKE_INCLUDED_BY_EVL_C
 
 #undef LIKENAME
 #undef LIKETYPE
@@ -2157,7 +2159,9 @@ return FALSE;
 #define SLEUTH_CLASS_NAME       wc_sleuth_class
 #define SLEUTHTYPE              WCHAR
 
+#define EVL_LIKE_INCLUDED_BY_EVL_C
 #include "../jrd/evl_like.c"
+#undef EVL_LIKE_INCLUDED_BY_EVL_C
 
 #undef LIKENAME
 #undef LIKETYPE

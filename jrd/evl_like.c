@@ -1,3 +1,7 @@
+#ifndef EVL_LIKE_INCLUDED_BY_EVL_C
+#error Don't compile this file stand-alone. It gets included by evl.c!
+#endif
+
 /*
  *	PROGRAM:	JRD Access Method
  *	MODULE:		evl_like.c
