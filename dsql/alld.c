@@ -271,7 +271,7 @@ memset (block, 0, BLOCKS_TO_SIZE (needed_blocks));
 block->blk_type = type;
 block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 
-if (needed_blocks > MAX_USHORT)
+if (needed_blocks > (ULONG) MAX_USHORT)
     BUGCHECK ("ALLD_alloc: too greedy");
 
 block->blk_length = (USHORT)needed_blocks;
