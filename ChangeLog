@@ -1,3 +1,24 @@
+2001-07-02 09:56  robocop
+
+	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/keywords.h,
+	dsql/node.h, dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/drq.h,
+	jrd/dyn.e, jrd/dyn_del.e, jrd/dyn_dl_proto.h, jrd/gdsold.h,
+	jrd/ibase.h, jrd/msgs.h, jrd/sql_code.h, jrd/val.h, msgs/msg.gbak:
+	
+	RECREATE TABLE and DROP GENERATOR
+
+2001-07-01 00:33  robocop
+
+	* interbase/dsql/: node.h, parse.c, parse.y, pass1.c:
+	
+	Better error reporting when defining procs: line and column.
+
+2001-07-01 00:30  robocop
+
+	* interbase/dsql/ddl.c:
+	
+	Fix incorrect length in proc variables of type varchar
+
 2001-06-30 18:22  fsg
 
 	* interbase/: msgs/msg.gbak, utilities/security.e:
