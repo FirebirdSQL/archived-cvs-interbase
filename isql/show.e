@@ -1836,6 +1836,9 @@ static void show_charsets (
 **************************************/
 SSHORT	collation, char_set_id;
 TEXT	char_sets [86];	/* CHARACTER SET <name31> COLLATE <name31> */	
+SSHORT	default_char_set_id;
+
+default_char_set_id = ISQL_get_default_char_set_id ();
 
 /* If there is a relation_name, this is a real column, look up collation */
 /* in rdb$relation_fields */
@@ -1885,7 +1888,8 @@ else if (!V33)
     }
 
 char_sets [0] = 0;
-ISQL_get_character_sets (char_set_id, collation, FALSE, char_sets);
+if ((char_set_id != default_char_set_id) || collation)
+    ISQL_get_character_sets (char_set_id, collation, FALSE, char_sets);
 if (char_sets [0])
     ISQL_printf(Out, char_sets);
 }

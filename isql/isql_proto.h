@@ -67,6 +67,7 @@ extern void	ISQL_get_character_sets (SSHORT,
 						SSHORT, 
 						USHORT, 
 						TEXT *);
+extern SSHORT	ISQL_get_default_char_set_id (void);
 extern void	ISQL_get_default_source (TEXT *, 
 						TEXT *, 
 						GDS__QUAD *);

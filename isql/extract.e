@@ -58,12 +58,12 @@ extern SSHORT	V33;
 
 static void	list_all_grants (void);
 static void	list_all_procs (void);
-static void	list_all_tables (SSHORT);
+static void	list_all_tables (SSHORT,SSHORT);
 static void	list_all_triggers (void);
 static void	list_check (void);
 static void	list_create_db (void);
-static void	list_domain_table (SCHAR *);
-static void	list_domains (void);
+static void	list_domain_table (SCHAR *,SSHORT);
+static void	list_domains (SSHORT);
 static void	list_exception (void);
 static void	list_filters (void);
 static void	list_foreign (void);
@@ -120,6 +120,7 @@ SCHAR	errbuf [MSG_LENGTH];
 SSHORT	ret_code = FINI_OK;
 USHORT	did_attach = FALSE;
 USHORT	did_start = FALSE;
+SSHORT	default_char_set_id;
 
 if (!DB)
     {
@@ -179,10 +180,12 @@ if (!gds__trans)
     did_start = TRUE;
     }
 
+default_char_set_id = ISQL_get_default_char_set_id ();
+
 /* If a table name was passed, extract only that table and domains */
 if (*tabname)
     {
-    if (EXTRACT_list_table (tabname, NULL, 1))
+    if (EXTRACT_list_table (tabname, NULL, 1, default_char_set_id))
 	{
 	gds__msg_format (NULL_PTR, ISQL_MSG_FAC, NOT_FOUND, sizeof (errbuf), 
 	    errbuf, tabname, NULL, NULL, NULL, NULL);
@@ -195,8 +198,8 @@ else
     list_create_db();
     list_filters();
     list_functions();
-    list_domains();
-    list_all_tables (flag);
+    list_domains(default_char_set_id);
+    list_all_tables (flag,default_char_set_id);
     list_index ();
     list_foreign ();
     list_generators();
@@ -231,7 +234,8 @@ return (SSHORT) ret_code;
 SSHORT EXTRACT_list_table (
     SCHAR	*relation_name,
     SCHAR	*new_name,
-    SSHORT	domain_flag)
+    SSHORT	domain_flag,
+    SSHORT      default_char_set_id)
 {
 /**************************************
  *
@@ -248,8 +252,51 @@ SSHORT EXTRACT_list_table (
  *	relation_name -- Name of table to investigate
  *	new_name -- Name of a new name for a replacement table
  *	domain_flag -- extract needed domains before the table
+ *	default_char_set_id -- character set def to supress
  *
  **************************************/
+/**************************************
+ *	default_char_set_id warrents special
+ *	consideration.  If the metadata for a
+ *	table is being extracted when there is
+ *	really no need to redundantly and repeatedly
+ *	list the databases default character set
+ *	for every field.
+ *
+ *	At the same time there is a need to list
+ *	the character set NONE when it is not
+ *	the default character set for the database.
+ *
+ *	EXCEPT!  If the metadata is being extracted
+ *	with the intention of coping that tables structure
+ *	into another database, and it is not possible
+ *	to know the default character set for the
+ *	target database, then list every fields
+ *	character set.  This includes the character
+ *	set NONE.
+ *
+ *	Fields with no character set definition will
+ *	not have any character set listed.
+ *
+ *	Use -1 as the default_char_set_id
+ *	in this case.
+ *
+ *	POTENTIAL TRAP!  Consider the following:
+ *	When copying a table from one database
+ *	to another how should fields using the
+ *	default character set be handled?
+ *
+ *	If both databases have the same default
+ *	character set, then there is no problem
+ *	or confusion.
+ *
+ *	If the databases have different default
+ *	character sets then should fields using
+ *	the default is the source database use
+ *	the default of the target database?
+ *
+ **************************************/
+
 USHORT		first; 
 SSHORT		collation, char_set_id;
 SSHORT		i;
@@ -276,7 +323,7 @@ FOR REL IN RDB$RELATIONS CROSS
 	first = FALSE;
 	/* Do we need to print domains */
 	if (domain_flag)
-	    list_domain_table (relation_name);
+	    list_domain_table (relation_name,default_char_set_id);
 
 	ISQL_blankterm (REL.RDB$OWNER_NAME);
 	sprintf (Print_buffer, "%s/* Table: %s, Owner: %s */%s", 
@@ -466,7 +513,7 @@ FOR REL IN RDB$RELATIONS CROSS
 	/* International character sets */
 	if ((FLD.RDB$FIELD_TYPE == FCHAR || FLD.RDB$FIELD_TYPE == VARCHAR ||
 	     FLD.RDB$FIELD_TYPE == BLOB) &&
-	    !FLD.RDB$CHARACTER_SET_ID.NULL && FLD.RDB$CHARACTER_SET_ID)
+	    !FLD.RDB$CHARACTER_SET_ID.NULL)
 	    {
 	    char_sets [0] = '\0';
 
@@ -481,11 +528,12 @@ FOR REL IN RDB$RELATIONS CROSS
 	    char_set_id = 0;
 	    if (!FLD.RDB$CHARACTER_SET_ID.NULL)
 		char_set_id = FLD.RDB$CHARACTER_SET_ID;
-
-	    ISQL_get_character_sets (char_set_id, 0, FALSE, char_sets);
+	    if ((char_set_id != default_char_set_id) || collation)
+		ISQL_get_character_sets (char_set_id, 0, FALSE, char_sets);
 	    if (char_sets [0])
 		ISQL_printf (Out, char_sets);
-	    intchar = 1;
+	    if (!char_set_id)
+		intchar = 1;
 	    }
 	}
 
@@ -1184,7 +1232,8 @@ if (!header)
 }
 
 static void list_all_tables (
-    SSHORT	flag)
+    SSHORT	flag,
+    SSHORT	default_char_set_id)
 {
 /**************************************
  *
@@ -1216,7 +1265,7 @@ FOR REL IN RDB$RELATIONS WITH
     ISQL_blankterm (REL.RDB$RELATION_NAME);
 
     if (flag || !strncmp (REL.RDB$SECURITY_CLASS, "SQL$", 4))
-	EXTRACT_list_table (REL.RDB$RELATION_NAME, NULL, 0);
+	EXTRACT_list_table (REL.RDB$RELATION_NAME, NULL, 0,default_char_set_id);
 END_FOR
     ON_ERROR
 	ISQL_errmsg (gds__status);
@@ -1758,7 +1807,8 @@ if (has_wal)
 }
 
 static void list_domain_table (
-    SCHAR	*table_name)
+    SCHAR	*table_name,
+    SSHORT	default_char_set_id)
 {
 /**************************************
  *
@@ -1771,6 +1821,7 @@ static void list_domain_table (
  *	for the named table
  *
  *	Parameters:  table_name == only extract domains for this table 
+ *	default_char_set_id -- character set def to supress
  *
  **************************************/
 SSHORT 	first = TRUE;
@@ -1897,7 +1948,9 @@ FOR FLD IN RDB$FIELDS CROSS
     if (!FLD.RDB$CHARACTER_SET_ID.NULL)
 	{
 	char_sets[0] = 0;
-	ISQL_get_character_sets (FLD.RDB$CHARACTER_SET_ID, FALSE, FALSE, char_sets);
+	if ((FLD.RDB$CHARACTER_SET_ID != default_char_set_id) ||
+	    (!FLD.RDB$COLLATION_ID.NULL && FLD.RDB$COLLATION_ID != 0))
+	    ISQL_get_character_sets (FLD.RDB$CHARACTER_SET_ID, FALSE, FALSE, char_sets);
 	if (char_sets[0])
 	    ISQL_printf (Out, char_sets);
 	}
@@ -1945,7 +1998,9 @@ END_FOR
     END_ERROR;
 }
 
-static void list_domains (void)
+static void list_domains (
+    SSHORT	default_char_set_id
+)
 {
 /**************************************
  *
@@ -1956,7 +2011,8 @@ static void list_domains (void)
  * Functional description
  *	List domains 
  *
- *	Parameters:  none
+ *	Parameters:  
+ *	default_char_set_id -- character set def to supress
  *
  **************************************/
 SSHORT 	first = TRUE;
@@ -2084,7 +2140,9 @@ FOR FLD IN RDB$FIELDS WITH
     if (!FLD.RDB$CHARACTER_SET_ID.NULL)
 	{
 	char_sets[0] = 0;
-	ISQL_get_character_sets (FLD.RDB$CHARACTER_SET_ID, FALSE, FALSE, char_sets);
+	if ((FLD.RDB$CHARACTER_SET_ID != default_char_set_id) ||
+            (!FLD.RDB$COLLATION_ID.NULL && FLD.RDB$COLLATION_ID != 0))
+	    ISQL_get_character_sets (FLD.RDB$CHARACTER_SET_ID, FALSE, FALSE, char_sets);
 	if (char_sets[0])
 	    ISQL_printf (Out, char_sets);
 	}

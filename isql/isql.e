@@ -973,6 +973,49 @@ return (ret);
 }
 #endif
 
+SSHORT ISQL_get_default_char_set_id ()
+{
+/************************************* 
+*
+*	I S Q L _ g e t _ d e f a u l t _ c h a r _ s e t _ i d
+*
+**************************************
+*
+* Functional description
+*	Return the database default character set
+*	id.
+*
+*	-1 if the value can not be determined.
+*
+**************************************/
+SSHORT	default_char_set_id;
+
+/* What is the default character set for this database?
+   There are three states:
+   1.	There is no entry available in RDB$DATABASE
+	Then - NONE
+   2.   The entry in RDB$DATABASE does not exist in 
+	RDB$CHARACTER_SETS
+	Then - -1 to cause all character set defs to show
+   3.	An entry in RDB$CHARACTER_SETS
+	Then - RDB$CHARACTER_SET_ID
+*/
+default_char_set_id = 0;
+FOR FIRST 1 EXT IN RDB$DATABASE
+    WITH EXT.RDB$CHARACTER_SET_NAME NOT MISSING;
+
+    default_char_set_id = -1;
+
+    FOR FIRST 1 CHI IN RDB$CHARACTER_SETS
+    WITH CHI.RDB$CHARACTER_SET_NAME = EXT.RDB$CHARACTER_SET_NAME
+
+	default_char_set_id = CHI.RDB$CHARACTER_SET_ID;
+
+    END_FOR;
+END_FOR;
+return (default_char_set_id);
+}
+
 #ifdef GUI_TOOLS
 int ISQL_extract (
     SCHAR	*string,
@@ -1070,7 +1113,7 @@ return (ret);
 #ifdef GUI_TOOLS
 void ISQL_build_table_list (
     void        **tbl_list,
-    IB_FILE         *ipf,
+IB_FILE         *ipf,
     IB_FILE         *opf,
     IB_FILE         *sf)
 {
@@ -1440,7 +1483,7 @@ if (!V33 && collation)
 	}
 #endif
     }
-else if (!V33 && char_set_id)
+else if (!V33)
     {
     FOR FIRST 1 CST IN RDB$CHARACTER_SETS WITH
 	CST.RDB$CHARACTER_SET_ID EQ char_set_id
@@ -2956,7 +2999,7 @@ if (Out == (IB_FILE*) -1)
     }
 
 ISQL_make_upper (source);
-if (EXTRACT_list_table (source, destination, domain_flag))
+if (EXTRACT_list_table (source, destination, domain_flag,-1))
     {
     gds__msg_format (NULL_PTR, ISQL_MSG_FAC, NOT_FOUND, sizeof (errbuf), 
 	errbuf, source, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
