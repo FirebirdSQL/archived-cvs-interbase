@@ -767,7 +767,7 @@ static void reattach_database (
  *
  **************************************/
 STATUS	status_vector [20];
-UCHAR	buffer [1024], *p, *q, *start;
+UCHAR	buffer [1024], *p, *q, *end = buffer + sizeof(buffer) - 1;
 USHORT	protocols = 0;
 STR     string;
 TGBL	tdgbl;
@@ -813,40 +813,36 @@ if ((protocols & APOLLO_PROTOCOL) ||
 
 else if (trans->tdr_host_site)
     {
-    for (p = buffer, q = trans->tdr_host_site->str_data; *q;)
+    for (p = buffer, q = trans->tdr_host_site->str_data; *q && p < end;)
         *p++ = *q++;
-    start = p;
 
     if (protocols & DECNET_PROTOCOL)
 	{
-	p = start;
 	*p++ = ':';
 	*p++ = ':';
-        for (q = trans->tdr_fullpath->str_data; *q;)
+        for (q = trans->tdr_fullpath->str_data; *q && p < end;)
             *p++ = *q++;
-        *q = 0;
+        *p = 0;
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
 	}
 
     if (protocols & VMS_TCP_PROTOCOL)
 	{
-	p = start;
 	*p++ = '^';
-        for (q = trans->tdr_fullpath->str_data; *q;)
+        for (q = trans->tdr_fullpath->str_data; *q && p < end;)
             *p++ = *q++;
-        *q = 0;
+        *p = 0;
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
 	}
 
     if (protocols & TCP_PROTOCOL)
 	{
-	p = start;
 	*p++ = ':';
-        for (q = trans->tdr_fullpath->str_data; *q;)
+        for (q = trans->tdr_fullpath->str_data; *q && p < end;)
             *p++ = *q++;
-        *q = 0;
+        *p = 0;
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
 	}
@@ -857,40 +853,36 @@ else if (trans->tdr_host_site)
 
 if (trans->tdr_remote_site)
     {
-    for (p = buffer, q = trans->tdr_remote_site->str_data; *q;)
+    for (p = buffer, q = trans->tdr_remote_site->str_data; *q && p < end;)
         *p++ = *q++;
-    start = p;
 
     if (protocols & DECNET_PROTOCOL)
         {
-        p = start;
         *p++ = ':';
         *p++ = ':';
-        for (q = (UCHAR*) trans->tdr_filename; *q;)
+        for (q = (UCHAR*) trans->tdr_filename; *q && p < end;)
             *p++ = *q++;
-        *q = 0;
+        *p = 0;
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
         }
 
     if (protocols & VMS_TCP_PROTOCOL)
         {
-        p = start;
         *p++ = '^';
-        for (q = (UCHAR*) trans->tdr_filename; *q;)
+        for (q = (UCHAR*) trans->tdr_filename; *q && p < end;)
             *p++ = *q++;
-        *q = 0;
+        *p = 0;
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
         }
 
     if (protocols & TCP_PROTOCOL)
         {
-        p = start;
         *p++ = ':';
-        for (q = (UCHAR*) trans->tdr_filename; *q;)
+        for (q = (UCHAR*) trans->tdr_filename; *q && p < end;)
             *p++ = *q++;
-        *q = 0;
+        *p = 0;
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
         }
@@ -900,11 +892,11 @@ if (trans->tdr_remote_site)
         p = buffer;
         *p++ = '\\';
         *p++ = '\\';
-        for (q = trans->tdr_remote_site->str_data; *q;)
+        for (q = trans->tdr_remote_site->str_data; *q && p < end;)
             *p++ = *q++;
-        for (q = (UCHAR*) trans->tdr_filename; *q;)
+        for (q = (UCHAR*) trans->tdr_filename; *q && p < end;)
             *p++ = *q++;
-        *q = 0;                   
+        *p = 0;                   
 
         if (TDR_attach_database (status_vector, trans, buffer))
             return;
@@ -920,7 +912,7 @@ ALICE_print (87, trans->tdr_fullpath->str_data, 0, 0, 0, 0); /* msg 87: Original
 for (;;)
     {
     ALICE_print (88, 0, 0, 0, 0, 0); /* msg 88: Enter a valid path:  */
-    for (p = buffer; (*p = ib_getchar()) != '\n'; p++)
+    for (p = buffer; p < end && (*p = ib_getchar()) != '\n'; p++)
 	;
     *p = 0;
     if (!buffer[0])
