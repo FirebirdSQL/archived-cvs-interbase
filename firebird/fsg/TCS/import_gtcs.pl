@@ -68,18 +68,21 @@ while (<>)
       if (substr($Field,0,1) eq '@') 
       {
          open(FILEHANDLE,"./export/global/$Field");
-         sysread(FILEHANDLE, @data[$i], 1000000);
+         sysread(FILEHANDLE, $data[$i], 1000000);
        #  @data[$i]='BLOB';
       }     
-#      print "@data[$i], ";
+
+      if ($Field eq '<null>')
+      {
+         $data[$i]=undef;
+      }
       ++$i;
     } 
     $i=@fields;
     while ($i > @data)
     {
-    @data=(@data,'');
+       @data=(@data,undef);
     }
-#    print "\n";
     if ($st->execute( @data ) < 0)
     {
 	carp "$0: $st->{Error} on input line $. of $ARGV.\n";

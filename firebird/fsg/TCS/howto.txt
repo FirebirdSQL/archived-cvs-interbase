@@ -3,7 +3,7 @@ These files are meant as a first step to export and import
 test data in plain ascii format to and from the test
 database.
 
-This would make it possible to place the tests under 
+This would make it possible to place a test pool under 
 cvs control.
 
 To use this stuff:
@@ -21,7 +21,12 @@ To use this stuff:
    run import_all
 
 5. If you like your newly created gtcs.gdb, copy it to
-   your tests directory.
+   your tests directory. 
+ 
+   Sorry, at the moment the TCS will not work correctly 
+   with this new gtcs.gdb. I'm working on this.
+
+Frank
 
 
    

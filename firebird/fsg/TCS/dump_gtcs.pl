@@ -161,7 +161,12 @@ sub dumptable {
         #print field values
         foreach $Fields (@row)
         {
-             
+           if ($st->{Nulls}[$i])
+           {
+             print OUT "<null>;";
+           }
+           else
+           {
            if ($st->{Datatypes}[$i] eq 'BLOB')
            # Dump the blob to a file and print a reference
            {
@@ -190,6 +195,7 @@ sub dumptable {
                }
              } 
              print OUT "$Fields;";
+           }
            }
        ++$i;
        }
