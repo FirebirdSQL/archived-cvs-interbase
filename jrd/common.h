@@ -551,6 +551,11 @@ typedef unsigned int64	UATOM;
 #define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
 #define INTL
 #define VOLATILE	volatile
+
+#define VA_START(list,parmN)    va_start (list, parmN) /* TMC 081700 */
+#define QUADFORMAT "ll"                                /* TMC 081700 */
+#define QUADCONST(n) (n##LL)                           /* TMC 081700 */
+
 #endif   /* IBM PowerPC */
 #endif  /* IBM AIX */
 
