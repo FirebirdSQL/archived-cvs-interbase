@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/common.h"
 #include "../jrd/flu.h"
@@ -254,7 +257,7 @@ for (mod = &FLU_modules; *mod; mod = &(*mod)->mod_next)
 shl_unload (module->mod_handle);
 #endif
 
-#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD)
+#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD) || defined (AIX_PPC)
 dlclose (module->mod_handle);
 #endif
 #ifdef WIN_NT
@@ -398,7 +401,15 @@ return function;
 }
 #endif
 
+/*
+  The commented #if which immediately follows has been replaced.
+  The OLD_AIX and OLD_AIX_PPC #if has been added to disable the
+  code segment for current AIX builds.
+*/
+/*
 #if (defined AIX || defined AIX_PPC)
+*/
+#ifdef OLD_AIX || OLD_AIX_PPC)
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
     TEXT	*module,
