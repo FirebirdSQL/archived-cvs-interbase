@@ -1726,7 +1726,7 @@ if (domain_node = element->nod_arg [e_dfl_domain])
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
             gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__dsql_domain_not_found, 
-            gds_arg_string, ERR_cstring (domain_name->str_data),
+            gds_arg_string, domain_name->str_data,
             /* Specified domain or source field does not exist */
             0);
        
@@ -4417,7 +4417,7 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
 			gds_arg_gds, gds__dsql_command_err, 
 			gds_arg_gds, gds__dsql_domain_not_found,
-			gds_arg_string, ERR_cstring (domain_name->str_data),
+			gds_arg_string, domain_name->str_data,
 			/* Specified domain or source field does not exist */
 			0);
 		if(element->nod_arg [e_cnstr_condition])

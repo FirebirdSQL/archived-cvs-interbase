@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 
+ * 27 Nov 2001  Ann W. Harrison - preserve string arguments in
+ *              ERRD_post_warning
  */
 
 #include "../jrd/ib_stdio.h"
@@ -34,6 +37,7 @@
 #include "../dsql/utld_proto.h"
 #include "../jrd/gds_proto.h"
 #include "../jrd/thd_proto.h"
+
 
 ASSERT_FILENAME				/* Define things assert() needs */
 
@@ -184,18 +188,21 @@ if (indx + 3 < ISC_STATUS_LENGTH)
 		    status_vector[(indx - 1)] = gds_arg_cstring;
 		    status_vector[indx++] = MAX_ERRSTR_LEN;
 		    }
-		status_vector[indx++] = q;
+		status_vector[indx++] = ERR_cstring ((TEXT *) q);
                 break;
 
             case gds_arg_interpreted:
-		status_vector[indx++] = (STATUS) va_arg (args, TEXT*);
+		q = (STATUS) va_arg (args, TEXT*);
+		status_vector[indx++] = ERR_cstring ((TEXT *) q);
+                break;
 		break;
 
             case gds_arg_cstring:
 		len = va_arg (args, int);
 		status_vector[indx++] = (STATUS) (len >= MAX_ERRSTR_LEN) ? MAX_ERRSTR_LEN : len;
-                status_vector[indx++] = (STATUS) va_arg (args, TEXT*);
-                break;
+                q = (STATUS) va_arg (args, TEXT*);
+                status_vector[indx++] = ERR_cstring ((TEXT *) q);
+		break;
 
             case gds_arg_number:
                 status_vector[indx++] = (STATUS) va_arg (args, SLONG);

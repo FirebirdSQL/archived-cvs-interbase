@@ -47,7 +47,6 @@ typedef struct err {
 
 /* macros for block allocation */
 
-#define ALL_release(blk)	 ALLD_release (blk)
 #define ALLOCD(type)		 ALLD_alloc (tdsql->tsql_default, type, 0)
 #define ALLOCDV(type,repeat)	 ALLD_alloc (tdsql->tsql_default, type, repeat)
 #define ALLOCP(type)		 ALLD_alloc (DSQL_permanent_pool, type, 0)
