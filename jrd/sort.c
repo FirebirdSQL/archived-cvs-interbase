@@ -23,6 +23,10 @@
 
 #include <errno.h>
 #include <string.h>
+#if defined WIN_NT
+/* for SEEK_SET */
+#include <stdio.h>
+#endif
 #if defined FREEBSD
 #include <unistd.h>
 #endif
