@@ -88,7 +88,10 @@ fi
 #
 STATUS=$?
 
-rasu ./unset_prot builder
+#removed rasu ./unset_prot  builder according to inprise tree
+# and to get rid of this annoying rasu not found message
+#FSG  093000
+
 
 if [ $STATUS = 0 ]; then
     exit 0

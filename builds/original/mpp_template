@@ -18,7 +18,10 @@
 UMASK=`umask`
 umask 002
 TARGET=source/$2/$1
-runas builder mv $TARGET $TARGET.bak
-runas builder cp $1 $TARGET
-runas builder chmod 644 $TARGET
+#removed runas builder according to inprise tree
+#FSG  093000
+
+mv $TARGET $TARGET.bak
+cp $1 $TARGET
+chmod 644 $TARGET
 umask $UMASK

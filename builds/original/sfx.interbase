@@ -35,7 +35,10 @@ CODES=/netapp/apps/isc/bin/codes
 
 # removed examples 03-Aug-00 TMC
 #interbase:	run_codes gds.h includes executables examples help msgs msgs_intl extlib
-interbase:	run_codes gds.h includes executables help msgs msgs_intl extlib
+
+#added completed according to inprise tree
+#FSG  093000
+interbase:	run_codes gds.h includes executables help msgs msgs_intl extlib completed
 
 # Run the codes program, thus generating codes.h, iberror.h, etc
 # compare and copy the file only if the files are different
@@ -53,6 +56,12 @@ executables:	alice burp dudley gpre install $(INTL) isql locks \
 	$(SHARED_AM) $(LINKABLE_LIBS)
 	
 super_targets: 	s_run_codes s_alice s_burp s_dba s_security_c super_client super_server super_utils 
+
+
+#added completed according to inprise tree
+#FSG  093000
+completed:	force
+	$(QUIET_ECHO) "Build succeeded!"
 
 alice gfix:	gpre force
 	$(QUIET_ECHO) "Building GFIX..."

@@ -33,7 +33,7 @@
 
 #ifdef SUPERSERVER
 #ifdef	WIN_NT
-#define FD_SETSIZE 256
+#define FD_SETSIZE 1024
 #endif
 #endif /* SUPERSERVER */
 

@@ -18,7 +18,9 @@
 UMASK=`umask`
 umask 002
 HERE=`pwd`
+#removed runas builder according to inprise tree
+#FSG  093000
 cd source/$1
-runas builder make
+make
 cd $HERE
 umask $UMASK

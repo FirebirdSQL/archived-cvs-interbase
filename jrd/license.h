@@ -216,7 +216,7 @@
 #endif
 
 #ifdef LINUX
-#define IB_PLATFORM     "LI-B"         /* Linux on Intel */
+#define IB_PLATFORM     "LI-T"         /* Linux on Intel */
 #endif
 
 #ifdef FREEBSD
