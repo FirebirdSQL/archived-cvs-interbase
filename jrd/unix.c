@@ -732,7 +732,8 @@ int PIO_read (
  **************************************/
 DBB	dbb;
 SSHORT	i;
-UINT64	bytes, size, offset;
+SLONG  bytes, size;
+UINT64 offset;
 
 ISC_inhibit();
 
@@ -752,7 +753,7 @@ if (dbb->dbb_encrypt_key)
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
-    	if ((bytes = pread (file->fil_desc, spare_buffer, size, offset)) == size)
+		if ((bytes = pread (file->fil_desc, spare_buffer, size, LSEEK_OFFSET_CAST offset)) == size) 
 #else
     	if ((bytes = read (file->fil_desc, spare_buffer, size)) == size)
 #endif
@@ -776,7 +777,7 @@ else
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
-    	if ((bytes = pread (file->fil_desc, page, size, offset)) == size)
+		if ((bytes = pread (file->fil_desc, page, size, LSEEK_OFFSET_CAST offset)) == size)
 	    break;
 #else
     	if ((bytes = read (file->fil_desc, page, size)) == size)
@@ -833,7 +834,8 @@ int PIO_write (
  **************************************/
 DBB	dbb;
 SSHORT	i;
-UINT64	bytes, size, offset;
+SLONG  bytes, size;
+UINT64 offset;
 
 ISC_inhibit();
 
@@ -856,8 +858,8 @@ if (dbb->dbb_encrypt_key)
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
-    	if ((bytes = pwrite (file->fil_desc, spare_buffer, size, offset)) == size)
-	    break;
+    	if ((bytes = pwrite (file->fil_desc, spare_buffer, size, LSEEK_OFFSET_CAST offset)) == size)
+		break;
 #else
     	if ((bytes = write (file->fil_desc, spare_buffer, size)) == size)
 	    break;
@@ -875,7 +877,7 @@ else
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
-    	if ((bytes = pwrite (file->fil_desc, page, size, offset)) == size)
+    	if ((bytes = pwrite (file->fil_desc, page, size, LSEEK_OFFSET_CAST offset)) == size)/*-if ((bytes = pwrite (file->fil_desc, page, size, offset)) == size)*/
 	    break;
 #else
     	if ((bytes = write (file->fil_desc, page, size)) == size)
@@ -981,9 +983,6 @@ if (file->fil_desc == -1)
 
 page -= file->fil_min_page - file->fil_fudge;
 
-#ifdef PREAD_PWRITE
-*offset = LSEEK_OFFSET_CAST (page * dbb->dbb_page_size);
-#else
 lseek_offset = page;
 lseek_offset *= dbb->dbb_page_size;
 #ifndef UNIX_64_BIT_IO
@@ -993,6 +992,9 @@ if (lseek_offset > MAX_SLONG)
 }
 #endif
 
+#ifdef PREAD_PWRITE	/* added */
+*offset = lseek_offset;
+#else
 THD_MUTEX_LOCK (file->fil_mutex);
 
 if ((lseek (file->fil_desc, LSEEK_OFFSET_CAST lseek_offset, 0)) == -1)
