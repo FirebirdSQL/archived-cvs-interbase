@@ -116,6 +116,7 @@ if [ -f /etc/inetd.conf ]; then
         echo "Installing Firebird SuperServer"
 	cat /etc/inetd.conf | grep -v gds_db > /etc/.interbase.temp.install.inetd.conf
 	mv /etc/.interbase.temp.install.inetd.conf /etc/inetd.conf
+	HUPNEEDED='y'
     else
 	grep -s gds_db /etc/inetd.conf  > /dev/null 2>&1
 	if test $? != 0 ; then
@@ -126,12 +127,6 @@ if [ -f /etc/inetd.conf ]; then
     fi
 fi
 
-if [ "$HUPNEEDED" = 'y' ]
-then
-    INETPID=`ps -axe | grep inetd | awk '{print $1}'`
-    kill -HUP $INETPID
-fi
-
 if grep -x "localhost" /etc/hosts.equiv > /dev/null; then                
 else     
     echo "localhost" >> /etc/hosts.equiv                
@@ -140,6 +135,14 @@ if grep -x "localhost.localdomain" /etc/hosts.equiv > /dev/null; then
 else     
     echo "localhost.localdomain" >> /etc/hosts.equiv    
 fi    
+
+
+if [ "$HUPNEEDED" = 'y' ]
+then
+    INETPID=`ps -axe | grep inetd | awk '{print $1}'`
+    kill -HUP $INETPID
+fi
+
 
 ###
 # And last but not least, start the server
