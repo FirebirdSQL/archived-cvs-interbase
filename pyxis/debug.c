@@ -19,6 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/24 17:23:02  fsg
+ * Another little fix in pyxis/debug.c that nobody
+ * ever will notice :-)
+ * Will print correct names for this forms stuff now.
+ *
  */
 
 #include "../pyxis/pyxis.h"
@@ -28,7 +34,10 @@
 
 extern OBJ	PYXIS_get_attribute_value();
 
-#define ATT(name)	"name",
+/* changed "name" to #name to get what was intended
+   FSG 24.Nov.2000
+*/
+#define ATT(name)	#name,
 static SCHAR	*attribute_names [] =
     {
     "att_any = 0",
