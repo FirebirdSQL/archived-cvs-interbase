@@ -1,3 +1,18 @@
+2001-10-03 15:53  nmcc
+
+	* interbase/isql/isql.e:
+	
+	When retrieving server information also get Firebird version if
+	available.  Display Firebird server version on connecting if -z
+	given on command line.
+
+2001-10-03 15:40  nmcc
+
+	* interbase/remote/server.c:
+	
+	Increase size of temporary buffer, used in info calls, which holds
+	the Firebird version string which is now longer.
+
 2001-10-02 09:36  robocop
 
 	* interbase/extlib/: StdAfx.cpp, StdAfx.h, fbudf.cpp, fbudf.h,
