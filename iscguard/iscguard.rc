@@ -17,6 +17,7 @@
  * Contributor(s): ______________________________________.
  */
 #include "iscguard.rh"
+#include "windows.h"
 #include "../jrd/version_95.rc"
 
 STRINGTABLE 

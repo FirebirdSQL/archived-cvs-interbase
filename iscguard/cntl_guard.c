@@ -29,6 +29,7 @@
 #include "../jrd/isc_proto.h"
 #include "../jrd/sch_proto.h"
 #include "../jrd/thd_proto.h"
+#include "../jrd/gds_proto.h"
 
 #ifdef WIN_NT
 #include <windows.h>
@@ -118,7 +119,8 @@ void CNTL_main_thread (
  *
  **************************************/
 int	flag;
-TEXT	*p, default_mode [100];
+TEXT	*p;
+TEXT	default_mode[100] = { 0 };
 DWORD	last_error;
 
 service_handle = RegisterServiceCtrlHandler (service_name, 

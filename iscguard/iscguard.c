@@ -17,6 +17,7 @@
  * Contributor(s): ______________________________________.
  */
 #include "../jrd/ib_stdio.h"
+#include "../jrd/gds_proto.h"
 #include <stdlib.h>
 #include <windows.h>
 #include <shellapi.h>
@@ -27,6 +28,14 @@
 #include "../iscguard/iscguard.h"
 #include "../iscguard/cntlg_proto.h"
 #include "../utilities/install_nt.h"
+
+#ifdef _MSC_VER
+#include <process.h>	/* _beginthread */
+#endif
+
+// fwd. decl.
+int GetGuardStartupInfo (char *svrpath, char* opt);
+
 
 /* Startup Configuration Entry point for regcfg.exe. */
 #define SVC_CONFIG          4
@@ -410,8 +419,6 @@ switch (message)
 		    }
             switch (lParam)
                 {
-                POINT	curPos;
-                
                 case WM_LBUTTONDOWN:
                     break;
                     
@@ -547,7 +554,7 @@ UINT old_error_mode;
 SC_HANDLE hScManager = 0, hService = 0;
 
 /* get the guardian startup information */
-if (GetGuardStartupInfo (&path, &opt))
+if (GetGuardStartupInfo(path, opt))
     {
     option = atoi(opt);
     sprintf (prog_name, "%s%s -a -n", path, server_name);
@@ -834,7 +841,6 @@ LRESULT CALLBACK GeneralPage(HWND hDlg, UINT unMsg, WPARAM wParam, LPARAM lParam
  *               are identified within the LPARAM which will be pointer to 
  *               the NMDR structure
  *****************************************************************************/
-char szText[MAX_PATH];
 HINSTANCE hInstance;
 hInstance = (HINSTANCE) GetWindowLong (hDlg, GWL_HINSTANCE);
 
@@ -842,12 +848,9 @@ switch (unMsg)
     {   
     case WM_INITDIALOG:
 	    {
-        DWORD dwVersionSize;
 	    char  *pszPtr;
 	    char  szText[256];
-	    char  szText2[256];
 	    char  szWindowText[256];
-        char  *lpBuffer, lpServerVersion;
         int   bufLen = 128;
         char  szFullPath[256];
         DWORD dwVerHnd;
@@ -883,7 +886,6 @@ switch (unMsg)
             LPVOID  lpvMem;
             UINT  cchVer = 25;
             LPSTR lszVer = NULL;
-            char  szResult[256];
 
             hMem = GlobalAlloc(GMEM_MOVEABLE, dwVerInfoSize);
             lpvMem = GlobalLock(hMem);
@@ -1056,8 +1058,18 @@ while (log_temp->next)
 tmp = malloc(sizeof (struct log_info));
 memset (tmp, 0, sizeof(struct log_info));
 
-sprintf (tmp->log_time,"%.2d:%.2d", today->tm_hour, today->tm_min);
-sprintf (tmp->log_date, "%.2d/%.2d/%.2d", today->tm_mon+1, today->tm_mday, today->tm_year);
+#if 0
+sprintf (tmp->log_time,"%02d:%02d", today->tm_hour, today->tm_min);
+sprintf (tmp->log_date, "%02d/%02d/%02d",
+         today->tm_mon+1, today->tm_mday, today->tm_year % 100);
+#else
+/* TMN: Fixed this after bug-report. Should it really force */
+/* 24hr format in e.g US, where they use AM/PM wharts?      */
+GetTimeFormat(LOCALE_USER_DEFAULT, TIME_NOSECONDS | TIME_FORCE24HOURFORMAT,
+              NULL, NULL, tmp->log_time, sizeof(tmp->log_time));
+GetDateFormat(LOCALE_USER_DEFAULT, DATE_SHORTDATE, NULL, NULL,
+              tmp->log_date, sizeof(tmp->log_date));
+#endif
 
 if (log_action >= IDS_LOG_START && log_action <= IDS_LOG_TERM)
     {
