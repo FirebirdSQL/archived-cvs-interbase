@@ -26,6 +26,7 @@ $Id$
 
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
+#include <stdlib.h>
 #include "../jrd/ib_stdio.h"
 #include "../jrd/jrd.h"
 #include "../jrd/ods.h"
@@ -45,8 +46,10 @@ $Id$
 #include "../jrd/btr_proto.h"
 #include "../jrd/cch_proto.h"
 #include "../jrd/dpm_proto.h"
+#include "../jrd/dbg_proto.h"
 #include "../jrd/err_proto.h"
 #include "../jrd/evl_proto.h"
+#include "../jrd/gds_proto.h"
 #include "../jrd/intl_proto.h"
 #include "../jrd/jrd_proto.h"
 #include "../jrd/met_proto.h"
@@ -205,7 +208,7 @@ buffer = *start_buffer;
 if (!(root = fetch_root (tdbb, &window, relation)))
     return 0;
 
-if ((root->irt_count * sizeof (IDX)) > *idx_size)
+if ((SLONG)(root->irt_count * sizeof (IDX)) > *idx_size)
     {
     size = (sizeof (IDX) * MAX_IDX) + ALIGNMENT;
     *csb_idx_allocation = new_buffer = (STR) ALLOCPV (type_str, size);
@@ -359,7 +362,8 @@ irt_desc = &root->irt_rpt [id];
 if (irt_desc->irt_root == 0)
     return FALSE;
 
-idx->idx_id = id;
+assert(id <= MAX_UCHAR);
+idx->idx_id = (UCHAR)id;
 idx->idx_root = irt_desc->irt_root;
 idx->idx_selectivity = irt_desc->irt_stuff.irt_selectivity;
 idx->idx_count = irt_desc->irt_keys;
@@ -434,7 +438,10 @@ if (retrieval->irb_lower_count)
     /* Compute the number of matching characters in lower and upper bounds */
 
     if (retrieval->irb_upper_count)
-	prefix = compute_prefix (&upper, lower.key_data, lower.key_length);
+	{
+	/* TMN: Watch out, possibility for UCHAR overflow! */
+	prefix = (UCHAR)compute_prefix (&upper, lower.key_data, lower.key_length);
+	}
     }
 else
     {
@@ -447,7 +454,7 @@ else
 if (retrieval->irb_upper_count)
     {
     while (scan (tdbb, node, bitmap, prefix, &upper, 
-	         retrieval->irb_generic & (irb_partial | irb_descending | irb_starting | irb_equality)))
+	         (USHORT)(retrieval->irb_generic & (irb_partial | irb_descending | irb_starting | irb_equality))))
 	{
 	page = (BTR) CCH_HANDOFF (tdbb, &window, page->btr_sibling, LCK_read, pag_index);
 	node = page->btr_nodes;
@@ -659,12 +666,12 @@ else
     if (retrieval->irb_upper_count)
         BTR_make_key (tdbb, retrieval->irb_upper_count, 
 	    retrieval->irb_value + retrieval->irb_desc.idx_count,
-	    &retrieval->irb_desc, upper, (retrieval->irb_generic & irb_starting));
+	    &retrieval->irb_desc, upper, (USHORT)(retrieval->irb_generic & irb_starting));
 
     if (retrieval->irb_lower_count)
         BTR_make_key (tdbb, retrieval->irb_lower_count,
 	    retrieval->irb_value, 
-	    &retrieval->irb_desc, lower, (retrieval->irb_generic & irb_starting));
+	    &retrieval->irb_desc, lower, (USHORT)(retrieval->irb_generic & irb_starting));
     }                
 
 window->win_page = retrieval->irb_relation->rel_index_root;
@@ -689,7 +696,7 @@ if ((!backwards && retrieval->irb_lower_count) ||
     while (page->btr_level > 0)
 	while (TRUE)
 	    {
-	    node = find_node (page, backwards ? upper : lower, idx->idx_flags & idx_descending);
+	    node = find_node (page, backwards ? upper : lower, (USHORT)(idx->idx_flags & idx_descending));
 	    number = BTR_get_quad (BTN_NUMBER (node));
 	    if (number != END_BUCKET)
 		{
@@ -846,7 +853,8 @@ node = NEXT_NODE (node);
 
 quad_put (split_page, BTN_NUMBER (node));
 BTN_PREFIX (node) = 0;
-BTN_LENGTH (node) = l = key.key_length;
+assert(key.key_length <= MAX_UCHAR);
+l = BTN_LENGTH (node) = (UCHAR)key.key_length;
 q = BTN_DATA (node);
 p = key.key_data;
 if (l)
@@ -880,7 +888,7 @@ if (dbb->dbb_wal)
     journal.jrnrp_type  = JRNP_ROOT_PAGE;
     journal.jrnrp_id    = idx->idx_id;
     journal.jrnrp_page  = new_window.win_page;
-    CCH_journal_record (tdbb, root_window, &journal, JRNRP_SIZE, NULL_PTR, 0);
+    CCH_journal_record (tdbb, root_window, (UCHAR*)&journal, JRNRP_SIZE, NULL_PTR, 0);
     }
 
 CCH_RELEASE (tdbb, root_window);
@@ -967,7 +975,9 @@ if (idx->idx_count == 1)
     if (!not_missing && (idx->idx_flags & idx_unique))
         result = idx_e_nullunique;
 
-    compress (tdbb, desc_ptr, key, tail->idx_itype, (not_missing) ? FALSE : TRUE, idx->idx_flags & idx_descending, FALSE);
+    compress (tdbb, desc_ptr, key, tail->idx_itype,
+		  (USHORT)((not_missing) ? FALSE : TRUE),
+		  (USHORT)(idx->idx_flags & idx_descending), (USHORT)FALSE);
 #ifdef IGNORE_NULL_IDX_KEY
     if (!not_missing)
 	{
@@ -994,8 +1004,8 @@ else
 	    result = idx_e_nullunique;
 
 	compress (tdbb, desc_ptr, &temp, tail->idx_itype, 
-		  (not_missing) ? FALSE : TRUE, 
-		  idx->idx_flags & idx_descending, FALSE);
+		  (USHORT)((not_missing) ? FALSE : TRUE),
+		  (USHORT)(idx->idx_flags & idx_descending), (USHORT)FALSE);
 #ifdef IGNORE_NULL_IDX_KEY
 	if (n == 0 && !not_missing)
 	    {
@@ -1330,8 +1340,8 @@ key->key_flags = 0;
 if (idx->idx_count == 1)
     {
     desc = eval (tdbb, *exprs, &temp_desc, &missing);
-    compress (tdbb, desc, key, tail->idx_itype, missing, 
-		idx->idx_flags & idx_descending, fuzzy);
+    compress (tdbb, desc, key, tail->idx_itype, (USHORT)missing, 
+		(USHORT)(idx->idx_flags & idx_descending), fuzzy);
 #ifdef IGNORE_NULL_IDX_KEY
     if (missing)
         {
@@ -1351,8 +1361,8 @@ else
 	for (; stuff_count; --stuff_count)
 	    *p++ = 0;
 	desc = eval (tdbb, *exprs++, &temp_desc, &missing);
-	compress (tdbb, desc, &temp, tail->idx_itype, missing, 
-		  idx->idx_flags & idx_descending, (n == count-1) ? fuzzy : FALSE);
+	compress (tdbb, desc, &temp, tail->idx_itype, (USHORT)missing, 
+		  (USHORT)(idx->idx_flags & idx_descending), (USHORT)((n == count-1) ? fuzzy : FALSE));
 #ifdef IGNORE_NULL_IDX_KEY
 	if (n == 0 && missing)
 	    {
@@ -1581,7 +1591,7 @@ if ((result == contents_single) && (level > 1))
         journal.jrnrp_type  = JRNP_ROOT_PAGE;
         journal.jrnrp_id    = idx->idx_id;
         journal.jrnrp_page  = number;
-        CCH_journal_record (tdbb, root_window, &journal, JRNRP_SIZE, NULL_PTR, 0);
+        CCH_journal_record (tdbb, root_window, (UCHAR*)&journal, JRNRP_SIZE, NULL_PTR, 0);
         }
 
     /* release the pages, and place the page formerly at the top level 
@@ -1691,7 +1701,8 @@ if (!slot)
 
 idx->idx_id = slot - root->irt_rpt;
 slot->irt_desc = space;
-slot->irt_keys = idx->idx_count;
+assert(idx->idx_count <= MAX_UCHAR);
+slot->irt_keys = (UCHAR)idx->idx_count;
 slot->irt_flags = idx->idx_flags | irt_in_progress;
 
 if (transaction)
@@ -1819,7 +1830,7 @@ CCH_RELEASE_TAIL (tdbb, &window);
 
 /* calculate the selectivity and store it on the root page */
 
-selectivity = (nodes) ? 1.0 / (float) (nodes - duplicates) : 0.0;
+selectivity = (float)((nodes) ? 1.0 / (float) (nodes - duplicates) : 0.0);
 window.win_page = relation->rel_index_root;
 window.win_flags = 0;
 root = (IRT) CCH_FETCH (tdbb, &window, LCK_write, pag_root);
@@ -1878,7 +1889,7 @@ assert (bucket->btr_level != 0);
 #endif  /* IGNORE_NULL_IDX_KEY */
 while (TRUE)
     {
-    node = find_node (bucket, insertion->iib_key, insertion->iib_descriptor->idx_flags & idx_descending);
+    node = find_node (bucket, insertion->iib_key, (USHORT)(insertion->iib_descriptor->idx_flags & idx_descending));
     page = BTR_get_quad (BTN_NUMBER (node));
 #ifdef IGNORE_NULL_IDX_KEY
     assert (page != END_NON_NULL);
@@ -1892,7 +1903,7 @@ while (TRUE)
    fetch for write since we know we are going to write to the page (most likely). */
 
 index = window->win_page;
-CCH_HANDOFF (tdbb, window, page, (bucket->btr_level == 1) ? LCK_write : LCK_read, pag_index);
+CCH_HANDOFF (tdbb, window, page, (SSHORT)((bucket->btr_level == 1) ? LCK_write : LCK_read), pag_index);
 
 /* now recursively try to insert the node at the next level down */
 
@@ -2058,7 +2069,7 @@ if (itype == idx_string     ||
     else
 	{
 	USHORT		ttype;
-	length = MOV_get_string_ptr (desc, &ttype, &ptr, temp1, MAX_KEY);
+	length = MOV_get_string_ptr (desc, &ttype, &ptr, (VARY*)temp1, MAX_KEY);
 	}
 
     if (length)
@@ -2430,7 +2441,8 @@ if (BTN_PREFIX (node) < BTN_PREFIX (next))
 else
     {
     page->btr_prefix_total -= BTN_PREFIX (node);
-    BTN_LENGTH (node) = l;
+    assert(l <= MAX_UCHAR);
+    BTN_LENGTH (node) = (UCHAR)l;
     BTN_PREFIX (node) = BTN_PREFIX (next);
     }
 
@@ -2459,12 +2471,13 @@ page->btr_length = p - (UCHAR*) page;
 if (dbb->dbb_wal)
     {
     JRNB    journal;
+    assert(node_offset <= MAX_USHORT);
     journal.jrnb_type      = JRNP_BTREE_DELETE;
     journal.jrnb_prefix_total = page->btr_prefix_total;
-    journal.jrnb_offset    = node_offset;
+    journal.jrnb_offset    = (USHORT)node_offset;
     journal.jrnb_delta     = BTN_PREFIX(node); 	/* DEBUG ONLY */
     journal.jrnb_length    = page->btr_length; 	/* DEBUG ONLY */
-    CCH_journal_record (tdbb, window, &journal, JRNB_SIZE, NULL_PTR, 0);
+    CCH_journal_record (tdbb, window, (UCHAR*)&journal, JRNB_SIZE, NULL_PTR, 0);
     }
 
 /* check to see if the page is now empty */
@@ -2698,7 +2711,7 @@ while (!error)
     /* Get the next record in sorted order. */
 
     DEBUG
-    SORT_get (tdbb->tdbb_status_vector, sort_handle, &record
+    SORT_get (tdbb->tdbb_status_vector, sort_handle, /* TMN: cast */ (ULONG**)&record
 #ifdef SCROLLABLE_CURSORS
 , RSE_get_forward
 #endif 
@@ -2763,7 +2776,8 @@ while (!error)
 	BTN_PREFIX (split_node) = 0;
 	p = BTN_DATA (split_node);
 	q = key->key_data;
-	if (l = BTN_LENGTH (split_node) = key->key_length)
+	assert(key->key_length <= MAX_UCHAR)
+	if (l = BTN_LENGTH (split_node) = (UCHAR)key->key_length)
 	    do *p++ = *q++; while (--l);
 	
         /* mark the end of the previous page */
@@ -2808,7 +2822,8 @@ while (!error)
 
     /* Insert the new node in the now current bucket */
 
-    BTN_PREFIX (node) = prefix;
+    assert(prefix <= MAX_UCHAR);
+    BTN_PREFIX (node) = (UCHAR)prefix;
     bucket->btr_prefix_total += prefix;
     quad_put (isr->isr_record_number, BTN_NUMBER (node));
     p = BTN_DATA (node);
@@ -2860,7 +2875,8 @@ while (!error)
 	    bucket->btr_header.pag_type = pag_index;
 	    bucket->btr_relation = relation->rel_id;
 	    bucket->btr_id = idx->idx_id;
-	    bucket->btr_level = level;
+	    assert(level <= MAX_UCHAR)
+	    bucket->btr_level = (UCHAR)level;
 	    if (idx->idx_flags & idx_descending)
 		bucket->btr_header.pag_flags |= btr_descending;
 	    bucket->btr_length = OFFSETA (BTR, btr_nodes) + BTN_SIZE;
@@ -2904,7 +2920,8 @@ while (!error)
 	    BTN_PREFIX (split_node) = 0;
 	    p = BTN_DATA (split_node);
 	    q = key->key_data;
-	    if (l = BTN_LENGTH (split_node) = key->key_length)
+	    assert(key->key_length <= MAX_UCHAR)
+	    if (l = BTN_LENGTH (split_node) = (UCHAR)key->key_length)
 		do MOVE_BYTE (q, p) while (--l);
 
             /* mark the end of the page; note that the end_bucket marker must 
@@ -2930,7 +2947,8 @@ while (!error)
 	/* Now propogate up the lower-level bucket by storing a "pointer" to it. */
 
 	node = NEXT_NODE (node);
-	BTN_PREFIX (node) = prefix;
+	assert(prefix <= MAX_UCHAR);
+	BTN_PREFIX (node) = (UCHAR)prefix;
         bucket->btr_prefix_total += prefix;
 	quad_put (windows [level - 1].win_page, BTN_NUMBER (node));
 
@@ -3031,7 +3049,7 @@ if (error)
     }
 
 CCH_flush (tdbb, (USHORT) FLUSH_ALL, 0);
-*selectivity = (count) ? (1. / (double) (count - duplicates)) : 0;
+*selectivity = (float)((count) ? (1. / (double) (count - duplicates)) : 0);
 
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
 return window->win_page;
@@ -3102,7 +3120,8 @@ node = bucket->btr_nodes;
 
 /* Compute common prefix of key and first node */
 
-prefix = compute_prefix (key, BTN_DATA (node), BTN_LENGTH (node));
+/* TMN: Watch out, possibility for UCHAR overflow! */
+prefix = (UCHAR)compute_prefix (key, BTN_DATA (node), BTN_LENGTH (node));
 p = key->key_data + prefix;
 key_end = key->key_data + key->key_length;
 number = BTR_get_quad (BTN_NUMBER (node));
@@ -3438,7 +3457,9 @@ last_key.key_length = p - last_key.key_data;
    and leave some extra space for expansion (at least one key length) */
 
 node = gc_page->btr_nodes;
-prefix = compute_prefix (&last_key, BTN_DATA (node), BTN_LENGTH (node));
+
+/* TMN: Watch out, possibility for UCHAR overflow! */
+prefix = (UCHAR)compute_prefix (&last_key, BTN_DATA (node), BTN_LENGTH (node));
 
 if (left_page->btr_length + gc_page->btr_length - prefix - BTN_LENGTH (last_node) - BTN_SIZE 
     - ((UCHAR*) gc_page->btr_nodes - (UCHAR*) gc_page) > dbb->dbb_page_size - MAX_KEY)
@@ -3884,7 +3905,7 @@ if (bucket->btr_length <= dbb->dbb_page_size)
         journal.jrnb_offset     = node_offset;
         journal.jrnb_delta      = delta;
         journal.jrnb_length     = BTN_SIZE + BTN_SIZE + BTN_LENGTH (new_node);
-        CCH_journal_record (tdbb, window, &journal, JRNB_SIZE,
+        CCH_journal_record (tdbb, window, (UCHAR*)&journal, JRNB_SIZE,
                 (UCHAR *)bucket+node_offset, journal.jrnb_length);
         }
         
@@ -3975,7 +3996,8 @@ BTN_PREFIX (new_node) = 0;
 QUAD_MOVE (BTN_NUMBER (node), BTN_NUMBER (new_node));
 p = BTN_DATA (new_node);
 q = new_key->key_data;
-if (l = BTN_LENGTH (new_node) = new_key->key_length)
+assert(new_key->key_length <= MAX_UCHAR)
+if (l = BTN_LENGTH (new_node) = (UCHAR)new_key->key_length)
     do MOVE_BYTE (q, p) while (--l);
 
 /* Copy down the remaining half of the original bucket on the overflow page */
@@ -4087,7 +4109,7 @@ journal.jrnb_offset	= 0;
 journal.jrnb_delta	= 0;
 journal.jrnb_length	= bucket->btr_length;
 
-CCH_journal_record (tdbb, window, &journal, JRNB_SIZE, (UCHAR *)bucket,
+CCH_journal_record (tdbb, window, (UCHAR*)&journal, JRNB_SIZE, (UCHAR *)bucket,
 		  journal.jrnb_length);
 }
 
@@ -4284,7 +4306,7 @@ assert (page->btr_level != 0);
 #endif  /* IGNORE_NULL_IDX_KEY */
 while (TRUE)
     {
-    node = find_node (page, insertion->iib_key, idx->idx_flags & idx_descending);
+    node = find_node (page, insertion->iib_key, (USHORT)(idx->idx_flags & idx_descending));
     number = BTR_get_quad (BTN_NUMBER (node));
 
     /* we should always find the node, but let's make sure */
@@ -4306,7 +4328,7 @@ while (TRUE)
 	/* handoff down to the next level, retaining the parent page number */
 
 	parent_number = window->win_page;
-	page = (BTR) CCH_HANDOFF (tdbb, window, number, (page->btr_level == 1) ? LCK_write : LCK_read, pag_index);
+	page = (BTR) CCH_HANDOFF (tdbb, window, number, (SSHORT)((page->btr_level == 1) ? LCK_write : LCK_read), pag_index);
 	
 	/* if the removed node caused the page to go below the garbage collection 
 	   threshold, and the database was created by a version of the engine greater 
@@ -4608,5 +4630,5 @@ while (TRUE)
     node = NEXT_NODE (node);
     }
 /* NOTREACHED */
-return NULL;		/* superfluous return to shut lint up */ 
+return 0;		/* superfluous return to shut lint up */ 
 }
