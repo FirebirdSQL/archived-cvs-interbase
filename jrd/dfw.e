@@ -3209,7 +3209,8 @@ for (tfb = stack; tfb; tfb = tfb->tfb_next)
 
 format = (FMT) ALLOCPV (type_fmt, count + 1);
 format->fmt_count = count + 1;
-format->fmt_version = * version;
+if (version)
+	format->fmt_version = *version;
 
 /* Fill in the format block from the temporary field blocks */
 
