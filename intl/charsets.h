@@ -19,6 +19,8 @@
 #ifndef _INTL_CHARSETS_H_
 #define _INTL_CHARSETS_H_
 
+#define   DEFAULT_ATTACHMENT_CHARSET  CS_NONE
+
 #define   CS_NONE               0     /* No Character Set */
 #define   CS_BINARY             1     /* BINARY BYTES     */
 #define   CS_ASCII              2     /* ASCII            */
@@ -48,7 +50,6 @@
 #define   CS_LATIN8             38    /* ISO-8859.8       */
 #define   CS_LATIN9             39    /* ISO-8859.9       */
 
-#define   CS_ANSI               40    /* ANSI             */
 #define   CS_KSC5601            44    /* KOREAN STANDARD 5601 */
 
 #define   CS_DOS_852		45    /* DOS CP 852	  */
