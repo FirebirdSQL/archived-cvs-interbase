@@ -2200,6 +2200,8 @@ void DYN_modify_sql_field (
  *
  *  The following operations return a warning
  *        Decreasing the length of a char (varchar) field
+ *	CVC: This is a misleading comment. There's no code that
+ *	produces a warning. This condition raises an error, too.
  *
  **************************************/
 TDBB	tdbb;
