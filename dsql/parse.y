@@ -1509,12 +1509,13 @@ union_view_expr	: select_view_expr
 select_view_expr: SELECT distinct_clause
 			 select_list 
 			 from_view_clause 
+			 limit_clause
 			 where_clause 
 			 group_clause 
 			 having_clause
 			 plan_clause
 			{ $$ = make_node (nod_select_expr, e_sel_count, 
-					$2, $3, $4, $5, $6, $7, $8, NULL); }
+					$2, $3, $4, $5, $6, $7, $8, $9, NULL); }
 		;                                               
 
 from_view_clause : FROM from_view_list
@@ -2943,23 +2944,25 @@ scalar_set	: '(' constant_list ')'
 column_select	: SELECT distinct_clause
 			value 
 			from_clause 
+			limit_clause
 			where_clause 
 			group_clause
 			having_clause
 			plan_clause
 		    { $$ = make_node (nod_select_expr, e_sel_count, 
-				$2, make_list ($3), $4, $5, $6, $7, $8, NULL); }
+				$2, make_list ($3), $4, $5, $6, $7, $8, $9, NULL); }
 		;
 
 column_singleton : SELECT distinct_clause
 			value 
 			from_clause 
+			limit_clause
 			where_clause 
 			group_clause
 			having_clause
 			plan_clause
 		    { $$ = make_node (nod_select_expr, e_sel_count, 
-		 		$2, make_list ($3), $4, $5, $6, $7, $8, 
+		 		$2, make_list ($3), $4, $5, $6, $7, $8, $9,
 				MAKE_constant ((STR) 1, CONSTANT_SLONG)); }
 		;
 
