@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include "../jrd/ib_stdio.h"
@@ -39,12 +40,12 @@ extern int	ib_printf();
 #define PRINT_VERB 	if (print_verb (control, level)) return -1
 #define PRINT_DYN_VERB 	if (print_dyn_verb (control, level)) return -1
 #define PRINT_SDL_VERB 	if (print_sdl_verb (control, level)) return -1
-#define PRINT_LINE	print_line (control, offset)
-#define PRINT_BYTE	print_byte (control, offset)
-#define PRINT_CHAR	print_char (control, offset)
-#define PRINT_WORD	print_word (control, offset)
-#define PRINT_LONG	print_long (control, offset)
-#define PRINT_STRING	print_string (control, offset)
+#define PRINT_LINE	print_line (control, (SSHORT)offset)
+#define PRINT_BYTE	print_byte (control, (SSHORT)offset)
+#define PRINT_CHAR	print_char (control, (SSHORT)offset)
+#define PRINT_WORD	print_word (control, (SSHORT)offset)
+#define PRINT_LONG	print_long (control, (SSHORT)offset)
+#define PRINT_STRING	print_string (control, (SSHORT)offset)
 #define BLR_BYTE	*(control->ctl_blr)++
 #define PUT_BYTE(byte)	*(control->ctl_ptr)++ = byte
 #define NEXT_BYTE	*(control->ctl_blr)
@@ -175,7 +176,7 @@ while (parameter = BLR_BYTE)
 return 0;
 }
 
-PRETTY_print_dyn (
+int PRETTY_print_dyn (
     SCHAR	*blr,
     int		(*routine)(),
     SCHAR	*user_arg,
@@ -286,7 +287,7 @@ while ((c = BLR_BYTE) != PYXIS__MAP_END)
 	    for (n = PRINT_WORD; n; --n)
 		{
 		PRINT_LINE;
-		indent (control, level + 1);
+		indent (control, (SSHORT)(level + 1));
 		print_blr_dtype (control, TRUE);
 		}
 	    break;
@@ -302,7 +303,7 @@ while ((c = BLR_BYTE) != PYXIS__MAP_END)
 	case PYXIS__MAP_FIELD2:
 	    PRINT_STRING;
 	    PRINT_LINE;
-	    indent (control, level + 1);
+	    indent (control, (SSHORT)(level + 1));
 	    PRINT_WORD;
 	    if (c != PYXIS__MAP_FIELD1)
 		PRINT_WORD;
@@ -331,7 +332,7 @@ PRINT_LINE;
 return 0;
 }
 
-PRETTY_print_mblr (
+int PRETTY_print_mblr (
     SCHAR	*blr,
     int		(*routine)(),
     SCHAR	*user_arg,
@@ -349,7 +350,7 @@ PRETTY_print_mblr (
  *
  **************************************/
 
-PRETTY_print_dyn (blr, routine, user_arg, language);
+return PRETTY_print_dyn (blr, routine, user_arg, language);
 }
 
 PRETTY_print_menu (
@@ -483,7 +484,7 @@ PRINT_LINE;
 return 0;
 }
 
-static blr_format (
+static int blr_format (
     CTL		control,
     TEXT	*string,
     ...)
@@ -504,9 +505,10 @@ VA_START (ptr, string);
 vsprintf (control->ctl_ptr, string, ptr);
 while (*control->ctl_ptr)
    control->ctl_ptr++;
+return 0;
 }
 
-static error (
+static int error (
     CTL		control,
     int		offset,
     TEXT	*string,
@@ -532,7 +534,7 @@ PRINT_LINE;
 return -1;
 }
 
-static indent (
+static int indent (
     CTL		control,
     SSHORT	level)
 {
@@ -550,6 +552,7 @@ static indent (
 level *= 3;
 while (--level >= 0)
     PUT_BYTE (' ');
+return 0;
 }
 
 static print_blr_dtype (
@@ -569,7 +572,12 @@ static print_blr_dtype (
  **************************************/
 unsigned short	dtype;
 SCHAR		*string;
-SSHORT		length, offset;
+SSHORT		length;
+/* TMN: FIX FIX Note that offset is not initialized to anything useful
+ * for e.g. PRINT_WORD. I assume it's better to initialize it to zero
+ * than letting it be random.
+ */
+SSHORT		offset = 0;
 
 dtype = BLR_BYTE;
 
@@ -713,7 +721,7 @@ return length;
 }
 
 
-static print_blr_line (
+static int print_blr_line (
     CTL		control,
     USHORT	offset,
     UCHAR	*line)
@@ -747,9 +755,10 @@ if (!comma)
     PUT_BYTE (',');
 
 PRINT_LINE;
+return 0;
 }
 
-static print_byte (
+static int print_byte (
     CTL	control,
     SSHORT	offset)
 {
@@ -772,7 +781,7 @@ ADVANCE_PTR (control->ctl_ptr);
 return v;
 }
 
-static print_char (
+static int print_char (
     CTL	control,
     SSHORT	offset)
 {
@@ -805,7 +814,7 @@ CHECK_BUFFER;
 return c;
 }
 
-static print_dyn_verb (
+static int print_dyn_verb (
     CTL		control,
     SSHORT	level)
 {
@@ -860,7 +869,7 @@ switch (operator)
 	if (length)
 	    {
 	    control->ctl_level = level;
-	    gds__print_blr (control->ctl_blr, (FPTR_VOID) print_blr_line, control, control->ctl_language);
+	    gds__print_blr (control->ctl_blr, (FPTR_VOID) print_blr_line, (SCHAR*)control, control->ctl_language);
 	    control->ctl_blr += length;
 	    }
 	return 0;
@@ -1013,7 +1022,7 @@ switch (operator)
 return 0;
 }
 
-static print_line (
+static int print_line (
     CTL		control,
     SSHORT	offset)
 {
@@ -1031,6 +1040,7 @@ static print_line (
 *control->ctl_ptr = 0;
 (*control->ctl_routine) (control->ctl_user_arg, offset, control->ctl_buffer);
 control->ctl_ptr = control->ctl_buffer;
+return 0;
 }
 
 static SLONG print_long (
@@ -1107,7 +1117,7 @@ switch (operator)
 	while (n--)
 	    {
 	    PRINT_LINE;
-	    indent (control, level + 1);
+	    indent (control, (SSHORT)(level + 1));
 	    offset = control->ctl_blr - control->ctl_blr_start;
 	    print_blr_dtype (control, TRUE);
 	    }
@@ -1175,7 +1185,7 @@ PRINT_LINE;
 return 0;
 }
 
-static print_string (
+static int print_string (
     CTL	control,
     SSHORT	offset)
 {
@@ -1196,6 +1206,7 @@ while (--n >= 0)
     PRINT_CHAR;
 
 PUT_BYTE (' ');
+return 0;
 }
 
 static print_word (

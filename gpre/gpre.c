@@ -32,6 +32,7 @@
  * in WHERE clauses for sql dialect 2 and 3.
  * (cause a core dump in a test case from C.R. Zamana)
  *
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #define GPRE_MAIN
@@ -258,13 +259,16 @@ SYM		symbol;
 SLONG		end_position;
 int		i;
 TEXT		*p, spare_file_name [256], spare_out_file_name [256], 
-		*filename_array [3], *db_filename, temp_name [256];
+		*filename_array [3], *db_filename;
 BOOLEAN		renamed, explicit;
 EXT_TAB		ext_tab, src_ext_tab;
 SW_TAB		sw_tab;
 struct sw_tab_t	sw_table [IN_SW_GPRE_COUNT];
-IB_FILE		*temp;
+#ifdef VMS
+IB_FILE*	temp;
+TEXT		temp_name[256];
 SSHORT		c;
+#endif
 	
 strcpy (ada_package, "");
 ada_flags = 0;
@@ -955,10 +959,10 @@ void CPR_end_text (
  *
  **************************************/
 
-text->txt_length = token.tok_position - text->txt_position - 1;
+text->txt_length = (USHORT)(token.tok_position - text->txt_position - 1);
 }
 
-CPR_error (
+int CPR_error (
     TEXT	*string)
 {
 /**************************************
@@ -975,7 +979,7 @@ CPR_error (
 ib_fprintf (ib_stderr, "(E) %s:%d: %s\n", file_name, line+1, string);
 errors++;
 
-return NULL;
+return 0;
 }
 
 void CPR_exit (
@@ -992,17 +996,29 @@ void CPR_exit (
  *
  **************************************/
 #ifdef LINUX
+
 if (trace_file_name [0])
+
     {
+
     if (trace_file)
+
         ib_fclose (trace_file);
+
     unlink (trace_file_name);
+
     }
+
 #else
+
 if (trace_file)
+
     ib_fclose (trace_file);
+
 if (trace_file_name [0])
+
     unlink (trace_file_name);
+
 #endif
 
 #ifdef APOLLO
@@ -1078,7 +1094,7 @@ num_chars = 0;
 for (c = nextchar(); c == ' '; c = nextchar())
     {
     num_chars++;
-    *p++ = c;
+    *p++ = (TEXT)c;
     }
 
 /* in-line comments are equivalent to end of line */
@@ -1255,7 +1271,7 @@ while (c = get_char (input_file))
 	p = token_string;
 	}
     else
-	*p++ = c;
+	*p++ = (SCHAR)c;
 
     if (c = '\n')
 	{
@@ -1460,7 +1476,9 @@ static SLONG compile_module (
  **************************************/
 SLONG	end_position;
 REQ	request;
+#ifdef __BORLANDC__
 SCHAR	*p;
+#endif
 
 /* Reset miscellaneous pointers */
 
@@ -1677,7 +1695,7 @@ for (; action; action = action->act_rest)
     db = NULL;
     if (based_on->bas_db_name)
 	{
-	symbol = HSH_lookup (based_on->bas_db_name);
+	symbol = HSH_lookup ((SCHAR*)based_on->bas_db_name);
 	for (; symbol; symbol = symbol->sym_homonym)
 	    if (symbol->sym_type == SYM_database)
 		break;
@@ -1685,7 +1703,7 @@ for (; action; action = action->act_rest)
 	if (symbol)
 	    {
 	    db = (DBB) symbol->sym_object;
-	    relation = MET_get_relation (db, based_on->bas_rel_name, "");
+	    relation = MET_get_relation (db, (TEXT*)based_on->bas_rel_name, "");
 	    if (!relation)
 		{
 		sprintf (s, "relation %s is not defined in database %s", 
@@ -1693,7 +1711,7 @@ for (; action; action = action->act_rest)
 		CPR_error (s);
 		continue;
 		}
-	    field = MET_field (relation, based_on->bas_fld_name);
+	    field = MET_field (relation, (UCHAR*)based_on->bas_fld_name);
 	    }
 	else
 	    {
@@ -1721,7 +1739,7 @@ for (; action; action = action->act_rest)
 	{
 	field = NULL;
 	for (db = isc_databases; db; db = db->dbb_next)
-	    if (relation = MET_get_relation (db, based_on->bas_rel_name, ""))
+	    if (relation = MET_get_relation (db, (TEXT*)based_on->bas_rel_name, ""))
 		{
 		if (field)
 		    {
@@ -1733,7 +1751,7 @@ for (; action; action = action->act_rest)
 		    CPR_error (s);
 		    break;
 		    }
-		field = MET_field (relation, based_on->bas_fld_name);
+		field = MET_field (relation, (UCHAR*)based_on->bas_fld_name);
 		}
 
 	if (db)
@@ -2134,7 +2152,7 @@ if (sw_language == lan_fortran)
 
 p = token.tok_string;
 end = p + sizeof (token.tok_string);
-*p++ = c;
+*p++ = (TEXT)c;
 
 if (c == EOF)
     {
@@ -2161,7 +2179,7 @@ if (sw_sql && (class & CHR_INTRODUCER))
     {
     while (classes [c = nextchar()] & CHR_IDENT)
 	if (p < end)
-	    *p++ = c;
+	    *p++ = (TEXT)c;
     return_char (c);
     token.tok_type = tok_introducer;
     }
@@ -2171,7 +2189,7 @@ else if (class & CHR_LETTER)
 	{
 #if (! (defined JPN_EUC || defined JPN_SJIS) )
 	while (classes [c = nextchar()] & CHR_IDENT)
-	    *p++ = c;
+	    *p++ = (TEXT)c;
 #else
     p--;
     while (TRUE)
@@ -2208,7 +2226,7 @@ else if (class & CHR_LETTER)
 	if (c != '-' || sw_language != lan_cobol)
 	    break;
 	if (sw_language == lan_cobol && sw_ansi)
-	    *p++ = c;
+	    *p++ = (TEXT)c;
 	else
 	    *p++ = '_';
 	}
@@ -2220,7 +2238,7 @@ else if (class & CHR_DIGIT)
     if (sw_language == lan_fortran && line_position < 7)
   	label = TRUE;
     while (classes[c = nextchar()] & CHR_DIGIT)
-	*p++ = c;
+	*p++ = (TEXT)c;
     if (label)
 	{
 	*p = 0;
@@ -2228,20 +2246,20 @@ else if (class & CHR_DIGIT)
 	}
     if (c == '.')
 	{
-	*p++ = c;
+	*p++ = (TEXT)c;
 	while (classes [c = nextchar()] & CHR_DIGIT)
-	    *p++ = c;
+	    *p++ = (TEXT)c;
 	}
     if (!label && (c == 'E' || c == 'e'))
 	{
-	*p++ = c;
+	*p++ = (TEXT)c;
 	c = nextchar();
 	if (c == '+' || c == '-')
-	    *p++ = c; 
+	    *p++ = (TEXT)c; 
 	else
 	    return_char (c);
 	while (classes [c = nextchar()] & CHR_DIGIT)
-	    *p++ = c;
+	    *p++ = (TEXT)c;
 	}
     return_char (c);
     token.tok_type = tok_number;
@@ -2303,14 +2321,14 @@ else if ((class & CHR_QUOTE) || (class & CHR_DBLQUOTE))
 		token.tok_white_space += 2;
 	    else if (p < end)
 		{
-		*p++ = next;
+		*p++ = (TEXT)next;
 		if (p < end)
-		    *p++ = peek;
+		    *p++ = (TEXT)peek;
 		}
 	    continue;
 	    }
 	if (p < end)
-	    *p++ = next;
+	    *p++ = (TEXT)next;
 	if (next == c)
 	    /* If 2 quotes in a row, treat 2nd as literal - bug #1530 */
 	    {
@@ -2329,19 +2347,19 @@ else if (c=='.' )
     {
     if (classes [c = nextchar()] & CHR_DIGIT)
 	{
-	*p++ = c;
+	*p++ = (TEXT)c;
         while (classes [c = nextchar()] & CHR_DIGIT)
-            *p++ = c;
+            *p++ = (TEXT)c;
         if ((c == 'E' || c == 'e'))
 	    {
-	    *p++ = c;
+	    *p++ = (TEXT)c;
 	    c = nextchar();
 	    if (c == '+' || c == '-')
-	        *p++ = c; 
+	        *p++ = (TEXT)c; 
 	    else
 	        return_char (c);
 	    while (classes [c = nextchar()] & CHR_DIGIT)
-	        *p++ = c;
+	        *p++ = (TEXT)c;
 	    }
         return_char (c);
         token.tok_type = tok_number;
@@ -2452,7 +2470,8 @@ if (sw_language == lan_basic)
 
 /* for FORTRAN, make note of the first token in a statement */
 
-token.tok_first = first_position;
+assert(first_position <= MAX_USHORT);
+token.tok_first = (USHORT)first_position;
 first_position = FALSE;
 
 if (sw_trace)
@@ -2981,7 +3000,7 @@ if (c == '\n')
     --line;
     }
 
-*input_char++ = c;
+*input_char++ = (TEXT)c;
 }
 
 static SSHORT skip_white (void)

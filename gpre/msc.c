@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 /*
 $Id$
@@ -303,7 +304,7 @@ void MSC_free_request (
 
 requests = request->req_next;
 cur_routine->act_object = (REF) request->req_routine;
-MSC_free (request);
+MSC_free ((SCHAR*)request);
 }
 
 void MSC_init (void)

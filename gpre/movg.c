@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include "../jrd/common.h"
@@ -28,6 +29,13 @@
 #include "../jrd/iberr.h"
 #include "../jrd/dsc.h"
 #include "../gpre/movg_proto.h"
+/* TMN: Unfortunately we need to include gpre.h before grep_proto.h since
+ * the latter references a macro from the former, and doesn't include that
+ * header file itself. We need to include gpre_proto.h since we use gpre
+ * functions.
+ */
+#include "../gpre/gpre.h"
+#include "../gpre/gpre_proto.h"
 #include "../jrd/cvt_proto.h"
 #include "../jrd/thd_proto.h"
 

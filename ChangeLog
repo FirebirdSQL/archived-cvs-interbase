@@ -1,3 +1,10 @@
+2001-04-11 tamlin
+	* gpre/: c_cxx.c, cmd.c, cme.c, cmp.c, exp.c, gpre.c, hsh.c
+	jrdmet.c, movg.c, msc.c, par.c, pretty.c, sqe.c, sql.c
+
+	Reduced compiler warnings for gpre and reduced compiler
+	warnings from gpre generated C code.
+
 2001-04-05 19:05  skywalker
 
 	* interbase/: builds_win32/original/metadata.sql, burp/backup.e,
@@ -553,7 +560,10 @@
 	isql/extract.e, isql/isql.e, isql/isql.h, isql/show.e,
 	jrd/license.h, pyxis/debug.c, pyxis/edit.e, pyxis/fred.e:
 	
-	Changed all $Log$ tags to $Id$ BTW this will hopefully set
+	Changed all $Log$
+	Changed all Revision 1.22  2001/04/05 19:05:47  fsg
+	Changed all Updated ChangeLog
+	Changed all tags to $Id$ BTW this will hopefully set
 	this_build to 2 :-)
 
 2000-12-08 17:18  fsg

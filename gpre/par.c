@@ -30,6 +30,7 @@
  *
  * removed some compiler warnings too
  *
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include <setjmp.h>
@@ -698,12 +699,12 @@ while (TRUE)
 
 /* pop the event strings off the stack */
 
-event_list = init->nod_arg [1] = MAKE_NODE (nod_list, count);
+event_list = init->nod_arg [1] = MAKE_NODE (nod_list, (SSHORT)count);
 ptr = event_list->nod_arg + count;
 while (stack)
     *--ptr = (NOD) POP (&stack);
 
-PUSH  ( action, &events);
+PUSH  ( (NOD)action, &events);
 	 
 if (!sql)
     PAR_end();
@@ -793,6 +794,7 @@ if (CPR_token() == NULL)
     CPR_error ("unexpected EOF"); 
     PAR_unwind();
     }
+return NULL;
 }
 
 void PAR_init (void)
@@ -852,7 +854,6 @@ register SCHAR	*string, *s1;
 enum kwwords	keyword;
 int		length;
 USHORT		parens, brackets;
-BOOLEAN		force_dblquotes;
 
 #define GOBBLE {for (s1= token.tok_string; *s1;) *string++ = *s1++; ADVANCE_TOKEN;}
 
@@ -1067,9 +1068,11 @@ while (TRUE)
     for (database = isc_databases; database; database = database->dbb_next)
 	for (lock_block = database->dbb_rrls; lock_block; lock_block = lock_block->rrl_next)
 	    if (!lock_block->rrl_lock_level)
-		{	    
-		lock_block->rrl_lock_level = lock_level;
-		lock_block->rrl_lock_mode = lock_mode;
+		{
+		assert(lock_level <= MAX_UCHAR);
+		assert(lock_mode <= MAX_UCHAR);
+		lock_block->rrl_lock_level = (UCHAR)lock_level;
+		lock_block->rrl_lock_mode = (UCHAR)lock_mode;
 		}
     if (!(MATCH (KW_COMMA)))
 	break;
@@ -1460,14 +1463,14 @@ if ((sw_language != lan_fortran) || isc_databases)
 else
     {
     based_on->bas_rel_name = (STR) ALLOC (token.tok_length + 1);
-    COPY (token.tok_string, token.tok_length, based_on->bas_rel_name);
+    COPY (token.tok_string, token.tok_length, (SCHAR*)based_on->bas_rel_name);
     ADVANCE_TOKEN;
     if (!MATCH (KW_DOT)) 
 	PAR_error ("expected qualified field name");
     else
 	{
 	based_on->bas_fld_name = (STR) ALLOC (token.tok_length + 1);
-	COPY (token.tok_string, token.tok_length, based_on->bas_fld_name);
+	COPY (token.tok_string, token.tok_length, (SCHAR*)based_on->bas_fld_name);
 	ambiguous_flag = FALSE;
 	ADVANCE_TOKEN;
 	if (MATCH (KW_DOT))
@@ -1475,7 +1478,7 @@ else
 	    based_on->bas_db_name = based_on->bas_rel_name;
 	    based_on->bas_rel_name = based_on->bas_fld_name;
 	    based_on->bas_fld_name = (STR) ALLOC (token.tok_length + 1);
-	    COPY (token.tok_string, token.tok_length, based_on->bas_fld_name);
+	    COPY (token.tok_string, token.tok_length, (SCHAR*)based_on->bas_fld_name);
 	    if (KEYWORD (KW_SEGMENT))
 		ambiguous_flag = TRUE;
 	    ADVANCE_TOKEN;
@@ -1930,6 +1933,7 @@ static ACT par_end_form (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 REQ	request;
 CTX	context;
@@ -2028,8 +2032,8 @@ for (reference = request->req_references; reference;
 	change->ref_flags = reference->ref_flags;
 
 	item = MAKE_NODE (nod_assignment, 2);
-	item->nod_arg [0] = MSC_unary (nod_value, change);
-	item->nod_arg [1] = MSC_unary (nod_field, change);
+	item->nod_arg [0] = MSC_unary (nod_value, (NOD)change);
+	item->nod_arg [1] = MSC_unary (nod_field, (NOD)change);
 	PUSH ( (NOD) item, &stack);
 	count++;
 
@@ -2043,8 +2047,8 @@ for (reference = request->req_references; reference;
 	    change->ref_null = flag;
 
 	    item = MAKE_NODE (nod_assignment, 2);
-	    item->nod_arg [0] = MSC_unary (nod_value, flag);
-	    item->nod_arg [1] = MSC_unary (nod_field, flag);
+	    item->nod_arg [0] = MSC_unary (nod_value, (NOD)flag);
+	    item->nod_arg [1] = MSC_unary (nod_field, (NOD)flag);
 	    PUSH ( (NOD) item, &stack);
 	    count++;
 	    }
@@ -2052,7 +2056,7 @@ for (reference = request->req_references; reference;
 
 /* Build a list node of the assignments */
 
-modify->upd_assignments = assignments = MAKE_NODE (nod_list, count);
+modify->upd_assignments = assignments = MAKE_NODE (nod_list, (SSHORT)count);
 ptr = assignments->nod_arg + count;
 
 while (stack)
@@ -2138,7 +2142,7 @@ if (request->req_type == REQ_store)
 	if (!reference->ref_master)
 	    count++;
     
-    request->req_node = assignments = MAKE_NODE (nod_list, count);
+    request->req_node = assignments = MAKE_NODE (nod_list, (SSHORT)count);
     count = 0;
     
     for (reference = request->req_references; reference; 
@@ -2147,8 +2151,8 @@ if (request->req_type == REQ_store)
 	if (reference->ref_master)
 	    continue;
 	item = MAKE_NODE (nod_assignment, 2);
-	item->nod_arg [0] = MSC_unary (nod_value, reference);
-	item->nod_arg [1] = MSC_unary (nod_field, reference);
+	item->nod_arg [0] = MSC_unary (nod_value, (NOD)reference);
+	item->nod_arg [1] = MSC_unary (nod_field, (NOD)reference);
 	assignments->nod_arg[count++] = item;
 	}
     }
@@ -2180,15 +2184,15 @@ else
 	    change->ref_flags = reference->ref_flags;
     
 	    item = MAKE_NODE (nod_assignment, 2);
-	    item->nod_arg [0] = MSC_unary (nod_field, change);
-	    item->nod_arg [1] = MSC_unary (nod_value, change);
+	    item->nod_arg [0] = MSC_unary (nod_field, (NOD)change);
+	    item->nod_arg [1] = MSC_unary (nod_value, (NOD)change);
 	    PUSH ( (NOD) item, &stack);
 	    count++;
 	    }
 
     /* Build a list node of the assignments */
     
-    return_values->upd_assignments = assignments = MAKE_NODE (nod_list, count);
+    return_values->upd_assignments = assignments = MAKE_NODE (nod_list, (SSHORT)count);
     ptr = assignments->nod_arg + count;
 
     while (stack)
@@ -2406,7 +2410,7 @@ if (!KEYWORD (KW_FIRST) && !KEYWORD (KW_LEFT_PAREN))
 
     if (!MATCH (KW_IN))
 	{
-	MSC_free (symbol);
+	MSC_free ((SCHAR*)symbol);
 	return NULL;
 	}
     if (dup_symbol)
@@ -2465,6 +2469,7 @@ static CTX par_form_menu (
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 SYM	symbol;
 
@@ -2492,6 +2497,7 @@ static ACT par_form_display (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 REQ	request;
 ACT	action;
@@ -2565,6 +2571,7 @@ static ACT par_form_field (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 FLD	field;
 ACT	action;
@@ -2649,6 +2656,7 @@ static ACT par_form_for (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 FORM	form;
 SYM	symbol, dbb_symbol;
@@ -2792,7 +2800,7 @@ if (!cur_item)
     return NULL;
     }
 
-prior = (ACT) POP (&cur_item);
+prior = (ACT) POP ((LLS*)&cur_item);
 request = prior->act_request;
 context = request->req_contexts;
 HSH_remove (context->ctx_symbol);
@@ -2873,7 +2881,7 @@ context->ctx_symbol = symbol;
 symbol->sym_object = context;
 HSH_insert (symbol);
 action = MAKE_ACTION (request, type);
-PUSH ( (NOD) action, &cur_item);
+PUSH ( (NOD) action, (LLS*)&cur_item);
 
 /* If this is a FOR_ITEM, generate an index variable */
 
@@ -3207,7 +3215,7 @@ context->ctx_symbol = symbol;
 symbol->sym_object = context;
 HSH_insert (symbol);
 action = MAKE_ACTION (request, type);
-PUSH ( (NOD) action, &cur_item);
+PUSH ( (NOD) action, (LLS*)&cur_item);
 
 entree = (ENTREE) ALLOC (sizeof (struct entree));
 action->act_object = (REF) entree;
@@ -3310,6 +3318,7 @@ static ACT par_on_error (void)
  *
  **************************************
  *
+
  * Functional description
  *	Parse a trailing ON_ERROR clause.
  *
@@ -3798,7 +3807,7 @@ for (reference = request->req_references; reference;
     if (!reference->ref_master)
 	count++;
     
-request->req_node = assignments = MAKE_NODE (nod_list, count);
+request->req_node = assignments = MAKE_NODE (nod_list, (SSHORT)count);
 count = 0;
     
 for (reference = request->req_references; reference; 
@@ -3813,8 +3822,8 @@ for (reference = request->req_references; reference;
     if (reference->ref_master)
 	continue;
     item = MAKE_NODE (nod_assignment, 2);
-    item->nod_arg [0] = MSC_unary (nod_value, save_ref);
-    item->nod_arg [1] = MSC_unary (nod_field, save_ref);
+    item->nod_arg [0] = MSC_unary (nod_value, (NOD)save_ref);
+    item->nod_arg [1] = MSC_unary (nod_field, (NOD)save_ref);
     assignments->nod_arg[count++] = item;
     }
 
@@ -4242,7 +4251,6 @@ static ACT par_type (void)
  *
  **************************************/
 REL	relation;
-SYM	symbol;
 FLD	field;
 ACT	action;
 SSHORT	type;
@@ -4251,6 +4259,7 @@ TEXT	s [64];
 /* Pick up relation */
 
 /***
+SYM	symbol;
 symbol = token.tok_symbol;
 relation = (REL) symbol->sym_object;
 ADVANCE_TOKEN;
@@ -4469,6 +4478,7 @@ static ACT par_window_create (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 ACT	action;
 
@@ -4493,6 +4503,7 @@ static ACT par_window_delete (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 
 return MAKE_ACTION (NULL_PTR, ACT_window_delete);
@@ -4515,6 +4526,7 @@ static ACT par_window_scope (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 ACT	action;
 
@@ -4549,6 +4561,7 @@ static ACT par_window_suspend (void)
  **************************************/
 #ifdef NO_PYXIS
 PAR_error ("FORMs not supported");
+return NULL; /* silence compiler */
 #else
 
 return MAKE_ACTION (NULL_PTR, ACT_window_suspend);

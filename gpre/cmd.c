@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include <string.h>
@@ -31,6 +32,7 @@
 #include "../gpre/cmp_proto.h"
 #include "../gpre/gpre_proto.h"
 #include "../gpre/msc_proto.h"
+#include "../gpre/met_proto.h"
 
 static void	add_cache (REQ, ACT, DBB);
 static void	add_log_files (REQ, ACT, DBB);
@@ -79,7 +81,7 @@ static void	put_view_trigger_blr (REQ, REL, USHORT, TRG, NOD, CTX *, NOD);
 static void	replace_field_names (NOD, NOD, FLD, SSHORT, CTX *);
 static void	set_statistics (REQ, ACT);
 
-#define STUFF(blr)	*request->req_blr++ = (blr) 
+#define STUFF(blr)	*request->req_blr++ = (UCHAR)(blr) 
 #define STUFF_END	STUFF (gds__dyn_end);
 #define STUFF_WORD(blr) STUFF (blr); STUFF ((blr) >> 8)
 #define STUFF_INT(blr)	STUFF (blr); STUFF ((blr) >> 8); STUFF ((blr) >> 16); STUFF ((blr) >> 24)
@@ -177,12 +179,12 @@ switch (action->act_type)
 	break;
 
     case ACT_drop_domain:
-	put_cstring (request, gds__dyn_delete_global_fld, action->act_object);
+	put_cstring (request, gds__dyn_delete_global_fld, (TEXT*)action->act_object);
 	STUFF_END;
 	break;
 
     case ACT_drop_filter:
-	put_cstring (request, gds__dyn_delete_filter, action->act_object);
+	put_cstring (request, gds__dyn_delete_filter, (TEXT*)action->act_object);
 	STUFF_END;
 	break;
 
@@ -205,7 +207,7 @@ switch (action->act_type)
 	break;
 
     case ACT_drop_udf:
-	put_cstring (request, gds__dyn_delete_function, action->act_object);
+	put_cstring (request, gds__dyn_delete_function, (TEXT*)action->act_object);
 	STUFF_END;
 	break;
 
@@ -588,7 +590,7 @@ if (relation->rel_constraints)
     {
     for (cnstrt = relation->rel_constraints; cnstrt; cnstrt = cnstrt->cnstrt_next)
 	if (cnstrt->cnstrt_flags & CNSTRT_delete)
-	    put_cstring (request,gds__dyn_delete_rel_constraint,cnstrt->cnstrt_name);
+	    put_cstring (request, gds__dyn_delete_rel_constraint, (TEXT*)cnstrt->cnstrt_name);
     create_constraint (request, action, relation->rel_constraints);
     }
 
@@ -623,7 +625,7 @@ trigger->trg_type = PRE_STORE_TRIGGER;
 trigger->trg_message = (STR) NULL;
 trigger->trg_boolean = cnstrt->cnstrt_boolean;
 trigger->trg_source = (STR) ALLOC (cnstrt->cnstrt_text->txt_length+1);
-CPR_get_text (trigger->trg_source, cnstrt->cnstrt_text);
+CPR_get_text ((TEXT*)trigger->trg_source, cnstrt->cnstrt_text);
 create_trigger (request, action, trigger, CME_expr);
 
 /* create the UPDATE trigger   */
@@ -680,9 +682,9 @@ for (; prim_key_fld; prim_key_fld = prim_key_fld->lls_next)
     prim_key_fld_name = (STR) prim_key_fld->lls_object; 
 
     STUFF (blr_field); STUFF ((SSHORT)0);
-    put_cstring (request, 0, prim_key_fld_name);
+    put_cstring (request, 0, (TEXT*)prim_key_fld_name);
     STUFF (blr_field); STUFF ((SSHORT)1);
-    put_cstring (request, 0, prim_key_fld_name);
+    put_cstring (request, 0, (TEXT*)prim_key_fld_name);
 
     num_flds++;
 
@@ -752,9 +754,9 @@ do  {
     prim_key_fld_name = (STR) prim_key_fld->lls_object;
 
     STUFF (blr_field); STUFF ((SSHORT)2);
-    put_cstring (request, 0, for_key_fld_name);
+    put_cstring (request, 0, (TEXT*)for_key_fld_name);
     STUFF (blr_field); STUFF ((SSHORT)0);
-    put_cstring (request, 0, prim_key_fld_name);
+    put_cstring (request, 0, (TEXT*)prim_key_fld_name);
 
     num_flds++;
 
@@ -834,7 +836,7 @@ put_numeric (request, gds__dyn_trg_type, (SSHORT) POST_MODIFY_TRIGGER);
 STUFF (gds__dyn_sql_object);
 put_numeric (request, gds__dyn_trg_sequence, (SSHORT)1);
 put_numeric (request, gds__dyn_trg_inactive, (SSHORT)0);
-put_cstring (request, gds__dyn_rel_name, cnstrt->cnstrt_referred_rel);
+put_cstring (request, gds__dyn_rel_name, (TEXT*)cnstrt->cnstrt_referred_rel);
 
 /* the trigger blr */
 
@@ -877,9 +879,9 @@ for (; for_key_fld && prim_key_fld;
 
     STUFF (blr_assignment);
     STUFF (blr_field); STUFF ((SSHORT)1);
-    put_cstring (request, 0, prim_key_fld_name);
+    put_cstring (request, 0, (TEXT*)prim_key_fld_name);
     STUFF (blr_field); STUFF ((SSHORT)2);
-    put_cstring (request, 0, for_key_fld_name);
+    put_cstring (request, 0, (TEXT*)for_key_fld_name);
     }
 
 STUFF (blr_end);
@@ -887,8 +889,8 @@ STUFF (blr_end); STUFF (blr_end); STUFF (blr_end);
 
 STUFF (blr_eoc);
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 /* end of the blr */
 
 /* no trg_source and no trg_description */
@@ -924,7 +926,7 @@ put_numeric (request, gds__dyn_trg_type, (SSHORT) POST_ERASE_TRIGGER);
 STUFF (gds__dyn_sql_object);
 put_numeric (request, gds__dyn_trg_sequence, (SSHORT)1);
 put_numeric (request, gds__dyn_trg_inactive, (SSHORT)0);
-put_cstring (request, gds__dyn_rel_name, cnstrt->cnstrt_referred_rel);
+put_cstring (request, gds__dyn_rel_name, (TEXT*)cnstrt->cnstrt_referred_rel);
 
 /* the trigger blr */
 STUFF (gds__dyn_trg_blr);
@@ -952,8 +954,8 @@ create_matching_blr(request, cnstrt);
 STUFF (blr_erase); STUFF ((SSHORT)2);
 STUFF (blr_eoc);
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 /* end of the blr */
 
 /* no trg_source and no trg_description */
@@ -984,10 +986,10 @@ BOOLEAN	search_for_default, search_for_column;
 TEXT	*search_for_domain;
 FLD	field, domain, fld;
 LLS	for_key_fld;
-STR	for_key_fld_name, domain_name;
+STR	for_key_fld_name;
 USHORT	offset, length;
 REL	relation, rel;
-REQ	req, tmp_req;
+REQ	req;
 ACT	act;
 TEXT	s[512];
 UCHAR	default_val[BLOB_BUFFER_SIZE];
@@ -1002,12 +1004,12 @@ relation = (REL) action->act_object;
 put_string (request, gds__dyn_def_trigger, "", (USHORT)0);
 
 put_numeric (request, gds__dyn_trg_type,
-     on_upd_trg ? (SSHORT)POST_MODIFY_TRIGGER : (SSHORT)POST_ERASE_TRIGGER);
+     (SSHORT)(on_upd_trg ? POST_MODIFY_TRIGGER : POST_ERASE_TRIGGER));
 
 STUFF (gds__dyn_sql_object);
 put_numeric (request, gds__dyn_trg_sequence, (SSHORT)1);
 put_numeric (request, gds__dyn_trg_inactive, (SSHORT)0);
-put_cstring (request, gds__dyn_rel_name, cnstrt->cnstrt_referred_rel);
+put_cstring (request, gds__dyn_rel_name, (TEXT*)cnstrt->cnstrt_referred_rel);
 
 /* the trigger blr */
 
@@ -1079,7 +1081,7 @@ for (; for_key_fld;
     /* Is the column being created in this ddl statement ? */
     for (field = relation->rel_fields; field; field = field->fld_next)
 	{
-	if (strcmp (field->fld_symbol->sym_string, for_key_fld_name) == 0)
+	if (strcmp (field->fld_symbol->sym_string, (const char*)for_key_fld_name) == 0)
 	    break;
 	}
 
@@ -1137,7 +1139,7 @@ for (; for_key_fld;
 		      fld = fld->fld_next )
 		    {
 		    if (strcmp (fld->fld_symbol->sym_string, 
-				for_key_fld_name) != 0)
+				(const char*)for_key_fld_name) != 0)
 			continue;
 		    if (fld->fld_default_value)
 			{
@@ -1221,8 +1223,8 @@ for (; for_key_fld;
 	{
 	/* nothing is found in memory, try to check db system tables */
 	assert (search_for_domain == NULL);
-	if (MET_get_column_default (relation, for_key_fld_name, 
-		default_val, sizeof(default_val)) != NULL)
+	if (MET_get_column_default (relation, (TEXT*)for_key_fld_name, 
+		default_val, sizeof(default_val)) != FALSE)
 	    {
 	    create_default_blr (request, default_val, sizeof(default_val));
 	    }
@@ -1234,7 +1236,7 @@ for (; for_key_fld;
 
     /* the context for the foreign key relation */
     STUFF (blr_field); STUFF ((SSHORT)2);
-    put_cstring (request, 0, for_key_fld_name);
+    put_cstring (request, 0, (TEXT*)for_key_fld_name);
 
     }
 STUFF (blr_end);
@@ -1248,8 +1250,8 @@ if (on_upd_trg)
 
 STUFF (blr_eoc);
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 /* end of the blr */
 
 /* no trg_source and no trg_description */
@@ -1290,12 +1292,12 @@ relation = (REL) action->act_object;
 put_string (request, gds__dyn_def_trigger, "", (USHORT)0);
 
 put_numeric (request, gds__dyn_trg_type,
-     on_upd_trg ? (SSHORT)POST_MODIFY_TRIGGER : (SSHORT)POST_ERASE_TRIGGER);
+     (SSHORT)(on_upd_trg ? POST_MODIFY_TRIGGER : POST_ERASE_TRIGGER));
 
 STUFF (gds__dyn_sql_object);
 put_numeric (request, gds__dyn_trg_sequence, (SSHORT)1);
 put_numeric (request, gds__dyn_trg_inactive, (SSHORT)0);
-put_cstring (request, gds__dyn_rel_name, cnstrt->cnstrt_referred_rel);
+put_cstring (request, gds__dyn_rel_name, (TEXT*)cnstrt->cnstrt_referred_rel);
 
 /* the trigger blr */
 
@@ -1343,7 +1345,7 @@ for (; for_key_fld;
     STUFF (blr_assignment);
     STUFF (blr_null);
     STUFF (blr_field); STUFF ((SSHORT)2);
-    put_cstring (request, 0, for_key_fld_name);
+    put_cstring (request, 0, (TEXT*)for_key_fld_name);
     }
 STUFF (blr_end);
 
@@ -1356,8 +1358,8 @@ if (on_upd_trg)
 
 STUFF (blr_eoc);
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 /* end of the blr */
 
 /* no trg_source and no trg_description */
@@ -1396,7 +1398,7 @@ for (req=requests; req; req=req->req_next)
 	    act->act_type == ACT_alter_table) &&
 	 (rel = (REL) act->act_object) &&
 	 (strcmp (rel->rel_symbol->sym_string,
-		  cnstrt->cnstrt_referred_rel) == 0) )
+		  (const char*)cnstrt->cnstrt_referred_rel) == 0) )
 	{
 	for (cns = rel->rel_constraints; cns; cns = cns->cnstrt_next)
 	    if (cns->cnstrt_type == CNSTRT_PRIMARY_KEY)
@@ -1420,7 +1422,7 @@ if (cnstrt->cnstrt_referred_fields == NULL)
     /* Nothing is in memory. Try to find in system tables */
     cnstrt->cnstrt_referred_fields = MET_get_primary_key (
 						relation->rel_database,
-						cnstrt->cnstrt_referred_rel);
+						(TEXT*)cnstrt->cnstrt_referred_rel);
 
 if (cnstrt->cnstrt_referred_fields == NULL)
     {
@@ -1476,7 +1478,7 @@ for (; cnstrt; cnstrt = cnstrt->cnstrt_next)
     {
     if (cnstrt->cnstrt_flags & CNSTRT_delete)
 	continue;
-    put_cstring (request,gds__dyn_rel_constraint,cnstrt->cnstrt_name);
+    put_cstring (request, gds__dyn_rel_constraint, (TEXT*)cnstrt->cnstrt_name);
 
     if (cnstrt->cnstrt_type ==  CNSTRT_PRIMARY_KEY)
 	STUFF (gds__dyn_def_primary_key);
@@ -1570,15 +1572,15 @@ for (; cnstrt; cnstrt = cnstrt->cnstrt_next)
     for (field = cnstrt->cnstrt_fields; field; field = field->lls_next)
 	{
 	string = (STR) field->lls_object;
-	put_cstring (request, gds__dyn_fld_name, string);
+	put_cstring (request, gds__dyn_fld_name, (TEXT*)string);
 	}
     if (cnstrt->cnstrt_type == CNSTRT_FOREIGN_KEY)
 	{
-	put_cstring (request, gds__dyn_idx_foreign_key,cnstrt->cnstrt_referred_rel);
+	put_cstring (request, gds__dyn_idx_foreign_key, (TEXT*)cnstrt->cnstrt_referred_rel);
 	for (field = cnstrt->cnstrt_referred_fields; field; field = field->lls_next)
 	    {
 	    string = (STR) field->lls_object;
-	    put_cstring (request, gds__dyn_idx_ref_column, string);
+	    put_cstring (request, gds__dyn_idx_ref_column, (TEXT*)string);
 	    }
 	}
     STUFF_END;
@@ -2064,12 +2066,12 @@ put_numeric (request, gds__dyn_trg_inactive, 0);
 STUFF (gds__dyn_sql_object);
 
 if (trigger->trg_source != NULL)
-   put_cstring (request, gds__dyn_trg_source, trigger->trg_source);
+   put_cstring (request, gds__dyn_trg_source, (TEXT*)trigger->trg_source);
 
 if (trigger->trg_message != NULL)
     {
     put_numeric (request, gds__dyn_def_trigger_msg, 1);
-    put_cstring (request, gds__dyn_trg_msg, trigger->trg_message);
+    put_cstring (request, gds__dyn_trg_msg, (TEXT*)trigger->trg_message);
     STUFF (gds__dyn_end);
     }
 
@@ -2121,7 +2123,7 @@ put_numeric (request, gds__dyn_rel_sql_protection, 1);
 
 /* write out blr */
 
-put_blr (request, gds__dyn_view_blr, relation->rel_view_rse, CME_rse);
+put_blr (request, gds__dyn_view_blr, (NOD)relation->rel_view_rse, CME_rse);
 
 /* write out view source   */
 
@@ -2157,7 +2159,7 @@ for (ptr = fields->nod_arg, end = ptr + fields->nod_count; ptr < end;
 	{
 	reference = (REF) value->nod_arg [0];
 	fld = reference->ref_field;
-	if ((value->nod_count >= 2) && (slice_req = value->nod_arg[2]) &&
+	if ((value->nod_count >= 2) && (slice_req = (REQ)value->nod_arg[2]) &&
 	    (slice = slice_req->req_slice))
 	    IBERROR ("Array slices not supported in views"); 
 	context = reference->ref_context;
@@ -2257,8 +2259,8 @@ if (relation->rel_flags & REL_view_check)
 	new_view_ref = MAKE_REFERENCE (NULL_PTR);
 	new_view_ref->ref_context = contexts [1];
 	new_view_ref->ref_field = view_ref->ref_field = (field) ? field : fld;
-	view_field = MSC_unary (nod_field, view_ref);
-	new_view_field = MSC_unary (nod_field, new_view_ref);
+	view_field = MSC_unary (nod_field, (NOD)view_ref);
+	new_view_field = MSC_unary (nod_field, (NOD)new_view_ref);
 
 	anull_node = MSC_unary (nod_missing, view_field);
 	bnull_node = MSC_unary (nod_missing, value);
@@ -2353,12 +2355,12 @@ put_numeric (request, gds__dyn_trg_sequence, 0);
 STUFF (gds__dyn_sql_object);    
 
 if (trigger->trg_source != NULL)
-   put_cstring (request, gds__dyn_trg_source, trigger->trg_source);
+   put_cstring (request, gds__dyn_trg_source, (TEXT*)trigger->trg_source);
 
 if (trigger->trg_message != NULL)
     {
     put_numeric (request, gds__dyn_def_trigger_msg, 1);
-    put_cstring (request, gds__dyn_trg_msg, trigger->trg_message);
+    put_cstring (request, gds__dyn_trg_msg, (TEXT*)trigger->trg_message);
     STUFF (gds__dyn_end);
     }
 
@@ -2565,7 +2567,7 @@ if (p != privileges)
 	else  /*  action = ACT_dyn_revoke  */
 	    put_cstring (request, gds__dyn_revoke, privileges);
 
-	put_cstring (request, priv_block->prv_object_dyn, priv_block->prv_relation);
+	put_cstring (request, priv_block->prv_object_dyn, (TEXT*)priv_block->prv_relation);
 	put_cstring (request, priv_block->prv_user_dyn, priv_block->prv_username);
 
 	if ((priv_block->prv_privileges & PRV_grant_option) &&
@@ -2597,9 +2599,9 @@ for (priv_block = (PRV) action->act_object; priv_block;
 	    else  /*  action = ACT_dyn_revoke  */
 		put_cstring (request, gds__dyn_revoke, privileges);
 
-	    put_cstring (request, priv_block->prv_object_dyn, priv_block->prv_relation);
+	    put_cstring (request, priv_block->prv_object_dyn, (TEXT*)priv_block->prv_relation);
 	    string = (STR) field->lls_object;
-	    put_cstring (request, gds__dyn_fld_name, string);
+	    put_cstring (request, gds__dyn_fld_name, (TEXT*)string);
 	    put_cstring (request, priv_block->prv_user_dyn, priv_block->prv_username);
 
 	    if ((priv_block->prv_privileges & PRV_grant_option) &&
@@ -2618,7 +2620,7 @@ for (priv_block = (PRV) action->act_object; priv_block;
 	else  /*  action = ACT_dyn_revoke  */
 	    put_cstring (request, gds__dyn_revoke, privileges);
 
-	put_cstring (request, priv_block->prv_object_dyn, priv_block->prv_relation);
+	put_cstring (request, priv_block->prv_object_dyn, (TEXT*)priv_block->prv_relation);
 	put_cstring (request, priv_block->prv_user_dyn, priv_block->prv_username);
 
 	if ((priv_block->prv_privileges & PRV_grant_option) &&
@@ -2738,8 +2740,8 @@ else
 (*routine) (node, request, NULL_PTR);
 STUFF (blr_eoc);
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 }
 
 static void put_computed_blr (
@@ -2784,8 +2786,8 @@ STUFF (blr_eoc);
 context->ctx_internal = ctx_int;
 
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 }
 
 static void put_computed_source (
@@ -3157,7 +3159,7 @@ static void put_symbol (
  *
  **************************************/
 
-put_cstring (request, operator, symbol->sym_string);
+put_cstring (request, (USHORT)operator, symbol->sym_string);
 }
 
 static void put_trigger_blr (
@@ -3199,8 +3201,8 @@ put_short_cstring (request, blr_gds_code, "check_constraint");
 STUFF (blr_end);  /* for if  */
 STUFF (blr_eoc);
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 }
 
 static void put_view_trigger_blr (
@@ -3289,8 +3291,8 @@ if (trigger->trg_type == PRE_STORE_TRIGGER)
     } /* end of PRE_STORE_TRIGGER trigger   */
 
 length = request->req_blr - request->req_base - offset - 2;
-request->req_base [offset] = length;
-request->req_base [offset + 1] = length >> 8;
+request->req_base [offset] = (UCHAR)length;
+request->req_base [offset + 1] = (UCHAR)(length >> 8);
 }
 
 static void replace_field_names (
@@ -3388,7 +3390,7 @@ STS	stats;
 if (stats = (STS) action->act_object)
     if (stats->sts_flags & STS_index)
 	{
-	put_cstring (request, gds__dyn_mod_idx, stats->sts_name);
+	put_cstring (request, gds__dyn_mod_idx, (TEXT*)stats->sts_name);
 	STUFF (gds__dyn_idx_statistic);
 	}
 

@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings, buffer ptr bug
  */
 
 #include <stdlib.h>
@@ -344,7 +345,7 @@ switch (node->nod_type)
     case nod_unique:
 /* count2 next line would be deleted */
     case nod_count:
-	CME_rse (node->nod_arg [0], request);
+	CME_rse ((RSE)node->nod_arg [0], request);
 	break;
 
     case nod_max:
@@ -355,12 +356,12 @@ switch (node->nod_type)
 /*
     case nod_count:
 */
-	CME_rse (node->nod_arg [0], request);
+	CME_rse ((RSE)node->nod_arg [0], request);
 	CME_expr (node->nod_arg[1], request);
 	break;
 
     case nod_via:
-	CME_rse (node->nod_arg [0], request);
+	CME_rse ((RSE)node->nod_arg [0], request);
 	CME_expr (node->nod_arg[1], request);
 	CME_expr (node->nod_arg[2], request);
     }
@@ -387,8 +388,6 @@ MEL		element;
 REF		reference;
 FLD		tmp_field;
 UDF		udf;
-SLONG	value, limit_by_10;
-SSHORT	length, scale;
 
 f->fld_dtype = 0;
 f->fld_length = 0;
@@ -1312,7 +1311,7 @@ static void cmp_cast (
  **************************************/
 
 STUFF (blr_cast);
-CMP_external_field (request, node->nod_arg [1]);
+CMP_external_field (request, (FLD)node->nod_arg [1]);
 CME_expr (node->nod_arg [0], request);
 }
 
@@ -1400,7 +1399,7 @@ static NOD cmp_literal (
  **************************************/
 REF	reference;
 UCHAR	*p, *string, buffer [MAXSYMLEN];
-SSHORT	length, scale;
+SSHORT	length;
 DSC	from, to;
 BOOLEAN negate = FALSE;
 
@@ -1447,7 +1446,7 @@ if (*string != '"' && *string != '\'')
 	UINT64 	uint64_val;
 	SINT64 	sint64_val;
 	long	long_val;
-	int	i, scale;
+	int	    scale;
 
 	s_ptr = string;
 
@@ -1476,21 +1475,21 @@ if (*string != '"' && *string != '\'')
 		((uint64_val == (MAX_SLONG+(UINT64)1)) && (negate == TRUE)))
 	    {
 	    if (negate == TRUE)
-		long_val = -(uint64_val);
+		long_val = -((long)uint64_val);
 	    else
-	        long_val = uint64_val;
+	        long_val = (long)uint64_val;
 	    STUFF (blr_long);
 	    STUFF (scale);		/* scale factor */
 	    STUFF_WORD (long_val);
 	    STUFF_WORD (long_val >> 16);
 	    }
 	else if ((uint64_val <= MAX_SINT64) || 
-		((uint64_val == (MAX_SINT64+1)) && (negate == TRUE)))
+		((uint64_val == ((UINT64)MAX_SINT64+1)) && (negate == TRUE)))
 	    {
 	    if (negate == TRUE)
-		sint64_val = -(uint64_val);
+		sint64_val = -((SINT64)uint64_val);
 	    else
-		sint64_val = uint64_val;
+		sint64_val = (SINT64)uint64_val;
 	    STUFF (blr_int64);
 	    STUFF (scale);		/* scale factor */
 	    STUFF_WORD (sint64_val);
@@ -1523,7 +1522,7 @@ else
     from.dsc_flags = 0;
     from.dsc_dtype = dtype_text;
     from.dsc_length = length;
-    from.dsc_address = &buffer;
+    from.dsc_address = buffer;
     to.dsc_sub_type = 0;
     to.dsc_flags = 0;
     if (reference->ref_flags & REF_sql_date)
@@ -1532,7 +1531,7 @@ else
 	STUFF (blr_sql_date);
 	to.dsc_dtype = dtype_sql_date;
         to.dsc_length = sizeof(ISC_DATE);
-	to.dsc_address = &dt;
+	to.dsc_address = (UCHAR*)&dt;
 	MOVG_move (&from, &to);
         STUFF_WORD (dt);
         STUFF_WORD (dt>>16);
@@ -1544,7 +1543,7 @@ else
 	STUFF (blr_timestamp);
 	to.dsc_dtype = dtype_timestamp;
         to.dsc_length = sizeof(ISC_TIMESTAMP);
-	to.dsc_address = &ts;
+	to.dsc_address = (UCHAR*)&ts;
 	MOVG_move (&from, &to);
         STUFF_WORD (ts.timestamp_date);
         STUFF_WORD (ts.timestamp_date>>16);
@@ -1558,7 +1557,7 @@ else
 	STUFF (blr_sql_time);
 	to.dsc_dtype = dtype_sql_time;
         to.dsc_length = sizeof(ISC_DATE);
-	to.dsc_address = &itim;
+	to.dsc_address = (UCHAR*)&itim;
 	MOVG_move (&from, &to);
         STUFF_WORD (itim);
         STUFF_WORD (itim>>16);
@@ -1891,7 +1890,9 @@ static USHORT get_string_len (
  **************************************/
 DSC	tmp_dsc;
 
-tmp_dsc.dsc_dtype = field->fld_dtype;
+assert(field->fld_dtype <= MAX_UCHAR);
+
+tmp_dsc.dsc_dtype = (UCHAR)field->fld_dtype;
 tmp_dsc.dsc_length = field->fld_length;
 tmp_dsc.dsc_scale = 0;
 tmp_dsc.dsc_sub_type = 0;

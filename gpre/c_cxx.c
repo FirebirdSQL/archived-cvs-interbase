@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include "../jrd/ib_stdio.h"
@@ -288,12 +289,12 @@ switch (action->act_type)
     case ACT_at_end	: gen_at_end (action, column); 		return;
     case ACT_b_declare	: gen_database (action, column); gen_routine (action, column);	return;
     case ACT_basedon	: gen_based (action, column);		return;
-    case ACT_blob_cancel: gen_blob_close (action, column);	return;
-    case ACT_blob_close	: gen_blob_close (action, column);	break;
-    case ACT_blob_create: gen_blob_open (action, column); 	break;
-    case ACT_blob_for	: gen_blob_for (action, column); 	return;
+    case ACT_blob_cancel: gen_blob_close (action, (USHORT)column);	return;
+    case ACT_blob_close	: gen_blob_close (action, (USHORT)column);	break;
+    case ACT_blob_create: gen_blob_open (action, (USHORT)column); 	break;
+    case ACT_blob_for	: gen_blob_for (action, (USHORT)column); 	return;
     case ACT_blob_handle: gen_segment (action, column); 	return;
-    case ACT_blob_open	: gen_blob_open (action, column); 	break;
+    case ACT_blob_open	: gen_blob_open (action, (USHORT)column); 	break;
     case ACT_clear_handles: gen_clear_handles (action, column);	break;
     case ACT_close	: gen_s_end (action, column);		break;
     case ACT_commit	: gen_trans (action, column);		break;
@@ -330,7 +331,7 @@ switch (action->act_type)
     case ACT_dyn_open		: gen_dyn_open (action, column);	break;
     case ACT_dyn_prepare	: gen_dyn_prepare (action, column);	break;
     case ACT_dyn_revoke 	: gen_ddl (action, column);     	break;
-    case ACT_endblob	: gen_blob_end (action, column);	return;
+    case ACT_endblob	: gen_blob_end (action, (USHORT)column);	return;
     case ACT_enderror	: {column += INDENT; END; column -= INDENT;}	break;
     case ACT_endfor	: gen_endfor (action, column); 		break;
     case ACT_endmodify	: gen_emodify (action, column); 	break;
@@ -366,7 +367,7 @@ switch (action->act_type)
     case ACT_entree_length:
     case ACT_entree_value:	gen_menu_entree_att (action, column); return;
 
-    case ACT_on_error	: gen_on_error (action, column);	return;
+    case ACT_on_error	: gen_on_error (action, (USHORT)column);	return;
     case ACT_open	: gen_s_start (action, column); 	break;
     case ACT_prepare	: gen_trans (action, column); 		break;
     case ACT_procedure  : gen_procedure (action, column);	break;
@@ -1287,11 +1288,11 @@ args.pat_condition = (sw_auto && (action->act_error || (action->act_flags & ACT_
 if (sw_auto)
     t_start_auto (action, request, status_vector (action), column, TRUE);
 
-PATTERN_expand (column, pattern2, &args);
+PATTERN_expand ((USHORT)column, pattern2, &args);
 
 args.pat_condition = !(request->req_flags & REQ_exp_hand);
 args.pat_value1 = request->req_length;
-PATTERN_expand (column + INDENT, pattern1, &args);
+PATTERN_expand ((USHORT)(column + INDENT), pattern1, &args);
 
 /* If blobs are present, zero out all of the blob handles.  After this
    point, the handles are the user's responsibility */
@@ -1360,7 +1361,7 @@ args.pat_condition = (request->req_length || (request->req_flags & REQ_extend_dp
 args.pat_string1 = s1;
 args.pat_string2 = s2;
 
-PATTERN_expand (column, pattern1, &args);
+PATTERN_expand ((USHORT)column, pattern1, &args);
 
 /* if the dpb was extended, free it here */
 
@@ -1429,7 +1430,7 @@ args.pat_request = request;
 args.pat_vector1 = status_vector (action);
 args.pat_value1 = 1;
 
-PATTERN_expand (column, pattern1, &args);
+PATTERN_expand ((USHORT)column, pattern1, &args);
 column += INDENT;
 BEGIN;
 
@@ -1491,14 +1492,14 @@ args.pat_string2 = NULL_STRING;
 args.pat_string3 = request_trans (action, request);
 args.pat_value2 = -1;
 
-PATTERN_expand (column, (action->act_type == ACT_open) ? pattern1 : pattern2, &args);
-PATTERN_expand (column + INDENT, pattern3, &args);
-PATTERN_expand (column, pattern4, &args);
+PATTERN_expand ((USHORT)column, (action->act_type == ACT_open) ? pattern1 : pattern2, &args);
+PATTERN_expand ((USHORT)(column + INDENT), pattern3, &args);
+PATTERN_expand ((USHORT)column, pattern4, &args);
 column += INDENT;
 BEGIN;
-PATTERN_expand (column, pattern5, &args);
+PATTERN_expand ((USHORT)column, pattern5, &args);
 column += INDENT;
-PATTERN_expand (column, pattern6, &args);
+PATTERN_expand ((USHORT)column, pattern6, &args);
 BEGIN;
 
 return column;
@@ -1650,7 +1651,7 @@ for (db = isc_databases; db; db = db->dbb_next)
 max_count = 0;
 for (stack_ptr = events; stack_ptr; stack_ptr = stack_ptr->lls_next)
     {
-    count = gen_event_block (stack_ptr->lls_object);
+    count = gen_event_block((ACT)(stack_ptr->lls_object));
     max_count = MAX (count, max_count);
     }
 
@@ -2367,7 +2368,7 @@ args.pat_value2 = (int) event_list->nod_count;
 
 /* generate call to dynamically generate event blocks */
 
-PATTERN_expand (column, pattern1, &args);
+PATTERN_expand ((USHORT)column, pattern1, &args);
 
 for (ptr = event_list->nod_arg, end = ptr + event_list->nod_count; ptr < end; ptr++)
     {
@@ -2386,11 +2387,11 @@ printb (");");
 
 /* generate actual call to event_wait */
 
-PATTERN_expand (column, pattern2, &args);
+PATTERN_expand ((USHORT)column, pattern2, &args);
 
 /* get change in event counts, copying event parameter block for reuse */
 
-PATTERN_expand (column, pattern3, &args);
+PATTERN_expand ((USHORT)column, pattern3, &args);
       
 if (action->act_error)
     END;
@@ -2458,8 +2459,8 @@ args.pat_value1 = (int) ident;
 
 /* generate calls to wait on the event and to fill out the events array */
 
-PATTERN_expand (column, pattern1, &args);
-PATTERN_expand (column, pattern2, &args);
+PATTERN_expand ((USHORT)column, pattern1, &args);
+PATTERN_expand ((USHORT)column, pattern2, &args);
 
 if (action->act_error)
     END;
@@ -2484,11 +2485,16 @@ static void gen_fetch (
  **************************************/
 REQ	request;
 NOD	var_list;
-POR 	port;
-REF	reference;
-VAL	value;
 int	i;
-SCHAR	s[20], *direction, *offset;
+SCHAR	s[20];
+
+#ifdef SCROLLABLE_CURSORS
+POR 	port;
+SCHAR	*direction;
+SCHAR	*offset;
+VAL	value;
+REF	reference;
+#endif
 
 request = action->act_request;
 
@@ -2556,7 +2562,7 @@ if (var_list = (NOD) action->act_object)
    for (i = 0; i < var_list->nod_count; i++)
 	{
 	align (column);
-	asgn_to (action, var_list->nod_arg [i], column);
+	asgn_to(action, (REF)(var_list->nod_arg[i]), column);
 	}
 END;
 printa (column - INDENT, "else");
@@ -2604,7 +2610,7 @@ if (sw_auto || ((action->act_flags & ACT_sql) &&
 		(action->act_type != ACT_disconnect)))
     {
     args.pat_string1 = (action->act_type != ACT_rfinish) ? "commit" : "rollback";
-    PATTERN_expand (column, pattern1, &args);
+    PATTERN_expand ((USHORT)column, pattern1, &args);
     }
 
 db = NULL;
@@ -2977,7 +2983,7 @@ else
 
 args.pat_string6 = DCL_LONG;
 
-PATTERN_expand (column, (get) ? pattern1 : pattern2, &args);
+PATTERN_expand ((USHORT)column, (get) ? pattern1 : pattern2, &args);
 
 SET_SQLCODE;
 if (action->act_flags & ACT_sql)
@@ -3017,7 +3023,7 @@ args.pat_condition = !(action->act_error || (action->act_flags & ACT_sql));
 args.pat_ident1 = blob->blb_len_ident;
 args.pat_ident2 = blob->blb_buff_ident;
 args.pat_string1 = status_name;
-PATTERN_expand (column, pattern1, &args);
+PATTERN_expand ((USHORT)column, pattern1, &args);
 
 if (action->act_flags & ACT_sql)
     {
@@ -3625,7 +3631,7 @@ asgn_from (action, request->req_values, column);
 
 /* Execute the procedure */
 
-PATTERN_expand (column, pattern, &args);
+PATTERN_expand ((USHORT)column, pattern, &args);
 
 SET_SQLCODE;
 
@@ -3684,7 +3690,7 @@ args.pat_condition = !(action->act_error || (action->act_flags & ACT_sql));
 args.pat_ident1 = blob->blb_len_ident;
 args.pat_ident2 = blob->blb_buff_ident;
 args.pat_string1 = status_name;
-PATTERN_expand (column, pattern1, &args);
+PATTERN_expand ((USHORT)column, pattern1, &args);
 
 SET_SQLCODE;
 
@@ -3762,7 +3768,7 @@ for (ready = (RDY) action->act_object; ready; ready = ready->rdy_next)
     if ((action->act_error || (action->act_flags & ACT_sql)) &&
 	ready != (RDY) action->act_object)
 	printa (column, "if (!%s [1]) {", status_name);
-    make_ready (db, filename, vector, column, ready->rdy_request);
+    make_ready (db, filename, vector, (USHORT)column, ready->rdy_request);
     if ((action->act_error || (action->act_flags & ACT_sql)) &&
 	ready != (RDY) action->act_object)
 	END;
@@ -3791,7 +3797,7 @@ TEXT	*pattern = "isc_receive (%V1, &%RH, (short) %PN, (short) %PL, &%PI, (short)
 args.pat_request = action->act_request;
 args.pat_vector1 = status_vector (action);
 args.pat_port = port;
-PATTERN_expand (column, pattern, &args);
+PATTERN_expand ((USHORT)column, pattern, &args);
 
 SET_SQLCODE;
 }
@@ -4255,7 +4261,7 @@ if (var_list = (NOD) action->act_object)
     for (i = 0; i < var_list->nod_count; i++)
 	{
 	align (column);
-	asgn_to (action, var_list->nod_arg [i], column);
+	asgn_to (action, (REF)var_list->nod_arg [i], column);
 	}
 if (request->req_database->dbb_flags & DBB_v3)
     {
@@ -4293,7 +4299,7 @@ TEXT	*pattern = "isc_send (%V1, &%RH, (short) %PN, (short) %PL, &%PI, (short) %R
 args.pat_request = action->act_request;
 args.pat_vector1 = status_vector (action);
 args.pat_port = port;
-PATTERN_expand (column, pattern, &args);
+PATTERN_expand ((USHORT)column, pattern, &args);
 
 SET_SQLCODE;
 }
@@ -4363,7 +4369,7 @@ if (!(reference = var_reference))
     reference = (REF) slice->slc_array->nod_arg [0];
 args.pat_string5 = reference->ref_value;			/* array name */
 
-PATTERN_expand (column, (action->act_type == ACT_get_slice) ? pattern1 : pattern2, &args);
+PATTERN_expand ((USHORT)column, (action->act_type == ACT_get_slice) ? pattern1 : pattern2, &args);
 
 SET_SQLCODE;
 if (action->act_flags & ACT_sql)
@@ -4405,7 +4411,7 @@ args.pat_request = action->act_request;
 args.pat_vector1 = status_vector (action);
 args.pat_port = port;
 args.pat_string1 = request_trans (action, action->act_request);
-PATTERN_expand (column, (port) ? pattern1 : pattern2, &args);
+PATTERN_expand ((USHORT)column, (port) ? pattern1 : pattern2, &args);
 }
 
 static void gen_store (
@@ -4494,7 +4500,7 @@ if (sw_auto)
 	    !(db->dbb_flags & DBB_sqlca))
 	    {
 	    printa (column, "if (!%s)", db->dbb_name->sym_string);
-	    make_ready (db, filename, vector, column + INDENT, 0);
+	    make_ready (db, filename, vector, (USHORT)(column + INDENT), 0);
 	    }
 	}
 
@@ -5255,7 +5261,7 @@ if (sw_auto)
 	    if (stat && buffer [0])
 		ib_fprintf (out_file, " && !%s [1]", vector);
 	    ib_fprintf (out_file, ")");
-	    make_ready (db, filename, vector, column + INDENT, 0);
+	    make_ready (db, filename, vector, (USHORT)(column + INDENT), 0);
 	    if (buffer [0])
 		strcat (buffer, " && ");
 	    strcat (buffer, db->dbb_name->sym_string);

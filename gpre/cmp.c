@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include <stdlib.h>
@@ -71,10 +72,10 @@ static NOD	lit0, lit1;
 static FLD	eof_field, count_field, slack_byte_field;
 static USHORT	next_ident;
 
-#define STUFF(blr)	*request->req_blr++ = (blr)
-#define STUFF_WORD(blr) {STUFF (blr); STUFF (blr >> 8);}
-#define STUFF_LONG(blr) {STUFF (blr); STUFF (blr >> 8); STUFF (blr >>16); STUFF (blr >> 24);}
-#define STUFF_INT(blr)	STUFF (blr); STUFF (blr >> 8); STUFF (blr >> 16); STUFF (blr >> 24)
+#define STUFF(blr)	*request->req_blr++ = (UCHAR)(blr)
+#define STUFF_WORD(blr) {STUFF (blr); STUFF ((blr) >> 8);}
+#define STUFF_LONG(blr) {STUFF (blr); STUFF ((blr) >> 8); STUFF ((blr) >>16); STUFF ((blr) >> 24);}
+#define STUFF_INT(blr)	STUFF (blr); STUFF ((blr) >> 8); STUFF ((blr) >> 16); STUFF ((blr) >> 24)
 
 #define MAX_TPB		4000
 #define BLR_LENGTH	request->req_length = request->req_blr - request->req_base; request->req_blr = request->req_base
@@ -135,7 +136,9 @@ REF	reference;
 ACT	action;
 BLB	blob;
 UPD	update;
+#ifdef SCROLLABLE_CURSORS
 FLD	direction_field, offset_field;
+#endif
 
 /* if there isn't a request handle specified, make one! */
 
@@ -172,11 +175,11 @@ if (!eof_field)
     slack_byte_field = MET_make_field (slack_name, dtype_text, 1, FALSE);
     reference = (REF) ALLOC (REF_LEN);
     reference->ref_value = "0";
-    lit0 = MSC_unary (nod_literal, reference);
+    lit0 = MSC_unary (nod_literal, (NOD)reference);
     
     reference = (REF) ALLOC (REF_LEN);
     reference->ref_value = "1";
-    lit1 = MSC_unary (nod_literal, reference);
+    lit1 = MSC_unary (nod_literal, (NOD)reference);
     }
 
 /* Handle different request types differently */
@@ -341,7 +344,7 @@ CMP_display_code (
  **************************************/
 int	code;
 
-if (MSC_member (reference, display->fint_override_fields))
+if (MSC_member ((NOD)reference, display->fint_override_fields))
     return -1;
 
 code = 0;
@@ -351,7 +354,7 @@ code = 0;
 if (display->fint_flags & FINT_display_all)
     code |= PYXIS__OPT_DISPLAY;
 else
-    if (MSC_member (reference, display->fint_display_fields))
+    if (MSC_member ((NOD)reference, display->fint_display_fields))
 	code |= PYXIS__OPT_DISPLAY;
 
 /* Handle update attribute */
@@ -359,7 +362,7 @@ else
 if (display->fint_flags & FINT_update_all)
     code |= PYXIS__OPT_UPDATE;
 else
-    if (MSC_member (reference, display->fint_update_fields))
+    if (MSC_member ((NOD)reference, display->fint_update_fields))
 	code |= PYXIS__OPT_UPDATE;
 
 /* Handle wakeup attribute */
@@ -367,12 +370,12 @@ else
 if (display->fint_flags & FINT_wakeup_all)
     code |= PYXIS__OPT_WAKEUP;
 else
-    if (MSC_member (reference, display->fint_wakeup_fields))
+    if (MSC_member ((NOD)reference, display->fint_wakeup_fields))
 	code |= PYXIS__OPT_WAKEUP;
 
 /* Handle cursor position attribute */
 
-if (MSC_member (reference, display->fint_position_fields))
+if (MSC_member ((NOD)reference, display->fint_position_fields))
      code |= PYXIS__OPT_POSITION;
 
 return code;
@@ -623,7 +626,7 @@ STUFF (blr_if);
 STUFF (blr_any);
 CME_rse (request->req_rse, request);
 
-value = MSC_unary (nod_value, port->por_references);
+value = MSC_unary (nod_value, (NOD)port->por_references);
 
 /* Make a send to signal end of file */
 
@@ -701,7 +704,7 @@ if (blob->blb_const_to_type)
     {
     *p++ = gds__bpb_target_type;
     *p++ = 2;
-    *p++ = blob->blb_const_to_type;
+    *p++ = (UCHAR)blob->blb_const_to_type;
     *p++ = blob->blb_const_to_type >> 8;
     }
 
@@ -709,7 +712,7 @@ if (blob->blb_const_from_type)
     {
     *p++ = gds__bpb_source_type;
     *p++ = 2;
-    *p++ = blob->blb_const_from_type;
+    *p++ = (UCHAR)blob->blb_const_from_type;
     *p++ = blob->blb_const_from_type >> 8;
     }
 
@@ -717,7 +720,7 @@ if (blob->blb_type)
     {
     *p++ = gds__bpb_type;
     *p++ = 1;
-    *p++ = blob->blb_type;
+    *p++ = (UCHAR)blob->blb_type;
     }
 
 if (blob->blb_from_charset)
@@ -726,7 +729,7 @@ if (blob->blb_from_charset)
 
     *p++ = gds__bpb_source_interp;
     *p++ = 2;
-    *p++ = blob->blb_from_charset;
+    *p++ = (UCHAR)blob->blb_from_charset;
     *p++ = blob->blb_from_charset >> 8;
     }
 
@@ -737,7 +740,7 @@ if (blob->blb_to_charset)
 
     *p++ = gds__bpb_target_interp;
     *p++ = 2;
-    *p++ = blob->blb_to_charset;
+    *p++ = (UCHAR)blob->blb_to_charset;
     *p++ = blob->blb_to_charset >> 8;
     }
 
@@ -1503,7 +1506,7 @@ outputs = NULL;
 if (reference = request->req_references)
     for (list = &outputs; reference; reference = reference->ref_next)
 	{
-	PUSH (reference, list);
+	PUSH ((NOD)reference, list);
 	list = &(*list)->lls_next;
 	}
 

@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include <stdlib.h>
@@ -38,12 +39,22 @@
 #include "../gpre/msc_proto.h"
 #include "../gpre/par_proto.h"
 #include "../gpre/sqe_proto.h"
+#include "../gpre/sql_proto.h"
 
 #define ZERO_BASED	0
 #define ONE_BASED	1
 
+#ifdef MAX_USHORT
+#undef MAX_USHORT
+#endif
 #define MAX_USHORT	((USHORT)(0xFFFF))
+#ifdef MAX_SSHORT
+#undef MAX_SSHORT
+#endif
 #define MAX_SSHORT	((SSHORT)(0x7FFF))
+#ifdef MIN_SSHORT
+#undef MIN_SSHORT
+#endif
 #define MIN_SSHORT	((SSHORT)(0x8000))
 
 static BOOLEAN	check_relation (void);
@@ -248,7 +259,7 @@ if (!(symbol = initial_symbol))
     symbol = PAR_symbol(SYM_context);
     if (!MATCH (KW_IN))
 	{
-	FREE (symbol);
+	FREE ((SCHAR*)symbol);
 	SYNTAX_ERROR ("IN");
 	}
     }
@@ -459,7 +470,7 @@ switch (sw_sql_dialect)
     }
 
 reference = (REF) ALLOC (REF_LEN);
-node = MSC_unary (nod_literal, reference);
+node = MSC_unary (nod_literal, (NOD)reference);
 if (QUOTED(token.tok_type))
     {
     reference->ref_value = string = (TEXT*) ALLOC (token.tok_length+3);
@@ -856,6 +867,7 @@ if (MATCH (KW_RIGHT_PAREN))
     return TRUE;
 
 SYNTAX_ERROR ("right parenthesis");
+return FALSE;	/* silence compiler warning */
 }
 
 REL EXP_relation (void)
@@ -1051,7 +1063,7 @@ while (TRUE)
 	    if (!MATCH (KW_COMMA))
 		break;
 	    }
-	rec_expr->rse_sort = sort = MAKE_NODE (nod_sort, count * 2);
+	rec_expr->rse_sort = sort = MAKE_NODE (nod_sort, (SSHORT)(count * 2));
 	sort->nod_count = count;
 	ptr = sort->nod_arg + count * 2;
 	while (--count >= 0)
@@ -1125,7 +1137,7 @@ if (rse->rse_aggregate)
 
 if (node = rse->rse_union)
     for (i = 0; i < node->nod_count; i++)
-	EXP_rse_cleanup (node->nod_arg [i]);
+	EXP_rse_cleanup ((RSE)node->nod_arg [i]);
 }
 
 NOD EXP_subscript (
@@ -1146,7 +1158,7 @@ REF	reference;
 TEXT	*string;
 
 reference = (REF) ALLOC (REF_LEN);
-node = MSC_unary (nod_value, reference);
+node = MSC_unary (nod_value, (NOD)reference);
 
 /* Special case literals */
 
@@ -1227,7 +1239,7 @@ reference = (REF) ALLOC (REF_LEN);
 reference->ref_field = field;
 reference->ref_context = context;
 
-return MSC_unary (nod_field, reference);
+return MSC_unary (nod_field, (NOD)reference);
 }
 
 static NOD make_and (
@@ -1330,7 +1342,7 @@ switch (array_base)
 reference = (REF) ALLOC (REF_LEN);
 reference->ref_value = (TEXT*) ALLOC (strlen (string));
 strcpy (reference->ref_value, string);
-adjustment_node = MSC_unary (nod_literal, reference);
+adjustment_node = MSC_unary (nod_literal, (NOD)reference);
 
 if (negate)
     negate_node = MSC_unary (nod_negate, adjustment_node);
@@ -1395,7 +1407,7 @@ else if (MATCH (KW_L_BRCKET))
 else if (!subscript_flag)
     SYNTAX_ERROR ("Missing parenthesis or bracket for array reference.");
 
-array_node = MSC_node (nod_array, field->fld_array_info->ary_dimension_count + 1);
+array_node = MSC_node (nod_array, (SSHORT)(field->fld_array_info->ary_dimension_count + 1));
 
 if (sql_flag && ((paren && MATCH (KW_RIGHT_PAREN)) || 
                  (bracket && MATCH (KW_R_BRCKET))))
@@ -1647,7 +1659,7 @@ if (token.tok_type == tok_number || SINGLE_QUOTED(token.tok_type) || (DOUBLE_QUO
     }
 
 reference = (REF) ALLOC (REF_LEN);
-node = MSC_unary (nod_value, reference);
+node = MSC_unary (nod_value, (NOD)reference);
 
 /* Handle general native value references.  Since these values will need
    to be exported to the database system, make sure there is a reference
@@ -1817,7 +1829,7 @@ if (MATCH (KW_ANY))
     expr = MAKE_NODE (nod_any, 1);
     expr->nod_count = 0;
     expr->nod_arg [0] = (NOD) EXP_rse (request, NULL_PTR);
-    EXP_rse_cleanup (expr->nod_arg [0]);
+    EXP_rse_cleanup ((RSE)expr->nod_arg [0]);
     return expr;
     }
 
@@ -1826,7 +1838,7 @@ if (MATCH (KW_UNIQUE))
     expr = MAKE_NODE (nod_unique, 1);
     expr->nod_count = 0;
     expr->nod_arg [0] = (NOD) EXP_rse (request, NULL_PTR);
-    EXP_rse_cleanup (expr->nod_arg [0]);
+    EXP_rse_cleanup ((RSE)expr->nod_arg [0]);
     return expr;
     }
 

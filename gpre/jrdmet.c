@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
+ * There however is still a bunch of constness errors in this file
  */
 
 #include "../jrd/gds.h"
@@ -54,8 +56,9 @@ REL		relation;
 SYM		symbol;
 FLD		field;
 TYP		type;
-RTYP		*rtype;
-UCHAR		*relfld, *fld;
+CONST RTYP	*rtype;
+CONST UCHAR	*relfld;
+CONST UCHAR	*fld;
 int		n;
 struct gfld	*gfield;
 

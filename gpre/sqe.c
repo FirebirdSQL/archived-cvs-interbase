@@ -32,6 +32,7 @@
  * in WHERE clauses for sql dialect 2 and 3.
  * (cause a core dump in a test case from C.R. Zamana)
  *
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 #include <stdio.h>
 #include <string.h>
@@ -481,7 +482,7 @@ if (!request || !request->req_contexts ||
     }
 
 reference = (REF) ALLOC (REF_LEN);
-node = MSC_unary (nod_field, reference);
+node = MSC_unary (nod_field, (NOD)reference);
 
 if (symbol = token.tok_symbol)
     {
@@ -682,6 +683,7 @@ for (context = request->req_contexts; context; context = context->ctx_next)
     }
 
 SYNTAX_ERROR ("<column name>");
+return NULL; /* silence compiler */
 }
 
 NOD SQE_list (
@@ -716,7 +718,7 @@ do
     }
 while (MATCH (KW_COMMA));
 
-list = MAKE_NODE (nod_list, count);
+list = MAKE_NODE (nod_list, (SSHORT)count);
 ptr = &list->nod_arg [count];
 
 while (stack)
@@ -1115,7 +1117,7 @@ RSE SQE_select (
  *
  **************************************/
 RSE	select, rse1, rse2;
-NOD	node, *ptr;
+NOD	node;
 LLS	context_stack;
 CTX	context;
 MAP	map, old_map;
@@ -1145,7 +1147,7 @@ while (MATCH (KW_UNION))
     if (!MATCH (KW_SELECT))
 	SYNTAX_ERROR ("SELECT");
 
-    PUSH (request->req_contexts, &context_stack);
+    PUSH ((NOD)request->req_contexts, &context_stack);
     request->req_contexts = NULL;
     request->req_map = NULL;
     rse2 = par_select (request, rse1);
@@ -1156,8 +1158,8 @@ while (MATCH (KW_UNION))
     select = (RSE) ALLOC (RSE_LEN (1));
     select->rse_context [0] = context = MAKE_CONTEXT (request);
     select->rse_union = node = MAKE_NODE (nod_union, 2);
-    node->nod_arg [0] = rse1;
-    node->nod_arg [1] = rse2;
+    node->nod_arg [0] = (NOD)rse1;
+    node->nod_arg [1] = (NOD)rse2;
 
     rse1->rse_map = map = (MAP) ALLOC (sizeof (struct map));
     map->map_context = context;
@@ -1718,7 +1720,7 @@ assert_IS_NOD (fields_2);
 count = fields_1->nod_count + fields_2->nod_count;
 if (replace)
     count--;
-fields = MAKE_NODE (nod_list, count);
+fields = MAKE_NODE (nod_list, (SSHORT)count);
 
 count = n;
 if (!replace)
@@ -2310,7 +2312,6 @@ static NOD par_not (
  **************************************/
 RSE		rse;
 NOD		node, expr, field;
-CTX		original;
 enum nod_t	type;
 struct scope	saved_scope;
 
@@ -2350,7 +2351,7 @@ if (type == nod_any || type == nod_unique)
 	expr = MSC_unary (nod_missing, field);
 	rse->rse_boolean = merge (negate (expr), rse->rse_boolean);
 	}
-    EXP_rse_cleanup (node->nod_arg [0]);
+    EXP_rse_cleanup ((RSE)node->nod_arg [0]);
     pop_scope (request, &saved_scope);
     EXP_match_paren();
     return node;
@@ -2437,7 +2438,7 @@ while (TRUE)
 	break;
     }
 
-select->rse_sort = sort = MAKE_NODE (nod_sort, count * 2);
+select->rse_sort = sort = MAKE_NODE (nod_sort, (SSHORT)(count * 2));
 sort->nod_count = count;
 ptr = sort->nod_arg + count * 2;
 
@@ -2536,14 +2537,14 @@ for (count = 0; token.tok_type == tok_ident; count++)
 	KEYWORD (KW_INDEX))
 	break;
 
-    PUSH (upcase_string (token.tok_string), &stack);
+    PUSH ((NOD)upcase_string (token.tok_string), &stack);
     ADVANCE_TOKEN;
     }
 
 if (!count)
     SYNTAX_ERROR ("<table name> or <alias>");
 
-alias_list = MAKE_NODE (nod_list, count);
+alias_list = MAKE_NODE (nod_list, (SSHORT)count);
 for (ptr = &alias_list->nod_arg [count]; stack;) 
     *--ptr = (NOD) POP (&stack);
 
@@ -2580,7 +2581,7 @@ else if (KEYWORD (KW_INDEX))
     stack = NULL;
     for (count = 0; token.tok_type == tok_ident;)
 	{
-	PUSH (upcase_string (token.tok_string), &stack);
+	PUSH ((NOD)upcase_string (token.tok_string), &stack);
 	ADVANCE_TOKEN;
 
 	count++;
@@ -2591,7 +2592,7 @@ else if (KEYWORD (KW_INDEX))
     if (!count)
 	SYNTAX_ERROR ("<table name> or <alias>");
 
-    access_type->nod_arg [0] = index_list = MAKE_NODE (nod_list, count);
+    access_type->nod_arg [0] = index_list = MAKE_NODE (nod_list, (SSHORT)count);
     for (ptr = &index_list->nod_arg [count]; stack;) 
 	*--ptr = (NOD) POP (&stack);
 
@@ -2785,7 +2786,7 @@ if ((int) token.tok_keyword == (int) KW_COLON)
 	return NULL;
 	}
     reference = SQE_variable (request, FALSE);
-    node = MSC_unary (nod_value, reference);
+    node = MSC_unary (nod_value, (NOD)reference);
     reference->ref_next = request->req_values;
     request->req_values = reference;
     return node;
@@ -2983,7 +2984,7 @@ count = 0;
 do
     if (context = par_joined_relation (request, NULL))
 	{
-	PUSH (context, &stack);
+	PUSH ((NOD)context, &stack);
 	count++;
 	}
     else
@@ -3217,7 +3218,7 @@ SCHAR    *string;
 assert_IS_REQ (request);
 
 reference = (REF) ALLOC (REF_LEN);
-node = MSC_unary (nod_value, reference);
+node = MSC_unary (nod_value, (NOD)reference);
 
 /* Special case literals */
 
@@ -3280,7 +3281,6 @@ static NOD par_udf (
  **************************************/
 NOD	node;
 NOD	*input;
-SYM	symbol;
 UDF	udf, tmp_udf;
 USHORT	local_count;
 FLD	field;
@@ -3369,7 +3369,7 @@ if (MATCH (KW_GEN_ID))
     node->nod_count = 1;
     EXP_left_paren (NULL_PTR);
     SQL_resolve_identifier ("<Generator Name>", gen_name);
-    node->nod_arg [1] = gen_name;
+    node->nod_arg [1] = (NOD)gen_name;
     ADVANCE_TOKEN;
     if (!MATCH (KW_COMMA))
 	SYNTAX_ERROR ("<comma>");
@@ -3597,7 +3597,7 @@ if (node->nod_type == nod_map_ref)
 
 for (element = map->map_elements; element; element = element->mel_next)
     if (compare_expr (node, element->mel_expr))
-	return MSC_unary (nod_map_ref, element);
+	return MSC_unary (nod_map_ref, (NOD)element);
 
 /* We need to make up a new map reference */
 
@@ -3610,7 +3610,7 @@ element->mel_context = map->map_context;
 
 /* Make up a reference to the map element */
 
-return MSC_unary (nod_map_ref, element);
+return MSC_unary (nod_map_ref, (NOD)element);
 }
 
 static NOD post_select_list (

@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include <stdlib.h>
@@ -597,7 +598,7 @@ switch (keyword = token.tok_keyword)
 	    {
 	    SQL_resolve_identifier ("<domain name>", s);
 	    field->fld_global = symbol =
-			MSC_symbol (SYM_field, s, strlen (s), field);
+			MSC_symbol (SYM_field, s, (USHORT)strlen (s), (CTX)field);
 	    if (!MET_domain_lookup (request, field, s))
 		PAR_error ("Specified DOMAIN or source column not found");
 	    ADVANCE_TOKEN;
@@ -1107,6 +1108,7 @@ switch (token.tok_keyword)
     default :
 	PAR_error ("Invalid ALTER request");
     }
+return NULL; /* silence compiler */
 }
 
 static ACT act_alter_database (void)
@@ -1420,7 +1422,6 @@ REQ	request;
 REL	relation;
 CNSTRT  cnstrt, *cnstrt_ptr;
 CTX	context;
-UCHAR	*temp;
 
 /* create request block */
 
@@ -1482,8 +1483,8 @@ while (!END_OF_COMMAND)
 	    ADVANCE_TOKEN;
 	    cnstrt = (CNSTRT) ALLOC (CNSTRT_LEN);
 	    cnstrt->cnstrt_flags |= CNSTRT_delete; 
-	    cnstrt->cnstrt_name = (TEXT*) ALLOC (NAME_SIZE+1); 
-	    SQL_resolve_identifier ("<constraint name>", cnstrt->cnstrt_name);
+	    cnstrt->cnstrt_name = (STR) ALLOC (NAME_SIZE+1); 
+	    SQL_resolve_identifier ("<constraint name>", (TEXT*)cnstrt->cnstrt_name);
 	    if (token.tok_length > NAME_SIZE)
 		PAR_error ("Constraint name too long");
 	    *cnstrt_ptr = cnstrt;
@@ -1541,6 +1542,7 @@ static ACT act_comment (void)
  **************************************/
 
 PAR_error ("SQL COMMENT ON request not allowed");
+return NULL; /* silence compiler */
 }
 
 static ACT act_connect (void)
@@ -1754,6 +1756,7 @@ if (KEYWORD (KW_UNIQUE) || KEYWORD (KW_ASCENDING) ||
     }
 
 PAR_error ("Invalid CREATE request");
+return NULL; /* silence compiler */
 }
 
 static ACT act_create_database (void)
@@ -2536,6 +2539,7 @@ switch (token.tok_keyword)
 	    }
 	SYNTAX_ERROR ("CURSOR, STATEMENT or TABLE");
     }
+return NULL; /* silence compiler */
 }
 
 static ACT act_declare_filter (void)
@@ -2748,8 +2752,9 @@ while (TRUE)
 		{
 		return_parameter = EXP_pos_USHORT_ordinal ((USHORT) TRUE);
 		if (return_parameter > 10)
-		    PAR_error ("return parameter not in range");	
-		udf->decl_udf_return_parameter = return_parameter;
+		    PAR_error ("return parameter not in range");
+		assert(return_parameter <= MAX_SSHORT);
+		udf->decl_udf_return_parameter = (SSHORT)return_parameter;
 		}
 	    else
 		{
@@ -2844,7 +2849,7 @@ if ((where = MATCH (KW_WITH)) && MATCH (KW_CURRENT))
 	SYNTAX_ERROR ("OF <cursor>");
     requests = request->req_next;
     cur_routine->act_object = (REF) request->req_routine;
-    FREE (request);
+    FREE ((SCHAR*)request);
     request = par_cursor (NULL);
     if ((transaction || request->req_trans) &&
 	(!transaction || !request->req_trans ||
@@ -3164,6 +3169,7 @@ switch (token.tok_keyword)
     default:
 	PAR_error ("Invalid DROP request");
     }
+return NULL; /* silence compiler */
 }
 
 static ACT act_event (void)
@@ -3283,10 +3289,12 @@ REQ	request;
 ACT	action;
 RSE	select;
 DYN	statement, cursor;
+#ifdef SCROLLABLE_CURSORS
 USHORT	direction;
-REF	reference; 
+REF	reference;
 VAL	value;
 TEXT	*direction_string, *offset_string, *string;
+#endif
 NOD	offset_node = NULL;
 
 /* Handle dynamic SQL statement, if appropriate */
@@ -3458,8 +3466,6 @@ USN	user, usernames;
 PRV	priv_block, last_priv_block;
 REL	relation;
 PRC	procedure;
-UCHAR	*temp;
-UCHAR	*user_name;
 USHORT	user_dyn;
 SCHAR	col_name [NAME_SIZE+1], r_name [NAME_SIZE+1], db_name [NAME_SIZE+1], owner_name [NAME_SIZE+1];
 LLS	*fields;
@@ -3513,8 +3519,8 @@ else
 		{
 	    	do  {
 		    SQL_resolve_identifier ("<column name>", col_name);
-		    field_name = MAKE_STRING (col_name);
-		    PUSH (field_name, fields);
+		    field_name = (STR)MAKE_STRING (col_name);
+		    PUSH ((NOD)field_name, fields);
 		    fields = &(*fields)->lls_next;
 		    CPR_token();
 		    } while (MATCH (KW_COMMA));
@@ -3537,7 +3543,7 @@ if (execute_priv)
 	SYNTAX_ERROR ("PROCEDURE");
     SQL_relation_name (r_name, db_name, owner_name);
     procedure = SQL_procedure (request, r_name, db_name, owner_name, TRUE);
-    relation_name = MAKE_STRING (r_name);
+    relation_name = (STR)MAKE_STRING (r_name);
     priv_block->prv_relation = relation_name;
     priv_block->prv_object_dyn = gds__dyn_prc_name;
     }
@@ -3546,7 +3552,7 @@ else
     MATCH (KW_TABLE); /* filler word */
     SQL_relation_name (r_name, db_name, owner_name);
     relation = SQL_relation (request, r_name, db_name, owner_name, TRUE);
-    relation_name = MAKE_STRING (r_name);
+    relation_name = (STR)MAKE_STRING (r_name);
     priv_block->prv_relation = relation_name;
     priv_block->prv_object_dyn = gds__dyn_rel_name;
     }
@@ -3589,7 +3595,7 @@ while (TRUE)
     if (MATCH (KW_VIEW))
 	{
     	SQL_relation_name (r_name, db_name, owner_name);
-	if (!MET_get_view_relation (request, r_name, relation_name, 0))
+	if (!MET_get_view_relation (request, r_name, (UCHAR*)relation_name, 0))
 	    {
 	    sprintf (s, "VIEW %s not defined on table %s", r_name, relation_name);
 	    PAR_error (s);
@@ -3834,7 +3840,7 @@ if (MATCH (KW_VALUES))
     if (count != count2)
 	PAR_error ("count of values doesn't match count of columns");
 
-    request->req_node = list = MAKE_NODE (nod_list, count);
+    request->req_node = list = MAKE_NODE (nod_list, (SSHORT)count);
     ptr = &list->nod_arg [count];
 
     while (values)
@@ -3874,7 +3880,7 @@ select_list = select->rse_fields;
 if (count != select_list->nod_count)
     PAR_error ("count of values doesn't match count of columns");
 
-request->req_node = list = MAKE_NODE (nod_list, count);
+request->req_node = list = MAKE_NODE (nod_list, (SSHORT)count);
 ptr = &list->nod_arg [count];
 ptr2 = &select_list->nod_arg [count];
 
@@ -3887,7 +3893,7 @@ while (fields)
     *--ptr = assignment; 
     }
 
-store = MSC_binary (nod_store, context, list);
+store = MSC_binary (nod_store, (NOD)context, list);
 request->req_node = store;
 EXP_rse_cleanup (select);
 if (context->ctx_symbol)
@@ -3968,6 +3974,7 @@ static ACT act_lock (void)
  **************************************/
 
 PAR_error ("SQL LOCK TABLE request not allowed");
+return NULL; /* silence compiler */
 }
 
 static ACT act_openclose (
@@ -4084,7 +4091,6 @@ BLB	blob;
 CTX	context;
 SCHAR	s [128];
 ACT	action;
-SYM	csymbol;
 
 if (!MATCH (KW_BLOB))
     SYNTAX_ERROR ("BLOB");
@@ -4348,7 +4354,7 @@ if (!KEYWORD (KW_RETURNING) && ! KEYWORD (KW_SEMI_COLON))
 	    *ref_ptr = reference =
 		SQE_parameter (request, FALSE);
 	    reference->ref_field = field;
-	    PUSH (MSC_unary (nod_value, reference), &values);
+	    PUSH (MSC_unary (nod_value, (NOD)reference), &values);
 	    ref_ptr = &reference->ref_next;
 	    }
 	if (field)
@@ -4467,6 +4473,7 @@ if (MATCH (KW_SQL))
     }
 
 SYNTAX_ERROR ("TRANSACTION, NAMES, SCHEMA, DATABASE, GENERATOR, DIALECT or STATISTICS");
+return NULL; /* silence compiler */
 }
 
 static ACT act_set_dialect (void)
@@ -4487,7 +4494,7 @@ USHORT	dialect;
 action = (ACT) ALLOC (ACT_LEN);
 action->act_type = ACT_sql_dialect;
 	
-dialect = (REF)EXP_USHORT_ordinal (FALSE);
+dialect = EXP_USHORT_ordinal (0 /*FALSE*/);
 if ((dialect < 1) || (dialect > 3))
     SYNTAX_ERROR ( "SQL DIALECT 1,2 or 3");
 
@@ -4669,7 +4676,6 @@ static ACT act_set_statistics (void)
 ACT	action;
 STS	stats;
 REQ	request;
-UCHAR	*temp;
 
 request = MAKE_REQUEST (REQ_ddl);
 action = (ACT) MAKE_ACTION (request, ACT_statistics);
@@ -4683,8 +4689,8 @@ else
 if (MATCH (KW_INDEX))
     {
     stats->sts_flags = STS_index;
-    stats->sts_name = (TEXT*) ALLOC (NAME_SIZE + 1);
-    SQL_resolve_identifier ("<index name>", stats->sts_name);
+    stats->sts_name = (STR) ALLOC (NAME_SIZE + 1);
+    SQL_resolve_identifier ("<index name>", (TEXT*)stats->sts_name);
     if (token.tok_length > NAME_SIZE)
 	PAR_error ("Index name too long");
     ADVANCE_TOKEN;
@@ -5995,6 +6001,7 @@ if (symbol)
 else if (symbol = MSC_find_symbol (token.tok_symbol, SYM_dyn_cursor))
     PAR_error ("DSQL cursors require DSQL update & delete statements");    
 SYNTAX_ERROR ("<cursor name>");
+return NULL; /* silence compiler */
 }
 
 static DYN par_dynamic_cursor (void)
@@ -6046,7 +6053,7 @@ static FLD par_field (
  *
  **************************************/
 FLD		field;
-IND		index;
+/*IND		index; */
 CNSTRT  	*cnstrt;
 int		in_constraints;
 NOD		literal_node;
@@ -6170,15 +6177,14 @@ static CNSTRT par_field_constraint (
 enum kwwords	keyword;
 CNSTRT	cnstrt;
 STR	field_name;
-UCHAR	*temp;
 
 cnstrt = (CNSTRT) ALLOC (CNSTRT_LEN);
 
 if (token.tok_keyword == KW_CONSTRAINT)
     {
     ADVANCE_TOKEN;
-    cnstrt->cnstrt_name = (TEXT*) ALLOC (NAME_SIZE + 1);
-    SQL_resolve_identifier ("<constraint name>", cnstrt->cnstrt_name);
+    cnstrt->cnstrt_name = (STR) ALLOC (NAME_SIZE + 1);
+    SQL_resolve_identifier ("<constraint name>", (TEXT*)cnstrt->cnstrt_name);
     if (token.tok_length > NAME_SIZE)
 	PAR_error ("Constraint name too long");
     ADVANCE_TOKEN;
@@ -6213,16 +6219,16 @@ switch (keyword = token.tok_keyword)
 
 	/* Set field for PRIMARY KEY or FOREIGN KEY or UNIQUE constraint  */
 
-	field_name = (TEXT*) ALLOC (NAME_SIZE+1);
-	strcpy (field_name, for_field->fld_symbol->sym_string);
-	PUSH (field_name, &cnstrt->cnstrt_fields);
+	field_name = (STR) ALLOC (NAME_SIZE+1);
+	strcpy ((char*)field_name, for_field->fld_symbol->sym_string);
+	PUSH ((NOD)field_name, &cnstrt->cnstrt_fields);
 
 	if (keyword == KW_REFERENCES)
 	    {
 	    /* Relation name for foreign key  */
 
-	    cnstrt->cnstrt_referred_rel = (TEXT*) ALLOC (NAME_SIZE+1);
-	    SQL_resolve_identifier ("referred <table name>", cnstrt->cnstrt_referred_rel);
+	    cnstrt->cnstrt_referred_rel = (STR) ALLOC (NAME_SIZE+1);
+	    SQL_resolve_identifier ("referred <table name>", (TEXT*)cnstrt->cnstrt_referred_rel);
 	    if (token.tok_length > NAME_SIZE)
 		PAR_error ("Referred table name too long");
 	    ADVANCE_TOKEN;
@@ -6231,9 +6237,9 @@ switch (keyword = token.tok_keyword)
 		{
 		/* Field specified for referred relation  */
 
-		field_name = (TEXT*) ALLOC (NAME_SIZE+1);
-		SQL_resolve_identifier ("<column name>", field_name);
-		PUSH (field_name, &cnstrt->cnstrt_referred_fields);
+		field_name = (STR) ALLOC (NAME_SIZE+1);
+		SQL_resolve_identifier ("<column name>", (TEXT*)field_name);
+		PUSH ((NOD)field_name, &cnstrt->cnstrt_referred_fields);
 		CPR_token();
 		EXP_match_paren();
 		}
@@ -6508,7 +6514,6 @@ enum kwwords    keyword;
 CNSTRT	cnstrt;
 LLS	*fields;
 STR	field_name;
-UCHAR	*temp;
 USHORT	num_for_key_flds = 0, num_prim_key_flds = 0;
 
 cnstrt = (CNSTRT) ALLOC (CNSTRT_LEN);
@@ -6516,8 +6521,8 @@ cnstrt = (CNSTRT) ALLOC (CNSTRT_LEN);
 if (token.tok_keyword == KW_CONSTRAINT)
     {
     ADVANCE_TOKEN;
-    cnstrt->cnstrt_name = (TEXT*) ALLOC (NAME_SIZE + 1);
-    SQL_resolve_identifier ("<constraint name>", cnstrt->cnstrt_name);
+    cnstrt->cnstrt_name = (STR) ALLOC (NAME_SIZE + 1);
+    SQL_resolve_identifier ("<constraint name>", (TEXT*)cnstrt->cnstrt_name);
     if (token.tok_length > NAME_SIZE)
 	PAR_error ("Constraint name too long");
     ADVANCE_TOKEN;
@@ -6551,9 +6556,9 @@ switch (keyword = token.tok_keyword)
 
 	fields = &cnstrt->cnstrt_fields;
 	do  {
-	    field_name = (TEXT*) ALLOC (NAME_SIZE+1);
-	    SQL_resolve_identifier ("<column name>", field_name);
-	    PUSH (field_name, fields);
+	    field_name = (STR) ALLOC (NAME_SIZE+1);
+	    SQL_resolve_identifier ("<column name>", (TEXT*)field_name);
+	    PUSH ((NOD)field_name, fields);
 	    fields = &(*fields)->lls_next;
 	    ++num_for_key_flds;
 	    CPR_token();
@@ -6570,8 +6575,8 @@ switch (keyword = token.tok_keyword)
 
 	    /* Relation name for foreign key  */
 
-	    cnstrt->cnstrt_referred_rel = (TEXT*) ALLOC (NAME_SIZE+1);
-	    SQL_resolve_identifier ("referred <table name>", cnstrt->cnstrt_referred_rel);
+	    cnstrt->cnstrt_referred_rel = (STR) ALLOC (NAME_SIZE+1);
+	    SQL_resolve_identifier ("referred <table name>", (TEXT*)cnstrt->cnstrt_referred_rel);
 	    if (token.tok_length > NAME_SIZE)
 		PAR_error ("Referred table name too long");
 	    ADVANCE_TOKEN;
@@ -6584,9 +6589,9 @@ switch (keyword = token.tok_keyword)
 
 		fields = &cnstrt->cnstrt_referred_fields;
 		do  {
-		    field_name = (TEXT*) ALLOC (NAME_SIZE+1);
-		    SQL_resolve_identifier ("<column name>", field_name);
-		    PUSH (field_name, fields);
+		    field_name = (STR) ALLOC (NAME_SIZE+1);
+		    SQL_resolve_identifier ("<column name>", (TEXT*)field_name);
+		    PUSH ((NOD)field_name, fields);
 		    fields = &(*fields)->lls_next;
 		    ++num_prim_key_flds;
 		    CPR_token();
@@ -6756,7 +6761,8 @@ switch (typ)
 		case 2: 
 		    sprintf (err_mesg, "Encountered column type DATE which is ambiguous in dialect %d\n", sw_sql_dialect);
 		    PAR_error (err_mesg);
-		    return;
+	        return dtype_null; /* TMN: FIX FIX */
+	        /* return; */
 		default:
 		    sprintf (err_mesg, "Encountered column type DATE which is not supported in ods version %d\n", sw_ods_version);
 		    PAR_error (err_mesg);
@@ -6772,7 +6778,8 @@ switch (typ)
 		case 2: 
 		    sprintf (err_mesg, "Encountered column type DATE which is ambiguous in dialect %d\n", sw_sql_dialect);
 		    PAR_error (err_mesg);
-		    return;
+	        return dtype_null; /* TMN: FIX FIX */
+	        /* return; */
 		default:
 		    return dtype_sql_date;
 		}
@@ -6784,7 +6791,8 @@ switch (typ)
 	    {
             sprintf (err_mesg, "Encountered column type TIME which is not supported by pre 6.0 Servers\n");
 	    PAR_error (err_mesg);
-	    return;
+	    return dtype_null; /* TMN: FIX FIX */
+	    /* return; */
 	    }
 	else 
 	    return dtype_sql_time;
@@ -6799,6 +6807,11 @@ switch (typ)
 	PAR_error (err_mesg);
 	break;
     }
+/*
+ * TMN: FIX FIX Added "return dtype_null;" to silence compiler, but
+ * this is really a logic error we have to fix.
+ */
+return dtype_null;
 } 
 
 static BOOLEAN tail_database (
@@ -6903,7 +6916,11 @@ if (action_type == ACT_drop_database)
     {
     if (MATCH (KW_CASCADE))
 	database->dbb_flags |= DBB_cascade;
-    return;
+    /* TMN: ERROR ERROR we cant return _nothing* from a function returning */
+    /* a BOOLEAN. I changed this to FALSE to falg an error, but we have to */
+    /* look into this. */
+    return FALSE;
+    /* return; */
     }
 
 /* parse add/drop items */

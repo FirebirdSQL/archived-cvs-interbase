@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
  */
 
 #include "../gpre/gpre.h"
@@ -67,7 +68,7 @@ while (key_symbols)
     symbol = key_symbols;
     key_symbols = (SYM) key_symbols->sym_object;
     HSH_remove (symbol);
-    FREE (symbol);
+    FREE ((SCHAR*)symbol);
     }
 }
 
@@ -288,7 +289,6 @@ static BOOLEAN scompare (
  *	case sensitive Compare 
  *
  **************************************/
-SCHAR	c1, c2;
 
 while (*string1)
     if (*string1++ != *string2++)
