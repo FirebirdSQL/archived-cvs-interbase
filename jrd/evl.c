@@ -778,7 +778,9 @@ switch (node->nod_type)
 
     case nod_function:
 	FUN_evaluate (node->nod_arg [e_fun_function],
-	    node->nod_arg [e_fun_args], &impure->vlu_desc);
+	    node->nod_arg [e_fun_args], impure);
+	/*request->req_flags |= req_null; THIS IS A TEST ONLY.
+	return NULL;*/
 	return &impure->vlu_desc;
 
     case nod_literal:

@@ -22,6 +22,7 @@
  *    24-May-2001 Claudio Valderrama - Forbid zero length identifiers,
  *                                   they are not ANSI SQL compliant.
  *    23-May-2001 Claudio Valderrama - Move here DYN_delete_role.
+ *    20-Jun-2001 Claudio Valderrama - Make available DYN_delete_generator.
  */
 
 #include <stdio.h>
@@ -57,6 +58,7 @@
 #include "../jrd/isc_f_proto.h"
 #include "../jrd/thd_proto.h"
 #include "../jrd/vio_proto.h"
+#include "../jrd/met_proto.h"
 
 #ifdef SUPERSERVER
 #define V4_THREADING

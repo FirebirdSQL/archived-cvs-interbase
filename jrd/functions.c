@@ -41,8 +41,14 @@ FPTR_INT	FUNCTIONS_entrypoint();
 static int	test();
 #endif
 
+static DSC* ni(DSC*, DSC*);
+
+
 static FN	isc_functions [] = {
     "test_module", "test_function", test,
+	"test_module", "ni", ni,
+	"test_module", "ns", ni,
+	"test_module", "nn", ni,
     0, 0, 0};
 
 #ifdef SHLIB_DEFS
@@ -52,7 +58,7 @@ static FN	isc_functions [] = {
 extern int		strcmp();
 extern int		sprintf();
 #endif
-
+
 #ifdef __STDC__
 FPTR_INT FUNCTIONS_entrypoint (
     char	*module,
@@ -134,4 +140,12 @@ while (result < end)
     *result++ = ' ';
 
 return 0;
+}
+
+static DSC* ni(DSC* v, DSC* v2)
+{
+	if (v)
+		return v;
+	else
+		return v2;
 }

@@ -2514,7 +2514,7 @@ for (n = 0; n < BUCKETS; n++)
 	vector [n]);
     }
 }
-
+
 static void truncate_name (
     SCHAR	*string)
 {
@@ -2526,14 +2526,14 @@ static void truncate_name (
  *
  * Functional description
  *	Zap trailing blanks.
+ * CVC: But only "trailing", not embedded blanks.
  *
  **************************************/
 
-for (; *string; ++string)
-    if (*string == ' ')
-	{
-	*string = 0;
-	return;
-	}
+SCHAR* tail;
+for (tail = string - 1; *string; ++string)
+    if (*string != ' ')
+	tail = string;
+*++tail = 0;
 }
 

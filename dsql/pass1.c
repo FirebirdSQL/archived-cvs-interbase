@@ -28,7 +28,7 @@
  * 2001.6.12: Claudio Valderrama: add basic BREAK capability to procedures.
  * 2001.6.27: Claudio Valderrama: pass1_variable() now gives the name of the
  * variable it can't find in the error message.
- * 2001.6.30: Claudio Valderrama: Enhanced again to privide (line, col), see node.h.
+ * 2001.6.30: Claudio Valderrama: Enhanced again to provide (line, col), see node.h.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -78,8 +78,9 @@ static NOD	pass1_cursor (REQ, NOD, NOD);
 static CTX	pass1_cursor_context (REQ, NOD, NOD);
 static NOD	pass1_dbkey (REQ, NOD);
 static NOD	pass1_delete (REQ, NOD);
-static NOD	pass1_field (REQ, NOD, USHORT);
+static NOD	pass1_field (REQ, NOD, USHORT, USHORT *);
 static NOD	pass1_insert (REQ, NOD);
+static NOD	pass1_node (REQ, NOD, USHORT, USHORT *);
 static NOD	pass1_relation (REQ, NOD);
 static NOD	pass1_rse (REQ, NOD, NOD);
 static NOD	pass1_sel_list ( REQ, NOD);
@@ -91,7 +92,7 @@ static NOD	pass1_update (REQ, NOD);
 static NOD	pass1_variable (REQ, NOD);
 static NOD	post_map (NOD, CTX);
 static void 	remap_streams_to_parent_context (NOD, CTX);
-static FLD	resolve_context (REQ, STR, STR, CTX);
+static FLD	resolve_context (REQ, STR, STR, CTX, DSQL_REL*, PRC*);
 static BOOLEAN	set_parameter_type (NOD, NOD, BOOLEAN);
 static void	set_parameters_name (NOD, NOD);
 static void	set_parameter_name (NOD, NOD, DSQL_REL);
@@ -107,7 +108,11 @@ STR	temp_collation_name = NULL;
 					 * Bug 10061, bsriram - 19-Apr-1999
 					 */
 
-
+/*
+#define FIREBIRD_REJECT_AMBIGUITY
+*/
+
+
 CTX PASS1_make_context (
     REQ		request,
     NOD		relation_node)
@@ -159,32 +164,53 @@ DEV_BLKCHK (relation_name, type_str);
 
 if ((relation_node->nod_type == nod_rel_proc_name) &&
 	relation_node->nod_arg [e_rpn_inputs])
-    {
+{
     if (!(procedure = METD_get_procedure (request, relation_name)))
+	{
+		TEXT linecol [64];
+		sprintf (linecol, "At line %d, column %d.",
+			(int) relation_node->nod_line, (int) relation_node->nod_column);
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-            gds_arg_gds, gds__dsql_procedure_err,
-            gds_arg_gds, gds__random,
-            gds_arg_string, relation_name->str_data,
-            0);
-    }
+			gds_arg_gds, gds__dsql_procedure_err,
+			gds_arg_gds, gds__random,
+			gds_arg_string, relation_name->str_data,
+			gds_arg_gds, gds__random,
+			gds_arg_string, linecol,
+			0);
+	}
+}
 else
-    {
+{
     if (!(relation = METD_get_relation (request, relation_name)) &&
         (relation_node->nod_type == nod_rel_proc_name))
         procedure = METD_get_procedure (request, relation_name);
     if (!relation && !procedure) 
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204, 
-	gds_arg_gds, gds__dsql_relation_err, 
-	gds_arg_gds, gds__random, 
-	gds_arg_string, relation_name->str_data, 
-	0);
-    }
+	{
+		TEXT linecol [64];
+		sprintf (linecol, "At line %d, column %d.",
+			(int) relation_node->nod_line, (int) relation_node->nod_column);
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204, 
+			gds_arg_gds, gds__dsql_relation_err, 
+			gds_arg_gds, gds__random, 
+			gds_arg_string, relation_name->str_data,
+			gds_arg_gds, gds__random,
+			gds_arg_string, linecol,
+			0);
+	}
+}
 
 if (procedure && !procedure->prc_out_count)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -84, 
-	gds_arg_gds, gds__dsql_procedure_use_err,
-	gds_arg_string, relation_name->str_data, 
-	0);
+{
+	TEXT linecol [64];
+	sprintf (linecol, "At line %d, column %d.",
+		(int) relation_node->nod_line, (int) relation_node->nod_column);
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -84,
+		gds_arg_gds, gds__dsql_procedure_use_err,
+		gds_arg_string, relation_name->str_data,
+		gds_arg_gds, gds__random,
+		gds_arg_string, linecol,
+		0);
+}
 
 /* Set up context block */
 
@@ -292,7 +318,7 @@ LLS_PUSH (context, &request->req_context);
 
 return context;
 }
-
+
 NOD PASS1_node (
     REQ		request,
     NOD		input,
@@ -306,457 +332,12 @@ NOD PASS1_node (
  *
  * Functional description
  *	Compile a parsed request into something more interesting.
+ *  CVC: This function now is a wrapper around pass1_node().
  *
  **************************************/
-NOD	node, temp, *ptr, *end, *ptr2, rse, sub1, sub2, sub3;
-LLS	base;
-FLD	field;
-CTX	agg_context;
-CTX	context;
-
-DEV_BLKCHK (request, type_req);
-DEV_BLKCHK (input, type_nod);
-
-if (input == NULL)
-   return NULL;
-
-/* Dispatch on node type.  Fall thru on easy ones */
-
-switch (input->nod_type)
-    {
-    case nod_alias:
-	node = MAKE_node (input->nod_type, e_alias_count);
-	node->nod_arg [e_alias_value] = sub1 = 
-			PASS1_node (request, input->nod_arg [e_alias_value], proc_flag);
-	node->nod_arg [e_alias_alias] = input->nod_arg [e_alias_alias];
-	node->nod_desc = sub1->nod_desc;
-	return node;
-
-    case nod_cast:
-	node = MAKE_node (input->nod_type, e_cast_count);
-	node->nod_arg [e_cast_source] = sub1 = 
-			PASS1_node (request, input->nod_arg [e_cast_source], proc_flag);
-	node->nod_arg [e_cast_target] = input->nod_arg [e_cast_target];
-	field = (FLD) node->nod_arg [e_cast_target];
-	DEV_BLKCHK (field, type_fld);
-	DDL_resolve_intl_type (request, field, NULL);
-	MAKE_desc_from_field (&node->nod_desc, field);
-        /* If the source is nullable, so is the target       */
-	MAKE_desc (&sub1->nod_desc, sub1);
-        if (sub1->nod_desc.dsc_flags & DSC_nullable)
-            node->nod_desc.dsc_flags |= DSC_nullable;
-	return node;
-
-
-    case nod_gen_id:
-    case nod_gen_id2:
-	node = MAKE_node (input->nod_type, e_gen_id_count);
-	node->nod_arg [e_gen_id_value] = 
-	       PASS1_node (request, input->nod_arg [e_gen_id_value], proc_flag);
-	node->nod_arg [e_gen_id_name] = input->nod_arg [e_gen_id_name];
-	return node;
-
-    case nod_collate:
-	temp_collation_name = (STR) input->nod_arg [e_coll_target];
-	sub1 = PASS1_node (request, input->nod_arg [e_coll_source], proc_flag);
-	temp_collation_name = NULL;
-	node = pass1_collate (request, sub1, (STR) input->nod_arg [e_coll_target]);
-	return node;
-
-    case nod_extract:
-
-	/* Figure out the data type of the sub parameter, and make
-	   sure the requested type of information can be extracted */
-
-	sub1 = PASS1_node (request, input->nod_arg [e_extract_value], proc_flag);
-	MAKE_desc (&sub1->nod_desc, sub1);
-	switch (*(SLONG *)input->nod_arg[e_extract_part]->nod_desc.dsc_address)
-	    {
-	    case blr_extract_year:
-	    case blr_extract_month:
-	    case blr_extract_day:
-	    case blr_extract_weekday:
-	    case blr_extract_yearday:
-		if (sub1->nod_desc.dsc_dtype != dtype_sql_date &&
-		    sub1->nod_desc.dsc_dtype != dtype_timestamp)
-		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -105, 
-			gds_arg_gds, gds__extract_input_mismatch,
-			0);
-		break;
-	    case blr_extract_hour:
-	    case blr_extract_minute:
-	    case blr_extract_second:
-		if (sub1->nod_desc.dsc_dtype != dtype_sql_time &&
-		    sub1->nod_desc.dsc_dtype != dtype_timestamp)
-		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -105, 
-			gds_arg_gds, gds__extract_input_mismatch,
-			0);
-		break;
-	    default:
-		assert (FALSE);
-		break;
-	    }
-	node = MAKE_node (input->nod_type, e_extract_count);
-	node->nod_arg [e_extract_part] = input->nod_arg [e_extract_part];
-	node->nod_arg [e_extract_value] = sub1;
-        if (sub1->nod_desc.dsc_flags & DSC_nullable)
-            node->nod_desc.dsc_flags |= DSC_nullable;
-	return node;
-
-    case nod_delete:
-    case nod_insert:
-    case nod_order:
-    case nod_select:
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-	    gds_arg_gds, gds__dsql_command_err, 
-	    0);
-
-    case nod_select_expr:
-	if (proc_flag)
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
-		    gds_arg_gds, gds__dsql_subselect_err,
-		    0);
-
-	base = request->req_context;
-	node = MAKE_node (nod_via, e_via_count);
-	node->nod_arg [e_via_rse] = rse =
-				PASS1_rse (request, input, NULL);
-	node->nod_arg [e_via_value_1] =
-				rse->nod_arg[e_rse_items]->nod_arg[0];
-	node->nod_arg [e_via_value_2] = MAKE_node (nod_null, (int) 0);
-
-	/* Finish off by cleaning up contexts */
-
- 	while (request->req_context != base)
-	    LLS_POP (&request->req_context);
-	return node;
-
-    case nod_exists:
-    case nod_singular:
-	base = request->req_context;
-	node = MAKE_node (input->nod_type, 1);
-	node->nod_arg[0] = PASS1_rse (request, input->nod_arg[0], NULL);
-
-	/* Finish off by cleaning up contexts */
-
-	while (request->req_context != base)
-	    LLS_POP (&request->req_context);
-	return node;
-
-    case nod_field_name:
-	if (proc_flag)
-	    return pass1_variable (request, input);
-	else
-	    return pass1_field (request, input, 0);
-
-    case nod_array:
-	if (proc_flag)
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-		gds_arg_gds, gds__dsql_invalid_array, 
-		0);
-	else
-	    return pass1_field (request, input, 0);
-
-    case nod_variable:
-	return node;
-
-    case nod_var_name:
-	return pass1_variable (request, input);
-
-    case nod_dbkey:
-	return pass1_dbkey (request, input);
-
-    case nod_relation_name:
-    case nod_rel_proc_name:              
-	return pass1_relation (request, input);
-
-    case nod_constant:
-	return pass1_constant (request, input);
-
-    case nod_parameter:
-	if (proc_flag)
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-		gds_arg_gds, gds__dsql_command_err, 
-		0);
-	node = MAKE_node (input->nod_type, e_par_count);
-	node->nod_count = 0;
-	node->nod_arg [e_par_parameter] =
-		(NOD) MAKE_parameter (request->req_send, TRUE, TRUE);
-	return node;
-
-    case nod_udf:
-	return pass1_udf (request, input, proc_flag);
-
-    case nod_eql:
-    case nod_neq:
-    case nod_gtr:
-    case nod_geq:
-    case nod_lss:
-    case nod_leq:
-    case nod_eql_any:
-    case nod_neq_any:
-    case nod_gtr_any:
-    case nod_geq_any:
-    case nod_lss_any:
-    case nod_leq_any:
-    case nod_eql_all:
-    case nod_neq_all:
-    case nod_gtr_all:
-    case nod_geq_all:
-    case nod_lss_all:
-    case nod_leq_all:
-	sub2 = input->nod_arg [1];
-	if (sub2->nod_type == nod_list)
-	    {
-	    USHORT list_item_count=0;
-
-	    node = NULL;
-	    for (ptr = sub2->nod_arg, end = ptr + sub2->nod_count; ptr < end && list_item_count < MAX_MEMBER_LIST; list_item_count++, ptr++)
-		{
-		DEV_BLKCHK (*ptr, type_nod);
-		temp = MAKE_node (input->nod_type, 2);
-		temp->nod_arg [0] = input->nod_arg [0];
-		temp->nod_arg [1] = *ptr;
-		node = compose (node, temp, nod_or);
-		}
-	    if (list_item_count >= MAX_MEMBER_LIST)
-		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -901, 
-		    gds_arg_gds, isc_imp_exc,
-		    gds_arg_gds, gds__random,
-		    gds_arg_string, "too many values (more than 1500) in member list to match against",
-		    0);
-	    return PASS1_node (request, node, proc_flag);
-	    }
-	if (sub2->nod_type == nod_select_expr)
-	    {
-	    if (proc_flag)
-		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
-		    gds_arg_gds, gds__dsql_subselect_err,
-		    0);
-
-	    if (sub2->nod_arg [e_sel_singleton])
-		{
-		base = request->req_context;
-		node = MAKE_node (input->nod_type, 2);
-		node->nod_arg [0] = PASS1_node (request, input->nod_arg [0], 0);
-		node->nod_arg [1] = temp = MAKE_node (nod_via, e_via_count);
-		temp->nod_arg [e_via_rse] = rse =
-				PASS1_rse (request, sub2, NULL);
-		temp->nod_arg [e_via_value_1] =
-				rse->nod_arg[e_rse_items]->nod_arg[0];
-		temp->nod_arg [e_via_value_2] = MAKE_node (nod_null, (int) 0);
-
-		/* Finish off by cleaning up contexts */
-
- 		while (request->req_context != base)
-		    LLS_POP (&request->req_context);
-		return node;
-		}
-	    else
-		{
-		switch (input->nod_type)
-		    {
-		    case nod_eql:
-		    case nod_neq:
-		    case nod_gtr:
-		    case nod_geq:
-		    case nod_lss:
-		    case nod_leq:
-			return pass1_any (request, input, nod_any);
-
-		    case nod_eql_any:
-		    case nod_neq_any:
-		    case nod_gtr_any:
-		    case nod_geq_any:
-		    case nod_lss_any:
-		    case nod_leq_any:
-			return pass1_any (request, input, nod_ansi_any);
-
-		    case nod_eql_all:
-		    case nod_neq_all:
-		    case nod_gtr_all:
-		    case nod_geq_all:
-		    case nod_lss_all:
-		    case nod_leq_all:
-			return pass1_any (request, input, nod_ansi_all);
-		    }
-		}
-	    }
-	break;
-
-    case nod_agg_count:
-    case nod_agg_min:
-    case nod_agg_max:
-    case nod_agg_average:
-    case nod_agg_total:
-    case nod_agg_average2:
-    case nod_agg_total2:
-	if (proc_flag)
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-		gds_arg_gds, gds__dsql_command_err, 
-		0);
-	if (request->req_inhibit_map || !(request->req_in_select_list ||
-            request->req_in_having_clause || request->req_in_order_by_clause))
-	    /* either nested aggregate, or not part of a select
-               list, having clause, or order by clause
-	     */
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-		gds_arg_gds, gds__dsql_agg_ref_err, 
-		0);
-	++request->req_inhibit_map;
-	node = MAKE_node (input->nod_type, input->nod_count);
-        node->nod_flags = input->nod_flags;
-	if (input->nod_count)
-	    node->nod_arg [0] = PASS1_node (request, input->nod_arg [0], proc_flag);
-	if (request->req_outer_agg_context)
-	    {
-	    /* it's an outer reference, post map to the outer context */
-	    agg_context = request->req_outer_agg_context;
-	    request->req_outer_agg_context = NULL;
-	    }
-	else
-	    /* post map to the current context */
-	    agg_context = request->req_context->lls_object;
-
-	temp = post_map (node, agg_context);
-	--request->req_inhibit_map;
-	return temp;
-
-    /* access plan node types */
-
-    case nod_plan_item:
-	node = MAKE_node (input->nod_type, 2);
-	node->nod_arg [0] = sub1 = MAKE_node (nod_relation, e_rel_count);
-        sub1->nod_arg [e_rel_context] = pass1_alias_list (request, input->nod_arg [0]);
-	node->nod_arg [1] = PASS1_node (request, input->nod_arg [1], proc_flag);
-	return node;
-
-    case nod_index:
-    case nod_index_order:
-	node = MAKE_node (input->nod_type, 1);
-	node->nod_arg [0] = input->nod_arg [0];
-	return node;
-
-    case nod_dom_value:
-        node = MAKE_node (input->nod_type, input->nod_count);
-	node->nod_desc = input->nod_desc;
-	return node;
-    
-    default:
-	break;
-    }
-
-/* Node is simply to be rebuilt -- just recurse merrily */
-
-node = MAKE_node (input->nod_type, input->nod_count);
-ptr2 = node->nod_arg;
-
-for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
-    {
-    DEV_BLKCHK (*ptr, type_nod);
-    *ptr2++ = PASS1_node (request, *ptr, proc_flag);
-    DEV_BLKCHK (*(ptr2-1), type_nod);
-    }
-
-/* Mark relations as "possibly NULL" if they are in outer joins */ 
-switch (node->nod_type)
-    {
-    case nod_join:
-	switch (node->nod_arg [e_join_type]->nod_type)
-	    {
-	    case nod_join_inner:
-		/* Not an outer join - no work required */
-		break;
-	    case nod_join_left:
-		mark_ctx_outer_join (node->nod_arg [e_join_rght_rel]);
-		break;
-	    case nod_join_right:
-		mark_ctx_outer_join (node->nod_arg [e_join_left_rel]);
-		break;
-	    case nod_join_full:
-		mark_ctx_outer_join (node->nod_arg [e_join_rght_rel]);
-		mark_ctx_outer_join (node->nod_arg [e_join_left_rel]);
-		break;
-	    default:
-		ASSERT_FAIL;		/* join type expected */
-		break;
-	    }
-	break;	
-
-    default:
-	break;
-    }
-
-/* Try to match parameters against things of known data type */
-
-sub3 = NULL;
-switch (node->nod_type)
-    {
-    case nod_between:
-	sub3 = node->nod_arg [2];
-	/* FALLINTO */
-    case nod_assign:
-    case nod_eql:
-    case nod_gtr:
-    case nod_geq:
-    case nod_leq:
-    case nod_lss:
-    case nod_neq:
-    case nod_eql_any:
-    case nod_gtr_any:
-    case nod_geq_any:
-    case nod_leq_any:
-    case nod_lss_any:
-    case nod_neq_any:
-    case nod_eql_all:
-    case nod_gtr_all:
-    case nod_geq_all:
-    case nod_leq_all:
-    case nod_lss_all:
-    case nod_neq_all:
-	sub1 = node->nod_arg [0];
-	sub2 = node->nod_arg [1];
-
-	/* Try to force sub1 to be same type as sub2 eg: ? = FIELD case */
-	if (set_parameter_type (sub1, sub2, FALSE))
-	    /* null */;
-	else
-	    /* That didn't work - try to force sub2 same type as sub 1 eg: FIELD = ? case */
-	    (void) set_parameter_type (sub2, sub1, FALSE);
-	if (sub3)
-	    /* X BETWEEN Y AND ? case */
-	    (void) set_parameter_type (sub3, sub2, FALSE);
-	break;
-
-    case nod_like:
-	if (node->nod_count == 3)
-	    {
-	    sub3 = node->nod_arg[2];
-	    }
-	/* FALLINTO */
-    case nod_containing:
-    case nod_starting:
-	sub1 = node->nod_arg [0];
-	sub2 = node->nod_arg [1];
-
-	/* Try to force sub1 to be same type as sub2 eg: ? LIKE FIELD case */
-	if (set_parameter_type (sub1, sub2, TRUE))
-	    /* null */;
-	else
-	    /* That didn't work - try to force sub2 same type as sub 1 eg: FIELD LIKE ? case */
-	    (void) set_parameter_type (sub2, sub1, TRUE);
-	if (sub3)
-	    /* X LIKE Y ESCAPE ? case */
-	    (void) set_parameter_type (sub3, sub2, TRUE);
-	break;
-
-    default:
-	break;
-    }
-
-return node;
+	return pass1_node (request, input, proc_flag, 0);
 }
-
+
 NOD PASS1_rse (
     REQ		request,
     NOD		input,
@@ -810,7 +391,7 @@ FLD		field, field2;
 STR		name;
 struct nod	desc_node;
 USHORT		count;
-CTX		context;
+/*CTX		context;*/
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -1195,7 +776,7 @@ switch (input->nod_type)
 	node->nod_arg [e_while_cond] = PASS1_node (request,
 				   input->nod_arg [e_while_cond], proc_flag);
 	/* CVC: loop numbers should be incremented before analyzing the body
-	to preserve nesting <==> incresing level number. */
+	to preserve nesting <==> increasing level number. */
 	node->nod_arg [e_while_number] = (NOD) request->req_loop_number++;
 	node->nod_arg [e_while_action] = PASS1_statement (request,
 				   input->nod_arg [e_while_action], proc_flag);
@@ -1253,7 +834,7 @@ if (DSQL_debug > 1)
 
 return node;
 } 
-
+
 static BOOLEAN aggregate_found (
     REQ		request,
     NOD		sub,
@@ -1535,7 +1116,7 @@ static NOD copy_fields (
  *	Copy a field list for a SELECT against an artificial context.
  *
  **************************************/
-NOD	list, temp;
+NOD	list;
 USHORT	i;
 
 DEV_BLKCHK (fields, type_nod);
@@ -1654,7 +1235,7 @@ for (field = procedure->prc_outputs, ptr = node->nod_arg; field;
 
 return node;
 }
-
+
 static void field_error (
     TEXT	*qualifier_name,
     TEXT	*field_name,
@@ -1701,7 +1282,7 @@ else
 	0);
 }
 
-
+
 static PAR find_dbkey (
     REQ		request,
     NOD		relation_name)
@@ -2269,7 +1850,7 @@ tdsql = GET_THREAD_DATA;
 
 
 (void) PASS1_make_context (request, input->nod_arg [e_blb_relation]);
-field = pass1_field (request, input->nod_arg [e_blb_field], 0);
+field = pass1_field (request, input->nod_arg [e_blb_field], 0, 0);
 if (field->nod_desc.dsc_dtype != dtype_blob)
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
 	gds_arg_gds, gds__dsql_blob_err, 
@@ -2727,7 +2308,8 @@ return node;
 static NOD pass1_field (
     REQ		request,
     NOD		input,
-    USHORT	list)
+    USHORT	list,
+	USHORT	*fcount)
 {
 /**************************************
  *
@@ -2738,15 +2320,23 @@ static NOD pass1_field (
  * Functional description
  *	Resolve a field name to an available context.
  *	If list is TRUE, then this function can detect and
- *	return a relation node if there is no name.   This
+ *	return a relation node if there is no name. This
  *	is used for cases of "SELECT <table_name>.* ...".
+ *  CVC: When fcount != NULL, the function attempts to detect
+ *  if an unqualified field appears in more than one context
+ *  and hence it returns the number of occurrences. This was
+ *  added to allow the caller to detect ambiguous commands like
+ *  select * from t1 join t2 on t1.f=t2.f order by common_field.
+ *  While inoffensive on inner joins, it changes the result on outer joins.
  *
  **************************************/
-NOD	node, indices;
+NOD	node = 0, indices; /* Changes made need this var initialized. */
 STR	name, qualifier;
 FLD	field;
 LLS	stack;
 CTX	context;
+DSQL_REL aux_relations [2] = {0, 0};
+PRC	aux_procedures [2] = {0, 0};
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -2781,12 +2371,23 @@ DEV_BLKCHK (qualifier, type_str);
 /* Try to resolve field against various contexts;
    if there is an alias, check only against the first matching */
 
+/* Discovered the hard way that can't be done by the caller reliably. */
+if (fcount)
+	*fcount = 0;
+
 for (stack = request->req_context; stack; stack = stack->lls_next)
-    if (field = resolve_context (request, name, qualifier, stack->lls_object))
+{
+	if (fcount && *fcount < 2) /* fcount>=2 doesn't seem possible but be safe.*/
+		field = resolve_context (request, name, qualifier, stack->lls_object,
+			&aux_relations [*fcount], &aux_procedures [*fcount]);
+	else
+		field = resolve_context (request, name, qualifier, stack->lls_object,
+			0, 0);
+    if (field)
 	{
 	if (list && !name)
 	    {
-	    node = MAKE_node( nod_relation, e_rel_count);
+	    node = MAKE_node (nod_relation, e_rel_count);
 	    node->nod_arg[e_rel_context] = (CTX) stack->lls_object;
 	    return node;
 	    }
@@ -2796,7 +2397,43 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 
 	for (; field; field = field->fld_next)
 	    if ( !strcmp (name->str_data, field->fld_name))
-		break;
+		{
+			if (fcount)
+			{
+				if (++*fcount > 1)
+				{
+					TEXT names [2][2 * 32] = {"table/view ", "table/view "};
+					int iter;
+					for (iter = 0; iter < 2; ++iter)
+					{
+						if (aux_relations [iter])
+							strcat (names [iter], aux_relations [iter]->rel_name);
+						else
+						{
+							strcpy (names [iter], "procedure ");
+							strcat (names [iter], aux_procedures [iter]->prc_name);
+						}
+					}
+#ifdef FIREBIRD_REJECT_AMBIGUITY
+					/* Should clean node if != NULL? */
+					if (node)
+						ALL_release (node);
+					ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
+						gds_arg_warning, isc_dsql_ambiguous_field_name,
+#else
+					ERRD_post_warning (isc_sqlwarn, gds_arg_number, (SLONG) +204,
+						gds_arg_gds, isc_dsql_ambiguous_field_name,
+#endif
+						gds_arg_string, ERR_cstring (names [0]),
+						gds_arg_string, ERR_cstring (names [1]),
+						gds_arg_gds, gds__random,
+						gds_arg_string, field->fld_name,
+						0);
+					return node;
+				}
+			}
+			break;
+		}
 
 	if (qualifier && !field)
 	    break;
@@ -2807,45 +2444,51 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 	       did not exist prior to V6 and post an error */
 
 	    if (request->req_client_dialect <= SQL_DIALECT_V5)
-		if (field->fld_dtype == dtype_sql_date ||
-		    field->fld_dtype == dtype_sql_time ||
-		    field->fld_dtype == dtype_int64)
-		    {
-		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
-			gds_arg_gds, gds__dsql_field_err, 
-			gds_arg_gds, gds__random, 
-			gds_arg_string, field->fld_name,
-			gds_arg_gds, isc_sql_dialect_datatype_unsupport,
-			gds_arg_number, request->req_client_dialect,
-			gds_arg_string, DSC_dtype_tostring (field->fld_dtype),
-			0);
-		    return NULL;
-		    };
+			if (field->fld_dtype == dtype_sql_date ||
+				field->fld_dtype == dtype_sql_time ||
+				field->fld_dtype == dtype_int64)
+			{
+				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
+					gds_arg_gds, gds__dsql_field_err, 
+					gds_arg_gds, gds__random, 
+					gds_arg_string, field->fld_name,
+					gds_arg_gds, isc_sql_dialect_datatype_unsupport,
+					gds_arg_number, request->req_client_dialect,
+					gds_arg_string, DSC_dtype_tostring (field->fld_dtype),
+					0);
+				return NULL;
+			};
 	    context = (CTX) stack->lls_object;
 	    if (indices)
-		indices = PASS1_node (request, indices, FALSE);
+			indices = PASS1_node (request, indices, FALSE);
 	    node = MAKE_field (context, field, indices);
 	    if (context->ctx_parent)
 		{
 	        if (!request->req_inhibit_map)
-		    node = post_map (node, context->ctx_parent);
-		else if (request->req_context != stack)
-		    /* remember the agg context so that we can post
+				node = post_map (node, context->ctx_parent);
+			else if (request->req_context != stack)
+			/* remember the agg context so that we can post
                        the agg to its map.     
  		     */
-		    request->req_outer_agg_context = context->ctx_parent;
+				request->req_outer_agg_context = context->ctx_parent;
 		}
-	    return node;
+		if (!fcount || (!stack->lls_next && node))
+			return node;
 	    }
 	}
-    
+}
+
+assert (!fcount || *fcount == 1 || !node);
+
+if (fcount /* REDUNDANT && *fcount */ && node)
+	return node;    
 
 field_error (qualifier ? (TEXT *) qualifier->str_data : (TEXT *) NULL_PTR, 
 	     name ? (TEXT *) name->str_data : (TEXT *) NULL_PTR, input);
 
 return NULL;
 }
-
+
 static NOD pass1_insert (
     REQ		request,
     NOD		input)
@@ -2938,7 +2581,474 @@ set_parameters_name (node->nod_arg [e_sto_statement],
 
 return node;
 }
-
+
+static NOD pass1_node (
+    REQ		request,
+    NOD		input,
+    USHORT	proc_flag,
+	USHORT	*fcount)
+{
+/**************************************
+ *
+ *	p a s s 1 _ n o d e
+ *
+ **************************************
+ *
+ * Functional description
+ *	Compile a parsed request into something more interesting.
+ *  CVC: This function is the original PASS1_node but with
+ *  an additional parameter to detect field ambiguities.
+ *
+ **************************************/
+NOD	node, temp, *ptr, *end, *ptr2, rse, sub1, sub2, sub3;
+LLS	base;
+FLD	field;
+CTX	agg_context;
+CTX	context;
+
+DEV_BLKCHK (request, type_req);
+DEV_BLKCHK (input, type_nod);
+
+if (input == NULL)
+   return NULL;
+
+/* Dispatch on node type.  Fall thru on easy ones */
+
+switch (input->nod_type)
+    {
+    case nod_alias:
+	node = MAKE_node (input->nod_type, e_alias_count);
+	node->nod_arg [e_alias_value] = sub1 = 
+			pass1_node (request, input->nod_arg [e_alias_value], proc_flag, fcount);
+	node->nod_arg [e_alias_alias] = input->nod_arg [e_alias_alias];
+	node->nod_desc = sub1->nod_desc;
+	return node;
+
+    case nod_cast:
+	node = MAKE_node (input->nod_type, e_cast_count);
+	node->nod_arg [e_cast_source] = sub1 = 
+			pass1_node (request, input->nod_arg [e_cast_source], proc_flag, fcount);
+	node->nod_arg [e_cast_target] = input->nod_arg [e_cast_target];
+	field = (FLD) node->nod_arg [e_cast_target];
+	DEV_BLKCHK (field, type_fld);
+	DDL_resolve_intl_type (request, field, NULL);
+	MAKE_desc_from_field (&node->nod_desc, field);
+        /* If the source is nullable, so is the target       */
+	MAKE_desc (&sub1->nod_desc, sub1);
+        if (sub1->nod_desc.dsc_flags & DSC_nullable)
+            node->nod_desc.dsc_flags |= DSC_nullable;
+	return node;
+
+
+    case nod_gen_id:
+    case nod_gen_id2:
+	node = MAKE_node (input->nod_type, e_gen_id_count);
+	node->nod_arg [e_gen_id_value] = 
+	       pass1_node (request, input->nod_arg [e_gen_id_value], proc_flag, fcount);
+	node->nod_arg [e_gen_id_name] = input->nod_arg [e_gen_id_name];
+	return node;
+
+    case nod_collate:
+	temp_collation_name = (STR) input->nod_arg [e_coll_target];
+	sub1 = pass1_node (request, input->nod_arg [e_coll_source], proc_flag, fcount);
+	temp_collation_name = NULL;
+	node = pass1_collate (request, sub1, (STR) input->nod_arg [e_coll_target]);
+	return node;
+
+    case nod_extract:
+
+	/* Figure out the data type of the sub parameter, and make
+	   sure the requested type of information can be extracted */
+
+	sub1 = pass1_node (request, input->nod_arg [e_extract_value], proc_flag, fcount);
+	MAKE_desc (&sub1->nod_desc, sub1);
+	switch (*(SLONG *)input->nod_arg[e_extract_part]->nod_desc.dsc_address)
+	    {
+	    case blr_extract_year:
+	    case blr_extract_month:
+	    case blr_extract_day:
+	    case blr_extract_weekday:
+	    case blr_extract_yearday:
+		if (sub1->nod_desc.dsc_dtype != dtype_sql_date &&
+		    sub1->nod_desc.dsc_dtype != dtype_timestamp)
+		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -105, 
+			gds_arg_gds, gds__extract_input_mismatch,
+			0);
+		break;
+	    case blr_extract_hour:
+	    case blr_extract_minute:
+	    case blr_extract_second:
+		if (sub1->nod_desc.dsc_dtype != dtype_sql_time &&
+		    sub1->nod_desc.dsc_dtype != dtype_timestamp)
+		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -105, 
+			gds_arg_gds, gds__extract_input_mismatch,
+			0);
+		break;
+	    default:
+		assert (FALSE);
+		break;
+	    }
+	node = MAKE_node (input->nod_type, e_extract_count);
+	node->nod_arg [e_extract_part] = input->nod_arg [e_extract_part];
+	node->nod_arg [e_extract_value] = sub1;
+        if (sub1->nod_desc.dsc_flags & DSC_nullable)
+            node->nod_desc.dsc_flags |= DSC_nullable;
+	return node;
+
+    case nod_delete:
+    case nod_insert:
+    case nod_order:
+    case nod_select:
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+	    gds_arg_gds, gds__dsql_command_err, 
+	    0);
+
+    case nod_select_expr:
+	if (proc_flag)
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
+		    gds_arg_gds, gds__dsql_subselect_err,
+		    0);
+
+	base = request->req_context;
+	node = MAKE_node (nod_via, e_via_count);
+	node->nod_arg [e_via_rse] = rse =
+				PASS1_rse (request, input, NULL);
+	node->nod_arg [e_via_value_1] =
+				rse->nod_arg[e_rse_items]->nod_arg[0];
+	node->nod_arg [e_via_value_2] = MAKE_node (nod_null, (int) 0);
+
+	/* Finish off by cleaning up contexts */
+
+ 	while (request->req_context != base)
+	    LLS_POP (&request->req_context);
+	return node;
+
+    case nod_exists:
+    case nod_singular:
+	base = request->req_context;
+	node = MAKE_node (input->nod_type, 1);
+	node->nod_arg[0] = PASS1_rse (request, input->nod_arg[0], NULL);
+
+	/* Finish off by cleaning up contexts */
+
+	while (request->req_context != base)
+	    LLS_POP (&request->req_context);
+	return node;
+
+    case nod_field_name:
+	if (proc_flag)
+	    return pass1_variable (request, input);
+	else
+	    return pass1_field (request, input, 0, fcount);
+
+    case nod_array:
+	if (proc_flag)
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+		gds_arg_gds, gds__dsql_invalid_array, 
+		0);
+	else
+	    return pass1_field (request, input, 0, 0);
+
+    case nod_variable:
+	return node;
+
+    case nod_var_name:
+	return pass1_variable (request, input);
+
+    case nod_dbkey:
+	return pass1_dbkey (request, input);
+
+    case nod_relation_name:
+    case nod_rel_proc_name:              
+	return pass1_relation (request, input);
+
+    case nod_constant:
+	return pass1_constant (request, input);
+
+    case nod_parameter:
+	if (proc_flag)
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+		gds_arg_gds, gds__dsql_command_err, 
+		0);
+	node = MAKE_node (input->nod_type, e_par_count);
+	node->nod_count = 0;
+	node->nod_arg [e_par_parameter] =
+		(NOD) MAKE_parameter (request->req_send, TRUE, TRUE);
+	return node;
+
+    case nod_udf:
+	return pass1_udf (request, input, proc_flag);
+
+    case nod_eql:
+    case nod_neq:
+    case nod_gtr:
+    case nod_geq:
+    case nod_lss:
+    case nod_leq:
+    case nod_eql_any:
+    case nod_neq_any:
+    case nod_gtr_any:
+    case nod_geq_any:
+    case nod_lss_any:
+    case nod_leq_any:
+    case nod_eql_all:
+    case nod_neq_all:
+    case nod_gtr_all:
+    case nod_geq_all:
+    case nod_lss_all:
+    case nod_leq_all:
+	sub2 = input->nod_arg [1];
+	if (sub2->nod_type == nod_list)
+	    {
+	    USHORT list_item_count=0;
+
+	    node = NULL;
+	    for (ptr = sub2->nod_arg, end = ptr + sub2->nod_count; ptr < end && list_item_count < MAX_MEMBER_LIST; list_item_count++, ptr++)
+		{
+		DEV_BLKCHK (*ptr, type_nod);
+		temp = MAKE_node (input->nod_type, 2);
+		temp->nod_arg [0] = input->nod_arg [0];
+		temp->nod_arg [1] = *ptr;
+		node = compose (node, temp, nod_or);
+		}
+	    if (list_item_count >= MAX_MEMBER_LIST)
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -901, 
+		    gds_arg_gds, isc_imp_exc,
+		    gds_arg_gds, gds__random,
+		    gds_arg_string, "too many values (more than 1500) in member list to match against",
+		    0);
+	    return pass1_node (request, node, proc_flag, fcount);
+	    }
+	if (sub2->nod_type == nod_select_expr)
+	    {
+	    if (proc_flag)
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
+		    gds_arg_gds, gds__dsql_subselect_err,
+		    0);
+
+	    if (sub2->nod_arg [e_sel_singleton])
+		{
+		base = request->req_context;
+		node = MAKE_node (input->nod_type, 2);
+		node->nod_arg [0] = pass1_node (request, input->nod_arg [0], 0, fcount);
+		node->nod_arg [1] = temp = MAKE_node (nod_via, e_via_count);
+		temp->nod_arg [e_via_rse] = rse =
+				PASS1_rse (request, sub2, NULL);
+		temp->nod_arg [e_via_value_1] =
+				rse->nod_arg[e_rse_items]->nod_arg[0];
+		temp->nod_arg [e_via_value_2] = MAKE_node (nod_null, (int) 0);
+
+		/* Finish off by cleaning up contexts */
+
+ 		while (request->req_context != base)
+		    LLS_POP (&request->req_context);
+		return node;
+		}
+	    else
+		{
+		switch (input->nod_type)
+		    {
+		    case nod_eql:
+		    case nod_neq:
+		    case nod_gtr:
+		    case nod_geq:
+		    case nod_lss:
+		    case nod_leq:
+			return pass1_any (request, input, nod_any);
+
+		    case nod_eql_any:
+		    case nod_neq_any:
+		    case nod_gtr_any:
+		    case nod_geq_any:
+		    case nod_lss_any:
+		    case nod_leq_any:
+			return pass1_any (request, input, nod_ansi_any);
+
+		    case nod_eql_all:
+		    case nod_neq_all:
+		    case nod_gtr_all:
+		    case nod_geq_all:
+		    case nod_lss_all:
+		    case nod_leq_all:
+			return pass1_any (request, input, nod_ansi_all);
+		    }
+		}
+	    }
+	break;
+
+    case nod_agg_count:
+    case nod_agg_min:
+    case nod_agg_max:
+    case nod_agg_average:
+    case nod_agg_total:
+    case nod_agg_average2:
+    case nod_agg_total2:
+	if (proc_flag)
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+		gds_arg_gds, gds__dsql_command_err, 
+		0);
+	if (request->req_inhibit_map || !(request->req_in_select_list ||
+            request->req_in_having_clause || request->req_in_order_by_clause))
+	    /* either nested aggregate, or not part of a select
+               list, having clause, or order by clause
+	     */
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+		gds_arg_gds, gds__dsql_agg_ref_err, 
+		0);
+	++request->req_inhibit_map;
+	node = MAKE_node (input->nod_type, input->nod_count);
+        node->nod_flags = input->nod_flags;
+	if (input->nod_count)
+	    node->nod_arg [0] = pass1_node (request, input->nod_arg [0], proc_flag, fcount);
+	if (request->req_outer_agg_context)
+	    {
+	    /* it's an outer reference, post map to the outer context */
+	    agg_context = request->req_outer_agg_context;
+	    request->req_outer_agg_context = NULL;
+	    }
+	else
+	    /* post map to the current context */
+	    agg_context = request->req_context->lls_object;
+
+	temp = post_map (node, agg_context);
+	--request->req_inhibit_map;
+	return temp;
+
+    /* access plan node types */
+
+    case nod_plan_item:
+	node = MAKE_node (input->nod_type, 2);
+	node->nod_arg [0] = sub1 = MAKE_node (nod_relation, e_rel_count);
+        sub1->nod_arg [e_rel_context] = pass1_alias_list (request, input->nod_arg [0]);
+	node->nod_arg [1] = pass1_node (request, input->nod_arg [1], proc_flag, fcount);
+	return node;
+
+    case nod_index:
+    case nod_index_order:
+	node = MAKE_node (input->nod_type, 1);
+	node->nod_arg [0] = input->nod_arg [0];
+	return node;
+
+    case nod_dom_value:
+        node = MAKE_node (input->nod_type, input->nod_count);
+	node->nod_desc = input->nod_desc;
+	return node;
+    
+    default:
+	break;
+    }
+
+/* Node is simply to be rebuilt -- just recurse merrily */
+
+node = MAKE_node (input->nod_type, input->nod_count);
+ptr2 = node->nod_arg;
+
+for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
+    {
+    DEV_BLKCHK (*ptr, type_nod);
+    *ptr2++ = pass1_node (request, *ptr, proc_flag, fcount);
+    DEV_BLKCHK (*(ptr2-1), type_nod);
+    }
+
+/* Mark relations as "possibly NULL" if they are in outer joins */ 
+switch (node->nod_type)
+    {
+    case nod_join:
+	switch (node->nod_arg [e_join_type]->nod_type)
+	    {
+	    case nod_join_inner:
+		/* Not an outer join - no work required */
+		break;
+	    case nod_join_left:
+		mark_ctx_outer_join (node->nod_arg [e_join_rght_rel]);
+		break;
+	    case nod_join_right:
+		mark_ctx_outer_join (node->nod_arg [e_join_left_rel]);
+		break;
+	    case nod_join_full:
+		mark_ctx_outer_join (node->nod_arg [e_join_rght_rel]);
+		mark_ctx_outer_join (node->nod_arg [e_join_left_rel]);
+		break;
+	    default:
+		ASSERT_FAIL;		/* join type expected */
+		break;
+	    }
+	break;	
+
+    default:
+	break;
+    }
+
+/* Try to match parameters against things of known data type */
+
+sub3 = NULL;
+switch (node->nod_type)
+    {
+    case nod_between:
+	sub3 = node->nod_arg [2];
+	/* FALLINTO */
+    case nod_assign:
+    case nod_eql:
+    case nod_gtr:
+    case nod_geq:
+    case nod_leq:
+    case nod_lss:
+    case nod_neq:
+    case nod_eql_any:
+    case nod_gtr_any:
+    case nod_geq_any:
+    case nod_leq_any:
+    case nod_lss_any:
+    case nod_neq_any:
+    case nod_eql_all:
+    case nod_gtr_all:
+    case nod_geq_all:
+    case nod_leq_all:
+    case nod_lss_all:
+    case nod_neq_all:
+	sub1 = node->nod_arg [0];
+	sub2 = node->nod_arg [1];
+
+	/* Try to force sub1 to be same type as sub2 eg: ? = FIELD case */
+	if (set_parameter_type (sub1, sub2, FALSE))
+	    /* null */;
+	else
+	    /* That didn't work - try to force sub2 same type as sub 1 eg: FIELD = ? case */
+	    (void) set_parameter_type (sub2, sub1, FALSE);
+	if (sub3)
+	    /* X BETWEEN Y AND ? case */
+	    (void) set_parameter_type (sub3, sub2, FALSE);
+	break;
+
+    case nod_like:
+	if (node->nod_count == 3)
+	    {
+	    sub3 = node->nod_arg[2];
+	    }
+	/* FALLINTO */
+    case nod_containing:
+    case nod_starting:
+	sub1 = node->nod_arg [0];
+	sub2 = node->nod_arg [1];
+
+	/* Try to force sub1 to be same type as sub2 eg: ? LIKE FIELD case */
+	if (set_parameter_type (sub1, sub2, TRUE))
+	    /* null */;
+	else
+	    /* That didn't work - try to force sub2 same type as sub 1 eg: FIELD LIKE ? case */
+	    (void) set_parameter_type (sub2, sub1, TRUE);
+	if (sub3)
+	    /* X LIKE Y ESCAPE ? case */
+	    (void) set_parameter_type (sub3, sub2, TRUE);
+	break;
+
+    default:
+	break;
+    }
+
+return node;
+}
+
 static NOD pass1_relation (
     REQ		request,
     NOD		input)
@@ -2966,7 +3076,7 @@ node->nod_arg [e_rel_context] =
 
 return node;
 }
-
+
 static NOD pass1_alias_list (
     REQ		request,
     NOD		alias_list)
@@ -3084,7 +3194,7 @@ p [-1] = 0;
 
 return (NOD) new_context;
 }
-
+
 static CTX pass1_alias (
     REQ		request,
     STR		alias)
@@ -3149,7 +3259,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 return relation_context;
 }
 
-
+
 static DSQL_REL pass1_base_table (
     REQ		request,
     DSQL_REL	relation, 
@@ -3173,7 +3283,7 @@ DEV_BLKCHK (alias, type_str);
 
 return METD_get_view_relation (request, relation->rel_name, alias->str_data, 0);
 }
-
+
 static NOD pass1_rse (
     REQ		request,
     NOD		input,
@@ -3270,7 +3380,30 @@ if (node = input->nod_arg [e_sel_where])
 /* Process GROUP BY clause, if any */
 
 if (node = input->nod_arg [e_sel_group])
-    aggregate->nod_arg [e_agg_group] = PASS1_node (request, node, 0);
+{
+	USHORT fcount = 0;
+    aggregate->nod_arg [e_agg_group] = pass1_node (request, node, 0, &fcount);
+	if (fcount > 1)
+	{
+		/*
+		NOD input = node1;
+		STR name = 0;
+		if (input->nod_type == nod_array)
+			input = input->nod_arg [e_ary_array];
+		if (input->nod_count == 1)
+			name = (STR) input->nod_arg [0];
+		else
+			name = (STR) input->nod_arg [1];
+		
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+			gds_arg_gds, gds__dsql_command_err, 
+			gds_arg_gds, gds__group_by_err,   /.* invalid GROUP BY clause *./
+			gds_arg_gds, gds__random,
+			gds_arg_string, name->str_data, 
+			0);
+		*/
+	}
+}
 
 if (parent_context)
     LLS_PUSH (parent_context, &request->req_context);
@@ -3410,7 +3543,7 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
 
 	/* check for field or relation node */
 
-	frnode = pass1_field( request, *ptr, 1);
+	frnode = pass1_field( request, *ptr, 1, 0);
 	if ( frnode->nod_type == nod_field)
 	    LLS_PUSH( frnode, &stack);
 	else
@@ -3441,6 +3574,7 @@ static NOD pass1_sort (
  **************************************/
 NOD	node, *ptr, *end, *ptr2, node1, node2;
 ULONG	position;
+USHORT	fcount = 0;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -3470,7 +3604,32 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
     node2->nod_arg[1] = node1->nod_arg[1];
     node1 = node1->nod_arg[0];
     if (node1->nod_type == nod_field_name)
-	node2->nod_arg[0] = pass1_field (request, node1, 0);
+	{
+		fcount = 0;
+		node2->nod_arg[0] = pass1_field (request, node1, 0, &fcount);
+		/* CVC: It works, but we'll centralize detection on pass1_field.
+		Don't delete fcount since it's used to indicate that ambiguous fields
+		should be detected by pass1_field; otherwise it has the old behavior.
+		if (fcount > 1)
+		{
+			NOD input = node1;
+			STR name = 0;
+			if (input->nod_type == nod_array)
+				input = input->nod_arg [e_ary_array];
+			if (input->nod_count == 1)
+				name = (STR) input->nod_arg [0];
+			else
+				name = (STR) input->nod_arg [1];
+			
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+				gds_arg_gds, gds__dsql_command_err, 
+				gds_arg_gds, gds__order_by_err,   /.* invalid ORDER BY clause *./
+				gds_arg_gds, gds__random,
+				gds_arg_string, name->str_data, 
+				0);
+		}
+		*/
+	}
     else if (node1->nod_type == nod_position)
 	{
 	position =  (ULONG) (node1->nod_arg[0]);
@@ -3836,7 +3995,7 @@ if (input->nod_type == nod_field_name)
     if (input->nod_arg[e_fln_context])
 	{
 	if (request->req_flags & REQ_trigger)
-	    return pass1_field (request, input, 0);
+	    return pass1_field (request, input, 0, 0);
 	else
 	    field_error (NULL_PTR, NULL_PTR, input);
 	}
@@ -4003,7 +4162,9 @@ static FLD resolve_context (
     REQ		request,
     STR		name,
     STR		qualifier,
-    CTX		context)
+    CTX		context,
+	DSQL_REL	*aux_relation,
+	PRC		*aux_procedure)
 {
 /**************************************
  *
@@ -4054,9 +4215,17 @@ if (qualifier &&
 /* Lookup field in relation or procedure */
 
 if (relation)
+{
     field = relation->rel_fields;
+	if (aux_relation)
+		*aux_relation = relation;
+}
 else
+{
     field = procedure->prc_outputs;
+	if (aux_procedure)
+		*aux_procedure = procedure;
+}
 
 return field;
 }

@@ -575,6 +575,8 @@
 #define gds__dsql_warn_precision_ambiguous    336003082L
 #define gds__dsql_warn_precision_ambiguous1   336003083L
 #define gds__dsql_warn_precision_ambiguous2   336003084L
+#define gds__dsql_ambiguous_field_name        336003085L
+#define gds__dsql_udf_return_pos_err          336003086L
 #define gds__dyn_role_does_not_exist          336068796L
 #define gds__dyn_no_grant_admin_opt           336068797L
 #define gds__dyn_user_not_role_member         336068798L
@@ -733,7 +735,7 @@
 #define gds__gstat_open_err                   336920605L
 #define gds__gstat_read_err                   336920606L
 #define gds__gstat_sysmemex                   336920607L
-#define gds_err_max                          692
+#define gds_err_max                          694
 
 /***********************/
 /*   ISC Error Codes   */
@@ -1293,6 +1295,8 @@
 #define isc_dsql_warn_precision_ambiguous    336003082L
 #define isc_dsql_warn_precision_ambiguous1   336003083L
 #define isc_dsql_warn_precision_ambiguous2   336003084L
+#define isc_dsql_ambiguous_field_name        336003085L
+#define isc_dsql_udf_return_pos_err          336003086L
 #define isc_dyn_role_does_not_exist          336068796L
 #define isc_dyn_no_grant_admin_opt           336068797L
 #define isc_dyn_user_not_role_member         336068798L
@@ -1451,5 +1455,5 @@
 #define isc_gstat_open_err                   336920605L
 #define isc_gstat_read_err                   336920606L
 #define isc_gstat_sysmemex                   336920607L
-#define isc_err_max                          692
+#define isc_err_max                          694
 

@@ -105,8 +105,8 @@
 #define irq_get_role_name	70	/* get SQL role name */
 #define irq_format6     71      /* make a new format for a record */
 #define irq_r_gen_id_num	72	/* lookup generator by ID. */
+#define irq_verify_role_name	73	/* ensure role exists in roles & user_privileges. */
 
-
-#define irq_MAX		73
+#define irq_MAX		74
 
 #endif /* _JRD_IRQ_H_ */

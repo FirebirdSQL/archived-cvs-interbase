@@ -25,6 +25,7 @@
  *    05-Jun-2001 John Bellardo - Renamed the revoke static function to
  *                                revoke_permission, because there is already
  *                                a revoke(2) function in *nix.
+ *    20-Jun-2001 Claudio Valderrama - Enable calls to DYN_delete_generator.
  *                                      
  */
 

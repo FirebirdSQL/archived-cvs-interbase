@@ -20,10 +20,6 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Id$
- *
- * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
- *                         conditionals, as the engine now fully supports
- *                         readonly databases.
  */
 /*
  * 2001.5.20 Claudio Valderrama: Stop null pointer that leads to a crash,
@@ -41,6 +37,16 @@
  * Ex: alter domain d type char(5) type varchar(5) default 'x' default 'y';
  * Bear in mind that if DYN functions are addressed directly, this protection
  * becomes a moot point.
+ * 2001.6.30 Claudio Valderrama: revert changes from 2001.6.26 because the code
+ * is called from several places and there are more functions, even in metd.c,
+ * playing the same nonsense game with the field's length, so it needs more
+ * careful examination. For now, the new checks in DYN_MOD should catch most anomalies.
+ * 2001.7.3 Claudio Valderrama: fix Firebird Bug #223059 with mismatch between number
+ * of declared fields for a VIEW and effective fields in the SELECT statement.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
+ * 2001.07.22 Claudio Valderrama: minor fixes and improvements.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -74,7 +80,7 @@ static void	define_computed (REQ, NOD, FLD, NOD);
 static void	define_constraint_trigger (REQ, NOD);
 static void	define_database (REQ);
 static void	define_del_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
-static void     define_del_default_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
+static void define_del_default_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_dimensions (REQ, FLD);
 static void	define_domain (REQ);
 static void	define_exception (REQ, NOD_TYPE);
@@ -95,7 +101,7 @@ static void	define_update_action (REQ, NOD *, NOD *);
 static void	define_upd_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_view (REQ);
 static void	define_view_trigger (REQ, NOD, NOD, NOD);
-static void delete_relation_view (REQ, NOD);
+static void delete_relation_view (REQ, NOD, BOOLEAN);
 static void	end_blr (REQ);
 static void	foreign_key (REQ, NOD);
 static void	generate_dyn (REQ, NOD);
@@ -188,12 +194,12 @@ static CONST USHORT	blr_dtypes [] = {
 	blr_int64       /* dtype_int64 */
 	};
 
-static CONST UCHAR	nonnull_validation_blr [] =
+static CONST UCHAR	nonnull_validation_blr [] = 
    {
    blr_version5,
-   blr_not,
-      blr_missing,
-         blr_fid, 0, 0,0,
+   blr_not, 
+      blr_missing, 
+         blr_fid, 0, 0,0, 
    blr_eoc
    };
 
@@ -210,7 +216,7 @@ void DDL_execute (
  *
  * Functional description
  *	Call access method layered service DYN
- *	to interpret dyn string and perform
+ *	to interpret dyn string and perform 
  *	metadata updates.
  *
  **************************************/
@@ -246,33 +252,35 @@ THREAD_ENTER;
 if ((request->req_ddl_node->nod_type == nod_mod_relation) ||
     (request->req_ddl_node->nod_type == nod_del_relation) ||
 	/* CVC: Handle nod_del_view here or we will keep obsolete metadata. */
-	(request->req_ddl_node->nod_type == nod_del_view))
-    {
-    if (request->req_ddl_node->nod_type == nod_mod_relation)
+	(request->req_ddl_node->nod_type == nod_del_view) ||
+	(request->req_ddl_node->nod_type == nod_redef_relation))
+{
+    if (request->req_ddl_node->nod_type == nod_mod_relation ||
+		request->req_ddl_node->nod_type == nod_redef_relation)
 	{
-	relation_node = request->req_ddl_node->nod_arg [e_alt_name];
-	string = (STR) relation_node->nod_arg [e_rln_name];
+		relation_node = request->req_ddl_node->nod_arg [e_alt_name];
+		string = (STR) relation_node->nod_arg [e_rln_name];
 	}
     else
-	string = (STR) request->req_ddl_node->nod_arg [e_alt_name];
-    METD_drop_relation (request, string);
-    }
+		string = (STR) request->req_ddl_node->nod_arg [e_alt_name];
+    METD_drop_relation (request, string); 
+}
 
 /* for delete & modify, get rid of the cached procedure metadata */
 
 if ((request->req_ddl_node->nod_type == nod_mod_procedure) ||
     (request->req_ddl_node->nod_type == nod_del_procedure))
-    {
+{
     string = (STR) request->req_ddl_node->nod_arg [e_prc_name];
-    METD_drop_procedure (request, string);
-    }
+    METD_drop_procedure (request, string); 
+}
 
 if (s)
     LONGJMP (tdsql->tsql_setjmp, (int) tdsql->tsql_status [1]);
 }
 
 void DDL_generate (
-    REQ		request,
+    REQ		request,   
     NOD		node)
 {
 /**************************************
@@ -300,7 +308,7 @@ STUFF (gds__dyn_eoc);
 }
 
 int DDL_ids (
-    REQ		request)
+    REQ		request)   
 {
 /**************************************
  *
@@ -332,13 +340,13 @@ return TRUE;
 }
 
 void DDL_put_field_dtype (
-    REQ		request,
+    REQ		request,   
     FLD		field,
     USHORT	use_subtype)
 {
 /**************************************
  *
- *	D D L _ p u t _ f i e l d _ d t y p e
+ *	D D L _ p u t _ f i e l d _ d t y p e 
  *
  **************************************
  *
@@ -386,10 +394,10 @@ if ((field->fld_dtype > dtype_any_text) && field->fld_dtype != dtype_blob)
     if (field->fld_character_set || collation_name ||
 	field->fld_flags & FLD_national)
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    gds_arg_gds, gds__dsql_datatype_err,
+    	    gds_arg_gds, gds__dsql_datatype_err, 
 	    gds_arg_gds, gds__collation_requires_text,
     	    0);
-
+    
     return;
     }
 
@@ -397,11 +405,11 @@ if (field->fld_dtype == dtype_blob)
     {
     if (field->fld_sub_type_name)
 	{
-	if (!METD_get_type (request, field->fld_sub_type_name,
+	if (!METD_get_type (request, field->fld_sub_type_name, 
 				"RDB$FIELD_SUB_TYPE", &blob_sub_type))
 	    {
             ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    	gds_arg_gds, gds__dsql_datatype_err,
+    	    	gds_arg_gds, gds__dsql_datatype_err, 
 	    	gds_arg_gds, gds__dsql_blob_type_unknown,
 		gds_arg_string, ((STR)field->fld_sub_type_name)->str_data,
     	    	0);
@@ -412,12 +420,12 @@ if (field->fld_dtype == dtype_blob)
 	field->fld_sub_type = BLOB_text;
     if (field->fld_character_set && (field->fld_sub_type != BLOB_text))
 	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    gds_arg_gds, gds__dsql_datatype_err,
+    	    gds_arg_gds, gds__dsql_datatype_err, 
 	    gds_arg_gds, gds__collation_requires_text,
     	    0);
     if (collation_name)
 	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    gds_arg_gds, gds__dsql_datatype_err,
+    	    gds_arg_gds, gds__dsql_datatype_err, 
 	    gds_arg_gds, gds__collation_requires_text,
     	    0);
     if (field->fld_sub_type != BLOB_text)
@@ -433,7 +441,7 @@ if (field->fld_character_set_id != 0 &&
     return;
     }
 
-if (!(field->fld_character_set ||
+if (!(field->fld_character_set || 
       field->fld_character_set_id ||		/* set if a domain */
       (field->fld_flags & FLD_national)))
     {
@@ -461,10 +469,10 @@ if (!(field->fld_character_set ||
 			if (field_length + extra_len > (ULONG) MAX_COLUMN_SIZE)
 				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
 				gds_arg_gds, gds__dsql_datatype_err,
-				gds_arg_gds, gds__imp_exc,
+				gds_arg_gds, gds__imp_exc, 
 				gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
 				0);
-			field->fld_length = (USHORT) field_length;
+			field->fld_length = (USHORT) field_length + extra_len;
 	    };
         field->fld_ttype = 0;
 		if (!collation_name)
@@ -491,7 +499,7 @@ if (charset_name)
     if (!resolved_charset)
 	/* specified character set not found */
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    gds_arg_gds, gds__dsql_datatype_err,
+    	    gds_arg_gds, gds__dsql_datatype_err, 
     	    gds_arg_gds, gds__charset_not_found, gds_arg_string, charset_name,
     	    0);
     field->fld_character_set_id = resolved_charset->intlsym_charset_id;
@@ -505,7 +513,7 @@ if (collation_name)
     if (!resolved_collation)
 	/* Specified collation not found */
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    gds_arg_gds, gds__dsql_datatype_err,
+    	    gds_arg_gds, gds__dsql_datatype_err, 
     	    gds_arg_gds, gds__collation_not_found, gds_arg_string, collation_name->str_data,
     	    0);
 
@@ -516,7 +524,7 @@ if (collation_name)
     if ((field->fld_character_set_id != resolved_type->intlsym_charset_id) &&
         (field->fld_character_set_id != ttype_dynamic))
 	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-    	    gds_arg_gds, gds__dsql_datatype_err,
+    	    gds_arg_gds, gds__dsql_datatype_err, 
     	    gds_arg_gds, gds__collation_not_for_charset, gds_arg_string, collation_name->str_data,
     	    0);
     }
@@ -524,7 +532,7 @@ if (collation_name)
 
 if (field->fld_character_length)
 {
-	ULONG field_length = (ULONG) resolved_type->intlsym_bytes_per_char *
+	ULONG field_length = (ULONG) resolved_type->intlsym_bytes_per_char * 
     			field->fld_character_length, extra_len = 0;
 
 	/* CVC: Same error again: the size of the length indicator shouldn't be
@@ -535,10 +543,10 @@ if (field->fld_character_length)
     if (field_length + extra_len > (ULONG) MAX_COLUMN_SIZE)
 	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
 		gds_arg_gds, gds__dsql_datatype_err,
-		gds_arg_gds, gds__imp_exc,
+		gds_arg_gds, gds__imp_exc, 
 		gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
 		0);
-    field->fld_length = (USHORT) field_length;
+    field->fld_length = (USHORT) field_length + extra_len;
 };
 
 field->fld_ttype = resolved_type->intlsym_ttype;
@@ -548,7 +556,7 @@ field->fld_collation_id = resolved_type->intlsym_collate_id;
 
 static void begin_blr (
     REQ		request,
-    UCHAR	verb)
+    UCHAR	verb)    
 {
 /**************************************
  *
@@ -588,7 +596,7 @@ static USHORT check_array_or_blob (
  * Functional description
  *	return TRUE if there is an array or blob in expression, else FALSE.
  *	Array and blob expressions have limited usefullness in a computed
- *	expression - so we detect it here to report a syntax error at
+ *	expression - so we detect it here to report a syntax error at 
  *	definition time, rather than a runtime error at execution.
  *
  **************************************/
@@ -661,7 +669,7 @@ switch (node->nod_type)
 
     case nod_extract:
     case nod_list:
-	for (ptr = node->nod_arg, end = ptr + node->nod_count;
+	for (ptr = node->nod_arg, end = ptr + node->nod_count; 
 	     ptr < end; ptr++)
 		if (check_array_or_blob (*ptr))
 		    return TRUE;
@@ -773,7 +781,7 @@ static void create_view_triggers (
 {
 /**************************************
  *
- *	c r e a t e _ v i e w _ t r i g g e r s
+ *	c r e a t e _ v i e w _ t r i g g e r s 
  *
  **************************************
  *
@@ -825,7 +833,7 @@ STUFF (gds__dyn_end);  /* For triggers definition  */
 
 static void define_computed (
     REQ		request,
-    NOD		relation_node,
+    NOD		relation_node, 
     FLD		field,
     NOD		node)
 {
@@ -836,8 +844,8 @@ static void define_computed (
  **************************************
  *
  * Function
- *	Create the ddl to define a computed field
- *	or an expression index.
+ *	Create the ddl to define a computed field 
+ *	or an expression index. 
  *
  **************************************/
 NOD	input, ddl_node;
@@ -917,7 +925,7 @@ reset_context_stack (request);
 
 source = (STR) node->nod_arg [e_cmp_text];
 assert(source->str_length <= MAX_USHORT);
-put_string (request, gds__dyn_fld_computed_source, source->str_data,
+put_string (request, gds__dyn_fld_computed_source, source->str_data, 
 	    (USHORT)source->str_length);
 }
 
@@ -950,12 +958,12 @@ trigger_name = (STR) node->nod_arg [e_cnstr_name];
 if (node->nod_type == nod_def_constraint)
     {
     assert(trigger_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_def_trigger, trigger_name->str_data,
+    put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
 			(USHORT)trigger_name->str_length);
     relation_node = node->nod_arg [e_cnstr_table];
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
     assert(trigger_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_rel_name, relation_name->str_data,
+    put_string (request, gds__dyn_rel_name, relation_name->str_data, 
 			(USHORT)relation_name->str_length);
     }
 else
@@ -1034,7 +1042,7 @@ if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
     }
 
 STUFF (gds__dyn_end);
-
+			    
 /* the request type may have been set incorrectly when parsing
    the trigger actions, so reset it to reflect the fact that this
    is a data definition request; also reset the ddl node */
@@ -1054,9 +1062,9 @@ static void define_database (
  **************************************
  *
  * Function
- *	Create a database. Assumes that
- *	database is created elsewhere with
- *	initial options. Modify the
+ *	Create a database. Assumes that 
+ *	database is created elsewhere with 
+ *	initial options. Modify the 
  *	database using DYN to add the remaining
  *	options.
  *
@@ -1079,10 +1087,10 @@ put_number (request, gds__dyn_rel_sql_protection, 1);
 elements = ddl_node->nod_arg [e_database_initial_desc];
 
 if (elements)
-  for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
+  for (ptr = elements->nod_arg, end = ptr + elements->nod_count; 
 	ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
 
     switch (element->nod_type)
 	{
@@ -1095,12 +1103,12 @@ if (elements)
 	}
     }
 
-elements = ddl_node->nod_arg [e_database_rem_desc];
+elements = ddl_node->nod_arg [e_database_rem_desc]; 
 if (elements)
   for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
 
     switch (element->nod_type)
 	{
@@ -1110,9 +1118,9 @@ if (elements)
 	    STUFF (gds__dyn_file_start);
 	    STUFF_WORD (4);
 	    start = MAX (start, file->fil_start);
-
+	
 	    STUFF_DWORD (start) ;
-
+	
 	    STUFF (gds__dyn_file_length);
 	    STUFF_WORD (4);
 	    STUFF_DWORD (file->fil_length);
@@ -1122,13 +1130,13 @@ if (elements)
 
 	case nod_log_file_desc:
 	    file = (FIL) element->nod_arg [0];
-
+	
 	    if (file->fil_flags & LOG_default)
 		{
 		STUFF (gds__dyn_def_default_log);
 		break;
 		}
-	    put_cstring (request, gds__dyn_def_log_file,
+	    put_cstring (request, gds__dyn_def_log_file, 
 			file->fil_name->str_data);
 	    STUFF (gds__dyn_file_length);
 	    STUFF_WORD (4);
@@ -1238,7 +1246,7 @@ put_cstring (request, gds__dyn_rel_name, prim_rel_name);
 /* the trigger blr */
 begin_blr (request, gds__dyn_trg_blr);
 STUFF (blr_for);
-STUFF (blr_rse);
+STUFF (blr_rse); 
 
 /* the context for the prim. key relation */
 STUFF (1);
@@ -1276,7 +1284,7 @@ static void define_set_default_trg (
  *****************************************************
  *
  * Function
- *	define "on delete|update set default" trigger (for
+ *	define "on delete|update set default" trigger (for 
  *      referential integrity) along with its blr
  *
  *****************************************************/
@@ -1321,7 +1329,7 @@ if (on_upd_trg)
     }
 
 STUFF (blr_for);
-STUFF (blr_rse);
+STUFF (blr_rse); 
 
 /* the context for the prim. key relation */
 STUFF (1);
@@ -1339,7 +1347,7 @@ num_fields = 0;
 for_key_flds = for_columns->nod_arg;
 
 ddl_node = request->req_ddl_node;
-
+    
 do  {
     /* for every column in the foreign key .... */
     for_key_fld_name_str = (STR) (*for_key_flds)->nod_arg[1];
@@ -1361,7 +1369,7 @@ do  {
        (2) The default-info for this column is not in memory (This is
            because this is an alter table ddl statement). The table
            already exists; therefore we get the column and/or domain
-	   default value from the system tables by calling:
+	   default value from the system tables by calling: 
 	   METD_get_col_default().  */
 
     found_default = FALSE;
@@ -1373,7 +1381,7 @@ do  {
     for (ptr = elem->nod_arg, end = ptr + elem->nod_count; ptr < end; ptr++)
         {
         elem = *ptr;
-        if (elem->nod_type != nod_def_field)
+        if (elem->nod_type != nod_def_field) 
     	    continue;
         field = (FLD) elem->nod_arg [e_dfl_field];
         if (strcmp(field->fld_name, for_key_fld_name_str->str_data))
@@ -1396,11 +1404,11 @@ do  {
 	         !(domain_name =  domain_name_str->str_data) )
 	        break;
 
-	    /* case: (1-b): domain name is available. Column level default
+	    /* case: (1-b): domain name is available. Column level default 
 	       is not declared. so get the domain default */
             METD_get_domain_default (request, domain_name, &found_default,
 	        default_val, sizeof(default_val));
-
+	
 	    search_for_default = FALSE;
             if (found_default)
                 stuff_default_blr (request, default_val, sizeof(default_val));
@@ -1414,22 +1422,22 @@ do  {
     if (search_for_default)
 	{
         /* case 2: see if the column/domain has already been created */
-
-        METD_get_col_default (request, for_rel_name,
-	    for_key_fld_name_str->str_data, &found_default,
+	
+        METD_get_col_default (request, for_rel_name, 
+	    for_key_fld_name_str->str_data, &found_default, 
 	    default_val, sizeof(default_val));
 
         if (found_default)
 	    stuff_default_blr (request, default_val, sizeof(default_val));
-        else
+        else 
 	    STUFF (blr_null);
-
+    
 	}
 
     /* the context for the foreign key relation */
     STUFF (blr_field); STUFF ((SSHORT)2);
     put_cstring (request, 0, for_key_fld_name_str->str_data);
-
+ 
     num_fields++;
     for_key_flds++;
     }
@@ -1459,7 +1467,7 @@ static void define_dimensions (
  *****************************************
  *
  * Function
- *	Define dimensions of an array
+ *	Define dimensions of an array 
  *
  **************************************/
 NOD    elements, element, *ptr, *end;
@@ -1471,13 +1479,13 @@ elements = field->fld_ranges;
 dims = elements->nod_count / 2;
 
 if (dims > MAX_ARRAY_DIMENSIONS)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -604,
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -604, 
         gds_arg_gds, gds__dsql_max_arr_dim_exceeded,
         0);
 
 put_number (request, gds__dyn_fld_dimensions, (SSHORT) dims);
 
-for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position=0
+for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position=0 
 					; ptr < end; ptr++,position++)
     {
     put_number (request, gds__dyn_def_dimension, position);
@@ -1491,12 +1499,12 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position=0
     hrange = (SLONG) (element->nod_arg [0]);
     STUFF_WORD (4);
     STUFF_DWORD (hrange);
-    STUFF (gds__dyn_end);
+    STUFF (gds__dyn_end);	
     if (lrange >= hrange)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -604,
-            gds_arg_gds, gds__dsql_arr_range_error,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -604, 
+            gds_arg_gds, gds__dsql_arr_range_error, 
             0);
-    }
+    }	
 }
 
 static void define_domain (
@@ -1509,7 +1517,7 @@ static void define_domain (
  **************************************
  *
  * Function
- *	Define a domain (global field)
+ *	Define a domain (global field)  
  *
  **************************************/
 NOD	element, node, node1, *ptr, *end_ptr;
@@ -1536,7 +1544,7 @@ if ((node = element->nod_arg [e_dom_default]) != NULL)
     if ((string = (STR) element->nod_arg [e_dom_default_source]) != NULL)
 	{
 	assert(string->str_length <= MAX_USHORT);
-	put_string (request, gds__dyn_fld_default_source, string->str_data,
+	put_string (request, gds__dyn_fld_default_source, string->str_data, 
 						(USHORT)string->str_length);
 	}
     }
@@ -1548,7 +1556,7 @@ if (field->fld_ranges)
 
 if (node = element->nod_arg [e_dom_constraint])
     {
-    for (ptr = node->nod_arg, end_ptr = ptr + node->nod_count; ptr < end_ptr; ptr++)
+    for (ptr = node->nod_arg, end_ptr = ptr + node->nod_count; ptr < end_ptr; ptr++)  
 	{
 	if ((*ptr)->nod_type == nod_rel_constraint)
 	    {
@@ -1562,8 +1570,8 @@ if (node = element->nod_arg [e_dom_constraint])
                     }
                 else
                     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -637,
-	                gds_arg_gds, gds__dsql_duplicate_spec,
-		        gds_arg_string, "NOT NULL",
+	                gds_arg_gds, gds__dsql_duplicate_spec, 
+		        gds_arg_string, "NOT NULL", 
                         0);
 		}
 	    else if (node1->nod_type == nod_def_constraint)
@@ -1581,7 +1589,7 @@ if (node = element->nod_arg [e_dom_constraint])
                                 string->str_data, (USHORT)string->str_length);
                     }
                 begin_blr (request, gds__dyn_fld_validation_blr);
-
+                
 		/* Set any VALUE nodes to the type of the domain being defined. */
 		if (node1->nod_arg [e_cnstr_condition])
 		    set_nod_value_attributes (node1->nod_arg [e_cnstr_condition],
@@ -1599,7 +1607,7 @@ if (node = element->nod_arg [e_dom_constraint])
 
 		request->req_context_number++;
 
-		GEN_expr (request,
+		GEN_expr (request, 
                   PASS1_node (request, node1->nod_arg [e_cnstr_condition], 0));
 
                 end_blr (request);
@@ -1692,13 +1700,13 @@ if (domain_node = element->nod_arg [e_dfl_domain])
     /* Get the domain information */
 
     if (!(METD_get_domain (request, field, domain_name->str_data)))
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
-            gds_arg_gds, gds__dsql_domain_not_found,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
+            gds_arg_gds, gds__dsql_domain_not_found, 
             gds_arg_string, ERR_cstring (domain_name->str_data),
             /* Specified domain or source field does not exist */
             0);
-
+       
     DDL_resolve_intl_type (request, field, element->nod_arg [e_dfl_collate]);
     if (element->nod_arg [e_dfl_collate])
 	{
@@ -1731,14 +1739,14 @@ if ((node = element->nod_arg [e_dfl_default]) != NULL)
     {
     node = PASS1_node (request,node,0);
     begin_blr (request, gds__dyn_fld_default_value);
-    if (node->nod_type == nod_null)
+    if (node->nod_type == nod_null) 
 	default_null_flag = TRUE;
     GEN_expr (request, node);
     end_blr (request);
     if ((string = (STR) element->nod_arg [e_dfl_default_source]) != NULL)
 	{
 	assert(string->str_length <= MAX_USHORT);
-	put_string (request, gds__dyn_fld_default_source, string->str_data,
+	put_string (request, gds__dyn_fld_default_source, string->str_data, 
 						(USHORT)string->str_length);
 	}
     }
@@ -1750,13 +1758,13 @@ if (field->fld_ranges)
 
 if (node = element->nod_arg [e_dfl_constraint])
     {
-    for (ptr = node->nod_arg, end_ptr = ptr + node->nod_count; ptr < end_ptr; ptr++)
+    for (ptr = node->nod_arg, end_ptr = ptr + node->nod_count; ptr < end_ptr; ptr++)  
 	{
 	if ((*ptr)->nod_type == nod_rel_constraint)
 	    {
 	    string = (STR) (*ptr)->nod_arg [e_rct_name];
 	    node1 = (*ptr)->nod_arg [e_rct_type];
-
+	    
 	    if (node1->nod_type == nod_null)
 		{
 		if (default_null_flag == TRUE)
@@ -1771,7 +1779,7 @@ if (node = element->nod_arg [e_dfl_constraint])
 		    cnstrt_flag = TRUE;
 		    }
 		put_cstring (request, gds__dyn_rel_constraint, (string) ? string->str_data : NULL);
-		STUFF (gds__dyn_fld_not_null);
+		STUFF (gds__dyn_fld_not_null); 
 		STUFF (gds__dyn_end);  /* For NOT NULL Constraint definition  */
 		}
 	    else if (node1->nod_type == nod_primary || node1->nod_type == nod_unique)
@@ -1817,7 +1825,7 @@ if (node = element->nod_arg [e_dfl_constraint])
     }
 
 if (cnstrt_flag == FALSE)
-    STUFF (gds__dyn_end);
+    STUFF (gds__dyn_end);   
 }
 
 static void define_filter (
@@ -1837,15 +1845,15 @@ NOD	*ptr, filter_node;
 
 filter_node = request->req_ddl_node;
 ptr = filter_node->nod_arg;
-put_cstring (request, gds__dyn_def_filter,
+put_cstring (request, gds__dyn_def_filter, 
 			((STR) (ptr [ e_filter_name]))->str_data);
-put_number (request, gds__dyn_filter_in_subtype,
+put_number (request, gds__dyn_filter_in_subtype, 
 		(SSHORT)	((ptr[e_filter_in_type])->nod_arg[0]));
-put_number (request, gds__dyn_filter_out_subtype,
+put_number (request, gds__dyn_filter_out_subtype, 
 		(SSHORT)	((ptr[e_filter_out_type])->nod_arg[0]));
-put_cstring (request, gds__dyn_func_entry_point,
+put_cstring (request, gds__dyn_func_entry_point, 
 			((STR) (ptr [ e_filter_entry_pt]))->str_data);
-put_cstring (request, gds__dyn_func_module_name,
+put_cstring (request, gds__dyn_func_module_name, 
 			((STR) (ptr [ e_filter_module]))->str_data);
 
 STUFF (gds__dyn_end);
@@ -1898,7 +1906,7 @@ index_name = (STR) ddl_node->nod_arg [e_idx_name];
 put_cstring (request, gds__dyn_def_idx, index_name->str_data);
 put_cstring (request, gds__dyn_rel_name, relation_name->str_data);
 
-/* go through the fields list, making an index segment for each field,
+/* go through the fields list, making an index segment for each field, 
    unless we have a computation, in which case generate an expression index */
 
 if (field_list->nod_type == nod_list)
@@ -1931,9 +1939,9 @@ static NOD define_insert_action (
  **************************************
  *
  * Function
- *	Define an action statement which, given a view
+ *	Define an action statement which, given a view 
  *	definition, will store a record from
- *	a view of a single relation into the
+ *	a view of a single relation into the 
  *	base relation.
  *
  **************************************/
@@ -1951,7 +1959,7 @@ ddl_node = request->req_ddl_node;
 
 if (ddl_node->nod_type != nod_def_view ||
     !(select_node = ddl_node->nod_arg [e_view_select]) ||
-    /*
+    /* 
        Handle VIEWS with UNION : nod_select now points to nod_list
        which in turn points to nod_select_expr
     */
@@ -1972,7 +1980,7 @@ insert_node->nod_arg [e_ins_relation] = relation_node;
 relation_node->nod_arg [e_rln_name] = from_list->nod_arg [0]->nod_arg [e_rln_name];
 relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (TEMP_CONTEXT);
 
-/* get the list of values and fields to assign to -- if there is
+/* get the list of values and fields to assign to -- if there is 
    no list of fields, get all fields in the base relation that
    are not computed */
 
@@ -1997,10 +2005,10 @@ if (!values_node)
 
 /* generate the list of assignments to fields in the base relation */
 
-ptr = fields_node->nod_arg;
-end = ptr + fields_node->nod_count;
-ptr2 = values_node->nod_arg;
-end2 = ptr2 + values_node->nod_count;
+ptr = fields_node->nod_arg; 
+end = ptr + fields_node->nod_count; 
+ptr2 = values_node->nod_arg; 
+end2 = ptr2 + values_node->nod_count; 
 value_stack = field_stack = NULL;
 for (; (ptr < end) && (ptr2 < end2); ptr++, ptr2++)
     {
@@ -2097,13 +2105,13 @@ request->req_procedure = procedure;
 
 field_ptr = &procedure->prc_inputs;
 
-if (parameters = procedure_node->nod_arg [e_prc_inputs])
+if (parameters = procedure_node->nod_arg [e_prc_inputs]) 
     {
     position = 0;
     for (ptr = parameters->nod_arg, end = ptr + parameters->nod_count;
 	 ptr < end; ptr++)
 	{
-	parameter = *ptr;
+	parameter = *ptr; 
 	field = (FLD) parameter->nod_arg [e_dfl_field];
 
 	put_cstring (request, gds__dyn_def_parameter, field->fld_name);
@@ -2133,13 +2141,13 @@ if (parameters = procedure_node->nod_arg [e_prc_inputs])
 /* now do the output parameters */
 field_ptr = &procedure->prc_outputs;
 
-if (parameters = procedure_node->nod_arg [e_prc_outputs])
+if (parameters = procedure_node->nod_arg [e_prc_outputs]) 
     {
     position = 0;
     for (ptr = parameters->nod_arg, end = ptr + parameters->nod_count;
 	 ptr < end; ptr++)
 	{
-	parameter = *ptr;
+	parameter = *ptr; 
 	field = (FLD) parameter->nod_arg [e_dfl_field];
 	put_cstring (request, gds__dyn_def_parameter, field->fld_name);
 	put_number (request, gds__dyn_prm_number, position);
@@ -2171,7 +2179,7 @@ if (inputs)
     STUFF (blr_message);
     STUFF (0);
     STUFF_WORD (2 * inputs);
-    parameters = procedure_node->nod_arg [e_prc_inputs];
+    parameters = procedure_node->nod_arg [e_prc_inputs]; 
     for (ptr = parameters->nod_arg, end = ptr + parameters->nod_count;
 	 ptr < end; ptr++)
 	{
@@ -2186,11 +2194,11 @@ STUFF (1);
 STUFF_WORD (2 * outputs + 1);
 if (outputs)
     {
-    parameters = procedure_node->nod_arg [e_prc_outputs];
+    parameters = procedure_node->nod_arg [e_prc_outputs]; 
     for (ptr = parameters->nod_arg, end = ptr + parameters->nod_count;
 	 ptr < end; ptr++)
 	{
-	parameter = *ptr;
+	parameter = *ptr; 
 	variable = (VAR) parameter->nod_arg [e_var_variable];
 	field = variable->var_field;
 	put_msg_field (request, field);
@@ -2210,11 +2218,11 @@ if (inputs)
 STUFF (blr_begin);
 if (outputs)
     {
-    parameters = procedure_node->nod_arg [e_prc_outputs];
+    parameters = procedure_node->nod_arg [e_prc_outputs]; 
     for (ptr = parameters->nod_arg, end = ptr + parameters->nod_count;
 	 ptr < end; ptr++)
 	{
-	parameter = *ptr;
+	parameter = *ptr; 
 	variable = (VAR) parameter->nod_arg [e_var_variable];
 	put_local_variable (request, variable);
 	}
@@ -2246,7 +2254,7 @@ static void define_rel_constraint (
 {
 /**************************************
  *
- *	d e f i n e _ r e l _ c o n s t r a i n t
+ *	d e f i n e _ r e l _ c o n s t r a i n t 
  *
  **************************************
  *
@@ -2269,7 +2277,7 @@ else if (node->nod_type == nod_foreign)
 else if (node->nod_type == nod_def_constraint)
     check_constraint (request, node, FALSE /* No delete trigger */);
 }
-
+
 static void define_relation (
     REQ		request)
 {
@@ -2281,7 +2289,7 @@ static void define_relation (
  *
  * Function
  *	Create an SQL table, relying on DYN to generate
- *	global fields for the local fields.
+ *	global fields for the local fields. 
  *
  **************************************/
 NOD	ddl_node, elements, element, *ptr, *end, relation_node;
@@ -2300,11 +2308,11 @@ put_number (request, gds__dyn_rel_sql_protection, 1);
 
 /* now do the actual metadata definition */
 
-elements = ddl_node->nod_arg [e_drl_elements];
+elements = ddl_node->nod_arg [e_drl_elements]; 
 for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position = 0;
 	ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
     switch (element->nod_type)
 	{
 	case nod_def_field:
@@ -2323,7 +2331,7 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position = 0;
 
 STUFF (gds__dyn_end);
 }
-
+
 static void define_role (
     REQ		request)
 {
@@ -2382,7 +2390,7 @@ assert (prim_columns->nod_count != 0);
 /* no trigger name. It is generated by the engine */
 put_string (request, gds__dyn_def_trigger, "", (USHORT)0);
 
-put_number (request, gds__dyn_trg_type,
+put_number (request, gds__dyn_trg_type, 
     (SSHORT)(on_upd_trg ? POST_MODIFY_TRIGGER : POST_ERASE_TRIGGER));
 
 STUFF(gds__dyn_sql_object);
@@ -2393,7 +2401,7 @@ put_cstring (request, gds__dyn_rel_name, prim_rel_name);
 /* the trigger blr */
 begin_blr (request, gds__dyn_trg_blr);
 
-/* for ON UPDATE TRIGGER only: generate the trigger firing condition:
+/* for ON UPDATE TRIGGER only: generate the trigger firing condition: 
    if prim_key.old_value != prim_key.new value.
    Note that the key could consist of multiple columns */
 
@@ -2405,7 +2413,7 @@ if (on_upd_trg)
     }
 
 STUFF (blr_for);
-STUFF (blr_rse);
+STUFF (blr_rse); 
 
 /* the context for the prim. key relation */
 STUFF (1);
@@ -2437,10 +2445,10 @@ do {
 while (num_fields < for_columns->nod_count);
 STUFF (blr_end);
 
-if (on_upd_trg)
+if (on_upd_trg) 
     {
-    STUFF (blr_end);
-    STUFF (blr_end);
+    STUFF (blr_end); 
+    STUFF (blr_end); 
     STUFF (blr_end);
     }
 end_blr (request);
@@ -2472,12 +2480,12 @@ SLONG	length;
 shadow_node = request->req_ddl_node;
 ptr = shadow_node->nod_arg;
 if (!ptr [e_shadow_number])
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-        gds_arg_gds, gds__dsql_command_err,
-        gds_arg_gds, gds__dsql_shadow_number_err,
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+        gds_arg_gds, gds__dsql_command_err, 
+        gds_arg_gds, gds__dsql_shadow_number_err, 
         0);
 
-put_number (request, gds__dyn_def_shadow,
+put_number (request, gds__dyn_def_shadow, 
 			(SSHORT) (ptr[e_shadow_number]));
 put_cstring (request, gds__dyn_def_file,
 			((STR) (ptr [ e_shadow_name]))->str_data);
@@ -2488,12 +2496,12 @@ put_number (request, gds__dyn_shadow_conditional,
 
 STUFF (gds__dyn_file_start);
 STUFF_WORD (4);
-STUFF_DWORD (0);
+STUFF_DWORD (0);  
 
 length = (SLONG) ptr [e_shadow_length];
 STUFF (gds__dyn_file_length);
 STUFF_WORD (4);
-STUFF_DWORD (length);
+STUFF_DWORD (length);  
 
 STUFF (gds__dyn_end);
 elements = ptr [e_shadow_sec_files];
@@ -2506,11 +2514,11 @@ if (elements)
         put_cstring (request, gds__dyn_def_file, file->fil_name->str_data);
 
 	if (!length && !file->fil_start)
-            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-                gds_arg_gds, gds__dsql_command_err,
-                gds_arg_gds, gds__dsql_file_length_err,
+            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+                gds_arg_gds, gds__dsql_command_err, 
+                gds_arg_gds, gds__dsql_file_length_err, 
 		gds_arg_number, (SLONG) file->fil_name->str_data,
-	        /* Preceding file did not specify length, so %s must include starting page number */
+	        /* Preceding file did not specify length, so %s must include starting page number */ 
                 0);
 
         STUFF (gds__dyn_file_start);
@@ -2559,12 +2567,12 @@ trigger_name = (STR) node->nod_arg [e_trg_name];
 if (node->nod_type == nod_def_trigger)
     {
     assert(trigger_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_def_trigger, trigger_name->str_data,
+    put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
 			(USHORT)trigger_name->str_length);
     relation_node = node->nod_arg [e_trg_table];
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
     assert(relation_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_rel_name, relation_name->str_data,
+    put_string (request, gds__dyn_rel_name, relation_name->str_data, 
 			(USHORT)relation_name->str_length);
     STUFF (gds__dyn_sql_object);
     }
@@ -2572,7 +2580,7 @@ else /* if (node->nod_type == nod_mod_trigger) */
     {
     assert (node->nod_type == nod_mod_trigger);
     assert(trigger_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_mod_trigger, trigger_name->str_data,
+    put_string (request, gds__dyn_mod_trigger, trigger_name->str_data, 
 			(USHORT)trigger_name->str_length);
     if (node->nod_arg [e_trg_actions])
 	{
@@ -2581,9 +2589,9 @@ else /* if (node->nod_type == nod_mod_trigger) */
 
 	if (!(relation_name = METD_get_trigger_relation (request, trigger_name, &trig_type)))
             ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-	        gds_arg_gds, gds__dsql_trigger_err,
-                gds_arg_gds, gds__random,
-		gds_arg_string, trigger_name->str_data,
+	        gds_arg_gds, gds__dsql_trigger_err, 
+                gds_arg_gds, gds__random, 
+		gds_arg_string, trigger_name->str_data, 
                 0);
 	relation_node = (NOD) ALLOCDV (type_nod, e_rln_count);
 	node->nod_arg [e_trg_table] = relation_node;
@@ -2602,7 +2610,7 @@ if (source && actions)
     assert(source->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_trg_source, source->str_data, (USHORT)source->str_length);
     }
-
+				    
 if (constant = node->nod_arg [e_trg_active])
     put_number (request, gds__dyn_trg_inactive, (SSHORT) constant->nod_arg [0]);
 
@@ -2710,6 +2718,7 @@ static void define_udf(
  *
  **************************************/
 NOD	*ptr, *end, *ret_val_ptr, arguments, udf_node;
+NOD *param_node;
 UCHAR	*udf_name;
 FLD	field;
 SSHORT  position, blob_position;
@@ -2719,9 +2728,9 @@ arguments = udf_node->nod_arg [e_udf_args];
 ptr = udf_node->nod_arg;
 udf_name = ((STR) (ptr [e_udf_name]))->str_data;
 put_cstring (request, gds__dyn_def_function, udf_name);
-put_cstring (request, gds__dyn_func_entry_point,
+put_cstring (request, gds__dyn_func_entry_point, 
 			((STR) (ptr [ e_udf_entry_pt]))->str_data);
-put_cstring (request, gds__dyn_func_module_name,
+put_cstring (request, gds__dyn_func_module_name, 
 			((STR) (ptr [ e_udf_module]))->str_data);
 
 ret_val_ptr = ptr [e_udf_return_value]->nod_arg;
@@ -2729,55 +2738,58 @@ ret_val_ptr = ptr [e_udf_return_value]->nod_arg;
 
 if (field = (FLD) ret_val_ptr [0])
     {
-
+	/* CVC: This is case of "returns <type> [by value|reference]" */
     /* Some data types can not be returned as value */
-
-    if (( (int)(ret_val_ptr[1]->nod_arg [0]) == FUN_value) &&
+       
+    if (( (int)(ret_val_ptr [1]->nod_arg [0]) == FUN_value) &&
 	   (field->fld_dtype == dtype_text ||
             field->fld_dtype == dtype_varying ||
             field->fld_dtype == dtype_cstring ||
             field->fld_dtype == dtype_blob ||
             field->fld_dtype == dtype_timestamp))
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__return_mode_err,
                 /* Return mode by value not allowed for this data type */
 	    0);
-
+    
     /* For functions returning a blob, coerce return argument position to
        be the last parameter. */
-
+    
     if (field->fld_dtype == dtype_blob)
     	{
 	blob_position = (arguments) ? arguments->nod_count + 1 : 1;
 	if (blob_position > MAX_UDF_ARGUMENTS)
-            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-                gds_arg_gds, gds__dsql_command_err,
+            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+                gds_arg_gds, gds__dsql_command_err, 
                 gds_arg_gds, gds__extern_func_err,
 		/* External functions can not have more than 10 parameters */
 		/* Or 9 if the function returns a BLOB */
 		0);
-
+		
     	put_number (request, gds__dyn_func_return_argument, blob_position);
 	}
     else
     	put_number (request, gds__dyn_func_return_argument, (SSHORT) 0);
-
-    position = 0;
+    
+    position = 0;     
     }
 else
     {
+	/* CVC: This is case of "returns parameter <N>" */
+
     position = (SSHORT) (ret_val_ptr [1]->nod_arg [0]);
     /* Function modifies an argument whose value is the function return value */
 
     if (!arguments || position > arguments->nod_count || position < 1)
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-	    gds_arg_gds, gds__dsql_command_err,
-	    gds_arg_gds, gds__extern_func_err,
-	    /* External functions can not have more than 10 parameters */
-	    /* Not strictly correct -- return position error */
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+	    gds_arg_gds, gds__dsql_command_err, 
+	    gds_arg_gds, isc_dsql_udf_return_pos_err, /*gds__extern_func_err, */
+		gds_arg_number, (SLONG) (arguments ? arguments->nod_count : 0),
+		/* CVC: We should devise new msg "position should be between 1 and #params";
+		here it is: dsql_udf_return_pos_err */
 	    0);
-
+		
     put_number (request, gds__dyn_func_return_argument, position);
     position = 1;
     }
@@ -2785,11 +2797,14 @@ else
 /* Now define all the arguments */
 if (!position)
     {
+	/* CVC: This is case of "returns <type> [by value|reference]" */
     if (field->fld_dtype == dtype_blob)
     	{
+		/* CVC: I need to test returning blobs by descriptor before allowing the
+		change there. For now, I ignore the return type specification. */
         BOOLEAN free_it = ((SSHORT) ret_val_ptr [1]->nod_arg [0] < 0);
     	put_number (request, gds__dyn_def_function_arg, blob_position);
-    	put_number (request, gds__dyn_func_mechanism,
+    	put_number (request, gds__dyn_func_mechanism, 
                      (SSHORT) ((free_it ? -1 : 1) * FUN_blob_struct) );
                      /* if we have the free_it set then the blob has
                         to be freed on return */
@@ -2797,10 +2812,10 @@ if (!position)
     else
     	{
         put_number (request, gds__dyn_def_function_arg, (SSHORT) 0);
-    	put_number (request, gds__dyn_func_mechanism,
+    	put_number (request, gds__dyn_func_mechanism, 
                        (SSHORT) (ret_val_ptr [1]->nod_arg [0]));
 	}
-
+    
     put_cstring (request, gds__dyn_function_name, udf_name);
     DDL_resolve_intl_type (request, field, NULL);
     put_field (request, field, TRUE);
@@ -2809,27 +2824,35 @@ if (!position)
     }
 
 assert (position == 1);
+/* CVC: This for all params, including the case of "returns parameter <N>" */
 if (arguments)
-    for (ptr = arguments->nod_arg, end = ptr + arguments->nod_count;
+    for (ptr = arguments->nod_arg, end = ptr + arguments->nod_count; 
 	ptr < end; ptr++, position++)
         {
 	if (position > MAX_UDF_ARGUMENTS)
-            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-                gds_arg_gds, gds__dsql_command_err,
+            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+                gds_arg_gds, gds__dsql_command_err, 
                 gds_arg_gds, gds__extern_func_err,
 		/* External functions can not have more than 10 parameters */
 		0);
+		
+        /*field = (FLD) *ptr; */
+		param_node = (*ptr)->nod_arg;
+		field = (FLD) param_node [e_udf_param_field];
 
-        field = (FLD) *ptr;
-	put_number (request, gds__dyn_def_function_arg, (SSHORT) position);
+		put_number (request, gds__dyn_def_function_arg, (SSHORT) position);
 
-	if (field->fld_dtype == dtype_blob)
-	    put_number (request, gds__dyn_func_mechanism,
-			 (SSHORT) FUN_blob_struct);
-	else
-	    put_number (request, gds__dyn_func_mechanism,(SSHORT) FUN_reference);
+		if (param_node [e_udf_param_type])
+		{
+			SSHORT arg_mechanism = (SSHORT) (param_node [e_udf_param_type]->nod_arg [0]);
+			put_number (request, gds__dyn_func_mechanism, arg_mechanism);
+		}
+		else if (field->fld_dtype == dtype_blob)
+			put_number (request, gds__dyn_func_mechanism, (SSHORT) FUN_blob_struct);
+		else
+			put_number (request, gds__dyn_func_mechanism, (SSHORT) FUN_reference);
 
-	put_cstring (request, gds__dyn_function_name, udf_name);
+		put_cstring (request, gds__dyn_function_name, udf_name);
         DDL_resolve_intl_type (request, field, NULL);
         put_field (request, field, TRUE);
         STUFF (gds__dyn_end);
@@ -2851,9 +2874,9 @@ static void define_update_action (
  **************************************
  *
  * Function
- *	Define an action statement which, given a view
+ *	Define an action statement which, given a view 
  *	definition, will map a update to a  record from
- *	a view of a single relation into the
+ *	a view of a single relation into the 
  *	base relation.
  *
  **************************************/
@@ -2873,7 +2896,7 @@ ddl_node = request->req_ddl_node;
 
 if (ddl_node->nod_type != nod_def_view ||
     !(select_node = ddl_node->nod_arg [e_view_select]) ||
-    /*
+    /* 
        Handle VIEWS with UNION : nod_select now points to nod_list
        which in turn points to nod_select_expr
     */
@@ -2889,7 +2912,7 @@ relation_node->nod_arg [e_rln_name] = from_list->nod_arg [0]->nod_arg [e_rln_nam
 relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (TEMP_CONTEXT);
 *base_relation = relation_node;
 
-/* get the list of values and fields to compare to -- if there is
+/* get the list of values and fields to compare to -- if there is 
    no list of fields, get all fields in the base relation that
    are not computed */
 
@@ -2913,10 +2936,10 @@ if (!values_node)
 
 /* generate the list of assignments to fields in the base relation */
 
-ptr = fields_node->nod_arg;
-end = ptr + fields_node->nod_count;
-ptr2 = values_node->nod_arg;
-end2 = ptr2 + values_node->nod_count;
+ptr = fields_node->nod_arg; 
+end = ptr + fields_node->nod_count; 
+ptr2 = values_node->nod_arg; 
+end2 = ptr2 + values_node->nod_count; 
 field_stack = NULL;
 and_node = MAKE_node (nod_and, (int) 2);
 and_arg = 0;
@@ -2926,8 +2949,8 @@ for (; (ptr < end) && (ptr2 < end2); ptr++, ptr2++)
     if (field_node->nod_type == nod_alias)
 	field_node = field_node->nod_arg [e_alias_value];
 
-    /* generate the actual comparisons */
-
+    /* generate the actual comparisons */ 
+    
     if (field_node->nod_type == nod_field_name)
 	{
 	field_node->nod_arg [e_fln_context] = (NOD) MAKE_cstring (TEMP_CONTEXT);
@@ -2940,8 +2963,8 @@ for (; (ptr < end) && (ptr2 < end2); ptr++, ptr2++)
 	old_value_node->nod_arg [e_fln_name] = (*ptr2)->nod_arg [e_fln_name];
 	old_value_node->nod_arg [e_fln_context] = (NOD) MAKE_cstring (OLD_CONTEXT);
 	eql_node = MAKE_node (nod_eql, (int) 2);
-	eql_node->nod_arg [0] = old_value_node;
-	eql_node->nod_arg [1] = field_node;
+	eql_node->nod_arg [0] = old_value_node; 
+	eql_node->nod_arg [1] = field_node; 
 
 	anull_node = MAKE_node (nod_missing, 1);
 	anull_node->nod_arg [0] = old_value_node;
@@ -2956,7 +2979,7 @@ for (; (ptr < end) && (ptr2 < end2); ptr++, ptr2++)
 	or_node->nod_arg [0] = eql_node;
 	or_node->nod_arg [1] = iand_node;
 
-	if (and_arg <= 1)
+	if (and_arg <= 1) 
 	   and_node->nod_arg [and_arg++] = or_node;
 	else
 	   {
@@ -3031,7 +3054,7 @@ STUFF (blr_begin);
 STUFF (blr_begin);
 
 STUFF (blr_for);
-STUFF (blr_rse);
+STUFF (blr_rse); 
 
 /* the new context for the prim. key relation */
 STUFF (1);
@@ -3096,7 +3119,7 @@ NOD	check, relation_node;
 NOD	view_fields, *ptr, *end;
 NOD	items, *i_ptr, *i_end;
 DSQL_REL	relation;
-FLD	field;
+FLD	field;  
 CTX	context;
 STR	view_name, field_name, source;
 SSHORT	position, updatable = TRUE;
@@ -3144,7 +3167,7 @@ for (temp = request->req_context; temp; temp = temp->lls_next)
 	{
 	put_cstring (request, gds__dyn_view_relation, relation->rel_name);
 	put_number (request, gds__dyn_view_context, context->ctx_context);
-	put_cstring (request, gds__dyn_view_context_name,
+	put_cstring (request, gds__dyn_view_context_name, 
 		context->ctx_alias ? context->ctx_alias : relation->rel_name);
 	STUFF (gds__dyn_end);
 	}
@@ -3171,10 +3194,10 @@ if ((view_fields = node->nod_arg [e_view_fields]) != NULL)
 
 for (position = 0; i_ptr < i_end; i_ptr++, position++)
     {
-    field_node = *i_ptr;
+    field_node = *i_ptr; 
 
     /* check if this is a field or an expression */
-
+ 
     field = NULL;
     context = NULL;
     if (field_node->nod_type == nod_field)
@@ -3188,8 +3211,8 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
     /* if this is an expression, check to make sure there is a name specified */
 
     if (!ptr && !field)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__specify_field_err,
                 /* must specify field name for view select expression */
 	    0);
@@ -3197,13 +3220,20 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
     /* determine the proper field name, replacing the default if necessary */
 
     if (field)
-	field_string = field->fld_name;
-    if (ptr && ptr < end)
+		field_string = field->fld_name;
+	/* CVC: Small modification here to catch any mismatch between number of
+	explicit field names in a view and number of fields in the select expression,
+	see comment below. This closes Firebird Bug #223059. */
+    if (ptr)
 	{
-	field_name = (STR) (*ptr)->nod_arg [1];
-	field_string = (TEXT*) field_name->str_data;
-	ptr++;
+		if (ptr < end)
+		{
+			field_name = (STR) (*ptr)->nod_arg [1];
+			field_string = (TEXT*) field_name->str_data;
+		}
+		ptr++;
 	}
+
 
     /* if not an expression, point to the proper base relation field,
        else make up an SQL field with generated global field for calculations */
@@ -3218,7 +3248,7 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
 	{
 	put_cstring (request, gds__dyn_def_sql_fld, field_string);
 	MAKE_desc (&field_node->nod_desc, field_node);
-	put_descriptor (request, &field_node->nod_desc);
+	put_descriptor (request, &field_node->nod_desc); 
 	begin_blr (request, gds__dyn_fld_computed_blr);
 	GEN_expr (request, field_node);
 	end_blr (request);
@@ -3231,74 +3261,76 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
     STUFF (gds__dyn_end);
     }
 
+/* CVC: This message was not catching the case when
+#fields<items in select list, see comment above. */
 if (ptr != end)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-        gds_arg_gds, gds__dsql_command_err,
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+        gds_arg_gds, gds__dsql_command_err, 
         gds_arg_gds, gds__num_field_err,
             /* number of fields does not match select list */
 	0);
-
+  
 /* setup to define triggers for WITH CHECK OPTION */
 
-if ((check = node->nod_arg [e_view_check]) != NULL)
+if ((check = node->nod_arg [e_view_check]) != NULL) 
     {
     if (!updatable)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-        gds_arg_gds, gds__dsql_command_err,
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+        gds_arg_gds, gds__dsql_command_err, 
         gds_arg_gds, gds__col_name_err,
             /* Only simple column names permitted for VIEW WITH CHECK OPTION */
 	0);
 
     if (select_expr->nod_count != 1)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__table_view_err,
                 /* Only one table allowed for VIEW WITH CHECK OPTION */
 	    0);
-    /*
+    /* 
        Handle VIEWS with UNION : nod_select now points to nod_list
        which in turn points to nod_select_expr
     */
     else if (select_expr->nod_arg[0]->nod_arg [e_sel_from]->nod_count != 1)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__table_view_err,
                 /* Only one table allowed for VIEW WITH CHECK OPTION */
 	    0);
 
-    /*
+    /* 
        Handle VIEWS with UNION : nod_select now points to nod_list
        which in turn points to nod_select_expr
     */
     select_expr = select_expr->nod_arg[0];
     if (!(select_expr->nod_arg [e_sel_where]))
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__where_err,
                 /* No where clause for VIEW WITH CHECK OPTION */
 	    0);
-
+    
 
     if (select_expr->nod_arg [e_sel_distinct] ||
 	select_expr->nod_arg [e_sel_group] ||
 	select_expr->nod_arg [e_sel_having])
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__distinct_err,
             /* DISTINCT, GROUP or HAVING not permitted for VIEW WITH CHECK OPTION */
 	    0);
 
     relation_node = MAKE_node (nod_relation_name, e_rln_count);
     relation_node->nod_arg [e_rln_name] = (NOD) view_name;
-    check->nod_arg [e_cnstr_table] = relation_node;
+    check->nod_arg [e_cnstr_table] = relation_node; 
 
     check->nod_arg [e_cnstr_source] = (NOD) source;
-
-    /* the condition for the trigger is the converse of the selection
-       criteria for the view, suitably fixed up so that the fields in
+ 
+    /* the condition for the trigger is the converse of the selection 
+       criteria for the view, suitably fixed up so that the fields in 
        the view are referenced */
 
-    check->nod_arg [e_cnstr_condition] = select_expr->nod_arg [e_sel_where];
+    check->nod_arg [e_cnstr_condition] = select_expr->nod_arg [e_sel_where]; 
 
     /* Define the triggers   */
 
@@ -3339,7 +3371,7 @@ tdsql = GET_THREAD_DATA;
 ddl_node = request->req_ddl_node;
 
 select = ddl_node->nod_arg [e_view_select];
-/*
+/* 
    Handle VIEWS with UNION : nod_select now points to nod_list
    which in turn points to nod_select_expr
 */
@@ -3356,12 +3388,12 @@ trigger_name = (STR) node->nod_arg [e_cnstr_name];
 if (node->nod_type == nod_def_constraint)
     {
     assert(trigger_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_def_trigger, trigger_name->str_data,
+    put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
 			(USHORT)trigger_name->str_length);
     relation_node = node->nod_arg [e_cnstr_table];
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
     assert(relation_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_rel_name, relation_name->str_data,
+    put_string (request, gds__dyn_rel_name, relation_name->str_data, 
 			(USHORT)relation_name->str_length);
     }
 else
@@ -3440,7 +3472,7 @@ if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
 	temp = rse->nod_arg [e_rse_streams];
 	temp->nod_arg [0] = PASS1_node (request, temp->nod_arg [0], 0);
 	temp = rse->nod_arg [e_rse_boolean];
-	rse->nod_arg [e_rse_boolean] = PASS1_node (request, temp, 0);
+	rse->nod_arg [e_rse_boolean] = PASS1_node (request, temp, 0); 
 	GEN_expr (request, rse);
 
 	condition = MAKE_node (nod_not, 1);
@@ -3493,7 +3525,7 @@ if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
     }
 
 STUFF (gds__dyn_end);
-
+			    
 /* the request type may have been set incorrectly when parsing
    the trigger actions, so reset it to reflect the fact that this
    is a data definition request; also reset the ddl node */
@@ -3505,7 +3537,8 @@ reset_context_stack (request);
 
 static void delete_relation_view (
 	REQ		request,
-	NOD		node)
+	NOD		node,
+	BOOLEAN		silent_deletion)
 {
 /**************************************
  *
@@ -3519,31 +3552,46 @@ static void delete_relation_view (
  *  CVC: Created this function to not clutter generate_dyn().
  *
  **************************************/
-	STR string = (STR) node->nod_arg [0];
-	DSQL_REL relation = METD_get_relation (request, string);
+	STR string = 0;
+	DSQL_REL relation = 0;
 
-	if (node->nod_type == nod_del_relation)
+	if (node->nod_type == nod_redef_relation)
 	{
-		if (!relation || (relation->rel_flags & REL_view))
-			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            /* gds_arg_gds, gds__dsql_command_err,
-            gds_arg_gds, gds__dsql_table_not_found, */
+		NOD relation_node = node->nod_arg [e_alt_name];
+		assert (relation_node);
+		string = (STR) relation_node->nod_arg [e_rln_name];
+	}
+    else
+		string = (STR) node->nod_arg [e_alt_name];
+
+	assert (string);
+
+	relation = METD_get_relation (request, string);
+
+	if (node->nod_type == nod_del_relation || node->nod_type == nod_redef_relation)
+	{
+		if (!relation && !silent_deletion || relation && (relation->rel_flags & REL_view))
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+			/* gds_arg_gds, gds__dsql_command_err, 
+			gds_arg_gds, gds__dsql_table_not_found, */
 			gds_arg_gds, 336068783L,
 			gds_arg_string, string->str_data,
-            gds_arg_end);
+			gds_arg_end);
 	}
 	else /* node->nod_type == nod_del_view */
 	{
 		if (!relation || !(relation->rel_flags & REL_view))
-			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            /* gds_arg_gds, gds__dsql_command_err,
-            gds_arg_gds, gds__dsql_view_not_found, */
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+			/* gds_arg_gds, gds__dsql_command_err, 
+			gds_arg_gds, gds__dsql_view_not_found, */
 			gds_arg_gds, 336068783L,
 			gds_arg_string, string->str_data,
-            gds_arg_end);
+			gds_arg_end);
 	}
+	
+	if (relation)
+		put_cstring (request, gds__dyn_delete_rel, string->str_data);
 
-	put_cstring (request, gds__dyn_delete_rel, string->str_data);
 	STUFF (gds__dyn_end);
 }
 
@@ -3609,8 +3657,8 @@ if (!(columns2 = element->nod_arg [e_for_refcolumns]))
        the referenced table have a primary key to serve as the implicitly
        referenced field, fail. */
     if (! columns2)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__reftable_requires_pk,
                 /* "REFERENCES table" without "(column)" requires PRIMARY
                     KEY on referenced table */
@@ -3618,8 +3666,8 @@ if (!(columns2 = element->nod_arg [e_for_refcolumns]))
 }
 
 if (columns2 && (columns1->nod_count != columns2->nod_count))
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-        gds_arg_gds, gds__dsql_command_err,
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+        gds_arg_gds, gds__dsql_command_err, 
         gds_arg_gds, gds__key_field_count_err,
             /* foreign key field count does not match primary key */
 	0);
@@ -3627,12 +3675,12 @@ if (columns2 && (columns1->nod_count != columns2->nod_count))
 /* define the foreign key index and the triggers that may be needed
    for referential integrity action. */
 
-make_index_trg_ref_int (request, element, columns1,
+make_index_trg_ref_int (request, element, columns1, 
    element->nod_arg [e_for_refcolumns], relation2->str_data);
 }
 
 static void generate_dyn (
-    REQ		request,
+    REQ		request,   
     NOD		node)
 {
 /**************************************
@@ -3655,149 +3703,155 @@ request->req_ddl_node = node;
 	case nod_def_domain:
 		define_domain (request);
 		break;
-
+		
 	case nod_mod_domain:
 		modify_domain (request);
 		break;
-
+		
 	case nod_def_index:
 		define_index (request);
 		break;
-
+		
 	case nod_def_relation:
 		define_relation (request);
 		break;
 
+	case nod_redef_relation:
+		STUFF (gds__dyn_begin);
+		delete_relation_view (request, node, TRUE); /* silent. */
+		define_relation (request);
+		STUFF (gds__dyn_end);
+		break;
+		
 	case nod_def_view:
 		define_view (request);
 		break;
-
+		
 	case nod_def_exception:
 	case nod_mod_exception:
 	case nod_del_exception:
 		define_exception (request, node->nod_type);
 		break;
-
+		
 	case nod_def_procedure:
 	case nod_mod_procedure:
 		define_procedure (request, node->nod_type);
 		break;
-
+		
 	case nod_def_constraint:
 		define_constraint_trigger (request, node);
 		break;
-
+		
 	case nod_def_trigger:
 	case nod_mod_trigger:
 		define_trigger (request, node);
 		break;
-
+		
 	case nod_mod_relation:
 		modify_relation (request);
 		break;
-
+		
 	case nod_del_domain:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_global_fld, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_del_index:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_idx, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	/* CVC: Handling drop table and drop view properly. */
 	case nod_del_relation:
 	case nod_del_view:
-		delete_relation_view (request, node);
+		delete_relation_view (request, node, FALSE); /* no silent. */
 		break;
-
+		
 	case nod_del_procedure:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_procedure, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_del_trigger:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_trigger, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_del_role:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, isc_dyn_del_sql_role, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_grant:
 	case nod_revoke:
 		grant_revoke (request);
 		break;
-
+		
 	case nod_def_generator:
 		define_generator (request);
 		break;
-
+		
 	case nod_def_role:
 		define_role (request);
 		break;
-
+		
 	case nod_def_filter:
 		define_filter (request);
 		break;
-
+		
 	case nod_del_generator:
 		string = (STR) node->nod_arg [0];
-		/**********FIX -- nothing like delete_generator exists as yet
-		put_cstring (request, gds__dyn_def_generator, string->str_data);
-		STUFF (gds__dyn_end); */
-		break;
-
+		put_cstring (request, gds__dyn_delete_generator, string->str_data);
+		STUFF (gds__dyn_end);
+		break; 
+		
 	case nod_del_filter:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_filter, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_def_udf:
 		define_udf (request);
 		break;
-
+		
 	case nod_del_udf:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_function, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_def_shadow:
 		define_shadow (request);
 		break;
-
+		
 	case nod_del_shadow:
-		put_number (request, gds__dyn_delete_shadow,
+		put_number (request, gds__dyn_delete_shadow, 
 			(SSHORT) (node->nod_arg[0]));
 		STUFF (gds__dyn_end);
 		break;
-
+		
 	case nod_mod_database:
 		modify_database (request);
 		break;
-
+		
 	case nod_def_database:
 		define_database (request);
 		break;
-
+		
 	case nod_mod_index:
 		modify_index (request);
 		break;
-
+		
 	case nod_set_statistics:
 		set_statistics (request);
 		break;
-
+		
 	default:
 		break;
     }
@@ -3828,9 +3882,9 @@ ddl_node = request->req_ddl_node;
 privs = ddl_node->nod_arg [e_grant_privs];
 
 if (privs->nod_arg [0] != NULL)
-    {
-    if (privs->nod_arg [0]->nod_type == nod_role_name)
-        process_grant_role = TRUE;
+    { 
+    if (privs->nod_arg [0]->nod_type == nod_role_name)   
+        process_grant_role = TRUE; 
     }
 
 if (!process_grant_role)
@@ -3854,8 +3908,8 @@ else
         option = 2;
     STUFF (isc_dyn_begin);
 
-    for (role_ptr = role_list->nod_arg,
-         role_end = role_ptr + role_list->nod_count;
+    for (role_ptr = role_list->nod_arg, 
+         role_end = role_ptr + role_list->nod_count; 
          role_ptr < role_end; role_ptr++)
         {
         for (uptr = users->nod_arg, uend = uptr + users->nod_count;
@@ -3884,8 +3938,8 @@ static void make_index (
  **************************************
  *
  * Function
- *	Generate ddl to create an index for a unique
- *	or primary key constraint.
+ *	Generate ddl to create an index for a unique 
+ *	or primary key constraint. 
  *      This is not called for a foreign key constraint.
  *      The func. make_index_trf_ref_int handles foreign key constraint
  *
@@ -3899,7 +3953,7 @@ STR	field_name;
 assert(element->nod_type != nod_foreign)
 
 if (element->nod_type == nod_primary)
-    STUFF (gds__dyn_def_primary_key);
+    STUFF (gds__dyn_def_primary_key); 
 else if (element->nod_type == nod_unique)
     STUFF (gds__dyn_def_unique);
 STUFF_WORD (0);
@@ -3930,7 +3984,7 @@ static void make_index_trg_ref_int (
  *
  * Function
  *      This is called only when the element->nod_type == nod_foreign_key
- *
+ *      
  *     o Generate ddl to create an index for a unique
  *       or primary key constraint.
  *     o Also make an index for the foreign key constraint
@@ -3949,7 +4003,7 @@ assert (element->nod_type == nod_foreign)
 
 /* for_rel_name_str is the name of the relation on which the ddl operation
    is being done, in this case the foreign key table  */
-
+ 
 ddl_node = request->req_ddl_node;
 for_rel_node = ddl_node->nod_arg [e_drl_name];
 for_rel_name_str = (STR) for_rel_node->nod_arg [e_rln_name];
@@ -3958,7 +4012,7 @@ for_rel_name_str = (STR) for_rel_node->nod_arg [e_rln_name];
 /* stuff a zero-length name, indicating that an index
    name should be generated */
 
-STUFF (gds__dyn_def_foreign_key);
+STUFF (gds__dyn_def_foreign_key); 
 STUFF_WORD (0);
 
 
@@ -3978,7 +4032,7 @@ if (element->nod_arg [e_for_action])
             case REF_ACTION_CASCADE:
                 STUFF (gds__dyn_foreign_key_cascade);
     	        define_upd_cascade_trg (request, element, columns,
-    	            referenced_columns, relation_name,
+    	            referenced_columns, relation_name, 
     	            for_rel_name_str->str_data);
     	        break;
             case REF_ACTION_SET_DEFAULT:
@@ -3990,7 +4044,7 @@ if (element->nod_arg [e_for_action])
             case REF_ACTION_SET_NULL:
                 STUFF (gds__dyn_foreign_key_null);
     	        define_set_null_trg (request, element, columns,
-    	            referenced_columns, relation_name,
+    	            referenced_columns, relation_name, 
     	            for_rel_name_str->str_data, TRUE);
     	        break;
             case REF_ACTION_NONE:
@@ -4014,7 +4068,7 @@ if (element->nod_arg [e_for_action])
             case REF_ACTION_CASCADE:
                 STUFF (gds__dyn_foreign_key_cascade);
     	        define_del_cascade_trg (request, element, columns,
-    	            referenced_columns, relation_name,
+    	            referenced_columns, relation_name, 
     	            for_rel_name_str->str_data);
     	        break;
             case REF_ACTION_SET_DEFAULT:
@@ -4026,7 +4080,7 @@ if (element->nod_arg [e_for_action])
             case REF_ACTION_SET_NULL:
                 STUFF (gds__dyn_foreign_key_null);
     	        define_set_null_trg (request, element, columns,
-    	            referenced_columns, relation_name,
+    	            referenced_columns, relation_name, 
     	            for_rel_name_str->str_data, FALSE);
     	        break;
             case REF_ACTION_NONE:
@@ -4069,7 +4123,7 @@ static void modify_database (
  **************************************
  *
  * Function
- *	Modify a database.
+ *	Modify a database. 
  *
  **************************************/
 NOD	ddl_node, elements, element, *ptr, *end;
@@ -4091,7 +4145,7 @@ elements = ddl_node->nod_arg [e_adb_all];
 for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
     switch (element->nod_type)
 	{
 	case nod_drop_log:
@@ -4110,12 +4164,12 @@ if (drop_log)
     STUFF (gds__dyn_drop_log);
 if (drop_cache)
     STUFF (gds__dyn_drop_cache);
-
+		
 elements = ddl_node->nod_arg [e_adb_all];
 for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
 
     switch (element->nod_type)
 	{
@@ -4125,9 +4179,9 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	    STUFF (gds__dyn_file_start);
 	    STUFF_WORD (4);
 	    start = MAX (start, file->fil_start);
-
+	
 	    STUFF_DWORD (start) ;
-
+	
 	    STUFF (gds__dyn_file_length);
 	    STUFF_WORD (4);
 	    STUFF_DWORD (file->fil_length);
@@ -4137,13 +4191,13 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 
 	case nod_log_file_desc:
 	    file = (FIL) element->nod_arg [0];
-
+	
 	    if (file->fil_flags & LOG_default)
 		{
 		STUFF (gds__dyn_def_default_log);
 		break;
 		}
-	    put_cstring (request, gds__dyn_def_log_file,
+	    put_cstring (request, gds__dyn_def_log_file, 
 		    file->fil_name->str_data);
 	    STUFF (gds__dyn_file_length);
 	    STUFF_WORD (4);
@@ -4218,7 +4272,7 @@ static void modify_domain (
 {
 /**************************************
  *
- *	m o d i f y _ d o m a i n
+ *	m o d i f y _ d o m a i n 
  *
  **************************************
  *
@@ -4237,7 +4291,7 @@ BOOLEAN repetition_count [6];
 ddl_node = request->req_ddl_node;
 
 domain_node = ddl_node->nod_arg [e_alt_dom_name];
-domain_name = (STR) domain_node->nod_arg [e_fln_name];
+domain_name = (STR) domain_node->nod_arg [e_fln_name];  
 
 put_cstring (request, gds__dyn_mod_global_fld, domain_name->str_data);
 
@@ -4253,7 +4307,7 @@ put_cstring (request, gds__dyn_mod_global_fld, domain_name->str_data);
 ops = ddl_node->nod_arg [e_alt_dom_ops];
 for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
     switch (element->nod_type)
 	{
 	case nod_def_default:
@@ -4277,19 +4331,19 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 				(USHORT)string->str_length);
 		}
 		break;
-
+		
 	case nod_def_constraint:
 		check_one_call (repetition_count, 1, "DOMAIN CONSTRAINT");
 		STUFF (gds__dyn_single_validation);
 		begin_blr (request, gds__dyn_fld_validation_blr);
-
+		
 		/* Get the attributes of the domain, and set any occurances of
 	       nod_dom_value (corresponding to the keyword VALUE) to the
 	       correct type, length, scale, etc. */
 		if (! METD_get_domain (request, &local_field,
 			domain_name->str_data))
-			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-			gds_arg_gds, gds__dsql_command_err,
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+			gds_arg_gds, gds__dsql_command_err, 
 			gds_arg_gds, gds__dsql_domain_not_found,
 			gds_arg_string, ERR_cstring (domain_name->str_data),
 			/* Specified domain or source field does not exist */
@@ -4297,7 +4351,7 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 		if(element->nod_arg [e_cnstr_condition])
 			set_nod_value_attributes (element->nod_arg [e_cnstr_condition],
 			&local_field);
-
+		
 			/* Increment the context level for this request, so that
 			the context number for any RSE generated for a SELECT
 			within the CHECK clause will be greater than 0.  In the
@@ -4306,12 +4360,12 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 			is emitted for a nod_dom_value, corresponding to an
 			occurance of the VALUE keyword in the body of the check
 	       constraint.  -- chrisj 1999-08-20 */
-
+		
 		request->req_context_number++;
-
+		
 		GEN_expr (request,
             PASS1_node (request, element->nod_arg [e_cnstr_condition], 0));
-
+		
 		end_blr (request);
 		if ((string = (STR) element->nod_arg [e_cnstr_source]) != NULL)
 		{
@@ -4320,34 +4374,34 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 				string->str_data, (USHORT)string->str_length);
 		}
 		break;
-
+		
 	case nod_mod_domain_type:
 		check_one_call (repetition_count, 2, "DOMAIN DATA TYPE");
 		field = (FLD) element->nod_arg[e_mod_dom_new_dom_type];
 		DDL_resolve_intl_type (request, field, NULL);
 		put_field (request, field, FALSE);
 		break;
-
+		
 	case nod_field_name:
 		check_one_call (repetition_count, 3, "DOMAIN NAME");
 		{
 			STR new_dom_name;
-
+			
 			new_dom_name =  (STR) element->nod_arg [e_fln_name];
 			put_cstring (request, gds__dyn_fld_name, new_dom_name->str_data);
 			break;
 		}
-
+		
 	case nod_delete_rel_constraint:
 		check_one_call (repetition_count, 4, "DOMAIN DROP CONSTRAINT");
 		STUFF (gds__dyn_del_validation);
 		break;
-
+		
 	case nod_del_default:
 		check_one_call (repetition_count, 5, "DOMAIN DROP DEFAULT");
 		STUFF (gds__dyn_del_default);
 		break;
-
+		
 	default:
 		break;
 	}
@@ -4375,7 +4429,7 @@ STR	index_name;
 ddl_node = request->req_ddl_node;
 
 index_node = ddl_node->nod_arg [e_alt_index];
-index_name = (STR) index_node->nod_arg [e_alt_idx_name];
+index_name = (STR) index_node->nod_arg [e_alt_idx_name];  
 
 put_cstring (request, gds__dyn_mod_idx, index_name->str_data);
 
@@ -4422,7 +4476,7 @@ STUFF_WORD (0);
 for (; *privs; privs++)
     {
     priv_count++;
-    STUFF (*privs);
+    STUFF (*privs);  
     }
 
 dynsave = request->req_blr;
@@ -4431,7 +4485,7 @@ for (i = priv_count + 2; i; i--)
 
 *dynsave++ = (UCHAR)priv_count;
 *dynsave = (UCHAR)(priv_count >> 8);
-
+    
 name = (STR) table->nod_arg [0];
 if (table->nod_type == nod_procedure_name)
     put_cstring (request, gds__dyn_prc_name, name->str_data);
@@ -4470,7 +4524,7 @@ if (field_name)
 if ((option) && ((type == nod_grant) ||
     (!(request->req_dbb->dbb_flags & DBB_v3))))
     put_number (request, gds__dyn_grant_options, option);
-
+    
 STUFF (gds__dyn_end);
 }
 
@@ -4499,7 +4553,7 @@ NOD	fields, *ptr, *end;
 switch (privs->nod_type)
     {
     case nod_all:
-	p = "A";
+	p = "A";	
 	break;
 
     case nod_select:
@@ -4512,7 +4566,7 @@ switch (privs->nod_type)
 	return 'I';
 
     case nod_references:
-    case nod_update:
+    case nod_update:    
 	p = (privs->nod_type == nod_references) ? "R" : "U";
 	if (!(fields = privs->nod_arg [0]))
 	    return *p;
@@ -4554,7 +4608,7 @@ static void modify_relation (
  *
  * Function
  *	Alter an SQL table, relying on DYN to generate
- *	global fields for the local fields.
+ *	global fields for the local fields. 
  *
  **************************************/
 NOD	ddl_node, ops, element, *ptr, *end, relation_node, field_node;
@@ -4568,7 +4622,7 @@ tdsql = GET_THREAD_DATA;
 ddl_node = request->req_ddl_node;
 
 relation_node = ddl_node->nod_arg [e_alt_name];
-relation_name = (STR) relation_node->nod_arg [e_rln_name];
+relation_name = (STR) relation_node->nod_arg [e_rln_name];  
 
 put_cstring (request, gds__dyn_mod_rel, relation_name->str_data);
 save_relation (request, relation_name);
@@ -4591,7 +4645,7 @@ if (SETJMP (tdsql->tsql_setjmp))
 ops = ddl_node->nod_arg [e_alt_ops];
 for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
     {
-    element = *ptr;
+    element = *ptr; 
     switch (element->nod_type)
 	{
 	case nod_mod_field_name:
@@ -4619,7 +4673,7 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	    field_node = element->nod_arg [e_mod_fld_pos_orig_name];
 	    field_name =  (STR) field_node->nod_arg [e_fln_name];
 	    put_cstring (request, gds__dyn_mod_local_fld, field_name->str_data);
-
+	
         const_node = element->nod_arg [e_mod_fld_pos_new_position];
 		/* CVC: Since now the parser accepts pos=1..N, let's subtract one here. */
 	    constant = (SSHORT) const_node->nod_arg [0] - 1;
@@ -4643,7 +4697,7 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	    /* Fix for bug 8054:
 
                [CASCADE | RESTRICT] syntax is available in IB4.5, but not
-               required until v5.0.
+               required until v5.0. 
 
                Option CASCADE causes an error :
                  unsupported DSQL construct
@@ -4663,7 +4717,7 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	    assert( (element->nod_arg [1])->nod_type == nod_restrict );
 	    put_cstring (request, gds__dyn_delete_local_fld, field_name->str_data);
 	    STUFF (gds__dyn_end);
-	    break;
+	    break; 
 
 	case nod_delete_rel_constraint:
 	    field_name = (STR) element->nod_arg [0];
@@ -4757,7 +4811,7 @@ static void put_dtype (
 {
 /**************************************
  *
- *	p u t _ d t y p e
+ *	p u t _ d t y p e 
  *
  **************************************
  *
@@ -4771,7 +4825,7 @@ static void put_dtype (
 /* Check if the field describes a known datatype */
 
 if (field->fld_dtype > sizeof (blr_dtypes) / sizeof (blr_dtypes [0]) ||
-    !blr_dtypes [field->fld_dtype])
+    !blr_dtypes [field->fld_dtype]) 
     {
     SCHAR buffer[100];
 
@@ -4806,7 +4860,7 @@ if (field->fld_dtype == dtype_cstring ||
 
     if (field->fld_dtype == dtype_varying)
 	STUFF_WORD (field->fld_length - sizeof (USHORT))
-    else
+    else 
 	STUFF_WORD (field->fld_length);
     }
 else
@@ -4827,7 +4881,7 @@ static void put_field (
 {
 /**************************************
  *
- *	p u t _ f i e l d
+ *	p u t _ f i e l d 
  *
  **************************************
  *
@@ -4864,9 +4918,10 @@ else if (field->fld_dtype <= dtype_any_text)
 		by DDL_resolve_intl_type(), so nothing to decrement here.
 		Anyway, the assertion was flawed when run against the old code, too.
 		Here comes the compensation for DDL_resolve_intl_type(), since the field
-		length itself wasn't altered if it's varying. */
-		assert((field->fld_length + sizeof (USHORT)) <= MAX_SSHORT);
-		put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length /* - sizeof (USHORT)*/));
+		length itself wasn't altered if it's varying.
+		UPDATE: Functionality reverted but assert fixed. */
+		assert((field->fld_length /*+ sizeof (USHORT)*/) <= MAX_SSHORT);
+		put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length - sizeof (USHORT)));
 	}
     else
         put_number (request, gds__dyn_fld_length, field->fld_length);
@@ -4950,7 +5005,7 @@ if (parameters)
     ptr = parameters->nod_arg;
     for (end = ptr + parameters->nod_count; ptr < end; ptr++)
 	{
-	parameter = *ptr;
+	parameter = *ptr; 
 	field = (FLD) parameter->nod_arg [e_dfl_field];
         rest = ptr;
         while ((++rest) != end)
@@ -5046,7 +5101,7 @@ USHORT	length;
 
 if (string)
     length = strlen (string);
-else
+else 
     length = 0;
 
 put_string (request, verb, string, length);
@@ -5106,7 +5161,7 @@ TEXT	*search_name;
 FLD	field;
 SSHORT	found;
 
-if (!input)
+if (!input) 
     return input;
 
 if (input->nod_header.blk_type != type_nod)
@@ -5116,8 +5171,8 @@ for (ptr = input->nod_arg, endo = ptr + input->nod_count; ptr < endo; ptr++)
     {
 
     if ((*ptr)->nod_type == nod_select_expr)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__subquery_err,
                 /* No subqueries permitted for VIEW WITH CHECK OPTION */
 	    0);
@@ -5126,10 +5181,10 @@ for (ptr = input->nod_arg, endo = ptr + input->nod_count; ptr < endo; ptr++)
 	{
 	/* found a field node, check if it needs to be replaced */
 
-	field_name = (STR) (*ptr)->nod_arg [e_fln_name];
+	field_name = (STR) (*ptr)->nod_arg [e_fln_name];    
 
 	search = search_fields->nod_arg;
-	end = search + search_fields->nod_count;
+	end = search + search_fields->nod_count; 
 	if (replace_fields)
 	    replace = replace_fields->nod_arg;
 	found = FALSE;
@@ -5151,7 +5206,7 @@ for (ptr = input->nod_arg, endo = ptr + input->nod_count; ptr < endo; ptr++)
 
 		 }
 	    if (null_them &&
-		replace_fields &&
+		replace_fields && 
 		!strcmp ((SCHAR*) field_name->str_data, (SCHAR*) replace_name->str_data))
 		found = TRUE;
 	    }
@@ -5160,7 +5215,7 @@ for (ptr = input->nod_arg, endo = ptr + input->nod_count; ptr < endo; ptr++)
 	    (*ptr) = MAKE_node (nod_null, (int) 0);
 	    }
 	 }
-    else
+    else 
 	/* recursively go through the input tree looking for field name nodes */
 	replace_field_names (*ptr, search_fields, replace_fields, null_them);
     }
@@ -5178,11 +5233,11 @@ static void reset_context_stack (
  **************************************
  *
  * Function
- *	Get rid of any predefined contexts created
+ *	Get rid of any predefined contexts created 
  *	for a view or trigger definition.
  *
  **************************************/
-
+    
 while (request->req_context)
     LLS_POP (&request->req_context);
 request->req_context_number = 0;
@@ -5201,7 +5256,7 @@ static void save_field (
  * Function
  *	Save the name of a field in the relation or view currently
  *	being defined.  This is done to support definition
- *	of triggers which will depend on the metadata created
+ *	of triggers which will depend on the metadata created 
  *	in this request.
  *
  **************************************/
@@ -5233,7 +5288,7 @@ static void save_relation (
  * Function
  *	Save the name of the relation or view currently
  *	being defined.  This is done to support definition
- *	of triggers which will depend on the metadata created
+ *	of triggers which will depend on the metadata created 
  *	in this request.
  *
  **************************************/
@@ -5252,7 +5307,7 @@ ddl_node = request->req_ddl_node;
 if (ddl_node->nod_type == nod_mod_relation)
    relation = METD_get_relation (request, relation_name);
 else
-   {
+   { 
    relation = (DSQL_REL) ALLOCDV (type_dsql_rel, relation_name->str_length);
    relation->rel_name = relation->rel_data;
    relation->rel_owner = relation->rel_data + relation_name->str_length + 1;
@@ -5309,9 +5364,9 @@ static void stuff_default_blr (
  *********************************************/
 unsigned int i;
 assert ((*default_buff == blr_version4) || (*default_buff == blr_version5));
-
+   
 for (i = 1;
-    ( (i< buff_size) && (default_buff[i] != blr_eoc) );
+    ( (i< buff_size) && (default_buff[i] != blr_eoc) ); 
     i++)
    STUFF (default_buff[i]);
 
@@ -5333,7 +5388,7 @@ static void stuff_matching_blr (
  * Function
  *   Generate blr to express: foreign_key == primary_key
  *   ie.,  for_key.column_1 = prim_key.column_1 and
- *         for_key.column_2 = prim_key.column_2 and ....  so on..
+ *         for_key.column_2 = prim_key.column_2 and ....  so on..  
  *
  **************************************/
 NOD *for_key_flds, *prim_key_flds;
@@ -5417,9 +5472,9 @@ do  {
 
     if (prim_columns->nod_count - num_fields >= (unsigned) 2)
         STUFF (blr_or);
-
+    
     prim_key_flds++;
-
+    
     }
 while (num_fields < prim_columns->nod_count);
 }
@@ -5468,9 +5523,9 @@ if (domain_node = element->nod_arg [e_mod_fld_type_dom_name])
     /* Get the domain information */
 
     if (!(METD_get_domain (request, field, domain_name->str_data)))
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
-            gds_arg_gds, gds__dsql_command_err,
-            gds_arg_gds, gds__dsql_domain_not_found,
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            gds_arg_gds, gds__dsql_command_err, 
+            gds_arg_gds, gds__dsql_domain_not_found, 
             /* Specified domain or source field does not exist */
             0);
     DDL_resolve_intl_type (request, field, NULL);
@@ -5483,7 +5538,7 @@ else
     DDL_resolve_intl_type (request, field, NULL);
     put_field (request, field, FALSE);
     }
-STUFF (gds__dyn_end);
+STUFF (gds__dyn_end);   
 }
 
 static void set_nod_value_attributes (
@@ -5527,10 +5582,11 @@ static void set_nod_value_attributes (
 		 it cannot have a nod_dom_value as a child in any case, so
 		 we lose nothing by skipping it.
 		 */
-
+	      
 	      set_nod_value_attributes (child, field);
 	    }
 	} /* if it's a node */
     } /* for (child_number ... */
   return;
 }
+

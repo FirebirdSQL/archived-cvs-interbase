@@ -555,6 +555,8 @@
 "dsql_warn_precision_ambiguous", 336003082,
 "dsql_warn_precision_ambiguous1", 336003083,
 "dsql_warn_precision_ambiguous2", 336003084,
+"dsql_ambiguous_field_name", 336003085,
+"dsql_udf_return_pos_err", 336003086,
 "dyn_role_does_not_exist", 336068796,
 "dyn_no_grant_admin_opt", 336068797,
 "dyn_user_not_role_member", 336068798,

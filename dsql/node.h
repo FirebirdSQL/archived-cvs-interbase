@@ -338,7 +338,8 @@ typedef ENUM nod_t {
     nod_del_view,
     nod_current_role, /* nod_role_name is already taken but only for DDL. */
     nod_breakleave,
-    nod_redef_relation /* allows silent creation/overwriting of a relation. */
+    nod_redef_relation, /* allows silent creation/overwriting of a relation. */
+    nod_udf_param /* there should be a way to signal a param by descriptor! */
 
 } NOD_TYPE;
 
@@ -807,5 +808,8 @@ typedef struct nod {
 #define e_substr_length	2	/* The length of the slice */
 #define e_substr_count	3
 
+#define e_udf_param_field	0
+#define e_udf_param_type	1 /* Basically, by_reference or by_descriptor */
+#define e_udf_param_count	2
 
 #endif /* _DSQL_NODE_H_ */

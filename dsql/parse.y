@@ -25,6 +25,7 @@
  *   different node types so DDL can tell which is which.
  * 2001.06.13: Claudio Valderrama: SUBSTRING is being surfaced.
  * 2001.06.30: Claudio valderrama: Feed (line,column) for each node. See node.h.
+ * 2001.07.10: Claudio Valderrama: Better (line,column) report and "--" for comments.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -354,6 +355,7 @@ static SSHORT	log_defined, cache_defined;
 %token CURRENT_ROLE
 %token KW_BREAK
 %token SUBSTRING
+%token KW_DESCRIPTOR
 
 /* special aggregate token types returned by lex in v6.0 */
 
@@ -411,7 +413,7 @@ statement	: alter
 		| set
 		| update
 		| DEBUG signed_short_integer
-			{ prepare_console_debug ((int) $2);
+			{ prepare_console_debug ((int) $2, &yydebug);
 			  $$ = make_node (nod_null, (int) 0, NULL); }
 		;
 
@@ -619,8 +621,14 @@ arg_desc_list	: arg_desc
 			{ $$ = make_node (nod_list, (int) 2, $1, $3); }
 		;
 
+/*arg_desc	: init_data_type udf_data_type
+			{ $$ = $1; }*/
 arg_desc	: init_data_type udf_data_type
-			{ $$ = $1; }
+			{ $$ = make_node (nod_udf_param, (int) e_udf_param_count,
+				$1, NULL); }
+		| init_data_type udf_data_type BY KW_DESCRIPTOR
+			{ $$ = make_node (nod_udf_param, (int) e_udf_param_count,
+				$1, MAKE_constant ((STR) FUN_descriptor, CONSTANT_SLONG)); }
 		;
 
 return_value1	: return_value
@@ -637,10 +645,10 @@ return_value	: init_data_type udf_data_type
 		| init_data_type udf_data_type BY KW_VALUE
 			{ $$ = make_node (nod_udf_return_value, (int) 2, $1, 
 				MAKE_constant ((STR) FUN_value, CONSTANT_SLONG));}
-/* CVC: Enable return by descriptor for the future.
+/* CVC: Enable return by descriptor for the future.*/
 		| init_data_type udf_data_type BY KW_DESCRIPTOR
 			{ $$ = make_node (nod_udf_return_value, (int) 2, $1,
-				MAKE_constant ((STR) FUN_reference, CONSTANT_SLONG));}*/
+				MAKE_constant ((STR) FUN_descriptor, CONSTANT_SLONG));}
 		| PARAMETER pos_short_integer
 			{ $$ = make_node (nod_udf_return_value, (int) 2, 
 		  		(NOD) NULL, MAKE_constant ((STR) $2, CONSTANT_SLONG));}
@@ -1706,6 +1714,7 @@ keyword_or_column	: COLUMN
 			| SYMBOL
 			| KW_BREAK
 			| SUBSTRING
+			| KW_DESCRIPTOR
 			;
 
 col_opt		: ALTER
@@ -3387,7 +3396,7 @@ static FIL	make_file (void);
 static NOD	make_list (NOD);
 static NOD	make_node (NOD_TYPE, int, ...);
 static NOD	make_flag_node (NOD_TYPE, SSHORT, int, ...);
-static void	prepare_console_debug (int);
+static void	prepare_console_debug (int, int *);
 static BOOLEAN	short_int (NOD, SLONG *, SSHORT);
 static void	stack_nodes (NOD, LLS *);
 static int	yylex (USHORT, USHORT, USHORT, BOOLEAN *);
@@ -3398,7 +3407,9 @@ static void	check_log_file_attrs (void);
 #endif
 
 static TEXT	*ptr, *end, *last_token, *line_start;
+static TEXT	*last_token_bk, *line_start_bk;
 static SSHORT	lines, att_charset;
+static SSHORT	lines_bk, first_time;
 
 typedef struct tok {
     USHORT	tok_ident;
@@ -3425,7 +3436,6 @@ void LEX_dsql_init (void)
  *
  **************************************/
 CONST TOK	*token;
-SYM	symbol;
 
 for (token = tokens; token->tok_string; ++token)
     {
@@ -3467,6 +3477,9 @@ line_start = ptr = string;
 end = string + length;
 lines = 1;
 att_charset = character_set;
+line_start_bk = line_start;
+lines_bk = lines;
+first_time = 1;
 }
 
 #ifndef WINDOWS_ONLY
@@ -3671,8 +3684,8 @@ tdsql = GET_THREAD_DATA;
 
 node = (NOD) ALLOCDV (type_nod, count);
 node->nod_type = type;
-node->nod_line = (USHORT) lines;
-node->nod_column = (USHORT) (last_token - line_start);
+node->nod_line = (USHORT) lines_bk;
+node->nod_column = (USHORT) (last_token_bk - line_start_bk + 1);
 node->nod_count = count;
 p = node->nod_arg;
 VA_START (ptr, count);
@@ -3708,8 +3721,8 @@ tdsql = GET_THREAD_DATA;
 node = (NOD) ALLOCDV (type_nod, count);
 node->nod_type = type;
 node->nod_flags = flag;
-node->nod_line = (USHORT) lines;
-node->nod_column = (USHORT) (last_token - line_start);
+node->nod_line = (USHORT) lines_bk;
+node->nod_column = (USHORT) (last_token_bk - line_start_bk + 1);
 node->nod_count = count;
 p = node->nod_arg;
 VA_START (ptr, count);
@@ -3720,7 +3733,7 @@ while (--count >= 0)
 return node;
 }
 
-static void prepare_console_debug (int level)
+static void prepare_console_debug (int level, int *yydeb)
 {
 /*************************************
  *
@@ -3736,7 +3749,7 @@ static void prepare_console_debug (int level)
  *************************************/
 DSQL_debug = level;
 if (level > 10)
-	yydebug = level;
+	*yydeb = level;
 /* CVC: I added this code form Mike Nordell to see the output from internal
 operations that's generated in DEV build when DEBUG <n> is typed into isql.exe.
 When n>0, the output console is activated; otherwise it's closed. */
@@ -3918,17 +3931,58 @@ STR	delimited_id_str;
 
 /* Find end of white space and skip comments */
 
+/* CVC: Experiment to see if -- can be implemented as one-line comment. 
+This is almost the same block than below in the loop when \n is detected,
+but here we should "unget" the first character if there're not 2 hyphens. */
+if (first_time && ptr + 1 < end)
+{
+	first_time = 0;
+	c = *ptr++;
+	if (c == '-' && *ptr == '-')
+	{
+		ptr++;
+		while (ptr < end)
+			if ((c = *ptr++) == '\n')
+			{
+				lines++;
+				line_start = ptr;
+				break;
+			}
+		if (ptr >= end)
+			return -1;
+	}
+	else --ptr; /* that's the difference. */
+}
+
 for (;;)
     {
     if (ptr >= end)
-	return -1;
+		return -1;
     
     c = *ptr++;
 
     if (c == '\n')
-	{
-	lines++;
-	line_start = ptr + 1;
+    {
+		lines++;
+		line_start = ptr /* + 1*/; /* CVC: +1 left out. */
+		/* CVC: Experiment to see if -- can be implemented as one-line comment. */
+		if (ptr + 1 < end)
+		{
+			c = *ptr++;
+			if (c == '-' && *ptr == '-')
+			{
+				ptr++;
+				while (ptr < end)
+					if ((c = *ptr++) == '\n')
+					{
+						lines++;
+						line_start = ptr;
+						break;
+					}
+				if (ptr >= end)
+					return -1;
+			}
+		}
 	}
 
     if ((c == '/') && (*ptr == '*'))
@@ -3944,7 +3998,7 @@ for (;;)
 	    if (c == '\n')
 		{
 		lines++;
-		line_start = ptr + 1;
+		line_start = ptr /* + 1*/; /* CVC: +1 left out. */
 		}
 	    }
 	if (ptr >= end)
@@ -4179,6 +4233,9 @@ if ((class & CHR_DIGIT) ||
 	    {
 	    yylval = (NOD) MAKE_string ((UCHAR *) last_token,
 					ptr - last_token);
+	    last_token_bk = last_token;
+	    line_start_bk = line_start;
+	    lines_bk = lines;
 	    return FLOAT;
 	    }
 	else if (!have_exp)
@@ -4220,6 +4277,9 @@ if ((class & CHR_DIGIT) ||
 		yylval = (NOD) MAKE_string ((UCHAR *) last_token,
 					    ptr - last_token);
 
+		last_token_bk = last_token;
+		line_start_bk = line_start;
+		lines_bk = lines;
 		if (client_dialect < SQL_DIALECT_V6_TRANSITION)
 		    return FLOAT;
 		else if (have_decimal)
@@ -4248,7 +4308,7 @@ if (class & CHR_LETTER)
     {
 #if (! ( defined JPN_SJIS || defined JPN_EUC) )
     p = string;
-    CHECK_COPY_INCR(p,UPPER (c));
+    CHECK_COPY_INCR(p, UPPER (c));
     for (; ptr < end && classes [*ptr] & CHR_IDENT; ptr++)
         {
 	if (ptr >= end)
@@ -4304,6 +4364,9 @@ if (class & CHR_LETTER)
 	return sym->sym_keyword;
 	}
     yylval = (NOD) MAKE_string (string, p - string);
+    last_token_bk = last_token;
+    line_start_bk = line_start;
+    lines_bk = lines;
     return SYMBOL;
     }
 
@@ -4323,7 +4386,7 @@ if (last_token + 1 < end)
 
 return c;
 }
-
+
 static void yyerror (
     TEXT	*error_string)
 {
@@ -4347,7 +4410,7 @@ else
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
  	gds_arg_gds, gds__dsql_token_unk_err, 
 	gds_arg_number, (SLONG) lines, 
-	gds_arg_number, (SLONG) (last_token - line_start), 
+	gds_arg_number, (SLONG) (last_token - line_start + 1), /*CVC: +1*/
 	    /* Token unknown - line %d, char %d */
  	gds_arg_gds, gds__random, 
 	gds_arg_cstring, (int) (ptr - last_token), last_token,

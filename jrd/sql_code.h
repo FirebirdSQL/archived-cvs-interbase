@@ -557,6 +557,8 @@ static CONST SSHORT FAR_VARIABLE gds__sql_code [] = {
  301 /*  10 dsql_warn_precision_ambiguous    */,
  301 /*  11 dsql_warn_precision_ambiguous1   */,
  301 /*  12 dsql_warn_precision_ambiguous2   */,
+-204 /*  13 dsql_ambiguous_field_name        */,
+-607 /*  14 dsql_udf_return_pos_err          */,
 -901 /* 188 dyn_role_does_not_exist          */,
 -901 /* 189 dyn_no_grant_admin_opt           */,
 -901 /* 190 dyn_user_not_role_member         */,

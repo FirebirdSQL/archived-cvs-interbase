@@ -611,17 +611,45 @@ if (strlen (name) != 0)
 
         }
     } 
+
 /* CVC: If this is ODS>=ODS_9_0 and we aren't creating a db and sql_role was specified,
-then verify it against rdb$roles. */
+then verify it against rdb$roles and rdb$user_privileges. */
+
 if (!create && sql_role && *sql_role && strcmp (sql_role, "NONE"))
     {
     BOOLEAN found = FALSE;
-    request = NULL;
-    /* The caller has hopefully uppercased the role or stripped quotes. */
-    FOR (REQUEST_HANDLE request) FIRST 1 X2 IN RDB$ROLES
-        WITH X2.RDB$ROLE_NAME EQ sql_role
-	found = TRUE;
+    for (p = login_name, q = name; *p++ = UPPER7 (*q); q++);
+
+    request = (BLK) CMP_find_request (tdbb, irq_verify_role_name, IRQ_REQUESTS);
+
+    /* CVC: The caller has hopefully uppercased the role or stripped quotes. Of course,
+    uppercase-UPPER7 should only happen if the role wasn't enclosed in quotes.
+    Shortsighted developers named the field rdb$relation_name instead of rdb$object_name.
+    This request is not exactly the same than irq_get_role_mem, sorry, I can't reuse that.
+    If you think that an unknown role cannot be granted, think again: someone made sure
+    in DYN that SYSDBA can do almost anything, including invalid grants. */
+
+    FOR (REQUEST_HANDLE request) FIRST 1 RR IN RDB$ROLES
+        CROSS UU IN RDB$USER_PRIVILEGES
+        WITH RR.RDB$ROLE_NAME        EQ sql_role
+        AND RR.RDB$ROLE_NAME         EQ UU.RDB$RELATION_NAME
+        AND UU.RDB$OBJECT_TYPE       EQ obj_sql_role
+        AND (UU.RDB$USER             EQ login_name
+        OR UU.RDB$USER               EQ "PUBLIC")
+        AND UU.RDB$USER_TYPE         EQ obj_user
+        AND UU.RDB$PRIVILEGE         EQ "M"
+
+        if (!REQUEST (irq_verify_role_name))
+            REQUEST (irq_verify_role_name) = request;
+
+	if (!UU.RDB$USER.NULL)
+	    found = TRUE;
+
     END_FOR;
+
+    if (!REQUEST (irq_verify_role_name))
+        REQUEST (irq_verify_role_name) = request;
+
     if (!found)
 	strcpy (role_name, "NONE");
     }

@@ -203,23 +203,79 @@ typedef struct bstream {
 /* and being the structure passed by the engine to UDFs it never    */
 /* made its way into this public definitions file.                  */
 /* Being its original name "blob", I renamed it blobcallback here.  */
+/* I did the full definition with the proper parameters instead of  */
+/* the weak C declaration with any number and type of parameters.   */
+/* Since the first parameter -BLB- is unknown outside the engine,   */
+/* it's more accurate to use void* than int* as the blob pointer
 /********************************************************************/
 
 #if !defined(_JRD_VAL_H_) && !defined(REQUESTER)
-
 /* Blob passing structure */
 
+enum lseek_mode {blb_seek_relative = 1, blb_seek_from_tail = 2};
+
 typedef struct blobcallback {
-    short	(ISC_FAR *blob_get_segment)();
-    int	ISC_FAR	*blob_handle;
+    short (ISC_FAR *blob_get_segment)
+		(void ISC_FAR* hnd, unsigned char* buffer, ISC_USHORT buf_size, ISC_USHORT* result_len);
+    void		ISC_FAR	*blob_handle;
     ISC_LONG	blob_number_segments;
     ISC_LONG	blob_max_segment;
     ISC_LONG	blob_total_length;
-    void	(ISC_FAR *blob_put_segment)();
-    ISC_LONG	(ISC_FAR *blob_seek)();
+    void (ISC_FAR *blob_put_segment)
+		(void ISC_FAR* hnd, unsigned char* buffer, ISC_USHORT buf_size);
+    ISC_LONG (ISC_FAR *blob_lseek)
+		(void ISC_FAR* hnd, ISC_USHORT mode, ISC_LONG offset);
 } ISC_FAR *BLOBCALLBACK;
+#endif /* !defined(_JRD_VAL_H_) && !defined(REQUESTER) */
 
-#endif
+
+/********************************************************************/
+/* CVC: Public descriptor interface held in dsc.h.                  */
+/* We need it documented to be able to recognize NULL in UDFs.      */
+/* Being its original name "dsc", I renamed it paramdsc here.       */
+/* Notice that I adjust to the original definition: contrary to     */
+/* other cases, the typedef is the same struct not the pointer.     */
+/* I included the enumeration of dsc_dtype possible values.         */
+/* Ultimately, dsc.h should be part of the public interface.        */
+/********************************************************************/
+
+#if !defined(_JRD_DSC_H_)
+/* This is the famous internal descriptor that UDFs can use, too. */
+typedef struct paramdsc {
+    unsigned char	dsc_dtype;
+    char			dsc_scale;
+    ISC_USHORT		dsc_length;
+    short			dsc_sub_type;
+    ISC_USHORT		dsc_flags;
+    unsigned char	*dsc_address;
+} PARAMDSC;
+
+/* Note that dtype_null actually means that we do not yet know the
+   dtype for this descriptor.  A nice cleanup item would be to globally
+   change it to dtype_unknown.  --chrisj 1999-02-17 */
+
+#define dtype_null	0
+#define dtype_text	1
+#define dtype_cstring	2
+#define dtype_varying	3
+
+#define dtype_packed	6
+#define dtype_byte	7
+#define dtype_short	8
+#define dtype_long	9
+#define dtype_quad	10
+#define dtype_real	11
+#define dtype_double	12
+#define dtype_d_float	13
+#define dtype_sql_date	14
+#define dtype_sql_time	15
+#define dtype_timestamp	16
+#define dtype_blob	17
+#define dtype_array	18
+#define dtype_int64     19
+#define DTYPE_TYPE_MAX	20
+#endif /* !defined(_JRD_DSC_H_) */
+
 
 /***************************/
 /* Dynamic SQL definitions */
@@ -2587,7 +2643,7 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #ifndef __cplusplus                     /* c definitions */
 #define gds__dyn_delete_generator          217
 #else                                   /* c++ definitions */
-const char gds__dyn_delete_generator       = 217;
+const unsigned char gds__dyn_delete_generator       = 217;
 #endif
 
 

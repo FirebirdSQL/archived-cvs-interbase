@@ -198,9 +198,9 @@ if (value->vlu_desc.dsc_dtype <= dtype_varying)
 for (tail = function->fun_rpt + 1, end = tail + function->fun_count; tail < end; tail++)
     {
     if (tail == return_ptr)
-	input = (DSC*) value;
+		input = &value->vlu_desc; /*(DSC*) value;*/
     else
-	input = EVL_expr (tdbb, *ptr++);
+		input = EVL_expr (tdbb, *ptr++);
     ap = (SLONG**) arg_ptr;
 
     /* If we're passing data type ISC descriptor, there's nothing left to
@@ -341,7 +341,19 @@ for (tail = function->fun_rpt + 1, end = tail + function->fun_count; tail < end;
 	        MOV_move (input, &temp_desc);
 	    break;
 
+	/* CVC: There's no other solution for now: timestamp can't be returned
+	by value and the other way is to force the user to pass a dummy value as
+	an argument to keep the engine happy. So, here's the hack. */
 	case dtype_timestamp:
+	    if (tail == return_ptr)
+		{
+			temp_ptr = value->vlu_desc.dsc_address;
+			length = sizeof (GDS_TIMESTAMP);
+		}
+	    else
+		    MOV_move (input, &temp_desc);
+		break;
+
 	case dtype_quad:
 	case dtype_array:
 	    MOV_move (input, &temp_desc);
@@ -458,65 +470,74 @@ else if ((SLONG) return_ptr->fun_mechanism == FUN_value)
         }
     }
 else
-    {
+{
     THREAD_EXIT;
-        temp_ptr = CALL_UDF (*(FPTR_UCHAR) function->fun_entrypoint);
+	temp_ptr = CALL_UDF (*(FPTR_UCHAR) function->fun_entrypoint);
     THREAD_ENTER;
-
+	
     if (temp_ptr != NULL)
 	{
-	switch (value->vlu_desc.dsc_dtype)
-	    {
-	    case dtype_sql_date:
-	    case dtype_sql_time:
-	    case dtype_long:
-		value->vlu_misc.vlu_long = *(SLONG*) temp_ptr;
-		break;
-
-	    case dtype_short:
-		value->vlu_misc.vlu_short = *(SSHORT*) temp_ptr;
-		break;
-	
-	    case dtype_real:
-		value->vlu_misc.vlu_float = *(float*) temp_ptr;
-		break;
-	
-	    case dtype_int64:
-		value->vlu_misc.vlu_int64 = *(SINT64*) temp_ptr;
-		break;
-
-	    case dtype_double:
+		/* CVC: Allow processing of return by descriptor.
+		The assumption is that the user didn't modify the return type,
+		that has no sense after all, because it is carved in stone. */
+		if (return_ptr->fun_mechanism == FUN_descriptor)
+			temp_ptr = ((DSC*) temp_ptr)->dsc_address;
+		/* CVC: End modification. */
+		if (temp_ptr)
+		{
+			switch (value->vlu_desc.dsc_dtype)
+			{
+			case dtype_sql_date:
+			case dtype_sql_time:
+			case dtype_long:
+				value->vlu_misc.vlu_long = *(SLONG*) temp_ptr;
+				break;
+				
+			case dtype_short:
+				value->vlu_misc.vlu_short = *(SSHORT*) temp_ptr;
+				break;
+				
+			case dtype_real:
+				value->vlu_misc.vlu_float = *(float*) temp_ptr;
+				break;
+				
+			case dtype_int64:
+				value->vlu_misc.vlu_int64 = *(SINT64*) temp_ptr;
+				break;
+				
+			case dtype_double:
 #ifdef VMS
-	    case dtype_d_float:
+			case dtype_d_float:
 #endif
-		value->vlu_misc.vlu_double = *(double*) temp_ptr;
-		break;
-	
-	    case dtype_text:
-	    case dtype_cstring:
-	    case dtype_varying:
-		temp_desc = value->vlu_desc;
-		temp_desc.dsc_address = temp_ptr;
-		temp_desc.dsc_length = strlen(temp_ptr) + 1;
-		MOV_move (&temp_desc, &value->vlu_desc);
-		break;
-
-	    case dtype_timestamp:
-		ip = (SLONG*) temp_ptr;
-		value->vlu_misc.vlu_dbkey [0] = *ip++;
-		value->vlu_misc.vlu_dbkey [1] = *ip;
-		break;
-
-	    default:
-		unsup_datatype = 1;
-		break;
-	    }
+				value->vlu_misc.vlu_double = *(double*) temp_ptr;
+				break;
+				
+			case dtype_text:
+			case dtype_cstring:
+			case dtype_varying:
+				temp_desc = value->vlu_desc;
+				temp_desc.dsc_address = temp_ptr;
+				temp_desc.dsc_length = strlen(temp_ptr) + 1;
+				MOV_move (&temp_desc, &value->vlu_desc);
+				break;
+				
+			case dtype_timestamp:
+				ip = (SLONG*) temp_ptr;
+				value->vlu_misc.vlu_dbkey [0] = *ip++;
+				value->vlu_misc.vlu_dbkey [1] = *ip;
+				break;
+				
+			default:
+				unsup_datatype = 1;
+				break;
+			}
             /* check if this is function has the FREE_IT set, if set and
-               return_value is not null, then free the return value */
+			return_value is not null, then free the return value */
             if (((SLONG) return_ptr->fun_mechanism < 0) && temp_ptr)
                 free (temp_ptr);
-	}
+		}
     }
+}
 
 END_CHECK_FOR_EXCEPTIONS(function->fun_exception_message);
 
