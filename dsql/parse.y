@@ -3478,11 +3478,16 @@ typedef struct tok {
     CONST USHORT tok_version;
 } TOK;
 
+#define DSQL_KEYWORD(tok_nr, tok_str, tok_ver) tok_nr, tok_str, tok_ver,
+
 static CONST TOK tokens [] = {
 #include "../dsql/keywords.h"
     0, 0, 0
     };
-
+
+#undef DSQL_KEYWORD
+
+
 void LEX_dsql_init (void)
 {
 /**************************************
