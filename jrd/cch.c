@@ -252,7 +252,7 @@ if (checksum)
 
 for (p = (ULONG*) page; p < end;)
     if (*p++)
-	return checksum;
+	return (USHORT)checksum;
 
 /* Page is all zeros -- invent a checksum */
 
@@ -1490,14 +1490,14 @@ QUE_INIT (bcb->bcb_free_lwt);
 /* initialization of memory is system-specific */
 
 bcb->bcb_count = memory_init (tdbb, bcb, number);
-bcb->bcb_free_minimum = MIN (bcb->bcb_count/4, 128);
+bcb->bcb_free_minimum = (SSHORT)MIN (bcb->bcb_count/4, 128);
 
 if (bcb->bcb_count < MIN_PAGE_BUFFERS)
     ERR_post (isc_cache_too_small, 0);
 
 /* Log if requested number of page buffers could not be allocated. */
 
-if (count != bcb->bcb_count)
+if (count != (SLONG)bcb->bcb_count)
     gds__log ("Database: %s\n\tAllocated %ld page buffers of %ld requested",
 		dbb->dbb_file->fil_string, bcb->bcb_count, count);
 
@@ -1597,7 +1597,6 @@ void CCH_journal_record (
  *
  **************************************/
 DBB	dbb;
-BCB	bcb;
 BDB	bdb, journal;
 UCHAR	*p;
 
@@ -2062,8 +2061,8 @@ if (dbb->dbb_wal)
 #ifndef WINDOWS_ONLY
     /* Update the log page */
 
-    AIL_upd_cntrl_pt (walname, strlen (walname), seqno, offset, p_offset);
-    AIL_upd_cntrl_pt (walname, strlen (walname), seqno, offset, p_offset);
+    AIL_upd_cntrl_pt (walname, (USHORT)strlen (walname), seqno, offset, p_offset);
+    AIL_upd_cntrl_pt (walname, (USHORT)strlen (walname), seqno, offset, p_offset);
 #endif
 
     /* Get the log page changes to disk */
@@ -2375,7 +2374,9 @@ void CCH_unwind (
 DBB		dbb;
 BCB		bcb;
 BDB		bdb;
+#ifndef SUPERSERVER
 PAG		page;
+#endif
 SSHORT		i;
 struct bcb_repeat	*tail, *end;
 
@@ -2574,13 +2575,13 @@ old code --> if (sdw->sdw_flags & SDW_INVALID)
 	header->hdr_end = HDR_SIZE;
 	header->hdr_next_page = 0;
 
-	PAG_add_header_entry (header, HDR_root_file_name, strlen ((char*)q), q);
+	PAG_add_header_entry (header, HDR_root_file_name, (SSHORT)strlen ((char*)q), q);
 
 	if (next_file = shadow_file->fil_next)
 	    {
 	    q = (UCHAR*) next_file->fil_string;
 	    last = next_file->fil_min_page - 1;
-	    PAG_add_header_entry (header, HDR_file, strlen ((char*)q), q);
+	    PAG_add_header_entry (header, HDR_file, (SSHORT)strlen ((char*)q), q);
 	    PAG_add_header_entry (header, HDR_last_page, sizeof (last),
 							    (UCHAR*)&last);
 	    }
@@ -2650,7 +2651,9 @@ static BDB alloc_bdb (
  *
  **************************************/
 BDB	bdb;
+#ifndef PAGE_LATCHING
 LCK	lock;
+#endif
 DBB	dbb;
 
 SET_TDBB (tdbb);
@@ -3094,6 +3097,17 @@ tdbb->tdbb_status_vector = status_vector;
 tdbb->tdbb_quantum = QUANTUM;
 tdbb->tdbb_attachment = (ATT) ALLOCB (type_att);
 tdbb->tdbb_attachment->att_database = dbb;
+tdbb->tdbb_setjmp = (UCHAR*) env;
+
+/* This SETJMP is specifically to protect the LCK_init call: if
+   LCK_init fails we won't be able to accomplish anything anyway, so
+   return, unlike the other SETJMP clause further down the page. */
+if (SETJMP (env))
+    {
+    gds__log_status (dbb->dbb_file->fil_string, status_vector);
+    THREAD_EXIT;
+    return;
+    }
 
 LCK_init (tdbb, LCK_OWNER_attachment);
 reader_event = dbb->dbb_reader_event;
@@ -3101,7 +3115,6 @@ bcb = dbb->dbb_bcb;
 bcb->bcb_flags |= BCB_cache_reader;
 ISC_event_post (reader_event);		/* Notify our creator that we have started  */
 
-tdbb->tdbb_setjmp = (UCHAR*) env;
 if (SETJMP (env))
     {
     bcb = dbb->dbb_bcb;
@@ -3226,7 +3239,10 @@ struct tdbb	thd_context, *tdbb;
 struct bcb_repeat	*tail, *end;
 BCB		bcb;
 BDB		bdb;
-SLONG		count, seq, p_off, off, commit_mask, starting_page;
+SLONG		count, seq, p_off, off, starting_page;
+#ifdef SUPERSERVER_V2
+SLONG		commit_mask;
+#endif
 USHORT		i;
 SSHORT          start_chkpt;
 STATUS		status_vector[20];
@@ -3251,14 +3267,24 @@ tdbb->tdbb_status_vector = status_vector;
 tdbb->tdbb_quantum = QUANTUM;
 tdbb->tdbb_attachment = (ATT) ALLOCB (type_att);
 tdbb->tdbb_attachment->att_database = dbb;
+tdbb->tdbb_setjmp = (UCHAR*) env;
 
+/* This SETJMP is specifically to protect the LCK_init call: if
+   LCK_init fails we won't be able to accomplish anything anyway, so
+   return, unlike the other SETJMP clause further down the page. */
+if (SETJMP (env))
+    {
+    gds__log_status (dbb->dbb_file->fil_string, status_vector);
+    THREAD_EXIT;
+    return;
+    }
+    
 LCK_init (tdbb, LCK_OWNER_attachment);
 writer_event = dbb->dbb_writer_event;
 bcb = dbb->dbb_bcb;
 bcb->bcb_flags |= BCB_cache_writer;
 ISC_event_post (writer_event);
 
-tdbb->tdbb_setjmp = (UCHAR*) env;
 if (SETJMP (env))
     {
     bcb = dbb->dbb_bcb;
@@ -3809,7 +3835,7 @@ old_end = old->bcb_rpt + old->bcb_count;
 
 new = (BCB) ALLOCBV (type_bcb, number);
 new->bcb_count = number;
-new->bcb_free_minimum = MIN (number/4, 128);    /* 25% clean page reserve */
+new->bcb_free_minimum = (SSHORT)MIN (number/4, 128);    /* 25% clean page reserve */
 new->bcb_checkpoint = old->bcb_checkpoint;
 new->bcb_flags = old->bcb_flags;
 new_end = new->bcb_rpt + number;
@@ -3931,7 +3957,6 @@ register QUE		que;
 register BDB		oldest, bdb;
 register BCB		bcb;
 PRE			precedence;
-WIN			window;
 SSHORT			latch_return, walk;
 
 SET_TDBB (tdbb);
@@ -4603,14 +4628,14 @@ static SSHORT lock_buffer (
  **************************************/
 #ifdef PAGE_LATCHING
 DBB		dbb;
-#endif
+#else
 register LCK	lock;
-USHORT		lock_type, must_read;
+USHORT		lock_type;
+USHORT		must_read;
 STATUS		alt_status [20];
 STATUS		*status;
-BDB		journal;
 TEXT		errmsg [MAX_ERRMSG_LEN + 1];
-USHORT		lookup_flags;
+#endif
 
 SET_TDBB (tdbb);
 #ifdef PAGE_LATCHING
@@ -4796,7 +4821,7 @@ for (tail = bcb->bcb_rpt, end = tail + number; tail < end; tail++)
 	{
 	/* Allocate only what is required for remaining buffers. */
 
-	if (memory_size > page_size * (number + 1))
+	if (memory_size > (SLONG)(page_size * (number + 1)))
 	    memory_size = page_size * (number + 1);
 
    	while (!(memory = (UCHAR *) ALL_sys_alloc (memory_size, ERR_val)))
@@ -5242,8 +5267,6 @@ static void release_bdb (
  *
  **************************************/
 LWT	lwt;
-SLONG	count;
-EVENT	event;
 QUE	wait_que, que;
 SSHORT	i, granted;
 
@@ -5844,7 +5867,6 @@ static void unmark (
  *
  **************************************/
 register BDB	bdb;
-SSHORT		use_count;
 BOOLEAN		marked;
 
 SET_TDBB (tdbb);
