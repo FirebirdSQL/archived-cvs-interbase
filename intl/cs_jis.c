@@ -24,13 +24,6 @@
 
 #include "../intl/ldcommon.h"
 
-#ifdef WINDOWS_ONLY
-#include "../intl/csjis2_p.h"
-
-extern USHORT	*from_unicode_map;
-extern USHORT 	*from_unicode_mapping_array;
-#endif
-
 extern USHORT   CV_wc_to_wc();
 extern USHORT   CVJIS_sjis_to_unicode();
 extern USHORT   CVJIS_unicode_to_sjis();
@@ -42,7 +35,7 @@ CHARSET_ENTRY (CS_jis_0208_1990)
 {
 static  CONST WCHAR   space   = 0x0020;
 
-#include "../intl/cs_jis_0208_1990.h"
+#include "../intl/charsets/cs_jis_0208_1990.h"
 
 csptr->charset_version = 40;
 csptr->charset_id = CS_JIS_0208;
@@ -53,10 +46,6 @@ csptr->charset_max_bytes_per_char = 2;
 csptr->charset_space_length = 2;
 csptr->charset_space_character = (BYTE *) &space;       /* 0x20 */
 csptr->charset_well_formed = (FPTR_SHORT) NULL;
-
-#ifdef WINDOWS_ONLY
-unicode_init();
-#endif
 
 CV_convert_init (&csptr->charset_to_unicode, CS_UNICODE101, CS_JIS_0208,
 		CV_wc_to_wc, to_unicode_mapping_array, to_unicode_map);
