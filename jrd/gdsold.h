@@ -1685,7 +1685,332 @@ const GDS_LONG gds_arg_win32                   = 17;
 #define gds__jrn_format_err                335544686L
 #define gds__jrn_file_full                 335544687L
 #define gds__dsql_open_cursor_request      335544688L
-#define gds_err_max   368
+#define gds__ib_error                         335544689L
+#define gds__cache_redef                      335544690L
+#define gds__cache_too_small                  335544691L
+#define gds__log_redef                        335544692L
+#define gds__log_too_small                    335544693L
+#define gds__partition_too_small              335544694L
+#define gds__partition_not_supp               335544695L
+#define gds__log_length_spec                  335544696L
+#define gds__precision_err                    335544697L
+#define gds__scale_nogt                       335544698L
+#define gds__expec_short                      335544699L
+#define gds__expec_long                       335544700L
+#define gds__expec_ushort                     335544701L
+#define gds__like_escape_invalid              335544702L
+#define gds__svcnoexe                         335544703L
+#define gds__net_lookup_err                   335544704L
+#define gds__service_unknown                  335544705L
+#define gds__host_unknown                     335544706L
+#define gds__grant_nopriv_on_base             335544707L
+#define gds__dyn_fld_ambiguous                335544708L
+#define gds__dsql_agg_ref_err                 335544709L
+#define gds__complex_view                     335544710L
+#define gds__unprepared_stmt                  335544711L
+#define gds__expec_positive                   335544712L
+#define gds__dsql_sqlda_value_err             335544713L
+#define gds__invalid_array_id                 335544714L
+#define gds__extfile_uns_op                   335544715L
+#define gds__svc_in_use                       335544716L
+#define gds__err_stack_limit                  335544717L
+#define gds__invalid_key                      335544718L
+#define gds__net_init_error                   335544719L
+#define gds__loadlib_failure                  335544720L
+#define gds__network_error                    335544721L
+#define gds__net_connect_err                  335544722L
+#define gds__net_connect_listen_err           335544723L
+#define gds__net_event_connect_err            335544724L
+#define gds__net_event_listen_err             335544725L
+#define gds__net_read_err                     335544726L
+#define gds__net_write_err                    335544727L
+#define gds__integ_index_deactivate           335544728L
+#define gds__integ_deactivate_primary         335544729L
+#define gds__cse_not_supported                335544730L
+#define gds__tra_must_sweep                   335544731L
+#define gds__unsupported_network_drive        335544732L
+#define gds__io_create_err                    335544733L
+#define gds__io_open_err                      335544734L
+#define gds__io_close_err                     335544735L
+#define gds__io_read_err                      335544736L
+#define gds__io_write_err                     335544737L
+#define gds__io_delete_err                    335544738L
+#define gds__io_access_err                    335544739L
+#define gds__udf_exception                    335544740L
+#define gds__lost_db_connection               335544741L
+#define gds__no_write_user_priv               335544742L
+#define gds__token_too_long                   335544743L
+#define gds__max_att_exceeded                 335544744L
+#define gds__login_same_as_role_name          335544745L
+#define gds__reftable_requires_pk             335544746L
+#define gds__usrname_too_long                 335544747L
+#define gds__password_too_long                335544748L
+#define gds__usrname_required                 335544749L
+#define gds__password_required                335544750L
+#define gds__bad_protocol                     335544751L
+#define gds__dup_usrname_found                335544752L
+#define gds__usrname_not_found                335544753L
+#define gds__error_adding_sec_record          335544754L
+#define gds__error_modifying_sec_record       335544755L
+#define gds__error_deleting_sec_record        335544756L
+#define gds__error_updating_sec_db            335544757L
+#define gds__sort_rec_size_err                335544758L
+#define gds__bad_default_value                335544759L
+#define gds__invalid_clause                   335544760L
+#define gds__too_many_handles                 335544761L
+#define gds__optimizer_blk_exc                335544762L
+#define gds__invalid_string_constant          335544763L
+#define gds__transitional_date                335544764L
+#define gds__read_only_database               335544765L
+#define gds__must_be_dialect_2_and_up         335544766L
+#define gds__blob_filter_exception            335544767L
+#define gds__exception_access_violation       335544768L
+#define gds__exception_datatype_missalignment 335544769L
+#define gds__exception_array_bounds_exceeded  335544770L
+#define gds__exception_float_denormal_operand 335544771L
+#define gds__exception_float_divide_by_zero   335544772L
+#define gds__exception_float_inexact_result   335544773L
+#define gds__exception_float_invalid_operand  335544774L
+#define gds__exception_float_overflow         335544775L
+#define gds__exception_float_stack_check      335544776L
+#define gds__exception_float_underflow        335544777L
+#define gds__exception_integer_divide_by_zero 335544778L
+#define gds__exception_integer_overflow       335544779L
+#define gds__exception_unknown                335544780L
+#define gds__exception_stack_overflow         335544781L
+#define gds__exception_sigsegv                335544782L
+#define gds__exception_sigill                 335544783L
+#define gds__exception_sigbus                 335544784L
+#define gds__exception_sigfpe                 335544785L
+#define gds__ext_file_delete                  335544786L
+#define gds__ext_file_modify                  335544787L
+#define gds__adm_task_denied                  335544788L
+#define gds__extract_input_mismatch           335544789L
+#define gds__insufficient_svc_privileges      335544790L
+#define gds__file_in_use                      335544791L
+#define gds__service_att_err                  335544792L
+#define gds__ddl_not_allowed_by_db_sql_dial   335544793L
+#define gds__cancelled                        335544794L
+#define gds__unexp_spb_form                   335544795L
+#define gds__sql_dialect_datatype_unsupport   335544796L
+#define gds__svcnouser                        335544797L
+#define gds__depend_on_uncommitted_rel        335544798L
+#define gds__svc_name_missing                 335544799L
+#define gds__too_many_contexts                335544800L
+#define gds__datype_notsup                    335544801L
+#define gds__dialect_reset_warning            335544802L
+#define gds__dialect_not_changed              335544803L
+#define gds__database_create_failed           335544804L
+#define gds__inv_dialect_specified            335544805L
+#define gds__valid_db_dialects                335544806L
+#define gds__sqlwarn                          335544807L
+#define gds__dtype_renamed                    335544808L
+#define gds__extern_func_dir_error            335544809L
+#define gds__date_range_exceeded              335544810L
+#define gds__inv_client_dialect_specified     335544811L
+#define gds__valid_client_dialects            335544812L
+#define gds__optimizer_between_err            335544813L
+#define gds__service_not_supported            335544814L
+#define gds__generator_name                   335544815L
+#define gds__udf_name                         335544816L
+#define gds__gfix_db_name                     335740929L
+#define gds__gfix_invalid_sw                  335740930L
+#define gds__gfix_incmp_sw                    335740932L
+#define gds__gfix_replay_req                  335740933L
+#define gds__gfix_pgbuf_req                   335740934L
+#define gds__gfix_val_req                     335740935L
+#define gds__gfix_pval_req                    335740936L
+#define gds__gfix_trn_req                     335740937L
+#define gds__gfix_full_req                    335740940L
+#define gds__gfix_usrname_req                 335740941L
+#define gds__gfix_pass_req                    335740942L
+#define gds__gfix_subs_name                   335740943L
+#define gds__gfix_wal_req                     335740944L
+#define gds__gfix_sec_req                     335740945L
+#define gds__gfix_nval_req                    335740946L
+#define gds__gfix_type_shut                   335740947L
+#define gds__gfix_retry                       335740948L
+#define gds__gfix_retry_db                    335740951L
+#define gds__gfix_exceed_max                  335740991L
+#define gds__gfix_corrupt_pool                335740992L
+#define gds__gfix_mem_exhausted               335740993L
+#define gds__gfix_bad_pool                    335740994L
+#define gds__gfix_trn_not_valid               335740995L
+#define gds__gfix_unexp_eoi                   335741012L
+#define gds__gfix_recon_fail                  335741018L
+#define gds__gfix_trn_unknown                 335741036L
+#define gds__gfix_mode_req                    335741038L
+#define gds__gfix_opt_SQL_dialect             335741039L
+#define gds__dsql_dbkey_from_non_table        336003074L
+#define gds__dsql_transitional_numeric        336003075L
+#define gds__dsql_dialect_warning_expr        336003076L
+#define gds__sql_db_dialect_dtype_unsupport   336003077L
+#define gds__isc_sql_dialect_conflict_num     336003079L
+#define gds__dsql_warning_number_ambiguous    336003080L
+#define gds__dsql_warning_number_ambiguous1   336003081L
+#define gds__dsql_warn_precision_ambiguous    336003082L
+#define gds__dsql_warn_precision_ambiguous1   336003083L
+#define gds__dsql_warn_precision_ambiguous2   336003084L
+#define gds__dyn_role_does_not_exist          336068796L
+#define gds__dyn_no_grant_admin_opt           336068797L
+#define gds__dyn_user_not_role_member         336068798L
+#define gds__dyn_delete_role_failed           336068799L
+#define gds__dyn_grant_role_to_user           336068800L
+#define gds__dyn_inv_sql_role_name            336068801L
+#define gds__dyn_dup_sql_role                 336068802L
+#define gds__dyn_kywd_spec_for_role           336068803L
+#define gds__dyn_roles_not_supported          336068804L
+#define gds__dyn_domain_name_exists           336068812L
+#define gds__dyn_field_name_exists            336068813L
+#define gds__dyn_dependency_exists            336068814L
+#define gds__dyn_dtype_invalid                336068815L
+#define gds__dyn_char_fld_too_small           336068816L
+#define gds__dyn_invalid_dtype_conversion     336068817L
+#define gds__dyn_dtype_conv_invalid           336068818L
+#define gds__dyn_zero_len_id                  336068820L
+#define gds__gbak_unknown_switch              336330753L
+#define gds__gbak_page_size_missing           336330754L
+#define gds__gbak_page_size_toobig            336330755L
+#define gds__gbak_redir_ouput_missing         336330756L
+#define gds__gbak_switches_conflict           336330757L
+#define gds__gbak_unknown_device              336330758L
+#define gds__gbak_no_protection               336330759L
+#define gds__gbak_page_size_not_allowed       336330760L
+#define gds__gbak_multi_source_dest           336330761L
+#define gds__gbak_filename_missing            336330762L
+#define gds__gbak_dup_inout_names             336330763L
+#define gds__gbak_inv_page_size               336330764L
+#define gds__gbak_db_specified                336330765L
+#define gds__gbak_db_exists                   336330766L
+#define gds__gbak_unk_device                  336330767L
+#define gds__gbak_blob_info_failed            336330772L
+#define gds__gbak_unk_blob_item               336330773L
+#define gds__gbak_get_seg_failed              336330774L
+#define gds__gbak_close_blob_failed           336330775L
+#define gds__gbak_open_blob_failed            336330776L
+#define gds__gbak_put_blr_gen_id_failed       336330777L
+#define gds__gbak_unk_type                    336330778L
+#define gds__gbak_comp_req_failed             336330779L
+#define gds__gbak_start_req_failed            336330780L
+#define gds__gbak_rec_failed                  336330781L
+#define gds__gbak_rel_req_failed              336330782L
+#define gds__gbak_db_info_failed              336330783L
+#define gds__gbak_no_db_desc                  336330784L
+#define gds__gbak_db_create_failed            336330785L
+#define gds__gbak_decomp_len_error            336330786L
+#define gds__gbak_tbl_missing                 336330787L
+#define gds__gbak_blob_col_missing            336330788L
+#define gds__gbak_create_blob_failed          336330789L
+#define gds__gbak_put_seg_failed              336330790L
+#define gds__gbak_rec_len_exp                 336330791L
+#define gds__gbak_inv_rec_len                 336330792L
+#define gds__gbak_exp_data_type               336330793L
+#define gds__gbak_gen_id_failed               336330794L
+#define gds__gbak_unk_rec_type                336330795L
+#define gds__gbak_inv_bkup_ver                336330796L
+#define gds__gbak_missing_bkup_desc           336330797L
+#define gds__gbak_string_trunc                336330798L
+#define gds__gbak_cant_rest_record            336330799L
+#define gds__gbak_send_failed                 336330800L
+#define gds__gbak_no_tbl_name                 336330801L
+#define gds__gbak_unexp_eof                   336330802L
+#define gds__gbak_db_format_too_old           336330803L
+#define gds__gbak_inv_array_dim               336330804L
+#define gds__gbak_xdr_len_expected            336330807L
+#define gds__gbak_open_bkup_error             336330817L
+#define gds__gbak_open_error                  336330818L
+#define gds__gbak_missing_block_fac           336330934L
+#define gds__gbak_inv_block_fac               336330935L
+#define gds__gbak_block_fac_specified         336330936L
+#define gds__gbak_missing_username            336330940L
+#define gds__gbak_missing_password            336330941L
+#define gds__gbak_missing_skipped_bytes       336330952L
+#define gds__gbak_inv_skipped_bytes           336330953L
+#define gds__gbak_err_restore_charset         336330965L
+#define gds__gbak_err_restore_collation       336330967L
+#define gds__gbak_read_error                  336330972L
+#define gds__gbak_write_error                 336330973L
+#define gds__gbak_db_in_use                   336330985L
+#define gds__gbak_sysmemex                    336330990L
+#define gds__gbak_restore_role_failed         336331002L
+#define gds__gbak_role_op_missing             336331005L
+#define gds__gbak_page_buffers_missing        336331010L
+#define gds__gbak_page_buffers_wrong_param    336331011L
+#define gds__gbak_page_buffers_restore        336331012L
+#define gds__gbak_inv_size                    336331014L
+#define gds__gbak_file_outof_sequence         336331015L
+#define gds__gbak_join_file_missing           336331016L
+#define gds__gbak_stdin_not_supptd            336331017L
+#define gds__gbak_stdout_not_supptd           336331018L
+#define gds__gbak_bkup_corrupt                336331019L
+#define gds__gbak_unk_db_file_spec            336331020L
+#define gds__gbak_hdr_write_failed            336331021L
+#define gds__gbak_disk_space_ex               336331022L
+#define gds__gbak_size_lt_min                 336331023L
+#define gds__gbak_svc_name_missing            336331025L
+#define gds__gbak_not_ownr                    336331026L
+#define gds__gbak_mode_req                    336331031L
+#define gds__gsec_cant_open_db                336723983L
+#define gds__gsec_switches_error              336723984L
+#define gds__gsec_no_op_spec                  336723985L
+#define gds__gsec_no_usr_name                 336723986L
+#define gds__gsec_err_add                     336723987L
+#define gds__gsec_err_modify                  336723988L
+#define gds__gsec_err_find_mod                336723989L
+#define gds__gsec_err_rec_not_found           336723990L
+#define gds__gsec_err_delete                  336723991L
+#define gds__gsec_err_find_del                336723992L
+#define gds__gsec_err_find_disp               336723996L
+#define gds__gsec_inv_param                   336723997L
+#define gds__gsec_op_specified                336723998L
+#define gds__gsec_pw_specified                336723999L
+#define gds__gsec_uid_specified               336724000L
+#define gds__gsec_gid_specified               336724001L
+#define gds__gsec_proj_specified              336724002L
+#define gds__gsec_org_specified               336724003L
+#define gds__gsec_fname_specified             336724004L
+#define gds__gsec_mname_specified             336724005L
+#define gds__gsec_lname_specified             336724006L
+#define gds__gsec_inv_switch                  336724008L
+#define gds__gsec_amb_switch                  336724009L
+#define gds__gsec_no_op_specified             336724010L
+#define gds__gsec_params_not_allowed          336724011L
+#define gds__gsec_incompat_switch             336724012L
+#define gds__gsec_inv_username                336724044L
+#define gds__gsec_inv_pw_length               336724045L
+#define gds__gsec_db_specified                336724046L
+#define gds__gsec_db_admin_specified          336724047L
+#define gds__gsec_db_admin_pw_specified       336724048L
+#define gds__gsec_sql_role_specified          336724049L
+#define gds__license_no_file                  336789504L
+#define gds__license_op_specified             336789523L
+#define gds__license_op_missing               336789524L
+#define gds__license_inv_switch               336789525L
+#define gds__license_inv_switch_combo         336789526L
+#define gds__license_inv_op_combo             336789527L
+#define gds__license_amb_switch               336789528L
+#define gds__license_inv_parameter            336789529L
+#define gds__license_param_specified          336789530L
+#define gds__license_param_req                336789531L
+#define gds__license_syntx_error              336789532L
+#define gds__license_dup_id                   336789534L
+#define gds__license_inv_id_key               336789535L
+#define gds__license_err_remove               336789536L
+#define gds__license_err_update               336789537L
+#define gds__license_err_convert              336789538L
+#define gds__license_err_unk                  336789539L
+#define gds__license_svc_err_add              336789540L
+#define gds__license_svc_err_remove           336789541L
+#define gds__license_eval_exists              336789563L
+#define gds__gstat_unknown_switch             336920577L
+#define gds__gstat_retry                      336920578L
+#define gds__gstat_wrong_ods                  336920579L
+#define gds__gstat_unexpected_eof             336920580L
+#define gds__gstat_open_err                   336920605L
+#define gds__gstat_read_err                   336920606L
+#define gds__gstat_sysmemex                   336920607L
+
+#define gds_err_max                          692
 
 #else					/* c++ definitions */
 
@@ -2057,7 +2382,333 @@ const GDS_LONG gds_no_dbkey                    = 335544685L;
 const GDS_LONG gds_jrn_format_err              = 335544686L;
 const GDS_LONG gds_jrn_file_full               = 335544687L;
 const GDS_LONG gds_dsql_open_cursor_request    = 335544688L;
-const GDS_LONG gds_err_max    = 368L;
+const GDS_LONG gds_ib_error                         = 335544689L;
+const GDS_LONG gds_cache_redef                      = 335544690L;
+const GDS_LONG gds_cache_too_small                  = 335544691L;
+const GDS_LONG gds_log_redef                        = 335544692L;
+const GDS_LONG gds_log_too_small                    = 335544693L;
+const GDS_LONG gds_partition_too_small              = 335544694L;
+const GDS_LONG gds_partition_not_supp               = 335544695L;
+const GDS_LONG gds_log_length_spec                  = 335544696L;
+const GDS_LONG gds_precision_err                    = 335544697L;
+const GDS_LONG gds_scale_nogt                       = 335544698L;
+const GDS_LONG gds_expec_short                      = 335544699L;
+const GDS_LONG gds_expec_long                       = 335544700L;
+const GDS_LONG gds_expec_ushort                     = 335544701L;
+const GDS_LONG gds_like_escape_invalid              = 335544702L;
+const GDS_LONG gds_svcnoexe                         = 335544703L;
+const GDS_LONG gds_net_lookup_err                   = 335544704L;
+const GDS_LONG gds_service_unknown                  = 335544705L;
+const GDS_LONG gds_host_unknown                     = 335544706L;
+const GDS_LONG gds_grant_nopriv_on_base             = 335544707L;
+const GDS_LONG gds_dyn_fld_ambiguous                = 335544708L;
+const GDS_LONG gds_dsql_agg_ref_err                 = 335544709L;
+const GDS_LONG gds_complex_view                     = 335544710L;
+const GDS_LONG gds_unprepared_stmt                  = 335544711L;
+const GDS_LONG gds_expec_positive                   = 335544712L;
+const GDS_LONG gds_dsql_sqlda_value_err             = 335544713L;
+const GDS_LONG gds_invalid_array_id                 = 335544714L;
+const GDS_LONG gds_extfile_uns_op                   = 335544715L;
+const GDS_LONG gds_svc_in_use                       = 335544716L;
+const GDS_LONG gds_err_stack_limit                  = 335544717L;
+const GDS_LONG gds_invalid_key                      = 335544718L;
+const GDS_LONG gds_net_init_error                   = 335544719L;
+const GDS_LONG gds_loadlib_failure                  = 335544720L;
+const GDS_LONG gds_network_error                    = 335544721L;
+const GDS_LONG gds_net_connect_err                  = 335544722L;
+const GDS_LONG gds_net_connect_listen_err           = 335544723L;
+const GDS_LONG gds_net_event_connect_err            = 335544724L;
+const GDS_LONG gds_net_event_listen_err             = 335544725L;
+const GDS_LONG gds_net_read_err                     = 335544726L;
+const GDS_LONG gds_net_write_err                    = 335544727L;
+const GDS_LONG gds_integ_index_deactivate           = 335544728L;
+const GDS_LONG gds_integ_deactivate_primary         = 335544729L;
+const GDS_LONG gds_cse_not_supported                = 335544730L;
+const GDS_LONG gds_tra_must_sweep                   = 335544731L;
+const GDS_LONG gds_unsupported_network_drive        = 335544732L;
+const GDS_LONG gds_io_create_err                    = 335544733L;
+const GDS_LONG gds_io_open_err                      = 335544734L;
+const GDS_LONG gds_io_close_err                     = 335544735L;
+const GDS_LONG gds_io_read_err                      = 335544736L;
+const GDS_LONG gds_io_write_err                     = 335544737L;
+const GDS_LONG gds_io_delete_err                    = 335544738L;
+const GDS_LONG gds_io_access_err                    = 335544739L;
+const GDS_LONG gds_udf_exception                    = 335544740L;
+const GDS_LONG gds_lost_db_connection               = 335544741L;
+const GDS_LONG gds_no_write_user_priv               = 335544742L;
+const GDS_LONG gds_token_too_long                   = 335544743L;
+const GDS_LONG gds_max_att_exceeded                 = 335544744L;
+const GDS_LONG gds_login_same_as_role_name          = 335544745L;
+const GDS_LONG gds_reftable_requires_pk             = 335544746L;
+const GDS_LONG gds_usrname_too_long                 = 335544747L;
+const GDS_LONG gds_password_too_long                = 335544748L;
+const GDS_LONG gds_usrname_required                 = 335544749L;
+const GDS_LONG gds_password_required                = 335544750L;
+const GDS_LONG gds_bad_protocol                     = 335544751L;
+const GDS_LONG gds_dup_usrname_found                = 335544752L;
+const GDS_LONG gds_usrname_not_found                = 335544753L;
+const GDS_LONG gds_error_adding_sec_record          = 335544754L;
+const GDS_LONG gds_error_modifying_sec_record       = 335544755L;
+const GDS_LONG gds_error_deleting_sec_record        = 335544756L;
+const GDS_LONG gds_error_updating_sec_db            = 335544757L;
+const GDS_LONG gds_sort_rec_size_err                = 335544758L;
+const GDS_LONG gds_bad_default_value                = 335544759L;
+const GDS_LONG gds_invalid_clause                   = 335544760L;
+const GDS_LONG gds_too_many_handles                 = 335544761L;
+const GDS_LONG gds_optimizer_blk_exc                = 335544762L;
+const GDS_LONG gds_invalid_string_constant          = 335544763L;
+const GDS_LONG gds_transitional_date                = 335544764L;
+const GDS_LONG gds_read_only_database               = 335544765L;
+const GDS_LONG gds_must_be_dialect_2_and_up         = 335544766L;
+const GDS_LONG gds_blob_filter_exception            = 335544767L;
+const GDS_LONG gds_exception_access_violation       = 335544768L;
+const GDS_LONG gds_exception_datatype_missalignment = 335544769L;
+const GDS_LONG gds_exception_array_bounds_exceeded  = 335544770L;
+const GDS_LONG gds_exception_float_denormal_operand = 335544771L;
+const GDS_LONG gds_exception_float_divide_by_zero   = 335544772L;
+const GDS_LONG gds_exception_float_inexact_result   = 335544773L;
+const GDS_LONG gds_exception_float_invalid_operand  = 335544774L;
+const GDS_LONG gds_exception_float_overflow         = 335544775L;
+const GDS_LONG gds_exception_float_stack_check      = 335544776L;
+const GDS_LONG gds_exception_float_underflow        = 335544777L;
+const GDS_LONG gds_exception_integer_divide_by_zero = 335544778L;
+const GDS_LONG gds_exception_integer_overflow       = 335544779L;
+const GDS_LONG gds_exception_unknown                = 335544780L;
+const GDS_LONG gds_exception_stack_overflow         = 335544781L;
+const GDS_LONG gds_exception_sigsegv                = 335544782L;
+const GDS_LONG gds_exception_sigill                 = 335544783L;
+const GDS_LONG gds_exception_sigbus                 = 335544784L;
+const GDS_LONG gds_exception_sigfpe                 = 335544785L;
+const GDS_LONG gds_ext_file_delete                  = 335544786L;
+const GDS_LONG gds_ext_file_modify                  = 335544787L;
+const GDS_LONG gds_adm_task_denied                  = 335544788L;
+const GDS_LONG gds_extract_input_mismatch           = 335544789L;
+const GDS_LONG gds_insufficient_svc_privileges      = 335544790L;
+const GDS_LONG gds_file_in_use                      = 335544791L;
+const GDS_LONG gds_service_att_err                  = 335544792L;
+const GDS_LONG gds_ddl_not_allowed_by_db_sql_dial   = 335544793L;
+const GDS_LONG gds_cancelled                        = 335544794L;
+const GDS_LONG gds_unexp_spb_form                   = 335544795L;
+const GDS_LONG gds_sql_dialect_datatype_unsupport   = 335544796L;
+const GDS_LONG gds_svcnouser                        = 335544797L;
+const GDS_LONG gds_depend_on_uncommitted_rel        = 335544798L;
+const GDS_LONG gds_svc_name_missing                 = 335544799L;
+const GDS_LONG gds_too_many_contexts                = 335544800L;
+const GDS_LONG gds_datype_notsup                    = 335544801L;
+const GDS_LONG gds_dialect_reset_warning            = 335544802L;
+const GDS_LONG gds_dialect_not_changed              = 335544803L;
+const GDS_LONG gds_database_create_failed           = 335544804L;
+const GDS_LONG gds_inv_dialect_specified            = 335544805L;
+const GDS_LONG gds_valid_db_dialects                = 335544806L;
+const GDS_LONG gds_sqlwarn                          = 335544807L;
+const GDS_LONG gds_dtype_renamed                    = 335544808L;
+const GDS_LONG gds_extern_func_dir_error            = 335544809L;
+const GDS_LONG gds_date_range_exceeded              = 335544810L;
+const GDS_LONG gds_inv_client_dialect_specified     = 335544811L;
+const GDS_LONG gds_valid_client_dialects            = 335544812L;
+const GDS_LONG gds_optimizer_between_err            = 335544813L;
+const GDS_LONG gds_service_not_supported            = 335544814L;
+const GDS_LONG gds_generator_name                   = 335544815L;
+const GDS_LONG gds_udf_name                         = 335544816L;
+const GDS_LONG gds_gfix_db_name                     = 335740929L;
+const GDS_LONG gds_gfix_invalid_sw                  = 335740930L;
+const GDS_LONG gds_gfix_incmp_sw                    = 335740932L;
+const GDS_LONG gds_gfix_replay_req                  = 335740933L;
+const GDS_LONG gds_gfix_pgbuf_req                   = 335740934L;
+const GDS_LONG gds_gfix_val_req                     = 335740935L;
+const GDS_LONG gds_gfix_pval_req                    = 335740936L;
+const GDS_LONG gds_gfix_trn_req                     = 335740937L;
+const GDS_LONG gds_gfix_full_req                    = 335740940L;
+const GDS_LONG gds_gfix_usrname_req                 = 335740941L;
+const GDS_LONG gds_gfix_pass_req                    = 335740942L;
+const GDS_LONG gds_gfix_subs_name                   = 335740943L;
+const GDS_LONG gds_gfix_wal_req                     = 335740944L;
+const GDS_LONG gds_gfix_sec_req                     = 335740945L;
+const GDS_LONG gds_gfix_nval_req                    = 335740946L;
+const GDS_LONG gds_gfix_type_shut                   = 335740947L;
+const GDS_LONG gds_gfix_retry                       = 335740948L;
+const GDS_LONG gds_gfix_retry_db                    = 335740951L;
+const GDS_LONG gds_gfix_exceed_max                  = 335740991L;
+const GDS_LONG gds_gfix_corrupt_pool                = 335740992L;
+const GDS_LONG gds_gfix_mem_exhausted               = 335740993L;
+const GDS_LONG gds_gfix_bad_pool                    = 335740994L;
+const GDS_LONG gds_gfix_trn_not_valid               = 335740995L;
+const GDS_LONG gds_gfix_unexp_eoi                   = 335741012L;
+const GDS_LONG gds_gfix_recon_fail                  = 335741018L;
+const GDS_LONG gds_gfix_trn_unknown                 = 335741036L;
+const GDS_LONG gds_gfix_mode_req                    = 335741038L;
+const GDS_LONG gds_gfix_opt_SQL_dialect             = 335741039L;
+const GDS_LONG gds_dsql_dbkey_from_non_table        = 336003074L;
+const GDS_LONG gds_dsql_transitional_numeric        = 336003075L;
+const GDS_LONG gds_dsql_dialect_warning_expr        = 336003076L;
+const GDS_LONG gds_sql_db_dialect_dtype_unsupport   = 336003077L;
+const GDS_LONG gds_isc_sql_dialect_conflict_num     = 336003079L;
+const GDS_LONG gds_dsql_warning_number_ambiguous    = 336003080L;
+const GDS_LONG gds_dsql_warning_number_ambiguous1   = 336003081L;
+const GDS_LONG gds_dsql_warn_precision_ambiguous    = 336003082L;
+const GDS_LONG gds_dsql_warn_precision_ambiguous1   = 336003083L;
+const GDS_LONG gds_dsql_warn_precision_ambiguous2   = 336003084L;
+const GDS_LONG gds_dyn_role_does_not_exist          = 336068796L;
+const GDS_LONG gds_dyn_no_grant_admin_opt           = 336068797L;
+const GDS_LONG gds_dyn_user_not_role_member         = 336068798L;
+const GDS_LONG gds_dyn_delete_role_failed           = 336068799L;
+const GDS_LONG gds_dyn_grant_role_to_user           = 336068800L;
+const GDS_LONG gds_dyn_inv_sql_role_name            = 336068801L;
+const GDS_LONG gds_dyn_dup_sql_role                 = 336068802L;
+const GDS_LONG gds_dyn_kywd_spec_for_role           = 336068803L;
+const GDS_LONG gds_dyn_roles_not_supported          = 336068804L;
+const GDS_LONG gds_dyn_domain_name_exists           = 336068812L;
+const GDS_LONG gds_dyn_field_name_exists            = 336068813L;
+const GDS_LONG gds_dyn_dependency_exists            = 336068814L;
+const GDS_LONG gds_dyn_dtype_invalid                = 336068815L;
+const GDS_LONG gds_dyn_char_fld_too_small           = 336068816L;
+const GDS_LONG gds_dyn_invalid_dtype_conversion     = 336068817L;
+const GDS_LONG gds_dyn_dtype_conv_invalid           = 336068818L;
+const GDS_LONG gds_dyn_zero_len_id                  = 336068820L;
+const GDS_LONG gds_gbak_unknown_switch              = 336330753L;
+const GDS_LONG gds_gbak_page_size_missing           = 336330754L;
+const GDS_LONG gds_gbak_page_size_toobig            = 336330755L;
+const GDS_LONG gds_gbak_redir_ouput_missing         = 336330756L;
+const GDS_LONG gds_gbak_switches_conflict           = 336330757L;
+const GDS_LONG gds_gbak_unknown_device              = 336330758L;
+const GDS_LONG gds_gbak_no_protection               = 336330759L;
+const GDS_LONG gds_gbak_page_size_not_allowed       = 336330760L;
+const GDS_LONG gds_gbak_multi_source_dest           = 336330761L;
+const GDS_LONG gds_gbak_filename_missing            = 336330762L;
+const GDS_LONG gds_gbak_dup_inout_names             = 336330763L;
+const GDS_LONG gds_gbak_inv_page_size               = 336330764L;
+const GDS_LONG gds_gbak_db_specified                = 336330765L;
+const GDS_LONG gds_gbak_db_exists                   = 336330766L;
+const GDS_LONG gds_gbak_unk_device                  = 336330767L;
+const GDS_LONG gds_gbak_blob_info_failed            = 336330772L;
+const GDS_LONG gds_gbak_unk_blob_item               = 336330773L;
+const GDS_LONG gds_gbak_get_seg_failed              = 336330774L;
+const GDS_LONG gds_gbak_close_blob_failed           = 336330775L;
+const GDS_LONG gds_gbak_open_blob_failed            = 336330776L;
+const GDS_LONG gds_gbak_put_blr_gen_id_failed       = 336330777L;
+const GDS_LONG gds_gbak_unk_type                    = 336330778L;
+const GDS_LONG gds_gbak_comp_req_failed             = 336330779L;
+const GDS_LONG gds_gbak_start_req_failed            = 336330780L;
+const GDS_LONG gds_gbak_rec_failed                  = 336330781L;
+const GDS_LONG gds_gbak_rel_req_failed              = 336330782L;
+const GDS_LONG gds_gbak_db_info_failed              = 336330783L;
+const GDS_LONG gds_gbak_no_db_desc                  = 336330784L;
+const GDS_LONG gds_gbak_db_create_failed            = 336330785L;
+const GDS_LONG gds_gbak_decomp_len_error            = 336330786L;
+const GDS_LONG gds_gbak_tbl_missing                 = 336330787L;
+const GDS_LONG gds_gbak_blob_col_missing            = 336330788L;
+const GDS_LONG gds_gbak_create_blob_failed          = 336330789L;
+const GDS_LONG gds_gbak_put_seg_failed              = 336330790L;
+const GDS_LONG gds_gbak_rec_len_exp                 = 336330791L;
+const GDS_LONG gds_gbak_inv_rec_len                 = 336330792L;
+const GDS_LONG gds_gbak_exp_data_type               = 336330793L;
+const GDS_LONG gds_gbak_gen_id_failed               = 336330794L;
+const GDS_LONG gds_gbak_unk_rec_type                = 336330795L;
+const GDS_LONG gds_gbak_inv_bkup_ver                = 336330796L;
+const GDS_LONG gds_gbak_missing_bkup_desc           = 336330797L;
+const GDS_LONG gds_gbak_string_trunc                = 336330798L;
+const GDS_LONG gds_gbak_cant_rest_record            = 336330799L;
+const GDS_LONG gds_gbak_send_failed                 = 336330800L;
+const GDS_LONG gds_gbak_no_tbl_name                 = 336330801L;
+const GDS_LONG gds_gbak_unexp_eof                   = 336330802L;
+const GDS_LONG gds_gbak_db_format_too_old           = 336330803L;
+const GDS_LONG gds_gbak_inv_array_dim               = 336330804L;
+const GDS_LONG gds_gbak_xdr_len_expected            = 336330807L;
+const GDS_LONG gds_gbak_open_bkup_error             = 336330817L;
+const GDS_LONG gds_gbak_open_error                  = 336330818L;
+const GDS_LONG gds_gbak_missing_block_fac           = 336330934L;
+const GDS_LONG gds_gbak_inv_block_fac               = 336330935L;
+const GDS_LONG gds_gbak_block_fac_specified         = 336330936L;
+const GDS_LONG gds_gbak_missing_username            = 336330940L;
+const GDS_LONG gds_gbak_missing_password            = 336330941L;
+const GDS_LONG gds_gbak_missing_skipped_bytes       = 336330952L;
+const GDS_LONG gds_gbak_inv_skipped_bytes           = 336330953L;
+const GDS_LONG gds_gbak_err_restore_charset         = 336330965L;
+const GDS_LONG gds_gbak_err_restore_collation       = 336330967L;
+const GDS_LONG gds_gbak_read_error                  = 336330972L;
+const GDS_LONG gds_gbak_write_error                 = 336330973L;
+const GDS_LONG gds_gbak_db_in_use                   = 336330985L;
+const GDS_LONG gds_gbak_sysmemex                    = 336330990L;
+const GDS_LONG gds_gbak_restore_role_failed         = 336331002L;
+const GDS_LONG gds_gbak_role_op_missing             = 336331005L;
+const GDS_LONG gds_gbak_page_buffers_missing        = 336331010L;
+const GDS_LONG gds_gbak_page_buffers_wrong_param    = 336331011L;
+const GDS_LONG gds_gbak_page_buffers_restore        = 336331012L;
+const GDS_LONG gds_gbak_inv_size                    = 336331014L;
+const GDS_LONG gds_gbak_file_outof_sequence         = 336331015L;
+const GDS_LONG gds_gbak_join_file_missing           = 336331016L;
+const GDS_LONG gds_gbak_stdin_not_supptd            = 336331017L;
+const GDS_LONG gds_gbak_stdout_not_supptd           = 336331018L;
+const GDS_LONG gds_gbak_bkup_corrupt                = 336331019L;
+const GDS_LONG gds_gbak_unk_db_file_spec            = 336331020L;
+const GDS_LONG gds_gbak_hdr_write_failed            = 336331021L;
+const GDS_LONG gds_gbak_disk_space_ex               = 336331022L;
+const GDS_LONG gds_gbak_size_lt_min                 = 336331023L;
+const GDS_LONG gds_gbak_svc_name_missing            = 336331025L;
+const GDS_LONG gds_gbak_not_ownr                    = 336331026L;
+const GDS_LONG gds_gbak_mode_req                    = 336331031L;
+const GDS_LONG gds_gsec_cant_open_db                = 336723983L;
+const GDS_LONG gds_gsec_switches_error              = 336723984L;
+const GDS_LONG gds_gsec_no_op_spec                  = 336723985L;
+const GDS_LONG gds_gsec_no_usr_name                 = 336723986L;
+const GDS_LONG gds_gsec_err_add                     = 336723987L;
+const GDS_LONG gds_gsec_err_modify                  = 336723988L;
+const GDS_LONG gds_gsec_err_find_mod                = 336723989L;
+const GDS_LONG gds_gsec_err_rec_not_found           = 336723990L;
+const GDS_LONG gds_gsec_err_delete                  = 336723991L;
+const GDS_LONG gds_gsec_err_find_del                = 336723992L;
+const GDS_LONG gds_gsec_err_find_disp               = 336723996L;
+const GDS_LONG gds_gsec_inv_param                   = 336723997L;
+const GDS_LONG gds_gsec_op_specified                = 336723998L;
+const GDS_LONG gds_gsec_pw_specified                = 336723999L;
+const GDS_LONG gds_gsec_uid_specified               = 336724000L;
+const GDS_LONG gds_gsec_gid_specified               = 336724001L;
+const GDS_LONG gds_gsec_proj_specified              = 336724002L;
+const GDS_LONG gds_gsec_org_specified               = 336724003L;
+const GDS_LONG gds_gsec_fname_specified             = 336724004L;
+const GDS_LONG gds_gsec_mname_specified             = 336724005L;
+const GDS_LONG gds_gsec_lname_specified             = 336724006L;
+const GDS_LONG gds_gsec_inv_switch                  = 336724008L;
+const GDS_LONG gds_gsec_amb_switch                  = 336724009L;
+const GDS_LONG gds_gsec_no_op_specified             = 336724010L;
+const GDS_LONG gds_gsec_params_not_allowed          = 336724011L;
+const GDS_LONG gds_gsec_incompat_switch             = 336724012L;
+const GDS_LONG gds_gsec_inv_username                = 336724044L;
+const GDS_LONG gds_gsec_inv_pw_length               = 336724045L;
+const GDS_LONG gds_gsec_db_specified                = 336724046L;
+const GDS_LONG gds_gsec_db_admin_specified          = 336724047L;
+const GDS_LONG gds_gsec_db_admin_pw_specified       = 336724048L;
+const GDS_LONG gds_gsec_sql_role_specified          = 336724049L;
+const GDS_LONG gds_license_no_file                  = 336789504L;
+const GDS_LONG gds_license_op_specified             = 336789523L;
+const GDS_LONG gds_license_op_missing               = 336789524L;
+const GDS_LONG gds_license_inv_switch               = 336789525L;
+const GDS_LONG gds_license_inv_switch_combo         = 336789526L;
+const GDS_LONG gds_license_inv_op_combo             = 336789527L;
+const GDS_LONG gds_license_amb_switch               = 336789528L;
+const GDS_LONG gds_license_inv_parameter            = 336789529L;
+const GDS_LONG gds_license_param_specified          = 336789530L;
+const GDS_LONG gds_license_param_req                = 336789531L;
+const GDS_LONG gds_license_syntx_error              = 336789532L;
+const GDS_LONG gds_license_dup_id                   = 336789534L;
+const GDS_LONG gds_license_inv_id_key               = 336789535L;
+const GDS_LONG gds_license_err_remove               = 336789536L;
+const GDS_LONG gds_license_err_update               = 336789537L;
+const GDS_LONG gds_license_err_convert              = 336789538L;
+const GDS_LONG gds_license_err_unk                  = 336789539L;
+const GDS_LONG gds_license_svc_err_add              = 336789540L;
+const GDS_LONG gds_license_svc_err_remove           = 336789541L;
+const GDS_LONG gds_license_eval_exists              = 336789563L;
+const GDS_LONG gds_gstat_unknown_switch             = 336920577L;
+const GDS_LONG gds_gstat_retry                      = 336920578L;
+const GDS_LONG gds_gstat_wrong_ods                  = 336920579L;
+const GDS_LONG gds_gstat_unexpected_eof             = 336920580L;
+const GDS_LONG gds_gstat_open_err                   = 336920605L;
+const GDS_LONG gds_gstat_read_err                   = 336920606L;
+const GDS_LONG gds_gstat_sysmemex                   = 336920607L;
+
+const GDS_LONG gds_err_max                          = 692L;
+
 
 #endif
 

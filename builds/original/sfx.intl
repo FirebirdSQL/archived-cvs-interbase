@@ -229,11 +229,11 @@ lc_latin1.o:	lc_latin1.c	$(COMMON_INCLUDES) \
 		bllt1ca0.h bllt1da0.h bllt1de0.h bllt1es0.h \
 		bllt1fi0.h bllt1fr0.h bllt1is0.h bllt1it0.h \
 		bllt1nl0.h bllt1no0.h bllt1pt0.h bllt1sv0.h \
-		bllt1uk0.h bllt1us0.h anczech.h anhundc.h   \
-		anpolish.h ansislov.h ancyrr.h ansiintl.h   \
-		ansii850.h ansinor4.h ansispan.h ansiswfn.h \
-		angreek1.h anturk.h blnxtus0.h blnxtde0.h   \
-		blnxtfr0.h blnxtit0.h
+		bllt1uk0.h bllt1us0.h anczech.h anhun.h \
+		anhundc.h anpolish.h ansislov.h ancyrr.h \
+		ansiintl.h ansii850.h ansinor4.h ansispan.h \
+		ansiswfn.h angreek1.h anturk.h blnxtus0.h \
+		blnxtde0.h blnxtfr0.h blnxtit0.h
 lc_narrow.o:	lc_narrow.c	$(COMMON_INCLUDES)
 lc_unicode.o:	lc_unicode.c	$(COMMON_INCLUDES)
 ld.o:		ld.c		$(COMMON_INCLUDES)

@@ -4981,7 +4981,7 @@ else
 		else
 		{
 			/* I thought I would need more operations here, but... */
-			desc.dsc_length = p - (USHORT*) desc.dsc_address;
+			desc.dsc_length = p - (UCHAR*) desc.dsc_address;
 		}
 	}
 	if (failure)

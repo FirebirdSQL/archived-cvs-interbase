@@ -1110,10 +1110,10 @@ for (i = 0; i < obj_count; i++)
 			obj_type = gds__exception_name;
 			break;
 		case obj_generator:
-			obj_type = isc_generator_name;
+			obj_type = gds__generator_name;
 			break;
 		case obj_udf:
-			obj_type = isc_udf_name;
+			obj_type = gds__udf_name;
 			break;
 		default:
 			assert (FALSE);

@@ -475,6 +475,7 @@ lc_ksc.o: undef.h
 lc_latin1.o: ancyrr.h
 lc_latin1.o: anczech.h
 lc_latin1.o: angreek1.h
+lc_latin1.o: anhun.h
 lc_latin1.o: anhundc.h
 lc_latin1.o: anpolish.h
 lc_latin1.o: ansii850.h
