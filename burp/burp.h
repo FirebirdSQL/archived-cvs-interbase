@@ -917,6 +917,5 @@ extern struct tgbl *gdgbl;
 #define msgErr_restore_collation	215
 #define msgVerbose_restore_collation	216
 
-#define GDS_VERSION "Firebird-W32-V1.0"
 
 #endif /* _BURP_BURP_H_ */
