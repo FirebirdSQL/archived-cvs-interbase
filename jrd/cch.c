@@ -582,9 +582,12 @@ for (remaining = timeout; remaining > 0; remaining -= CCH_EXCLUSIVE_RETRY_INTERV
 
     /* Our thread needs to sleep for CCH_EXCLUSIVE_RETRY_INTERVAL seconds. */
 
+		if (remaining > CCH_EXCLUSIVE_RETRY_INTERVAL)
+		{
     THREAD_EXIT;
     THREAD_SLEEP(CCH_EXCLUSIVE_RETRY_INTERVAL * 1000);
     THREAD_ENTER;
+		}
 
 #ifdef CANCEL_OPERATION
     if (tdbb->tdbb_attachment->att_flags & ATT_cancel_raise)
