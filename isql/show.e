@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
  */
 
 #include "../jrd/ib_stdio.h"
@@ -3232,10 +3233,12 @@ FOR PRC IN RDB$PROCEDURES WITH
 		    }
                 break;
                 }
-
+/* Use RDB$CHARACTER_LENGTH instead of RDB$FIELD_LENGTH
+   FSG 19.Nov.2000
+*/     
 	if (((FLD.RDB$FIELD_TYPE == FCHAR) || (FLD.RDB$FIELD_TYPE == VARCHAR)) &&
 	    !FLD.RDB$CHARACTER_LENGTH.NULL)
-	    sprintf (lenstring, "(%d)", FLD.RDB$FIELD_LENGTH);
+	    sprintf (lenstring, "(%d)", FLD.RDB$CHARACTER_LENGTH);
 	else
 	    sprintf (lenstring, "");
 
