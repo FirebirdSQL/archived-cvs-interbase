@@ -18,11 +18,7 @@
  * Copyright (C) Inprise Corporation.
  *
  * All Rights Reserved.
- * Contributor(s): __Ann W. Harrison_______________________
- *   9 July 01
- *   made some indexes unique.  The indexes on ID fields can not
- *   be unique because they are created after the definitions are
- *   stored.  
+ * Contributor(s): ______________________________________.
  */
 
 #ifndef _JRD_IDX_H_
