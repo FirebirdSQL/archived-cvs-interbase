@@ -181,10 +181,10 @@ define index RDB$INDEX_13 for RDB$REF_CONSTRAINTS unique
 
 
 /*
-define index RDB$INDEX_14 for RDB$CHECK_CONSTRAINTS unique
+define index RDB$INDEX_14 for RDB$CHECK_CONSTRAINTS 
 	RDB$CONSTRAINT_NAME;
 */
-    INDEX (14, ODS_8_0, rel_ccon, idx_unique, 1)
+    INDEX (14, ODS_8_0, rel_ccon, 0, 1)
 	SEGMENT (f_ccon_cname, idx_metadata)   	/* constraint name */
     }},
 
