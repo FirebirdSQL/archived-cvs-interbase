@@ -1,3 +1,79 @@
+2001-12-20 20:17  skywalker
+
+	* interbase/firebird/install/linux/: classic/postinstall.sh,
+	classic/postuninstall.sh, classic/preinstall.sh,
+	super/postinstall.sh, super/postuninstall.sh:
+	
+	Updated install/uninstall scripts to hopefully fix some minor
+	install problems
+	
+	for super:
+	
+	/etc/init.d/firebird scripts changed to be ug=rw,o= since they
+	contain sysdba password
+	
+	 new test for super suse init.d script needed, I changed it a bit,
+	shoud work
+	 but PLEASE CHECK THIS ONE.  Update some of the other scripts there
+	as well
+	 to flow though a little easier.
+	
+	 removed /usr/sbin/rcfirebird from all but suse init file.
+	
+	 super now starts the service after install
+	
+	for classic:
+	
+	 uninstall of classic does xinetd as well as inetd now
+	
+	 commented out check for 3050 port in classic install, we already
+	check if no
+	 servers are running so it works out usually, but could be fixed at
+	later date
+	 to auto shutdown inetd/xinetd.
+	
+	for classic and super:
+	
+	 added code to put localhost.localdomain and `hostname` into
+	hosts.equiv, no
+	 security problems with this since they are already by definition
+	equiv to the
+	 current machine.  Not sure what other platforms need.
+	
+	 added keepOrigPassword to generte the SYSDBA.password file with
+	default value,
+	 generate should now work (since super also starts up service) but
+	leave it
+	 till I test it.
+
+2001-12-20 13:10  pcisar
+
+	* interbase/firebird/install/linux/: doc/FirebirdBugsClosed.html,
+	doc/FirebirdBugsOpen.html, doc/FirebirdFeatureRequestClosed.html,
+	doc/FirebirdFeatureRequestOpen.html, doc/rc1faq.html,
+	misc/whatsnew.txt:
+	
+	Doc for RC1/RC2
+
+2001-12-20 12:59  pcisar
+
+	* interbase/: builds/original/sfx.interbase,
+	firebird/install/linux/Makefile,
+	firebird/install/linux/classic/makeInstallImage.sh,
+	firebird/install/linux/classic/postinstall.sh,
+	firebird/install/linux/doc/FB1_ReleaseNotes.pdf,
+	firebird/install/linux/super/makeInstallImage.sh,
+	firebird/install/linux/super/postinstall.sh,
+	firebird/install/linux/super/postuninstall.sh,
+	firebird/install/linux/super/preinstall.sh,
+	firebird/install/linux/super/preuninstall.sh,
+	firebird/install/linux/super/rpmfiles.txt,
+	firebird/install/linux/super/rpmheader.txt,
+	firebird/install/linux/super/tarMainInstall.sh,
+	firebird/install/linux/super/tarinstall.sh:
+	
+	C
+
 2001-12-18 01:12  awharrison
 
 	* interbase/jrd/flu.c:
