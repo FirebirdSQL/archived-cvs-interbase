@@ -2920,7 +2920,7 @@ switch (str_flag)
 	*temp_str = SINGLE_QUOTE;
 	temp_str++;
 	b1 = str_begin + 1;
-	while (b1 <= str_end)
+	while (b1 < str_end)
 	    {
 	    *temp_str = *b1;
 	    temp_str++;
