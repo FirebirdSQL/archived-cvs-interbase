@@ -65,7 +65,7 @@ checkIfServerRunning() {
     if [ ! -z "$checkString" ] 
       then
         echo "An instance of the Firebird/InterBase classic server seems to be running." 
-        echo "(the gds_inet_server or gds_pipe process was detected running on your system"
+        echo "(the gds_inet_server or gds_pipe process was detected running on your system)"
         echo "Please quit all Firebird applications and then proceed." 
         exit 1 
     fi

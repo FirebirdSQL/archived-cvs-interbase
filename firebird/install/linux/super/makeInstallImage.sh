@@ -77,7 +77,6 @@ copyFiles() {
     cp interbase/isc4.gdb $TargetFBRootDir/isc4.gdb 
     cp $BuildSrcDir/misc/isc_config $TargetFBRootDir/isc_config
 
-    cp $BuildSrcDir/misc/whatsnew.txt $TargetFBRootDir/whatsnew.txt
 
     cp interbase/include/gds.f $TargetFBRootDir/include 
 #    cp interbase/include/gds.hxx $TargetFBRootDir/include 
@@ -90,15 +89,12 @@ copyFiles() {
     fi
     ln -s libgds.so.0 $TargetFBRootDir/lib/libgds.so
 
-    cp -f interbase/lib/gds.a $TargetFBRootDir/lib/libgds.a
+#    cp -f interbase/lib/gds.a $TargetFBRootDir/lib/libgds.a
     cp -f interbase/lib/ib_util.so $TargetFBRootDir/lib/libib_util.so 
 #    cp -f interbase/lib/gds_pyxis.a $TargetFBRootDir/lib/libgds_pyxis.a 
 
     cp interbase/intl/gdsintl $TargetFBRootDir/intl/gdsintl 
     cp interbase/UDF/ib_udf $TargetFBRootDir/UDF/ib_udf 
-
-# Not used.
-    cp interbase/services.isc $TargetFBRootDir/services.isc 
 
     cp $BuildSrcDir/misc/README $TargetFBRootDir/README
     cp $BuildSrcDir/misc/SSchangeRunUser.sh $TargetFBRootDir/bin

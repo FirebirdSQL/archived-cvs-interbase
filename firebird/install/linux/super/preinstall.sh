@@ -57,7 +57,7 @@ checkIfServerRunning() {
         echo "An instance of the Firebird/InterBase Super server seems to be running." 
         echo "(the ibserver or ibguard process was detected running on your system)"
         echo "Please quit all Firebird applications and then proceed"
-        exit 1 
+        exit -1 
     fi
 
     checkString=`ps -efww| egrep "(gds_inet_server|gds_pipe)" |grep -v grep`
@@ -67,7 +67,7 @@ checkIfServerRunning() {
         echo "An instance of the Firebird/InterBase classic server seems to be running." 
         echo "(the gds_inet_server or gds_pipe process was detected running on your system"
         echo "Please quit all Firebird applications and then proceed." 
-        exit 1 
+        exit -1 
     fi
 
 
@@ -78,7 +78,7 @@ checkIfServerRunning() {
         echo "An instance of the Firebird/InterBase server seems to be running." 
         echo "(netstat -an reports a process is already listening on port 3050)"
         echo "Please quit all Firebird applications and then proceed." 
-        exit 1 
+        exit -1 
     fi
 
 

@@ -14,7 +14,20 @@ checkIfServerRunning() {
 
     if [ ! -z "$checkString" ] 
       then
-        rcfirebird stop
+        InitFile=/etc/init.d/firebird
+        if [ ! -x $InitFile ]
+          then
+            InitFile=/etc/rc.d/init.d/firebird
+        fi
+        if [ ! -x $InitFile ]
+          then
+            InitFile=/usr/sbin/rcfirebird
+        fi
+       
+        if [ -x $InitFile ]
+          then
+            $InitFile stop
+        fi
     fi
 
 # Stop lock manager if it is the only thing running.
@@ -51,3 +64,4 @@ checkIfServerRunning() {
             rm -f $i
         fi
       done
+

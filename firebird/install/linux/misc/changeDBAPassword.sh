@@ -26,10 +26,15 @@ changeInitPassword() {
     NewPasswd=$1
 
     InitFile=/etc/rc.d/init.d/firebird
+    if [ ! -f $InitFile ]
+      then
+        InitFile=/etc/init.d/firebird
+    fi
+
     if [ -f $InitFile ] 
       then
         ed $InitFile <<EOF
-/ISC_PASSWORD/s/ISC_PASSWORD:=.*\}/ISC_PASSWORD:=$NewPasswd\}/g
+/ISC_PASSWORD/s/ISC_PASSWORD=.*/ISC_PASSWORD=$NewPasswd/g
 w
 q
 EOF

@@ -9,10 +9,10 @@
 
 
 
-: ${INTERBASE:=/opt/interbase}
-: ${ISC_USER:=SYSDBA}
-: ${ISC_PASSWORD:=masterkey}
-: ${FBRunUser:=root}
+INTERBASE=/opt/interbase
+ISC_USER=SYSDBA
+ISC_PASSWORD=masterkey
+FBRunUser=root
 # WARNING: in a real-world installation, you should not put the 
 # SYSDBA password in a publicly-readable file. 
 # Eventually this file should not need to contain any passwords.
@@ -41,7 +41,7 @@ case "$1" in
 	echo -n "Stopping Firebird server: "
         $INTERBASE/bin/ibmgr -shut
 	RETVAL=$?
-	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/identd
+#	[ $RETVAL -eq 0 ] && rm -f /var/lock/subsys/identd
 	;;
   status)
 	RETVAL=0

@@ -101,13 +101,13 @@ AskQuestion "Press Enter to start installation or ^C to abort"
 if [ -e scripts ]
   then
     echo "Extracting install data"
-    runAndCheckExit "tar -xzf buildroot.tar.gz"
+#    runAndCheckExit "tar -xzf buildroot.tar.gz"
 
     runAndCheckExit "./scripts/preinstall.sh"
     runAndCheckExit "./scripts/tarinstall.sh"
     runAndCheckExit "./scripts/postinstall.sh"
 
-    rm -rf interbase
+#    rm -rf interbase
 fi
 
 echo "Install completed"

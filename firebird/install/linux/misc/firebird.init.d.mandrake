@@ -15,16 +15,15 @@
 . /etc/rc.d/init.d/functions
 
 
-: ${INTERBASE:=/opt/interbase}
-: ${ISC_USER:=SYSDBA}
-: ${ISC_PASSWORD:=masterkey}
-: ${FBRunUser:=root}
-# WARNING: in a real-world installation, you should not put the 
-# SYSDBA password in a publicly-readable file. 
+INTERBASE=/opt/interbase
+ISC_USER=SYSDBA
+ISC_PASSWORD=masterkey
+# WARNING: you should not expose the SYSDBA password in a publicly-
+# readable file.  So please ensure this file is not world readable.
 # Eventually this file should not need to contain any passwords.
 # as root user alone should be sufficient privledge to stop/start 
 # the server. 
-
+FBRunUser=root
 
 export INTERBASE 
 export ISC_USER
@@ -40,13 +39,19 @@ export ISC_PASSWORD
 case "$1" in
   start)
 	echo -n "Starting Firebird server: "
+
+#	daemon --user $FBRunUser $INTERBASE/bin/ibguard -forever
 	daemon --user $FBRunUser $INTERBASE/bin/ibmgr -start -forever
 #    echo '$INTERBASE/bin/ibmgr -start -forever' | su $FBRunUser
 	RETVAL=$?
 	;;
   stop)
 	echo -n "Stopping Firebird server: "
-	$INTERBASE/bin/ibmgr -shut
+
+	$INTERBASE/bin/ibmgr -shut -user $ISC_USER -password $ISC_PASSWORD 
+	unset ISC_USER
+	unset ISC_PASSWORD
+
 #	killproc ibserver
 	RETVAL=$?
 #	echo

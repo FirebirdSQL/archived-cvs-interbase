@@ -125,8 +125,10 @@ updateInetdEntry() {
 
 updateXinetdEntry() {
 
-    cp $IBRootDir/misc/firebird.xinetd /etc/xinetd.d/firebird
-    chmod o=rw,go=r /etc/xinetd.d/firebird
+    InitFile=/etc/xinetd.d/firebird
+    cp $IBRootDir/misc/firebird.xinetd $InitFile
+    chown root:root $InitFile
+    chmod o=rw,go=r $InitFile
     changeXinetdServiceUser
 }
 
@@ -190,6 +192,11 @@ generateNewDBAPassword() {
     DBAPasswordFile=$IBRootDir/SYSDBA.password
     
     NewPasswd=`/usr/bin/mkpasswd -l 8`
+    if [ -z "$NewPasswd" ]
+      then
+        keepOrigDBAPassword
+        return
+    fi
 
     echo "Firebird generated password " > $DBAPasswordFile
     echo "for user SYSDBA is : $NewPasswd" >> $DBAPasswordFile
@@ -477,11 +484,11 @@ UpdateHostsDotEquivFile() {
     fi
 
     newLine="localhost.localdomain"
-    oldLine="$newLine"
+    oldLine=`grep "$newLine" $hostEquivFile`
     replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
 
     newLine="`hostname`"
-    oldLine="$newLine"
+    oldLine=`grep "$newLine" $hostEquivFile`
     replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
     
 }
@@ -526,10 +533,9 @@ resetInetdServer() {
     FileName=/etc/services
     newLine="gds_db          3050/tcp  # InterBase Database Remote Protocol"
     oldLine=`grep "^gds_db" $FileName`
-
     replaceLineInFile "$FileName" "$newLine" "$oldLine"
 
-    updateHostsDotEquivFile
+    UpdateHostsDotEquivFile
 
     # add Firebird user
     if [ $RunUser = "firebird" ]
@@ -567,7 +573,7 @@ resetInetdServer() {
     cd $IBRootDir
     
     # Change sysdba password
-    #    changeDBAPassword
+    #changeDBAPassword
     keepOrigDBAPassword
 
 

@@ -89,6 +89,27 @@ deleteFirebirdUser() {
 
 }
 
+#------------------------------------------------------------------------
+#  changeInitPassword
+
+
+changeInitPassword() {
+
+    NewPasswd=$1
+
+    InitFile=/etc/rc.d/init.d/firebird
+    if [ -f $InitFile ]
+      then
+        ed $InitFile <<EOF
+/ISC_PASSWORD/s/ISC_PASSWORD=.*/ISC_PASSWORD=$NewPasswd/g
+w
+q
+EOF
+    chmod u=rwx,g=rx,o= $InitFile
+
+    fi
+}
+
 
 #------------------------------------------------------------------------
 #  Unable to generate the password for the rpm, so put out a message 
@@ -108,7 +129,7 @@ keepOrigDBAPassword() {
     echo ""
 
     echo "(For superserver you will also want to check the password in the" >> $DBAPasswordFile
-    echo "daemon init routine in the file /etc/init.d/firebird)" >> $DBAPasswordFile
+    echo "daemon init routine in the file /etc/rc.d/init.d/firebird)" >> $DBAPasswordFile
     echo "" >> $DBAPasswordFile
     echo "Your should password can be changed to a more suitable one using the" >> $DBAPasswordFile
     echo "/opt/interbase/bin/changeDBAPassword.sh script" >> $DBAPasswordFile
@@ -130,6 +151,11 @@ generateNewDBAPassword() {
     DBAPasswordFile=$IBRootDir/SYSDBA.password
     
     NewPasswd=`/usr/bin/mkpasswd -l 8`
+    if [ -z "$NewPasswd" ]
+      then
+        keepOrigDBAPassword
+        return
+    fi
 
     echo "Firebird generated password " > $DBAPasswordFile
     echo "for user SYSDBA is : $NewPasswd" >> $DBAPasswordFile
@@ -145,6 +171,8 @@ generateNewDBAPassword() {
     $IBBin/gsec -user sysdba -password masterkey <<EOF
 modify sysdba -pw $NewPasswd
 EOF
+
+    changeInitPassword "$NewPasswd"
 
 }
 
@@ -173,6 +201,7 @@ askUserForNewDBAPassword() {
 modify sysdba -pw $NewPasswd
 EOF
               echo ""
+              changeInitPassword "$NewPasswd"
           fi
           
       done
@@ -205,14 +234,14 @@ changeDBAPassword() {
 
 
 #------------------------------------------------------------------------
-#  fixFilePermissions
+#  fixFilePermissionsForSuper
 #  Change the permissions to restrict access to server programs to 
-#  firebird group only.  This is MUCH better from a saftey point of 
-#  view than installing as root user, even if it requires a little 
-#  more work.
+#  firebird group only.  Since super runs as a server there is a lot
+#  less trouble with suid things and this procedure is fairly straight
+#  forward.
 
 
-fixFilePermissions() {
+fixFilePermissionsForSuper() {
 
     # Turn other access off.
     chmod -R o= $IBRootDir
@@ -237,15 +266,14 @@ fixFilePermissions() {
     # set up the defaults for bin
     for i in `ls`
       do
-         chmod ug=rx,o=  $i
+         chmod a=rx  $i
     done
 
-    # User can run these programs, they need to talk to server though.
-    # and they cannot actually create a database.
-     
-
-    chmod a=rx isql 
-    chmod a=rx qli
+    # These two should only be executed by firebird user.
+    for i in ibguard ibserver
+      do
+        chmod u=rx,go= $i
+      done
     
     # SUID is still needed for group direct access.  General users
     # cannot run though.
@@ -259,14 +287,14 @@ fixFilePermissions() {
     cd $IBRootDir
 
     # Fix lock files
-    for i in isc_init1 isc_lock1 isc_event1 
+    for i in isc_init1 isc_lock1 isc_event1 isc_guard1
       do
         FileName=$i.`hostname`
         chmod ug=rw,o= $FileName
       done
 
 
-    chmod ug=rw,o= interbase.log
+    chmod u=rw,go= interbase.log
 
     chmod a=r interbase.msg
     chmod a=r README
@@ -298,7 +326,7 @@ fixFilePermissions() {
     done
 
     # make examples db's writable by group
-    chmod ug=rw,o= *.gdb
+    chmod ug=rw,o=r *.gdb
 
 
 
@@ -306,111 +334,15 @@ fixFilePermissions() {
 
 
 #------------------------------------------------------------------------
-#  fixFilePermissionsForRoot
-#  This sets the file permissions up to what you need if you are
-#  running the server as root user.  I hope to remove this mode
-#  of running before the next version, since it's security level
-#  is absolutely woeful.
-#  
-#  The main difference between fixFIlePermissionsRoot and fixFilePermissions
-#  is that non root assumes you must be a member of the group to access most 
-#  of the files, wheras root user install gives world writable permission to
-#  the installation.
-
-
-fixFilePermissionsRoot() {
-
-    # Turn other access off.
-    chmod -R o= $IBRootDir
-
-    # Now fix up the mess.
-
-    # fix up directories 
-    for i in `find $IBRootDir -print`
-    do
-        FileName=$i
-        if [ -d $FileName ]
-        then
-            chmod o=rx $FileName
-        fi
-    done
-
-
-    cd $IBBin
-
-
-    # set up the defaults for bin
-    for i in `ls`
-      do
-         chmod o=rx  $i
-    done
-
-    
-    # SUID is still needed for group direct access.  General users
-    # cannot run though.
-    for i in gds_lock_mgr 
-    do
-        chmod ug+s $i
-    done
-
-
-    cd $IBRootDir
-
-    # Set a default of read all files in includes
-
-	for i in include lib UDF intl misc
-	  do
-	      
-        cd $i
-        for j in `ls`
-          do
-            chmod a=r  $j
-          done
-
-        cd ..
-      done
-
-    # Fix lock files
-    for i in isc_init1 isc_lock1 isc_event1 
-      do
-        FileName=$i.`hostname`
-        chmod a=rw $FileName
-      done
-
-
-    chmod a=rw interbase.log
-
-    chmod a=r interbase.msg
-    chmod a=r README
-    chmod a=rw help/help.gdb
-    chmod a=rw isc4.gdb
-
-
-    # Set a default of read all files in examples
-
-    cd examples
-
-    for i in `ls`
-      do
-         chmod a=r  $i
-    done
-
-    # make examples db's writable by group
-    chmod a=rw *.gdb
-
-
-}
-
-#------------------------------------------------------------------------
-# InstallInitdScript
+# installInitdScript
 # Everbody stores this one in a seperate location, so there is a bit of
 # running around to actually get it for each packager.
 # Update rcX.d with Firebird initd entries
 # initd script for SuSE >= 7.2 is a part of RPM package
 
-InstallInitdScript() {
+installInitdScript() {
 
-# This is (I hope) right for RH and MDK
+# This is for RH and MDK specific
 
     if [ -e /etc/rc.d/init.d/functions ]
       then
@@ -432,7 +364,8 @@ InstallInitdScript() {
 
 # Generic...
 
-    elif [ -d /etc/rc.d/init.d ]; then
+    elif [ -d /etc/rc.d/init.d ]
+      then
         srcScript=firebird.init.d.generic
         initScript=/etc/rc.d/init.d/firebird
     fi
@@ -468,14 +401,13 @@ InstallInitdScript() {
 }
 
 #------------------------------------------------------------------------
-# InstallInitdScript
-# Update rcX.d with Firebird initd entries
-# initd script for SuSE >= 7.2 is a part of RPM package
+# startInetService
+# Now that we've installed it start up the service.
 
-StartInetService() {
+startInetService() {
 
     initScript=/etc/init.d/firebird
-    if [! -f $initScript ]
+    if [ ! -f $initScript ]
       then
         initScript=/etc/rc.d/init.d/firebird
     fi
@@ -494,7 +426,7 @@ StartInetService() {
 # The two host names that are needed there are 
 # localhost.localdomain and whatever hostname returns.
 
-UpdateHostsDotEquivFile() {
+updateHostsDotEquivFile() {
 
     hostEquivFile=/etc/hosts.equiv
 
@@ -506,16 +438,17 @@ UpdateHostsDotEquivFile() {
     fi
 
     newLine="localhost.localdomain"
-    oldLine="$newLine"
+    oldLine=`grep "$newLine" $hostEquivFile`
     replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
 
     newLine="`hostname`"
-    oldLine="$newLine"
+    oldLine=`grep "$newLine" $hostEquivFile`
     replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
     
 }
 
     
+
 
 
 #= Main Post ===============================================================
@@ -543,19 +476,35 @@ UpdateHostsDotEquivFile() {
     replaceLineInFile "$FileName" "$newLine" "$oldLine"
 
 
+    # Add entries to host.equiv file
     updateHostsDotEquivFile
 
-    # add Firebird user
+
+    # add Firebird user if required
     if [ $RunUser = "firebird" ]
       then
         addFirebirdUser
     fi
 
+    # Set up Firebird for run with init.d
+    installInitdScript
+
+
+    # Create the ibmgr shell script.
+    cd $IBBin
+
+    cat > ibmgr <<EOF
+#!/bin/sh
+INTERBASE=$IBRootDir
+export INTERBASE
+exec \$INTERBASE/bin/ibmgr.bin \$@
+EOF
+
 
     # Create Lock files
     cd $IBRootDir
 
-    for i in isc_init1 isc_lock1 isc_event1 
+    for i in isc_init1 isc_lock1 isc_event1 isc_guard1
       do
         FileName=$i.`hostname`
         touch $FileName
@@ -568,12 +517,7 @@ UpdateHostsDotEquivFile() {
     # Update ownership and SUID bits for programs.
     chown -R $RunUser.$RunUser $IBRootDir
 
-    # Set up Firebird for run with initd
-    InstallInitdScript
-
-#    fixFilePermissions
-    fixFilePermissionsRoot
-
+    fixFilePermissionsForSuper
 
     startInetService
 

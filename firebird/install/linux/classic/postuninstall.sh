@@ -78,10 +78,10 @@ removeInetDService() {
         
         if [ -d /etc/xinetd.d ]
           then
-            RemoveXInetDService
+            removeXInetDService
         elif [ -f /etc/inetd.d ]
           then
-            RemoveInetDService
+            removeInetDService
         fi
 
     fi

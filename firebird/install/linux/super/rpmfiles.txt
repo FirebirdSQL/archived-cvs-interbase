@@ -40,11 +40,11 @@
     /opt/interbase/lib/libgds.so.0 
     /opt/interbase/lib/libgds.so 
     /opt/interbase/lib/libib_util.so 
-    /opt/interbase/lib/libgds.a
+#    /opt/interbase/lib/libgds.a
 
     /opt/interbase/intl/gdsintl
     /opt/interbase/UDF/ib_udf
-    /opt/interbase/services.isc
+#    /opt/interbase/services.isc
     /opt/interbase/README
 #    /opt/interbase/whatsnew.txt
 #    /opt/interbase/README.CZ

@@ -67,13 +67,11 @@ copyFiles() {
     cp interbase/examples/v5/makefile $TargetFBRootDir/examples 
     cp interbase/help/help.gbak $TargetFBRootDir/help 
     cp interbase/help/help.gdb $TargetFBRootDir/help 
-#	echo "Commented out cp of doc directory"
+
     cp -r $BuildSrcDir/doc $TargetFBRootDir 
     cp interbase/interbase.msg $TargetFBRootDir/interbase.msg 
     cp interbase/isc4.gdb $TargetFBRootDir/isc4.gdb 
     cp $BuildSrcDir/misc/isc_config $TargetFBRootDir/isc_config
-
-    cp $BuildSrcDir/misc/whatsnew.txt $TargetFBRootDir/whatsnew.txt
 
     cp interbase/include/gds.f $TargetFBRootDir/include 
 #    cp interbase/include/gds.hxx $TargetFBRootDir/include 
@@ -92,9 +90,6 @@ copyFiles() {
 
     cp interbase/intl/gdsintl $TargetFBRootDir/intl/gdsintl 
     cp interbase/UDF/ib_udf $TargetFBRootDir/UDF/ib_udf 
-
-# Not used.
-#    cp interbase/services.isc $TargetFBRootDir/services.isc 
 
     cp $BuildSrcDir/misc/README $TargetFBRootDir/README
     cp $BuildSrcDir/misc/CSchangeRunUser.sh $TargetFBRootDir/bin
