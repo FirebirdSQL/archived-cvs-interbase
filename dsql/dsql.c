@@ -1559,8 +1559,13 @@ switch (node->nod_type)
     case nod_udf:
 	PRINTF ("%sfunction: \"", buffer);
 	string = (STR) node->nod_arg [e_udf_name];
+	/* how are we supposed to tell which type of nod_udf this is ?? */
+	if (string->str_data[0] == NULL) 
+		PRINTF("%s\"\n",((UDF) node->nod_arg[0])->udf_name);
+	else
+		PRINTF ("%s\"\n", string->str_data);
 	ptr++;
-	PRINTF ("%s\"\n", string->str_data);
+
 	if (node->nod_count == 2)
 	    DSQL_pretty (*ptr, column + 1);
 	FREE_MEM_RETURN;
