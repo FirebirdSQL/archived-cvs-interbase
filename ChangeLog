@@ -1,3 +1,51 @@
+2001-08-07 21:27  gspeicher
+
+	* interbase/firebird/gspeicher/firebird/scripts/pre-build:
+	
+	- remove this file, because we want to be able to build from
+	non-boot build
+
+2001-08-07 20:20  gspeicher
+
+	* interbase/msgs/include.e:
+	
+	- fix a few important typos
+
+2001-08-07 20:19  gspeicher
+
+	* interbase/Configure_SetupEnv.sh:
+	
+	- fix a syntax error in a test (add space before closing bracket)
+
+2001-08-07 20:18  gspeicher
+
+	* interbase/Configure.sh:
+	
+	- clean up an unnecessary error message
+
+2001-08-07 19:03  skywalker
+
+	* interbase/: builds_win32/original/make.intl,
+	builds/original/sfx.intl, burp/restore.e, intl/cs_latin2.h,
+	intl/cs_narrow.c, intl/lc_ascii.c, intl/lc_latin2.c,
+	intl/lc_narrow.c, intl/ld.c, intl/lt2czech.h, jrd/intlnames.h:
+	
+	Added isolatin2 changes from file submitted by: Michal Bukovjan
+	<michal.bukovjan@openone.cz>
+
+2001-08-07 07:41  rfm
+
+	* interbase/isql/isql.e:
+	
+	Fix memory corruption when a " was the last character in a
+	statement. Bug #448613
+
+2001-08-07 02:46  skywalker
+
+	* interbase/builds_win32/original/build_no.ksh:
+	
+	Changed build number to 1.0.0 Firebird Beta2
+
 2001-08-06 17:51  gspeicher
 
 	* interbase/builds/original/sfx.gpre:
