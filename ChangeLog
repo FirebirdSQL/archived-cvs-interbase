@@ -1,3 +1,26 @@
+2001-02-04 06:35  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Added the prefix file to support Darwin / MacOS X.
+
+2001-02-04 05:08  bellardo
+
+	* interbase/wal/walw_main.c:
+	
+	Created walw_main.c to hold the main() for a walw program.  Did
+	this so the main() was not compiled into the shared library.
+
+2001-02-04 05:06  bellardo
+
+	* interbase/firebird/bellardo/darwin/: Firebird.info, Info.plist,
+	addServEnt.c, checkinstall.sh, checkmakefiles.sh, inetd.conf.isc,
+	install, installpath.c, license.html, license.txt, makefile,
+	post_delete, post_install, pre_delete, pre_install:
+	
+	Initial checkin of the my (bellardo) sandbox directory with the
+	aux. Darwin support files.
+
 2001-01-28 11:38  fsg
 
 	* interbase/isql/isql.e:
