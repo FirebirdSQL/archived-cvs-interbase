@@ -1,3 +1,11 @@
+2003-05-28 18:33  paul_reeves
+
+	* interbase/jrd/: btr.c, btr.h, build_no.h, dfw.e, idx.c,
+	idx_proto.h, jrd.h, pag.c, val.c, vio.c:
+	
+	Remove hard-coded 64 index maximum limit. New limit is page size
+	dependant. (Coded by AH, tested by PR)
+
 2003-04-24 13:19  paul_reeves
 
 	* interbase/jrd/inf.c:
