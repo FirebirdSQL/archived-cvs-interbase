@@ -1,3 +1,25 @@
+2001-12-10 21:59  paul_reeves
+
+	* interbase/jrd/version_95.rc:
+	
+	Win32 interbase
+
+2001-12-10 21:37  paul_reeves
+
+	* interbase/FB_Build_Win32_Build_No.bat:
+	
+	Win32 interbase
+
+2001-12-10 20:35  awharrison
+
+	* interbase/jrd/dyn.e:
+	
+	
+	Modified Files: 	interbase/jrd/dyn.e
+	-------------------------------------------------------------------
+	--- Saving the wrong request handle caused a bad length message
+	error.
+
 2001-12-09 21:12  nmcc
 
 	* interbase/dsql/pass1.c:
