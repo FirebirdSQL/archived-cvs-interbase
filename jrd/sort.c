@@ -44,7 +44,7 @@
 #include "../jrd/all_proto.h"
 #include "../jrd/sch_proto.h"
 
-#ifdef SOLARIS
+#if (defined SOLARIS || defined LINUX )
 #include "../jrd/ib_stdio.h"
 #endif
 
