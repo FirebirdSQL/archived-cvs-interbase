@@ -20,6 +20,8 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Id$
+ *
+ * 2001-09-24  SJL - Temporary fix for large sort file bug
  */
 
 #include <errno.h>
@@ -75,6 +77,11 @@ extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
 
 #define MAX_SORT_BUFFER_SIZE    131040
 
+/* -----------------2001-09-24 --------------------
+ SJL - Temporary fix for large sort file bug
+ --------------------------------------------------*/
+#define MAX_TEMPFILE_SIZE       1900000000
+
 #define DIFF_LONGS(a,b)         ((a) - (b))
 #define SWAP_LONGS(a,b,t)       {t=a; a=b; b=t;}
 
@@ -88,10 +95,10 @@ extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
 #define EINTR   0
 #endif
 
-/* these values are not defined as const as they are passed to 
+/* these values are not defined as const as they are passed to
    the diddle_key routines  which mangles them.
    As the diddle_key routines differ on VAX (little endian) and non VAX
-   (big endian) patforms, making the following CONST caused a core on the 
+   (big endian) patforms, making the following CONST caused a core on the
    Intel Platforms, while Solaris was working fine. */
 static ULONG
 		low_key []  = {  0,  0,  0,  0,  0,  0},
@@ -403,7 +410,7 @@ for (key = scb->scb_description, end = key + scb->scb_keys; key < end; key++)
 		}
 	    p = (BLOB_PTR*) wp;
 	    break;
-	
+
 	case SKD_short:
 	    p [1] ^= 1 << 7;
 	    break;
@@ -602,7 +609,7 @@ if (rval == TRUE)
 void SORT_get (
     STATUS      	*status_vector,
     SCB         	scb,
-    ULONG       	**record_address, 
+    ULONG       	**record_address,
     RSE_GET_MODE	mode)
 {
 /**************************************
@@ -652,7 +659,7 @@ else
 		scb->scb_next_pointer = scb->scb_last_pointer + 1;
 		}
 	    else
-		/* by definition, the next pointer is on the next record, 
+		/* by definition, the next pointer is on the next record,
                    so we have to go back one to get to the last fetched record--
                    this is easier than changing the sense of the next pointer */
 
@@ -686,7 +693,7 @@ else
 
 #ifdef PC_ENGINE
 	case RSE_get_current:
-	    if (scb->scb_next_pointer <= scb->scb_first_pointer || 
+	    if (scb->scb_next_pointer <= scb->scb_first_pointer ||
 		scb->scb_next_pointer >  scb->scb_last_pointer)
 		record = NULL;
 	    record = *scb->scb_next_pointer;
@@ -702,10 +709,10 @@ if (record)
     SORT_diddle_key ((UCHAR *) record->sort_record_key, scb, FALSE);
 
 *record_address = (ULONG *) record;
-	
+
 #ifdef WINDOWS_ONLY
 if (record)
-    {    
+    {
     if (CROSSES_SEG (record, scb->scb_length))
 	{
 	memcpy (scb->scb_get_rec_buf, record, (ULONG) scb->scb_length);
@@ -756,7 +763,7 @@ else
 *record_address = (ULONG *) record;
 
 if (record)
-    {    
+    {
     diddle_key ((UCHAR *) record->sort_record_key, scb, FALSE);
 #ifdef  WINDOWS_ONLY
     if (CROSSES_SEG (record, scb->scb_length))
@@ -808,7 +815,7 @@ scb = (SCB) ALL_malloc ((SLONG) SCB_LEN (keys), ERR_val);
 if (!scb)
     {
     *status_vector++ = gds_arg_gds;
-    *status_vector++ = gds__sort_mem_err;   
+    *status_vector++ = gds__sort_mem_err;
     *status_vector   = gds_arg_end;
     return NULL;
     }
@@ -851,7 +858,7 @@ for (scb->scb_size_memory = MAX_SORT_BUFFER_SIZE;; scb->scb_size_memory -= 5000)
 if (!scb->scb_memory)
     {
     *status_vector++ = gds_arg_gds;
-    *status_vector++ = gds__sort_mem_err;   
+    *status_vector++ = gds__sort_mem_err;
 	/* Msg356: sort error: not enough memory */
     *status_vector = gds_arg_end;
     ALL_free (scb);
@@ -1037,7 +1044,7 @@ while (length)
     len = MIN (length, 32768);
 #ifdef	WINDOWS_ONLY
     /* don't read past the end of a segment */
-    
+
     seg_len = SPACE_IN_SEG (address);
     len = MIN (len, seg_len);
 #endif
@@ -1188,7 +1195,7 @@ else
 if (!streams)
     {
     *status_vector++ = gds_arg_gds;
-    *status_vector++ = gds__sort_mem_err;   
+    *status_vector++ = gds__sort_mem_err;
     *status_vector   = gds_arg_end;
     return gds__sort_mem_err;
     }
@@ -1212,7 +1219,7 @@ if (count > 1)
 	{
 	ALL_free (streams);
 	*status_vector++ = gds_arg_gds;
-	*status_vector++ = gds__sort_mem_err;   
+	*status_vector++ = gds__sort_mem_err;
 	*status_vector   = gds_arg_end;
 	return gds__sort_mem_err;
 	}
@@ -1235,7 +1242,7 @@ while (count > 1)
     {
     m1 = m2 = streams;
 
-    /* "m1" is used to sequence through the runs being merged, 
+    /* "m1" is used to sequence through the runs being merged,
        while "m2" points at the new merged run */
 
     while (count >= 2)
@@ -1310,7 +1317,7 @@ for (; run; run = run->run_next)
     if (!run->run_buffer)
 	{
 	*status_vector++ = gds_arg_gds;
-	*status_vector++ = gds__sort_mem_err;   
+	*status_vector++ = gds__sort_mem_err;
 	*status_vector   = gds_arg_end;
 	return gds__sort_mem_err;
 	}
@@ -1376,10 +1383,10 @@ while (length)
 	else
             {
             if ( write_len >= 0 )
-                /* If write returns value that is not equal len, then 
+                /* If write returns value that is not equal len, then
                    most likely there is not enough space, try to write
                    one more time to get meaningful errno  */
-                write_len = write (sfb->sfb_file, address + write_len, 
+                write_len = write (sfb->sfb_file, address + write_len,
                                    len - write_len);
             if ((SSHORT) write_len == -1 && !SYSCALL_INTERRUPTED(errno))
 	        {
@@ -1423,8 +1430,8 @@ static UCHAR *alloc (
  *          is so a large sort will not push up the high-water mark of
  *          memory allocated to a request or attachment (recall this memory
  *          isn't released until the request/attachment finished)
- *        - As a result, the memory blocks allocated here don't have 
- *          the blk_header structure (we'ld have to add it if we ever 
+ *        - As a result, the memory blocks allocated here don't have
+ *          the blk_header structure (we'ld have to add it if we ever
  *          change this)
  *        - Most things allocated have pointers placed in the scb.
  *          (sort control block)
@@ -1436,7 +1443,7 @@ static UCHAR *alloc (
  *          to be no need to have an error handler to free them as
  *          no errors can be posted during the process.
  *
- *      1994-October-11 David Schnepper 
+ *      1994-October-11 David Schnepper
  *
  **************************************/
 UCHAR   *block;
@@ -1529,7 +1536,7 @@ for (key = scb->scb_description, end = key + scb->scb_keys; key < end; key++)
 
 	case SKD_text:
 	    break;
-	
+
 #ifndef VMS
 	case SKD_d_float:
 #else
@@ -1683,7 +1690,7 @@ for (key = scb->scb_description, end = key + scb->scb_keys; key < end; key++)
 		}
 	    p = (BLOB_PTR*) wp;
 	    break;
-	
+
 	case SKD_short:
 	    p [1] ^= 1 << 7;
 	    break;
@@ -1786,14 +1793,14 @@ for (key = scb->scb_description, end = key + scb->scb_keys; key < end; key++)
 #endif  /* IEEE */
 
 	default:
-	
+
 /*	Don't want the debug version to
         stop because uf skd_type = 0
 FSG 22.Dez.2000
 
         assert (FALSE);
 */
-	
+
 	    break;
 	}
     if (complement && n)
@@ -1839,7 +1846,7 @@ status_vector = scb->scb_status_vector;
 assert (status_vector != NULL);
 
 *status_vector++ = gds_arg_gds;
-*status_vector++ = gds__sort_mem_err;   
+*status_vector++ = gds__sort_mem_err;
 *status_vector   = gds_arg_end;
 ERR_punt();
 }
@@ -1856,8 +1863,8 @@ static ULONG find_file_space (
  **************************************
  *
  * Functional description
- *      Find space of input size in one of the 
- *      open sort files.  If a free block is not 
+ *      Find space of input size in one of the
+ *      open sort files.  If a free block is not
  *      available, allocate space at the end.
  *
  **************************************/
@@ -1880,7 +1887,7 @@ for (sfb_ptr = &scb->scb_sfb; sfb = *sfb_ptr; sfb_ptr = &sfb->sfb_next)
 	{
 	/* if this is smaller than our previous best, use it */
 
-	if (space->wfs_size >= size && 
+	if (space->wfs_size >= size &&
 	    (!best || (space->wfs_size < (*best)->wfs_size)) )
 	    {
 	    best = ptr;
@@ -1903,7 +1910,12 @@ if (!best)
        than available space in the current directory, create a new file
        and return. */
 
-    if (!sfb || !DLS_get_temp_space(size, sfb))
+
+    /* -----------------2001-09-24 --------------------
+      SJL - Temporary fix for large sort file bug
+     --------------------------------------------------*/
+    if (!sfb || !DLS_get_temp_space(size, sfb) || (scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )
+
 	{
 	sfb = (SFB) alloc (scb, (ULONG) sizeof (struct sfb));
 	/* FREE: scb_sfb chain is freed in local_fini() */
@@ -1928,7 +1940,7 @@ if (!best)
 	   because the error routine depends on it
 	   This is released during local_fini(). */
 
-	sfb->sfb_file_name = (TEXT *) alloc (scb, (ULONG) (strlen (file_name) + 1)); 
+	sfb->sfb_file_name = (TEXT *) alloc (scb, (ULONG) (strlen (file_name) + 1));
 	/* FREE: sfb_file_name is freed in local_fini() */
 
 	strcpy (sfb->sfb_file_name, file_name);
@@ -2028,7 +2040,7 @@ if (space)
     /* Blocks weren't adjacent - just nearby */
 
     /* Check that block to free doesn't overlap existing free block */
-    assert (position >= space->wfs_position+space->wfs_size);	
+    assert (position >= space->wfs_position+space->wfs_size);
     }
 
 /* Block didn't seem to append nicely to an existing block */
@@ -2100,7 +2112,7 @@ while (merge)
 	    eof = TRUE;
 	    continue;
 	    }
-	
+
 	eof = FALSE;
 
 	/* Find the appropriate record in the buffer to return. */
@@ -2129,7 +2141,7 @@ while (merge)
 					 run->run_seek, (UCHAR *) run->run_buffer, l);
 #else
 	    }
-	else 
+	else
 	    {
 	    run->run_record = PREV_RUN_RECORD(run->run_record);
 	    if ((record = (SORT_RECORD *) run->run_record) >= run->run_buffer)
@@ -2139,7 +2151,7 @@ while (merge)
 	        }
 	    }
 
-	/* There are records remaining, but we have stepped over the 
+	/* There are records remaining, but we have stepped over the
 	   edge of the cache.  Read the next buffer full of records. */
 
 	assert ((BLOB_PTR*) run->run_end_buffer > (BLOB_PTR*) run->run_buffer);
@@ -2147,7 +2159,7 @@ while (merge)
 	space_available = (ULONG) ((BLOB_PTR*) run->run_end_buffer - (BLOB_PTR*) run->run_buffer);
 	if (mode == RSE_get_forward)
 	    data_remaining = run->run_records * scb->scb_longs * sizeof (ULONG);
-	else 
+	else
 	    data_remaining = (run->run_max_records - run->run_records) * scb->scb_longs * sizeof (ULONG);
 	l = MIN (space_available, data_remaining);
 
@@ -2170,7 +2182,7 @@ while (merge)
 	    --run->run_records;
 #ifdef SCROLLABLE_CURSORS
 	    }
-	else 
+	else
 	    {
 	    record = PREV_RUN_RECORD(run->run_end_buffer);
 	    ++run->run_records;
@@ -2194,8 +2206,8 @@ while (merge)
 		merge->mrg_stream_b = NULL;
 	    else
 		merge->mrg_record_b = record;
-	    
-	
+
+
     /* If either streams need a record and is still active, loop back to pick
        up the record.  If either stream is dry, return the record of the other.
        If both are dry, indicate eof for this stream.  */
@@ -2208,7 +2220,7 @@ while (merge)
 	merge = (MRG) merge->mrg_stream_a;
 	continue;
 	}
-    
+
     if (!merge->mrg_record_b)
 	if (merge->mrg_stream_b)
 	    {
@@ -2228,7 +2240,7 @@ while (merge)
 	    merge = merge->mrg_header.rmh_parent;
 	    continue;
 	    }
-    
+
     if (!merge->mrg_record_a)
 	{
 	record = merge->mrg_record_b;
