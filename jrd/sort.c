@@ -83,7 +83,9 @@ extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
  --------------------------------------------------*/
 #define MAX_TEMPFILE_SIZE       1900000000
 
+#ifdef WIN_NT
 #include <windows.h>
+#endif
 
 #define DIFF_LONGS(a,b)         ((a) - (b))
 #define SWAP_LONGS(a,b,t)       {t=a; a=b; b=t;}
