@@ -44,7 +44,7 @@ fr_FR.msg:	build_file$(EXEC_EXT) indicator.msg indicator.loc
 
 de_DE.msg:	build_file$(EXEC_EXT) indicator.msg indicator.loc
 	-$(RM) de_DE.msg source/interbase/intl/de_DE.msg
-	build_file -d $(MSGSDIR)master_msg_db \
+	./build_file -d $(MSGSDIR)master_msg_db \
 	-l de_DE	\
 	-p source/interbase/intl
 	$(TOUCH) de_DE.msg
@@ -52,17 +52,17 @@ de_DE.msg:	build_file$(EXEC_EXT) indicator.msg indicator.loc
 
 ja_JP_EUC.msg:	build_file$(EXEC_EXT) indicator.msg indicator.loc
 	-$(RM) ja_JP_EUC.msg source/interbase/intl/ja_JP_EUC.msg
-	build_file -d $(MSGSDIR)master_msg_db \
+	./build_file -d $(MSGSDIR)master_msg_db \
 	-l ja_JP.EUC	\
 	-p source/interbase/intl
 	$(TOUCH) ja_JP_EUC.msg
 	$(CHMOD_6) ja_JP_EUC.msg source/interbase/intl/ja_JP_EUC.msg
 
 indicator.msg indicator.incl:	force
-	check_messages -d $(MSGSDIR)master_msg_db
+	./check_messages -d $(MSGSDIR)master_msg_db
 
 indicator.loc:	force
-	check_messages -d $(MSGSDIR)master_msg_db -l
+	./check_messages -d $(MSGSDIR)master_msg_db -l
 
 build_file:	build_file.o
 	-$(RM) build_file
