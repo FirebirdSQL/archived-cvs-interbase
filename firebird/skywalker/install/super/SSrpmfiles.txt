@@ -37,7 +37,7 @@
     /usr/lib/libgds.so.0 
     /usr/lib/libgds.so 
     /usr/lib/libib_util.so 
-    /usr/lib/libgds_pyxis.a 
+#    /usr/lib/libgds_pyxis.a 
     /opt/interbase/intl/gdsintl 
     /opt/interbase/UDF/ib_udf 
     /opt/interbase/services.isc 
