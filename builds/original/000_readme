@@ -14,7 +14,25 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
-                Instructions for Building a Kit
+
+Note: This document comes from the original source distribution
+from Inprise. You should be aware that it refers to some
+Inprise specific things, mostly appears to be written pre-CVS
+and pre interbase 5.x. It is left here for the moment, in orginal
+form, because it still contains some useful information.
+
+Other, more current sources of information:
+The Doc Manager area of the Firebird project on sourceforge.net
+	http://sourceforge.net/projects/firebird/
+The build_docs directory off the interbase tree in this CVS repository
+The ib-build mailing list at mers.com, also available as
+	news://news.mers.com/mers.interbase.build
+
+Reed Mideke, 8/15/2000
+
+Original file follows:
+
+                 Instructions for Building a Kit
 
  1.  Create a top level directory
  2.  cd to the top level directory and copy shell script setup_dirs
