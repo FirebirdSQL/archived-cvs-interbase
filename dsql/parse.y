@@ -114,9 +114,9 @@ NOD		DSQL_parse;
 extern NOD	DSQL_parse;
 #endif
 
-static FLD	field;
-static FIL	file;
-static NOD	field_name;
+static FLD	g_field;
+static FIL	g_file;
+static NOD	g_field_name;
 static TEXT	*beginning;
 static SSHORT	log_defined, cache_defined;
 static void	yyerror (TEXT *);
@@ -621,11 +621,11 @@ udf_decl_clause : symbol_UDF_name arg_desc_list1 RETURNS return_value1
 
 udf_data_type	: simple_type
 		| BLOB
-			{ field->fld_dtype = dtype_blob; }
+			{ g_field->fld_dtype = dtype_blob; }
 		| CSTRING '(' pos_short_integer ')' charset_clause
 			{ 
-			field->fld_dtype = dtype_cstring; 
-			field->fld_character_length = (SLONG) $3; }
+			g_field->fld_dtype = dtype_cstring; 
+			g_field->fld_character_length = (SLONG) $3; }
 		;
 
 arg_desc_list1	: 
@@ -935,29 +935,29 @@ db_log		: db_default_log_spec
 		;	
 
 db_rem_log_spec	: LOGFILE '(' logfiles ')' OVERFLOW logfile_desc
-			{ file->fil_flags |= LOG_serial | LOG_overflow; 
-			  if (file->fil_partitions)
+			{ g_file->fil_flags |= LOG_serial | LOG_overflow; 
+			  if (g_file->fil_partitions)
 			      yyabandon (-261, isc_partition_not_supp);
 			/* Partitions not supported in series of log file specification */
 			 $$ = make_node (nod_list, 2, $3, $6); }  
 		| LOGFILE BASENAME logfile_desc
-			{ file->fil_flags |= LOG_serial;
-			  if (file->fil_partitions)
+			{ g_file->fil_flags |= LOG_serial;
+			  if (g_file->fil_partitions)
 			      yyabandon (-261, isc_partition_not_supp);
 			  $$ = $3; }
 		;
 
 db_default_log_spec : LOGFILE 
-			{ file = make_file(); 
-			  file->fil_flags = LOG_serial | LOG_default;
+			{ g_file = make_file(); 
+			  g_file->fil_flags = LOG_serial | LOG_default;
 			  $$ = make_node (nod_log_file_desc, (int) 1,
-						(NOD) file);}
+						(NOD) g_file);}
 		;
 
 db_file		: file1 sql_string file_desc1
-			{ file->fil_name = (STR) $2; 
+			{ g_file->fil_name = (STR) $2; 
 			  $$ = (NOD) make_node (nod_file_desc, (int) 1,
-						(NOD) file); }
+						(NOD) g_file); }
 		;
 
 /*
@@ -966,12 +966,12 @@ db_cache	: CACHE sql_string cache_length
 			  if (cache_defined)
 			      yyabandon (-260, isc_cache_redef);
 				  */ /* Cache redefined */ /*
-			  file = make_file();
-			  file->fil_length = (SLONG) $3;
-			  file->fil_name = (STR) $2;
+			  g_file = make_file();
+			  g_file->fil_length = (SLONG) $3;
+			  g_file->fil_name = (STR) $2;
 			  cache_defined = TRUE;
 			  $$ = (NOD) make_node (nod_cache_file_desc, (int) 1,
-					 (NOD) file); } 
+					 (NOD) g_file); } 
 		;
 */
 
@@ -997,26 +997,26 @@ logfile_desc	: logfile_name logfile_attrs
 		         check_log_file_attrs(); 
 #endif
 			 $$ = (NOD) make_node (nod_log_file_desc, (int) 1,
-                                                (NOD) file); }
+                                                (NOD) g_file); }
 		;
 logfile_name	: sql_string 
-			{ file = make_file();
-			  file->fil_name = (STR) $1; } 
+			{ g_file = make_file();
+			  g_file->fil_name = (STR) $1; } 
 		;
 logfile_attrs	: 
 		| logfile_attrs logfile_attr
 		;
 
 logfile_attr	: SIZE equals long_integer
-			{ file->fil_length = (SLONG) $3; }
+			{ g_file->fil_length = (SLONG) $3; }
 /*
 		| RAW_PARTITIONS equals pos_short_integer
-			{ file->fil_partitions = (SSHORT) $3; 
-			  file->fil_flags |= LOG_raw; } */
+			{ g_file->fil_partitions = (SSHORT) $3; 
+			  g_file->fil_flags |= LOG_raw; } */
 		;
 
 file1		: KW_FILE
-			{ file  = make_file ();}
+			{ g_file  = make_file ();}
 		;
 
 file_desc1	:
@@ -1028,9 +1028,9 @@ file_desc	: file_clause
 		;
 
 file_clause	: STARTING file_clause_noise long_integer
-			{ file->fil_start = (SLONG) $3;}
+			{ g_file->fil_start = (SLONG) $3;}
 		| LENGTH equals long_integer page_noise
-			{ file->fil_length = (SLONG) $3;}
+			{ g_file->fil_length = (SLONG) $3;}
 		;
 
 file_clause_noise :
@@ -1094,7 +1094,7 @@ column_def	: column_def_name data_type_or_domain default_opt
 
 def_computed	: computed_by '(' begin_trigger value end_trigger ')'
 			{ 
-			field->fld_flags |= FLD_computed;
+			g_field->fld_flags |= FLD_computed;
 			$$ = make_node (nod_def_computed, 2, $4, $5); }
 		;
 
@@ -1115,15 +1115,15 @@ collate_clause	: COLLATE symbol_collation_name
 			{ $$ = (NOD) NULL; }
 		;
 
-column_def_name	: column_name
-			{ field_name = $1;
-			  field = make_field ($1);
-			  $$ = (NOD) field; }
+column_def_name	: simple_column_name
+			{ g_field_name = $1;
+			  g_field = make_field ($1);
+			  $$ = (NOD) g_field; }
 		;
 
 simple_column_def_name  : simple_column_name
-				{ field = make_field ($1);
-				  $$ = (NOD) field; }
+				{ g_field = make_field ($1);
+				  $$ = (NOD) g_field; }
 			;
 
 
@@ -1131,8 +1131,8 @@ data_type_descriptor :	init_data_type data_type
 			{ $$ = $1; }
 
 init_data_type :
-			{ field = make_field (NULL);
-			  $$ = (NOD) field; }
+			{ g_field = make_field (NULL);
+			  $$ = (NOD) g_field; }
 
 
 default_opt	: DEFAULT default_value
@@ -1174,7 +1174,7 @@ column_constraint : NOT KW_NULL
                   | REFERENCES simple_table_name column_parens_opt
 			referential_trigger_action
                         { $$ = make_node (nod_foreign, e_for_count,
-                        make_node (nod_list, (int) 1, field_name), $2, $3, $4); }
+                        make_node (nod_list, (int) 1, g_field_name), $2, $3, $4); }
 
                   | check_constraint
 
@@ -1772,9 +1772,9 @@ alter_data_type_or_domain	: non_array_type begin_trigger
                                         	    $1, NULL, NULL, NULL, NULL); }
 
 alter_col_name	: simple_column_name
-			{ field_name = $1;
-			  field = make_field ($1);
-			  $$ = (NOD) field; }
+			{ g_field_name = $1;
+			  g_field = make_field ($1);
+			  $$ = (NOD) g_field; }
 
 drop_behaviour	: RESTRICT
 			{ $$ = make_node (nod_restrict, 0, NULL); }
@@ -1890,14 +1890,14 @@ non_array_type	: simple_type
 		;
 
 array_type	: non_charset_simple_type '[' array_spec ']'
-		    { field->fld_ranges = make_list ($3);
-		      field->fld_dimensions = field->fld_ranges->nod_count / 2;
-		      field->fld_element_dtype = field->fld_dtype;
+		    { g_field->fld_ranges = make_list ($3);
+		      g_field->fld_dimensions = g_field->fld_ranges->nod_count / 2;
+		      g_field->fld_element_dtype = g_field->fld_dtype;
 		      $$ = $1; }
 		| character_type '[' array_spec ']' charset_clause
-		    { field->fld_ranges = make_list ($3);
-		      field->fld_dimensions = field->fld_ranges->nod_count / 2;
-		      field->fld_element_dtype = field->fld_dtype;
+		    { g_field->fld_ranges = make_list ($3);
+		      g_field->fld_dimensions = g_field->fld_ranges->nod_count / 2;
+		      g_field->fld_element_dtype = g_field->fld_dtype;
 		      $$ = $1; }
 		;
 
@@ -1930,13 +1930,13 @@ non_charset_simple_type	: national_character_type
 		| float_type
 		| integer_keyword
 			{ 
-			field->fld_dtype = dtype_long; 
-			field->fld_length = sizeof (SLONG); 
+			g_field->fld_dtype = dtype_long; 
+			g_field->fld_length = sizeof (SLONG); 
 			}
 		| SMALLINT
 			{ 
-			field->fld_dtype = dtype_short; 
-			field->fld_length = sizeof (SSHORT); 
+			g_field->fld_dtype = dtype_short; 
+			g_field->fld_length = sizeof (SSHORT); 
 			}
 		| DATE
 			{ 
@@ -1946,15 +1946,15 @@ non_charset_simple_type	: national_character_type
 			    /* Post warning saying that DATE is equivalent to TIMESTAMP */
 		            ERRD_post_warning (isc_sqlwarn, gds_arg_number, (SLONG) 301, 
                                                isc_arg_warning, isc_dtype_renamed, 0);
-			    field->fld_dtype = dtype_timestamp; 
-			    field->fld_length = sizeof (GDS_TIMESTAMP);
+			    g_field->fld_dtype = dtype_timestamp; 
+			    g_field->fld_length = sizeof (GDS_TIMESTAMP);
 			    }
 			else if (client_dialect == SQL_DIALECT_V6_TRANSITION)
 			    yyabandon (-104, isc_transitional_date);
 			else
 			    {
-			    field->fld_dtype = dtype_sql_date; 
-			    field->fld_length = sizeof (ULONG);
+			    g_field->fld_dtype = dtype_sql_date; 
+			    g_field->fld_length = sizeof (ULONG);
 			    }
 			}
 		| TIME
@@ -1971,13 +1971,13 @@ non_charset_simple_type	: national_character_type
 				    gds_arg_number, db_dialect,
 				    gds_arg_string, "TIME",
 				    0);
-			field->fld_dtype = dtype_sql_time; 
-			field->fld_length = sizeof (SLONG);
+			g_field->fld_dtype = dtype_sql_time; 
+			g_field->fld_length = sizeof (SLONG);
 			}
 		| TIMESTAMP
 			{ 
-			field->fld_dtype = dtype_timestamp; 
-			field->fld_length = sizeof (GDS_TIMESTAMP);
+			g_field->fld_dtype = dtype_timestamp; 
+			g_field->fld_length = sizeof (GDS_TIMESTAMP);
 			}
 		;
 
@@ -1991,55 +1991,55 @@ integer_keyword	: INTEGER
 
 blob_type	: BLOB blob_subtype blob_segsize charset_clause
 			{ 
-			field->fld_dtype = dtype_blob; 
+			g_field->fld_dtype = dtype_blob; 
 			}
 		| BLOB '(' unsigned_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_blob; 
-			field->fld_seg_length = (SLONG) $3;
-			field->fld_sub_type = 0;
+			g_field->fld_dtype = dtype_blob; 
+			g_field->fld_seg_length = (SLONG) $3;
+			g_field->fld_sub_type = 0;
 			}
 		| BLOB '(' unsigned_short_integer ',' signed_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_blob; 
-			field->fld_seg_length = (SLONG) $3;
-			field->fld_sub_type = (SLONG) $5;
+			g_field->fld_dtype = dtype_blob; 
+			g_field->fld_seg_length = (SLONG) $3;
+			g_field->fld_sub_type = (SLONG) $5;
 			}
 		| BLOB '(' ',' signed_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_blob; 
-			field->fld_seg_length = 80;
-			field->fld_sub_type = (SLONG) $4;
+			g_field->fld_dtype = dtype_blob; 
+			g_field->fld_seg_length = 80;
+			g_field->fld_sub_type = (SLONG) $4;
 			}
 		;
 
 blob_segsize	: SEGMENT SIZE unsigned_short_integer
 		  	{
-			field->fld_seg_length = (SLONG) $3;
+			g_field->fld_seg_length = (SLONG) $3;
 		  	}
 		|
 		  	{
-			field->fld_seg_length = (SLONG) 80;
+			g_field->fld_seg_length = (SLONG) 80;
 		  	}
 		;
 
 blob_subtype	: SUB_TYPE signed_short_integer
 			{
-			field->fld_sub_type = (SLONG) $2;
+			g_field->fld_sub_type = (SLONG) $2;
 			}
 		| SUB_TYPE symbol_blob_subtype_name
 			{
-			field->fld_sub_type_name = $2;
+			g_field->fld_sub_type_name = $2;
 			}
 		|
 			{
-			field->fld_sub_type = (SLONG) 0;
+			g_field->fld_sub_type = (SLONG) 0;
 			}
 		;
 
 charset_clause	: CHARACTER SET symbol_character_set_name
 			{
-			field->fld_character_set = $3;
+			g_field->fld_character_set = $3;
 			}
 		|
 		;
@@ -2049,38 +2049,38 @@ charset_clause	: CHARACTER SET symbol_character_set_name
 
 national_character_type	: national_character_keyword '(' pos_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_text; 
-			field->fld_character_length = (SLONG) $3; 
-			field->fld_flags |= FLD_national;
+			g_field->fld_dtype = dtype_text; 
+			g_field->fld_character_length = (SLONG) $3; 
+			g_field->fld_flags |= FLD_national;
 			}
 		| national_character_keyword
 			{ 
-			field->fld_dtype = dtype_text; 
-			field->fld_character_length = 1; 
-			field->fld_flags |= FLD_national;
+			g_field->fld_dtype = dtype_text; 
+			g_field->fld_character_length = 1; 
+			g_field->fld_flags |= FLD_national;
 			}
 		| national_character_keyword VARYING '(' pos_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_varying; 
-			field->fld_character_length = (SLONG) $4; 
-			field->fld_flags |= FLD_national;
+			g_field->fld_dtype = dtype_varying; 
+			g_field->fld_character_length = (SLONG) $4; 
+			g_field->fld_flags |= FLD_national;
 			}
 		;
 
 character_type	: character_keyword '(' pos_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_text; 
-			field->fld_character_length = (SLONG) $3; 
+			g_field->fld_dtype = dtype_text; 
+			g_field->fld_character_length = (SLONG) $3; 
 			}
 		| character_keyword
 			{ 
-			field->fld_dtype = dtype_text; 
-			field->fld_character_length = 1; 
+			g_field->fld_dtype = dtype_text; 
+			g_field->fld_character_length = 1; 
 			}
 		| varying_keyword '(' pos_short_integer ')'
 			{ 
-			field->fld_dtype = dtype_varying; 
-			field->fld_character_length = (SLONG) $3; 
+			g_field->fld_dtype = dtype_varying; 
+			g_field->fld_character_length = (SLONG) $3; 
 			}
 		;
 
@@ -2103,15 +2103,15 @@ national_character_keyword : NCHAR
 
 numeric_type	: KW_NUMERIC prec_scale
                         { 
-			  field->fld_sub_type = dsc_num_type_numeric;
+			  g_field->fld_sub_type = dsc_num_type_numeric;
 			}
 		| decimal_keyword prec_scale
 			{  
-			   field->fld_sub_type = dsc_num_type_decimal;
-			   if (field->fld_dtype == dtype_short)
+			   g_field->fld_sub_type = dsc_num_type_decimal;
+			   if (g_field->fld_dtype == dtype_short)
 				{
-				field->fld_dtype = dtype_long;
-				field->fld_length = sizeof (SLONG);
+				g_field->fld_dtype = dtype_long;
+				g_field->fld_length = sizeof (SLONG);
 				}
 			}
 		;
@@ -2124,9 +2124,9 @@ ordinal		: pos_short_integer
 
 prec_scale	: 
 			{
-			field->fld_dtype = dtype_long; 
-		    	field->fld_length = sizeof (SLONG); 
-			field->fld_precision = 9;
+			g_field->fld_dtype = dtype_long; 
+		    	g_field->fld_length = sizeof (SLONG); 
+			g_field->fld_precision = 9;
 		    	}
 		| '(' signed_long_integer ')'
 			{         
@@ -2147,8 +2147,8 @@ prec_scale	:
 					   0);
 			    if (client_dialect <= SQL_DIALECT_V5)
 			        {
-				field->fld_dtype = dtype_double;
-				field->fld_length = sizeof (double);
+				g_field->fld_dtype = dtype_double;
+				g_field->fld_length = sizeof (double);
 			        }
 			    else
 			        {
@@ -2165,22 +2165,22 @@ prec_scale	:
 					gds_arg_end );
 
 				    }
-				field->fld_dtype = dtype_int64;
-				field->fld_length = sizeof (SINT64);
+				g_field->fld_dtype = dtype_int64;
+				g_field->fld_length = sizeof (SINT64);
 			        }
 			    }
 			else 
 			    if ((SLONG) $2 < 5)
 			    	{
-			    	field->fld_dtype = dtype_short; 
-			    	field->fld_length = sizeof (SSHORT); 
+			    	g_field->fld_dtype = dtype_short; 
+			    	g_field->fld_length = sizeof (SSHORT); 
 			    	}
 			    else
 			    	{
-			    	field->fld_dtype = dtype_long; 
-			    	field->fld_length = sizeof (SLONG); 
+			    	g_field->fld_dtype = dtype_long; 
+			    	g_field->fld_length = sizeof (SLONG); 
 			    	}
-			field->fld_precision = (SLONG) $2;
+			g_field->fld_precision = (SLONG) $2;
 			}
 		| '(' signed_long_integer ',' signed_long_integer ')'
 			{ 
@@ -2204,8 +2204,8 @@ prec_scale	:
 					   0);
 			    if (client_dialect <= SQL_DIALECT_V5)
 			        {
-				field->fld_dtype = dtype_double;
-				field->fld_length = sizeof (double); 
+				g_field->fld_dtype = dtype_double;
+				g_field->fld_length = sizeof (double); 
 			        }
 			    else
 			        {
@@ -2222,25 +2222,25 @@ prec_scale	:
 					gds_arg_end );
 				  }
 				  /* client_dialect >= SQL_DIALECT_V6 */
-				field->fld_dtype = dtype_int64;
-				field->fld_length = sizeof (SINT64);
+				g_field->fld_dtype = dtype_int64;
+				g_field->fld_length = sizeof (SINT64);
 			        }
 			    }
 			else
 			    {
 			    if ((SLONG) $2 < 5)
 			    	{
-			    	field->fld_dtype = dtype_short; 
-			    	field->fld_length = sizeof (SSHORT); 
+			    	g_field->fld_dtype = dtype_short; 
+			    	g_field->fld_length = sizeof (SSHORT); 
 			    	}
 			    else
 			    	{
-			    	field->fld_dtype = dtype_long; 
-			    	field->fld_length = sizeof (SLONG); 
+			    	g_field->fld_dtype = dtype_long; 
+			    	g_field->fld_length = sizeof (SLONG); 
 			    	}
 			    }
-			field->fld_precision = (SLONG) $2;
-			field->fld_scale = - (SLONG) $4;
+			g_field->fld_precision = (SLONG) $2;
+			g_field->fld_scale = - (SLONG) $4;
 			}
 		;
 
@@ -2255,29 +2255,29 @@ float_type	: KW_FLOAT precision_opt
 			{ 
 			if ((SLONG) $2 > 7)
 			    {
-			    field->fld_dtype = dtype_double;
-			    field->fld_length = sizeof (double); 
+			    g_field->fld_dtype = dtype_double;
+			    g_field->fld_length = sizeof (double); 
 			    }
 			else
 			    {
-			    field->fld_dtype = dtype_real; 
-			    field->fld_length = sizeof (float);
+			    g_field->fld_dtype = dtype_real; 
+			    g_field->fld_length = sizeof (float);
 			    }
 			}
 		| KW_LONG KW_FLOAT precision_opt
 			{ 
-			field->fld_dtype = dtype_double; 
-			field->fld_length = sizeof (double); 
+			g_field->fld_dtype = dtype_double; 
+			g_field->fld_length = sizeof (double); 
 			}
 		| REAL
 			{ 
-			field->fld_dtype = dtype_real; 
-			field->fld_length = sizeof (float); 
+			g_field->fld_dtype = dtype_real; 
+			g_field->fld_length = sizeof (float); 
 			}
 		| KW_DOUBLE PRECISION
 			{ 
-			field->fld_dtype = dtype_double; 
-			field->fld_length = sizeof (double); 
+			g_field->fld_dtype = dtype_double; 
+			g_field->fld_length = sizeof (double); 
 			}
 		;
 
@@ -2624,9 +2624,9 @@ skip_clause	: SKIP long_integer
 
 limit_clause	: first_clause skip_clause
 			{ $$ = make_node (nod_limit, e_limit_count, $2, $1); }
-        |   first_clause
+		|   first_clause
 			{ $$ = make_node (nod_limit, e_limit_count, NULL, $1); }
-        |   skip_clause 
+		|   skip_clause 
 			{ $$ = make_node (nod_limit, e_limit_count, $1, NULL); }
 		| 
 			{ $$ = 0; }
@@ -2774,7 +2774,7 @@ assignments	: assignment
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		;
 
-assignment	: column_name '=' rhs
+assignment	: update_column_name '=' rhs
 			{ $$ = make_node (nod_assign, 2, $3, $1); }
 		;
 
@@ -2826,8 +2826,8 @@ column_parens	: '(' column_list ')'
 			{ $$ = make_list ($2); }
 		;
 
-column_list	: column_name
-		| column_list ',' column_name
+column_list	: simple_column_name
+		| column_list ',' simple_column_name
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		;
 
@@ -2844,6 +2844,15 @@ simple_column_name : symbol_column_name
 			{ $$ = make_node (nod_field_name, (int) e_fln_count,
 						NULL, $1); }
 		;
+
+update_column_name : simple_column_name
+/* CVC: This option should be deprecated! The only allowed syntax should be
+Update...set column = expr, without qualifier for the column. */
+		| symbol_table_alias_name '.' symbol_column_name
+			{ $$ = make_node (nod_field_name, (int) e_fln_count, 
+							$1, $3); }
+		;
+
 
 /* boolean expressions */
 
@@ -3572,15 +3581,15 @@ static void check_log_file_attrs (void)
  *
  *********************************************/
 
-if (file->fil_partitions)
+if (g_file->fil_partitions)
     {
-    if (!file->fil_length)
+    if (!g_file->fil_length)
 	{
 	yyabandon (-261, isc_log_length_spec);
 	/* Total length of a partitioned log must be specified */
 	}
 
-    if (PARTITION_SIZE (OneK*file->fil_length,file->fil_partitions) <
+    if (PARTITION_SIZE (OneK * g_file->fil_length, g_file->fil_partitions) <
 	(OneK*MIN_LOG_LENGTH))
 	{
 	yyabandon (-239, isc_partition_too_small);
@@ -3589,7 +3598,7 @@ if (file->fil_partitions)
     }
 else
     {
-    if ((file->fil_length) && (file->fil_length < MIN_LOG_LENGTH))
+    if ((g_file->fil_length) && (g_file->fil_length < MIN_LOG_LENGTH))
 	{
 	yyabandon (-239, isc_log_too_small);   /* Log size too small */
 	}

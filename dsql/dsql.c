@@ -1558,12 +1558,23 @@ switch (node->nod_type)
 
     case nod_udf:
 	PRINTF ("%sfunction: \"", buffer);
-	string = (STR) node->nod_arg [e_udf_name];
-	/* how are we supposed to tell which type of nod_udf this is ?? */
-	if (string->str_data[0] == NULL) 
-		PRINTF("%s\"\n",((UDF) node->nod_arg[0])->udf_name);
-	else
+	/* nmcc: how are we supposed to tell which type of nod_udf this is ?? */
+	/* CVC: The answer is that nod_arg[0] can be either the udf name or the
+	pointer to udf struct returned by METD_get_function, so we should resort
+	to the block type. The replacement happens in pass1_udf(). */
+	switch (node->nod_arg [e_udf_name]->nod_header.blk_type)
+	{
+	case type_udf:
+		PRINTF ("%s\"\n", ((UDF) node->nod_arg [e_udf_name])->udf_name);
+		break;
+	case type_str:
+		string = (STR) node->nod_arg [e_udf_name];
 		PRINTF ("%s\"\n", string->str_data);
+		break;
+	default:
+		PRINTF ("%s\"\n", "<ERROR>");
+		break;
+	}
 	ptr++;
 
 	if (node->nod_count == 2)

@@ -898,6 +898,22 @@ switch (node->nod_type)
 	node->nod_flags |= NOD_COMP_DIALECT;
 	return;
 
+    case nod_limit:
+	if (node->nod_desc.dsc_scale <= SQL_DIALECT_V5)
+	{
+		desc->dsc_dtype = dtype_long; 
+		desc->dsc_length = sizeof (SLONG);
+	}
+	else
+	{
+		desc->dsc_dtype = dtype_int64; 
+		desc->dsc_length = sizeof (SINT64);
+	}
+	desc->dsc_sub_type = 0;
+	desc->dsc_scale = 0;
+	desc->dsc_flags = 0; /* Can first/skip accept NULL in the future? */
+	return;
+
     case nod_field:
      	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -203,
            	gds_arg_gds, gds__dsql_field_ref, 0);

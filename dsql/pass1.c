@@ -3647,7 +3647,6 @@ static NOD pass1_rse (
  *
  **************************************/
 NOD	rse, parent_rse, target_rse, aggregate, node, list, sub, *ptr, *end, proj;
-PAR	limPar;
 LLS	stack;
 CTX	parent_context;
 TSQL	tdsql;
@@ -3717,49 +3716,22 @@ if (parent_context)
 /* Process LIMIT, if any */
 if (node = input->nod_arg [e_sel_limit])
     {
+    NOD aux_rse = parent_rse ? parent_rse : rse;
+    /* CVC: This line is a hint because set_parameter_type() doesn't receive
+    the dialect currently as an argument. */
+    node->nod_desc.dsc_scale = request->req_client_dialect;
+
     if (node->nod_arg [e_limit_length])
         {
-        if (!parent_rse)
-        {
-            rse->nod_arg [e_rse_first] = 
-                PASS1_node (request, node->nod_arg [e_limit_length], 0);
-            limPar = (PAR) rse->nod_arg[e_rse_first]->nod_arg[e_par_parameter];
-        }
-        else
-        {
-            parent_rse->nod_arg [e_rse_first] =
-                PASS1_node (request, node->nod_arg [e_limit_length], 0);
-            limPar = (PAR) parent_rse->nod_arg[e_rse_first]->nod_arg[e_par_parameter];
-        }
-
-        if (node->nod_arg [e_limit_length]->nod_type == nod_parameter)
-            {
-            limPar->par_desc.dsc_dtype = dtype_int64; 
-	    limPar->par_desc.dsc_sub_type = 0;
-            limPar->par_desc.dsc_length = sizeof(SINT64);
-            }
+        sub = PASS1_node (request, node->nod_arg [e_limit_length], 0);
+	aux_rse->nod_arg [e_rse_first] = sub;
+	set_parameter_type (sub, node, FALSE);
         }
     if (node->nod_arg [e_limit_skip])
         {
-        if (!parent_rse)
-        {
-            limPar = (PAR) rse->nod_arg [e_rse_skip] =
-		     (PAR)PASS1_node (request, node->nod_arg [e_limit_skip], 0);
-            limPar = (PAR) rse->nod_arg[e_rse_skip]->nod_arg[e_par_parameter];
-        }
-        else
-        {
-            limPar = (PAR) parent_rse->nod_arg [e_rse_skip] =
-		     (PAR)PASS1_node (request, node->nod_arg [e_limit_skip], 0);
-            limPar = (PAR) parent_rse->nod_arg[e_rse_skip]->nod_arg[e_par_parameter];
-        }
-
-        if (node->nod_arg[e_limit_skip]->nod_type == nod_parameter)
-            {
-            limPar->par_desc.dsc_dtype = dtype_int64; 
-            limPar->par_desc.dsc_sub_type = 0;  
-            limPar->par_desc.dsc_length = sizeof (SINT64);
-            }
+	sub = PASS1_node (request, node->nod_arg [e_limit_skip], 0);
+	aux_rse->nod_arg [e_rse_skip] = sub;
+	set_parameter_type (sub, node, FALSE);
         }
     }
 
@@ -4666,6 +4638,7 @@ switch (in_node->nod_type)
     case nod_subtract2:
     case nod_upcase:
     case nod_extract:
+    case nod_limit:
 	result = 0;
 	for (ptr = in_node->nod_arg, end = ptr + in_node->nod_count; ptr < end; ptr++)
 	    result |= set_parameter_type (*ptr, node, force_varchar);
