@@ -1,3 +1,11 @@
+2001-10-26 04:44  bellardo
+
+	* interbase/: msgs/msg.gbak, jrd/codes.h, jrd/codetext.h,
+	jrd/iberror.h, jrd/msgs.h, jrd/rdb_codes.h, jrd/sql_code.h:
+	
+	Added error message to use when a single db file exceeds 2^31 bytes
+	in a 32 bit io FB build.
+
 2001-10-25 23:25  awharrison
 
 	* interbase/dsql/: alld.c, dsql.c, dsql.h, dsql_proto.h, gen.c,
