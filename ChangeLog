@@ -1,3 +1,57 @@
+2001-10-31 21:55  paul_reeves
+
+	* interbase/jrd/time.h:
+	
+	Due to changes in glibc sys/time.h earlier this year builds on
+	newer Linux distros were failing. Fixed.
+
+2001-10-31 18:09  awharrison
+
+	* interbase/burp/backup.e:
+	
+	
+	Backup the system generator rdb$security_class to avoid reusing
+	security class names and wiping out previously granted privileges.
+
+2001-10-31 08:54  robocop
+
+	* interbase/: builds_win32/original/include.mak, journal/misc.c,
+	journal/rebuild.e, jrd/doserr.h, remote/dllshell.c, remote/inet.c,
+	remote/makefile.mak, remote/neterr.h, remote/spxnet32.c,
+	remote/winmain.c:
+	
+	Upgrade Win32 build to MS Winsock v2.  - include <winsock> =>
+	winsock2 - WSStartup(1,1) => 2,0 - winsock.lib => ws2_32.lib -
+	winsock.dll => ws2_32.dll
+
+2001-10-31 05:50  bellardo
+
+	* interbase/jrd/common.h:
+	
+	Moved the UNIX_64_BIT_IO macro check to the correct location in the
+	header file.
+
+2001-10-31 05:44  bellardo
+
+	* interbase/jrd/sort.c:
+	
+	Included sys/types on unix platforms to get off_t, instead of
+	including ib_stdio.h.
+
+2001-10-31 02:24  nmcc
+
+	* interbase/jrd/sort.c:
+	
+	Fix missing declaration of off_t on Linux.
+
+2001-10-31 02:20  nmcc
+
+	* interbase/dsql/: parse.y, parse.c:
+	
+	Fix problem where there was a limit (69) on the number of stored
+	procedures that could be called from another stored procedure on
+	some platforms.  Thanks to Oleg Loa for the solution.
+
 2001-10-30 23:23  awharrison
 
 	* interbase/dsql/ddl.c:
