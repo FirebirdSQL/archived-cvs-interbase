@@ -1,3 +1,13 @@
+2001-09-28 18:43  bellardo
+
+	* interbase/: builds/original/prefix.darwin,
+	builds/original/sfx.interbase,
+	firebird/bellardo/darwin/FirebirdFramework.make,
+	firebird/bellardo/darwin/fb_version.pl:
+	
+	Fixed Darwin build errors introduced with the new two line version
+	string.
+
 2001-09-26 09:45  robocop
 
 	* interbase/dsql/pass1.c:
