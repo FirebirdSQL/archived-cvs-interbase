@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2002.02.27 Claudio Valderrama: Fix SF Bug #509995.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -2522,7 +2523,7 @@ RBL	blob;
 RTR	transaction;
 RRQ	request;
 RSR	statement;
-UCHAR	*buffer, temp [1024];
+UCHAR	*buffer, temp [1024], *temp_buffer;
 TEXT	version [256];
 STATUS	status, status_vector [20];
 
@@ -2535,6 +2536,16 @@ memset (buffer, 0, stuff->p_info_buffer_length);
 #ifdef REMOTE_DEBUG_MEMORY
 ib_printf ("info(server)              allocate buffer  %x\n", buffer);
 #endif
+
+if (op == op_info_database && stuff->p_info_buffer_length > sizeof (temp))
+{
+    temp_buffer = ALLR_alloc ((SLONG) stuff->p_info_buffer_length);
+#ifdef REMOTE_DEBUG_MEMORY
+    ib_printf ("info(server)              allocate buffer  %x\n", temp_buffer);
+#endif
+}
+else
+    temp_buffer = temp;
 
 switch (op)
     {
@@ -2557,12 +2568,12 @@ switch (op)
 		GDS_REF (rdb->rdb_handle),
 		stuff->p_info_items.cstr_length,
 		GDS_VAL (stuff->p_info_items.cstr_address),
-		sizeof (temp),
-		temp);
+		stuff->p_info_buffer_length /*sizeof (temp)*/,
+		temp_buffer /*temp*/);
 	if (!status_vector [1])
 	    {
 	    sprintf (version, "%s/%s", GDS_VERSION, port->port_version->str_data);
-	    MERGE_database_info (temp,
+	    MERGE_database_info (temp_buffer /*temp*/,
 		buffer, stuff->p_info_buffer_length,
 		IMPLEMENTATION, 4, 1, version, port->port_host->str_data, 0);
 	    }
@@ -2623,6 +2634,14 @@ switch (op)
 	THREAD_ENTER;
 	break;
     }
+
+if (temp_buffer != temp)
+{
+#ifdef REMOTE_DEBUG_MEMORY
+    ib_printf ("info(server)              free buffer      %x\n", temp_buffer);
+#endif
+    ALLR_free (temp_buffer);
+}
 
 /* Send a response that includes the segment. */
 
