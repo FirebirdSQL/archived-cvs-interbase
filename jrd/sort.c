@@ -23,11 +23,7 @@
 
 #include <errno.h>
 #include <string.h>
-#if defined WIN_NT
-/* for SEEK_SET */
-#include <stdio.h>
-#endif
-#if defined FREEBSD
+#if ( defined FREEBSD || defined LINUX )
 #include <unistd.h>
 #endif
 #include "../jrd/common.h"
@@ -44,6 +40,11 @@
 #include "../jrd/sort_proto.h"
 #include "../jrd/all_proto.h"
 #include "../jrd/sch_proto.h"
+
+#if defined WIN_NT
+/* for SEEK_SET */
+#include <stdio.h>
+#endif
 
 #ifdef	WINDOWS_ONLY
 #include <dos.h>
