@@ -149,6 +149,10 @@
 #define setregid(rgid,egid)		setgid(egid)
 #define SETPGRP				setpgrp ()
 #define ATEXIT(c)			atexit (c)
+
+#ifdef DEBUG_GDS_ALLOC
+#define ALLOC_LIB_MEMORY(size)		gds__alloc_debug ((size),(TEXT *)__FILE__,(ULONG)__LINE__)
+#endif
 #endif /* SINIXZ */
 
 
