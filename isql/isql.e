@@ -6651,7 +6651,7 @@ while (i < argc)
 	    {
 		Version_info = TRUE;
 	    gds__msg_format (NULL_PTR, ISQL_MSG_FAC, VERSION, MSG_LENGTH, 
-		errbuf,	GDS_VERSION, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
+		errbuf,	FB_VERSION, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 
 	    sprintf (Print_buffer, "%s%s", errbuf, NEWLINE);
 	    ISQL_printf (Out, Print_buffer);
@@ -7775,7 +7775,7 @@ if (Sqlda_display)
 
 nullind = (SSHORT*) ISQL_ALLOC ((SLONG) (n_cols * sizeof(SSHORT)));
 #ifdef DEBUG_GDS_ALLOC
-if (nullind)
+if (n_cols && nullind)
 	gds_alloc_flag_unfreed ((void *) nullind);
 #endif
 for (nullp = nullind, var = sqlda->sqlvar, end = var + sqlda->sqld; var < end; var++)

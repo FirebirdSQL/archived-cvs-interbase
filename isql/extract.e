@@ -1584,9 +1584,11 @@ sprintf (Print_buffer, "CREATE DATABASE '%s'", Target_db);
 ISQL_printf (Out, Print_buffer);
 
 /* Get the page size from db_info call */
-SHOW_dbb_parameters (DB, info_buf, page_items, sizeof (page_items), translate);
-sprintf (Print_buffer, " %s", info_buf);
-ISQL_printf (Out, Print_buffer);
+if (!SHOW_dbb_parameters (DB, info_buf, page_items, sizeof (page_items), translate))
+    {
+    sprintf (Print_buffer, " %s", info_buf);
+    ISQL_printf (Out, Print_buffer);
+    }
 
 FOR DBP IN RDB$DATABASE 
     WITH DBP.RDB$CHARACTER_SET_NAME NOT MISSING

@@ -245,7 +245,7 @@ static CONST UCHAR	metadata_text_bpb [] = {
 };
 
  
-void SHOW_dbb_parameters (
+BOOLEAN SHOW_dbb_parameters (
     SLONG	*db_handle,
     SCHAR 	*info_buf,
     SCHAR	*db_items,
@@ -280,7 +280,7 @@ if (!buffer)
     isc_status [1] = isc_virmemexh;
     isc_status [2] = isc_arg_end;	
     ISQL_errmsg (isc_status);
-    return;
+    return FALSE;
     }
 msg	= (SCHAR *) ISQL_ALLOC (MSG_LENGTH);
 if (!msg)
@@ -290,7 +290,7 @@ if (!msg)
     isc_status [2] = isc_arg_end;	
     ISQL_errmsg (isc_status);
     ISQL_FREE (buffer);
-    return;
+    return FALSE;
     }
 
 if (isc_database_info (status_vector,
@@ -300,7 +300,12 @@ if (isc_database_info (status_vector,
 	BUFFER_LENGTH128,
 	buffer)
     )
+    {
     ISQL_errmsg (status_vector);
+    ISQL_FREE (buffer);
+    ISQL_FREE (msg);
+    return FALSE;
+    }
 
 *info_buf = '\0';
 for (d = buffer, info = info_buf; *d != isc_info_end;)
@@ -614,6 +619,7 @@ for (d = buffer, info = info_buf; *d != isc_info_end;)
     }
 ISQL_FREE (buffer);
 ISQL_FREE (msg);
+return TRUE;
 }
 
 int SHOW_grants (
@@ -1235,7 +1241,7 @@ if ((!strcmp (cmd [1], "VERSION")) ||
          (!strcmp (cmd [1], "VER")))
     {
     gds__msg_format (NULL_PTR, ISQL_MSG_FAC, VERSION, sizeof (msg_string),
-	     msg_string, GDS_VERSION, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
+	     msg_string, FB_VERSION, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
     sprintf(Print_buffer, "%s%s", msg_string, NEWLINE);
     ISQL_printf (Out, Print_buffer);
     isc_version (&DB, (FPTR_VOID)local_fprintf, NULL);
@@ -2210,8 +2216,8 @@ if (!info_buf)
 
 /* First general database parameters */
 
-SHOW_dbb_parameters (DB, info_buf, db_items, sizeof (db_items), translate);
-ISQL_printf (Out, info_buf);
+if (SHOW_dbb_parameters (DB, info_buf, db_items, sizeof (db_items), translate))
+    ISQL_printf (Out, info_buf);
 
 /* Only v4 databases have log_files */
 
@@ -2276,11 +2282,8 @@ END_FOR
 
 /* And now for Rich's show db parameters */
 
-if (is_wal)
-   {
-   SHOW_dbb_parameters (DB, info_buf, wal_items, sizeof (wal_items), translate);
+if (is_wal && SHOW_dbb_parameters (DB, info_buf, wal_items, sizeof (wal_items), translate))
    ISQL_printf (Out, info_buf);
-   }
 
 if (V4)
     {
