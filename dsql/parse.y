@@ -2843,7 +2843,7 @@ ins_column_parens	: '(' ins_column_list ')'
 		;
 
 ins_column_list	: update_column_name
-		| column_list ',' update_column_name
+		| ins_column_list ',' update_column_name
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		;
 /* end IBO hack */
