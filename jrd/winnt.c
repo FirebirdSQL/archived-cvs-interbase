@@ -79,7 +79,10 @@ static const DWORD g_dwExtraFlags = FILE_FLAG_OVERLAPPED |
 									FILE_FLAG_NO_BUFFERING |
 									FILE_FLAG_RANDOM_ACCESS;
 #elif SUPERSERVER
-static const DWORD g_dwShareFlags = 0;	// no sharing
+// TMN: Can't disable sharing since the engine tries to open the
+// isc4.gdb at least twice...
+//static const DWORD g_dwShareFlags = 0;	// no sharing
+static const DWORD g_dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
 #else
 static const DWORD g_dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
