@@ -1,0 +1,8 @@
+ISC_ARRBLOB_CK:  ISC API calls to test error conditions.
+                 This series was written by our contractor, 
+		 Marina Meyer, April 94.
+
+isc_errset:  Declare and define global variables which will be
+	     used by OSRI test suites.
+isc_er01-42  isc_attach on non-existant database,
+             Pass an invalid database handle, etc.

@@ -1,0 +1,31 @@
+3 September 1996				Linda Wahler
+
+CF_ISQL:
+16 V4.0 tests by ravil.
+
+CF_ISQL_01:
+**  Description:        This test is a level one test case for computed-field
+s.
+**
+**                      This test uses simple arithmetic operations when
+**                      defining computed-fields. This includes test cases
+**                      where computed-fields are constant-expressions, which
+**                      really doesn't do any good.
+**
+**                      This is the model of most of the tests defined here:
+**
+**                      - Create a table with computed field.
+**                      - Show table to verify the create table.
+**                      - Insert couple of rows with data.
+**                      - Query the table with matching expression and see
+**                        if we get back same number of rows.
+**                      - Update a row.
+**                      - Query again using same expression as above.
+
+**  Expected result:    For every set of testcase there will be two output lines
+**
+**                      'Passed xx - Insert'
+**                      'Passed xx - Update'
+**
+**  Author:             Ravil A. Desai
+**  Bugs:               6605 - Use of unary "+" is not recognized.

@@ -1,0 +1,3 @@
+The series ref_int_indx consists of 8 tests ref_int.1.isql thru ref_int.8.isql.
+Each of these tests check the referential integrity features of interbase.
+For detailed information regd. this , please see the comments in each test.

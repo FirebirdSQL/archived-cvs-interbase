@@ -1,0 +1,9 @@
+$ CREATE cmt      
+History: clare.  see series cmt.
+
+$GFIX qa_user1 -force 10 WHERE_GDB:test.gdb
+$ISQL -m -u qa_user2 -pw qa_user2 test.gdb
+$GFIX -online test.gdb
+$ISQL -m -u qa_user2 -pw qa_user2 test.gdb
+$ DELETE cmt
+$ RUN drop_gdb WHERE_GDB:test.gdb

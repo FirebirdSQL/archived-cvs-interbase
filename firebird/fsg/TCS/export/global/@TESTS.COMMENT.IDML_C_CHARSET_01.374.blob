@@ -1,0 +1,5 @@
+IDML_C_CHARSET_01: works, build T, HP. Fails NLM.  I can't tell if either
+     are actually working properly. 5/26/94
+
+5/31/94:  NT and HP results differ too. Creating smaller case with just
+	  the failed results.

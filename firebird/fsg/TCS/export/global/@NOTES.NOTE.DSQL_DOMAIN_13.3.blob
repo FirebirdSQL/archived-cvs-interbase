@@ -1,0 +1,6 @@
+Test re-initialized. DSQL_DOMAIN_13 
+This test had a bad initialization due to a previously unknown bug
+in ISQL.  The show command would ignore a local default if the domain
+also had a default (the domain's default was always shown).  I accidently
+fixed this bug when I rewrote the show command a few days ago.
+1999-Jan-25 David Schnepper 

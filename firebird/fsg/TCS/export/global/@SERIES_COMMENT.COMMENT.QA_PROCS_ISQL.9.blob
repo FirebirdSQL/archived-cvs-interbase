@@ -1,0 +1,10 @@
+QA_PROCS_ISQL:  Tests Stored Procedures using ISQL to create and execute.
+
+                PROC_CAST4_ISQL, PROC_CAST6_ISQL will require LOCAL inits
+		or they will fail due to the double precision variable.
+
+History:
+24-May-95:      clare.  Some failing remote due to the differences in
+		output when double precision is used as an input param.
+		and an error is forced.  Sent mail to engineering to see 
+		if this was normal since it occurs in other tests.

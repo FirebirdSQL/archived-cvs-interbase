@@ -1,0 +1,19 @@
+V4_EXCLUSIVE:   Tests the exclusive lock transactions.
+                Test 1: It creates table t. Program A1 locks the table 
+		t with an exclusive lock and program A2 tries to modify 
+		the same table.
+History:
+24-May-95:  This series was failing remote and had a coding error.
+	    It was supposed to be hitting the same database with 
+	    two different .e files, but one program used WHERE_GDB
+	    and the other used WHERE_GDB_1 which is never set by
+	    QA.  WHERE_GDB_1 is non-standard for our group.  I changed
+	    the tests to use WHERE_GDB in all cases.
+            This worrys me (from test comments in test 1):
+            "The exclusive lock behavior is set using unix sed commands.
+            We sed the A.c file to insert isc_tpb_exclusive in its tpb 
+	    defintion."  Can't we do this from an SQL statment now?  Maybe
+	    in early testing we could not, but if this is an SQL statement,
+	    then the SED should be removed and we should lock exclusive
+	    in the program. Since I don't know about our lock cmds, it needs
+	    to be looked into. clare.

@@ -1,0 +1,70 @@
+Team Name 		 City 		 State
+--------- 		 ---- 		 ------
+Braves               Atlanta               Georgia             
+Red Sox              Boston                Massachusetts       
+White Sox            Chicago               Illinois            
+Cubs                 Chicago               Illinois            
+Indians              Cleveland             Ohio                
+Tigers               Detroit               Michigan            
+Astros               Houston               Texas               
+Royals               Kansas City           Missouri            
+Dodgers              Los Angeles           California          
+Brewers              Milwaukee             Wisconsin           
+Yankees              New York              New York            
+Mets                 New York              New York            
+Phillies             Philadelphia          Pennsylvania        
+Pirates              Pittsburgh            Pennsylvania        
+Padres               San Diego             California          
+Giants               San Francisco         California          
+Mariners             Seattle               Washington          
+Cardinals            St. Louis             Missouri            
+... End of example 2.9.1 
+
+     TEAM                                           STATE
+     NAME                 CITY                      NAME
+=============== ========================= =========================
+
+Braves          Atlanta                   Georgia
+Red Sox         Boston                    Massachusetts
+White Sox       Chicago                   Illinois
+Cubs            Chicago                   Illinois
+Indians         Cleveland                 Ohio
+Tigers          Detroit                   Michigan
+Astros          Houston                   Texas
+Royals          Kansas City               Missouri
+Dodgers         Los Angeles               California
+Brewers         Milwaukee                 Wisconsin
+Yankees         New York                  New York
+Mets            New York                  New York
+Phillies        Philadelphia              Pennsylvania
+Pirates         Pittsburgh                Pennsylvania
+Padres          San Diego                 California
+Giants          San Francisco             California
+Mariners        Seattle                   Washington
+Cardinals       St. Louis                 Missouri
+
+Use CONNECT or CREATE DATABASE to specify a database
+Database:  /usr/src/ib_test/atlas.gdb
+
+TEAM_NAME       CITY                      STATE_NAME                
+=============== ========================= ========================= 
+
+Braves          Atlanta                   Georgia                   
+Red Sox         Boston                    Massachusetts             
+White Sox       Chicago                   Illinois                  
+Cubs            Chicago                   Illinois                  
+Indians         Cleveland                 Ohio                      
+Tigers          Detroit                   Michigan                  
+Astros          Houston                   Texas                     
+Royals          Kansas City               Missouri                  
+Dodgers         Los Angeles               California                
+Brewers         Milwaukee                 Wisconsin                 
+Yankees         New York                  New York                  
+Mets            New York                  New York                  
+Phillies        Philadelphia              Pennsylvania              
+Pirates         Pittsburgh                Pennsylvania              
+Padres          San Diego                 California                
+Giants          San Francisco             California                
+Mariners        Seattle                   Washington                
+Cardinals       St. Louis                 Missouri                  
+

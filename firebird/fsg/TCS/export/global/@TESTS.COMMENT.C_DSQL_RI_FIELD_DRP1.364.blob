@@ -1,0 +1,24 @@
+See explanation of Bug 8397 in TCS test C_DSQL_RI_DROP_TAB.
+
+C_DSQL_RI_FIELD_DRP1  Bug 8397  Line 153 exhibits bug #8397 referenced above,
+     -Linda Wahler
+                                We try to drop field Author_ID when index
+                                rdb$primary1 still exists on it.
+                                Drop the index first,
+
+                                SQL>drop index rdb$primary1;
+                                Still failed, can't drop "an index used by an
+                                Integrity Constraint".  It's not allowed.
+                                alter table authors drop constraint AUTH_ID_KEY;
+
+                                works.  I will add a comment to bug 8397 that
+                                we should be sure the fix applies to constraints
+                                that are internal to the table.
+
+                                Line 199:  ALTER TABLE BOOKS DROP BOOK_AUTH_ID;
+                                exhibits Bug 8397 also (discussed above).
+
+                                Line 211:   ALTER TABLE AUTHORS DROP AUTHOR_ID;
+                                exhibits Bug 8397 also (discussed above). Once
+                                the fix is implemented for #8397, all three
+                                errors should clear.

@@ -1,0 +1,28 @@
+SQL_EVENTS:  Appears to test event handling without using the qa tool "mu"
+
+History:
+--------
+5Oct95:	     sshetty made a global edit to fix the series for AIX.  This
+	     introduced timing problems on Solaris (events were being missed)
+	     so daves made a global edit changing all "sleep 2" to "sleep 15"
+	     and appropriate increases in all other sleep commands.
+14June95:    No series owner. Should be either rich or qa_test which means
+	     I will be running it (clare).  Currently runs on HP build
+	     B4.0E1.  Within seconds the first test completes.  It is 
+	     hanging on the solaris build after we implemented the idea
+	     of using a mutex to do locking.  (SO-B4.0F--actually F1.  The
+	     last version string was also F)  In the last build (before
+	     mutex) the EVENT_MISC series passed.  Now it hangs.  I don't 
+	     think this one was ever run.  
+
+	     Current failure (a hang in TCS, but if you do a control C you
+	     will see:)
+	     ...
+	     CON> CON> CON> CON> CON> CON> SQL> SQL> SQL> 
+	     Fatal lock manager error: release when not owner, errno: 1
+	     > --Not owner
+
+	     No explicit owner is being used.  Before running the test
+	     this time I killed the lock manager and deleted the 
+	     isc_lock1.solaris3 and event files in /usr/interbase.  The
+	     test still hangs.

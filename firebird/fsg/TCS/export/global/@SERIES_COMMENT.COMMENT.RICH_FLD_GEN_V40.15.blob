@@ -1,0 +1,17 @@
+29 August 1996			Linda Wahler
+
+RICH_FLD_GEN_V40:
+4.0 tests by Rich.
+
+FLD0_V40_1006:
+Looks like wal stuff.
+
+FLD0_V40_1007:
+/* The following array needs to be modified to select the db information
+   the user is requesting.  Include are all the db info calls supported
+   comment out info calles you are not interested in.
+*/
+More *_wal_* variables defined.
+
+FLD0_V40_1008:
+GFIX -enable and -disable journal.

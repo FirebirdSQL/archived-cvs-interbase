@@ -1,0 +1,38 @@
+C_SQL_JOIN:
+Around 50 V4.0 tests by Sam Hakim.
+Purpose:               Test SQL OUTER JOIN support in InterBase 4.0
+ Author:                Sam Hakim, June 1, 93
+
+C_SQL_JOIN_0:   (Also a 4.2 version).
+??
+
+C_SQL_JOIN_5:
+ Description:           LEFT JOIN
+
+C_SQL_JOIN_10:
+Description:           RIGHT OUTER JOIN - Syntax check
+
+C_SQL_JOIN_17:
+Description:           WHERE, LIKE, ORDER BY - 3 table outer joins
+
+C_SQL_JOIN_21:
+Description:           COLUMN >= COLUMN
+
+C_SQL_JOIN_25:
+Description:           Outer join as subquery - Empty result set
+
+C_SQL_JOIN_33:
+Description:           ON arithmatic-condition-expression
+
+C_SQL_JOIN_35:
+ Description:           ON search-condition OR search-condition
+
+C_SQL_JOIN_40:
+Description:           ON calculated-field = calculated-field
+
+C_SQL_JOIN_45:
+Description:           15 table joins - reflexive join on the same table
+
+C_SQL_JOIN_47:
+Description:           5 table joins
+

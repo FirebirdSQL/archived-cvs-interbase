@@ -1,0 +1,33 @@
+C_DSQL_RI_FIELD_ALT    Bug 8397 Test attempts to drop a table when there is
+                                a constraint on it (a foreign index referencing
+                                it).  Test assumes if you drop the column that
+                                has the foreign index, you will be able to drop
+                                the table.  In 4.5 you can no longer drop the
+                                column without first dropping the index.  The
+                                problem is, the user does not know that an index
+                                got created when the constraint was set up.  The
+                                constraint can be dropped, then the column, then
+                                the table.  It would be better if IB recognized
+                                that the index was foreign (created by IB on the
+                                sly) and automatically deleted the index and
+                                column.  Then this test would pass without
+                                modification.  Bug #8397 was submitted with this
+                                end in mind.  If not fixed, the workaround
+                                should be documented, and the test altered to
+                                drop the constraint before the column drop is
+                                attempted.
+
+                               In 4.0 we allowed columns to be deleted when
+                                an index existed on the column.  We left the
+                                index dangling.  This behavior was fixed
+                                (Bug_no 8054) for 4.5 and caused the new
+                                behavior to surface.  The old behavior was
+                                causing problems on restore of the database
+                                from a .gbk file.
+
+                                After statement
+                                    ALTER TABLE BOOKS DROP BOOK_AUTH_ID
+                                Successful execution is expected, but behavior
+                                has changed.  We no longer allow the column
+                                BOOK_AUTH_ID to be dropped, it's referenced
+                                in a foreign index.

@@ -1,0 +1,53 @@
+4 September 1996				Linda Wahler
+
+C_SQL_PRED:
+About 75 V4.0 tests by Sam Hakim.
+ Purpose:               Test predicates support in InterBase SQL 4.0
+                        [NOT]SINGULAR <subquery>
+
+C_SQL_PRED_0:
+Description:           Reflexive join - SINGULAR
+
+C_SQL_PRED_5:
+Description:           Nested subqueries - SINGULAR
+
+C_SQL_PRED_10:
+Description:           Two table joins in nested subquery, aggregates - SINGULAR
+
+C_SQL_PRED_21:
+Description:           SINGULAR - Subquery returning exactly one row.
+
+C_SQL_PRED_25:
+Description:           Error trapping - SINGULAR
+
+C_SQL_PRED_30:
+Description:           char-field, containing mixture of lower and
+                        upper case char
+
+C_SQL_PRED_35:
+Description:           char-field, concatenated field
+
+C_SQL_PRED_40:
+Description:           blob-field containing a single char
+
+C_SQL_PRED_45:
+Description:           varchar field containing number
+
+C_SQL_PRED_50:
+Description:           char-field, starting with string
+
+C_SQL_PRED_55:
+Description:           Order by, Group by after STARTING WITH keyword
+
+C_SQL_PRED_60:
+Description:           char-field in a view
+
+C_SQL_PRED_65:
+Description:           varchar STARTING WITH a single char
+
+C_SQL_PRED_70:
+Description:           date-field STARTING WITH a number
+
+C_SQL_PRED_74:
+Description:           SINGULAR - Subquery returning duplicates.
+                        Row set should be empty.

@@ -1,0 +1,22 @@
+SERIES_COMMENT
+"SERIES_NAME";"COMMENT";"CREATED_BY";"DATE";"EDIT_BY";"EDIT_DATE";
+REF_INT_INDX        ;@SERIES_COMMENT.COMMENT.REF_INT_INDX.1.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+CF_ISQL             ;@SERIES_COMMENT.COMMENT.CF_ISQL.2.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+GF_SHUTDOWN         ;@SERIES_COMMENT.COMMENT.GF_SHUTDOWN.3.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+EXT_LEV_0           ;@SERIES_COMMENT.COMMENT.EXT_LEV_0.4.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+SQL_EVENTS          ;@SERIES_COMMENT.COMMENT.SQL_EVENTS.5.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+C_SQL_BLOB          ;@SERIES_COMMENT.COMMENT.C_SQL_BLOB.6.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+EVENT_MISC          ;@SERIES_COMMENT.COMMENT.EVENT_MISC.7.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+V4_EXCLUSIVE        ;@SERIES_COMMENT.COMMENT.V4_EXCLUSIVE.8.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+QA_PROCS_ISQL       ;@SERIES_COMMENT.COMMENT.QA_PROCS_ISQL.9.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+QA_PROC_IES_ERR     ;@SERIES_COMMENT.COMMENT.QA_PROC_IES_ERR.10.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+C_SQL_PRED          ;@SERIES_COMMENT.COMMENT.C_SQL_PRED.11.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+C_SQL_JOIN          ;@SERIES_COMMENT.COMMENT.C_SQL_JOIN.12.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+DSQL_DOMAINS        ;@SERIES_COMMENT.COMMENT.DSQL_DOMAINS.13.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+DSQL_EXCEPTIONS     ;@SERIES_COMMENT.COMMENT.DSQL_EXCEPTIONS.14.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+RICH_FLD_GEN_V40    ;@SERIES_COMMENT.COMMENT.RICH_FLD_GEN_V40.15.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+RI_TESTS            ;@SERIES_COMMENT.COMMENT.RI_TESTS.16.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+V4_AUTO_COMMIT      ;@SERIES_COMMENT.COMMENT.V4_AUTO_COMMIT.17.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+V4_AUTO_DDL_DSQL    ;@SERIES_COMMENT.COMMENT.V4_AUTO_DDL_DSQL.18.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+V4_TRANS_BLOB       ;@SERIES_COMMENT.COMMENT.V4_TRANS_BLOB.19.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
+ISC_ARRBLOB_CK      ;@SERIES_COMMENT.COMMENT.ISC_ARRBLOB_CK.20.blob;NN                  ;01.01.1980;NN                  ;01.01.1980;
