@@ -2736,7 +2736,7 @@ void API_ROUTINE gds__prefix (
 #endif
             {
                 ib_prefix = ISC_PREFIX;
-                strcat(ib_prefix_val, ib_prefix);
+                strncat(ib_prefix_val, ib_prefix, sizeof(ib_prefix_val)-1);
             }
 #endif
             ib_prefix = ib_prefix_val;
@@ -2941,7 +2941,7 @@ if (ib_prefix_msg == NULL)
         }
     else
         {
-        strcat (ib_prefix_msg_val, ib_prefix_msg); 
+        strncat(ib_prefix_msg_val, ib_prefix_msg, sizeof(ib_prefix_msg_val)-1); 
         ib_prefix_msg = ib_prefix_msg_val;
         }
     }
