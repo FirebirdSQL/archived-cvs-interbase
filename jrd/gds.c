@@ -3477,12 +3477,15 @@ the memory back to a system-wide heap.
 #endif
 
 #ifdef UNIX
-#ifdef MAP_ANONYMOUS
+#if (defined MAP_ANONYMOUS & !defined SOLARIS)
+
+/* Becouse in Solaris 8 MAP_ANONYMOUS is defined now
+against of previos sun releases */
 
 memory = mmap (NULL, size, (PROT_READ | PROT_WRITE),
 	       (MAP_ANONYMOUS | 
 #ifndef LINUX
-/* In LINUX, there is no such thing as MAP_VARIABLE. Hence, it gives 
+/* In LINUX and Solaris are is no such thing as MAP_VARIABLE. Hence, it gives 
    compilation error. The equivalent functionality is default, 
    if you do not specify MAP_FIXED */
 		MAP_VARIABLE | 
