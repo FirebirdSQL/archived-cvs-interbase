@@ -545,7 +545,7 @@ FOR (REQUEST_HANDLE handle)
 
     THREAD_ENTER;
 
-    /* Terminate ASCIIZ string on first blank */
+    /* Terminate ASCIIZ string on first trailing blank */
     metd_exact_name (DBB.RDB$CHARACTER_SET_NAME);
     length = strlen (DBB.RDB$CHARACTER_SET_NAME);
     dbb->dbb_dfl_charset = ALLOCV (type_str, dbb->dbb_pool, length);
