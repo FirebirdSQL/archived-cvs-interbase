@@ -1,3 +1,34 @@
+2001-10-29 20:45  bellardo
+
+	* interbase/: jrd/common.h, jrd/unix.c, utilities/analyse.c,
+	utilities/dba.e, utilities/dba_full.e, utilities/rebuild.c,
+	utilities/sbc_print.c:
+	
+	Added 64 bit io code for *nix.	Requires the macro UNIX_64_BIT_IO
+	to be defined, or else you get a 32 bit version.  Since all
+	supported Darwin platforms support 64 bit it the macro is always
+	defined on Darwin.  No other platforms have the macro defined by
+	default.  unix.c now performs a runtime check on the 32 bit builds
+	to make sure they don't exceed a 2 GB file size.  Note that this
+	doesn't effect the PREAD_WRITE code.  Platforms that use
+	PREAD_WRITE are can't use the 64 bit io stuff.	Looking through the
+	platform files and common.h revealed not platforms use PREAD_WRITE.
+	 So this limitation is not a problem.
+
+2001-10-29 08:29  robocop
+
+	* interbase/dsql/alld.c:
+	
+	ALLD_alloc was calling ERRD_bugcheck() when it doesn't have to call
+	it due to a bad implicit cast. No call to
+	isc_dsql_allocate_statement would succeed due to this small issue.
+
+2001-10-29 01:52  nmcc
+
+	* interbase/: dsql/pass1.c, jrd/ibase.h:
+	
+	Convert c++ comments to c comments.
+
 2001-10-28 00:30  awharrison
 
 	* interbase/isql/isql.e:
