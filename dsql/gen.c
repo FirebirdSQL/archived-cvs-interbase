@@ -2093,12 +2093,10 @@ for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
 	    parameter->par_name = parameter->par_alias  = "SUM";
 	else if (map_node->nod_type == nod_agg_average)
 	    parameter->par_name = parameter->par_alias  = "AVG";
-#ifdef EXACT_NUMERIC
 	else if (map_node->nod_type == nod_agg_total2)
 	    parameter->par_name = parameter->par_alias  = "SUM";
 	else if (map_node->nod_type == nod_agg_average2)
 	    parameter->par_name = parameter->par_alias  = "AVG";
-#endif
 	else if (map_node->nod_type == nod_agg_min)
 	    parameter->par_name = parameter->par_alias  = "MIN";
 	else if (map_node->nod_type == nod_agg_max)
