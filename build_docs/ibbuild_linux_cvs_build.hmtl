@@ -1,0 +1,126 @@
+<html>
+<head>
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; U; Linux 2.2.14-5.0 i686) [Netscape]">
+</head>
+<body>
+
+<h3>
+Linux Instructions for building Firebird from CVS</h3>
+<b>1. Introduction</b>
+<p>This is the updated "howto" build the database from the firebird CVS
+tree.
+<br>Any mistakes, andthere are still likely to be a few are all mine...
+<p>Regards
+<p>Mark
+<br>&nbsp;
+<p><b>2. What you need</b>
+<p>&nbsp;&nbsp;&nbsp; InterBaseSS_LI-V6.0.tar&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- you need one running to build a new one.
+<br>&nbsp;&nbsp;&nbsp; Interbase source&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+- downloadable from firebird CVS tree (see later for details)
+<br>&nbsp;
+<p><b>3.&nbsp; Installing superserver interbase</b>
+<p>&nbsp;&nbsp;&nbsp; Before you can build interbase you need an existing
+running interbase.&nbsp; This explains how to install the curent version.
+<blockquote><i>Create an install directory and put download in it</i></blockquote>
+&nbsp;&nbsp;&nbsp; $mkdir /tmp/install
+<br>&nbsp;&nbsp;&nbsp; $cp InterBaseSS_LI-V6.0.tar /tmp/install
+<br>&nbsp;&nbsp;&nbsp; $cd /tmp/install
+<br>&nbsp;&nbsp;&nbsp; $tar -xvf InterBaseSS_LI-V6.0.tar
+<blockquote><i>This results in two files (InterBaseSS_LI-V6.0.tgz, install)
+in the current directory.&nbsp; To do the install to /opt/interbase do
+the following.&nbsp; I did this as root user</i></blockquote>
+&nbsp;&nbsp;&nbsp; $./install -s /tmp/install/InterBaseSS_LI-V6.0.tgz
+<blockquote><i>The other options to install is -c which installs a classic
+interbase.&nbsp; You need the full path to the .tgz file.&nbsp; Also in
+the beta6.0 documentation it explains how to set it up as user 'interbase'.</i>
+<p><i>I also tried to install it to /usr/local/interbase but that didn't
+work for two reasons 1. the error message db was stll expected from /opt/interbase/messages.gdb
+and 2. in was at nfs drive and when i ran the server it keep trying to
+connect to a server running on the machine that had the nfs drive.&nbsp;
+Soo stay with /opt and make sure its a local drive.</i>
+<p><i>Now to start the server</i></blockquote>
+&nbsp;&nbsp;&nbsp; $cd /opt/interbase/bin
+<br>&nbsp;&nbsp;&nbsp; $./ibmgr -start -user SYSDBA -password masterkey
+<blockquote><i>You should get some pleasant messages.&nbsp; Then try it
+against one of the&nbsp; test database.</i></blockquote>
+&nbsp;&nbsp;&nbsp; $/opt/interbase/bin
+<br>&nbsp;&nbsp;&nbsp; $./isql&nbsp; -user SYSDBA -password masterkey
+<br>&nbsp;&nbsp;&nbsp; SQL>connect /opt/interbase/examples/employee.gdb;
+<br>&nbsp;&nbsp;&nbsp; SQL>show tables;
+<br>&nbsp;&nbsp;&nbsp; SQL>
+<br>&nbsp;
+<p><b>3.&nbsp; Extracting the source from CVS</b>
+<blockquote><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Create a work
+directory and move into it.</i></blockquote>
+&nbsp;&nbsp;&nbsp; $mkdir /tmp/build
+<br>&nbsp;&nbsp;&nbsp;&nbsp; $cd /tmp/build
+<blockquote><i>&nbsp;&nbsp;&nbsp;&nbsp; Then check out the sources from
+the firebird CVS tree.&nbsp; This is either:</i></blockquote>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $export CVS_RSH=ssh
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $cvs -z3&nbsp; -ddevelopername@cvs.firebird.sourceforge.net:/cvsroot/firebird
+co interbase
+<p><i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+If you are a developer, or</i>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $cvs -d:pserver:anonymous@cvs.firebird.sourceforge.net:/cvsroot/firebird
+login
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $cvs -z3&nbsp; -d:pserver:anonymous@cvs.firebird.sourceforge.net:/cvsroot/firebird
+co interbase
+<blockquote><i>&nbsp;&nbsp;&nbsp; If you are not intenting to commit changes.</i></blockquote>
+
+<blockquote><i>This creates a subdirectory InterBase with most of the source
+code.</i></blockquote>
+
+<blockquote>&nbsp;</blockquote>
+<b>4.&nbsp; Install Reference databases</b>
+<blockquote><i>Build the reference databases used for compiling interbase.</i></blockquote>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $cd /tmp/build/InterBase
+<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; $sh builds/original/buildRefDatabases
+<blockquote><i>It is important that this happens in the /tmp/build/Interbase
+directory.&nbsp; It will build a directory /tmp/build/refDatabases which
+will contain all the required databases..</i></blockquote>
+<i>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Expect the error:</i>
+<blockquote><i><font size=-1>Use CONNECT or CREATE DATABASE to specify
+a database</font></i>
+<br><i><font size=-1>Statement failed, SQLCODE = -902</font></i>
+<br><i><font size=-1>I/O error for file "/tmp/build/InterBase/metadata.gdb"</font></i>
+<br><i><font size=-1>-Error while trying to open file</font></i>
+<br><i><font size=-1>-No such file or directory</font></i></blockquote>
+
+<blockquote><i>Is OK, it's just trying to delete the database before creating
+a new one.</i>
+<br>&nbsp;</blockquote>
+<b>5.&nbsp; Setting up the directories.</b>
+<blockquote><i>Interbase needs a number of symbolic links to databases/source,&nbsp;
+and directories.</i></blockquote>
+&nbsp;&nbsp;&nbsp; $cd /tmp/build/InterBase
+<br>&nbsp;&nbsp;&nbsp; $sh setup_dirs LINUX DEV /tmp/build/refDatabases
+<blockquote><i>LINUX specifies the system, DEV could also be PROD if yoyu
+feel lucky, and the last parameter is where we have our reference databases.</i></blockquote>
+
+<p><br><b>6.&nbsp; Building.</b>
+<blockquote><i>We are now ready to start building the database engine.&nbsp;
+Change to the root directory and start the build.</i></blockquote>
+&nbsp;&nbsp;&nbsp; $cd /tmp/build/InterBase
+<p>&nbsp;&nbsp;&nbsp; $build_kits builds SUPER
+<br>&nbsp;
+<p><b>7.&nbsp; Testing the build</b>
+<blockquote><i>You should now (some 4-10 minutes later) have a directory
+"/tmp/build/InterBase/interbase/" that contains the interbase binary distribution.</i>
+<p><i>Testing the build basically means shutting down the current database,
+and starting up the one in the directory:</i></blockquote>
+
+<p><br>&nbsp;&nbsp;&nbsp; /tmp/build/InterBase/interbase/bin
+<br>&nbsp;
+<p><b>8.&nbsp; Finding out more about the build</b>
+<p><i>If you want to know more about the build have a look through the
+file "InterBase/builds/original/000_readme"</i>
+<br><i>Some of this document will be a straight copy from there, also have
+a look at:</i>
+<br><i><a href="http://www.interbase2000.org/highlevelsource.htm">http://www.interbase2000.org/highlevelsource.htm</a></i>
+<br><i>for an overview of the source directories.</i>
+<br>&nbsp;
+<p>Good Luck....
+<p>Mark
+</body>
+</html>
