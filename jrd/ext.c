@@ -143,7 +143,7 @@ _setmaxstdio(2048);
 
 #ifndef mpexl
 file->ext_flags = 0;
-#ifdef READONLY_DATABASE
+
 file->ext_ifi = (int*)NULL;
 /* If the database is updateable, then try opening the external files in
  * RW mode. If the DB is ReadOnly, then open the external files only in
@@ -152,9 +152,6 @@ file->ext_ifi = (int*)NULL;
 if (!(dbb->dbb_flags & DBB_read_only))
     file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_TYPE);
 if (!(file->ext_ifi))
-#else
-if (!(file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_TYPE)))
-#endif
     {
     /* could not open the file as read write attempt as read only */
     if (!(file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_READ_ONLY)))
@@ -497,7 +494,7 @@ format = record->rec_format;
    post error we cannot write to this file */
 if (file->ext_flags & EXT_readonly)
     {
-#ifdef READONLY_DATABASE
+
     DBB	dbb;
 
     dbb = GET_DBB;
@@ -506,7 +503,6 @@ if (file->ext_flags & EXT_readonly)
     if (dbb->dbb_flags & DBB_read_only)
 	ERR_post (isc_read_only_database, 0);
     else
-#endif  /* READONLY_DATABASE */
 	ERR_post (isc_io_error,
 	    gds_arg_string, "insert",
 	    gds_arg_string, file->ext_filename,
