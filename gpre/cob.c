@@ -20,6 +20,8 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden
+ * FSG (Frank Schlottmann-Gödde) 8.Mar.2002 - tiny cobol support
+ *  fixed Bug No. 526204*
  */
 
  /* $Id$ */
@@ -1669,7 +1671,7 @@ sprintf (db_name, "\"%s\"", db->dbb_filename);
 for (dbisc = isc_databases; dbisc; dbisc = dbisc->dbb_next)
 	if( strcmp(dbisc->dbb_filename, db->dbb_filename) == 0)
 		db->dbb_id = dbisc->dbb_id;
-sprintf (db_name, "isc-%ddb", db->dbb_id);
+sprintf (db_name, "isc_%ddb", db->dbb_id);
 #endif
 
 sprintf (output_buffer,
@@ -4242,7 +4244,7 @@ for (ready = (RDY) action->act_object; ready; ready = ready->rdy_next)
 	    {
 	    namelength = strlen (filename);
 #ifndef VMS
-	    sprintf (dbname, "isc-%ddb", dbisc->dbb_id); 
+	    sprintf (dbname, "isc_%ddb", dbisc->dbb_id); 
 	    filename = dbname;
 #endif
 	    }
@@ -4256,7 +4258,7 @@ for (ready = (RDY) action->act_object; ready; ready = ready->rdy_next)
 
 	if (ready->rdy_id)
 	    {
-	    sprintf (dbname, "isc-%ddb", ready->rdy_id); 
+	    sprintf (dbname, "isc_%ddb", ready->rdy_id); 
 	    filename = dbname;
 	    namelength -= 2;
 	    }
@@ -4977,7 +4979,7 @@ if (sw_auto)
 #ifndef VMS
 	    if (filename)
 		{
-		sprintf (dbname, "isc-%ddb", db->dbb_id);
+		sprintf (dbname, "isc_%ddb", db->dbb_id);
 		filename = dbname;
 		}
 #endif
@@ -5909,7 +5911,7 @@ if (sw_auto)
 #ifndef VMS
 	    if (filename)
 		{
-		sprintf (dbname, "isc-%ddb", db->dbb_id);
+		sprintf (dbname, "isc_%ddb", db->dbb_id);
 		filename = dbname;
 		}
 #endif

@@ -33,6 +33,9 @@
  * (cause a core dump in a test case from C.R. Zamana)
  *
  * TMN (Mike Nordell) 11.APR.2001 - Reduce compiler warnings
+ * 
+ * FSG (Frank Schlottmann-Gödde) 8.Mar.2002 - tiny cobol support
+ *      fixed Bug No. 526204 
  */
 
 #define GPRE_MAIN
@@ -751,9 +754,11 @@ if (sw_language == lan_cobol)
 	count_name = "isc-count";
 	slack_name = "isc-slack";
 	}
-    else
+    else /* just to be sure :-) */
+        {
 	comment_start = "*      ";
-
+	transaction_name = "ISC_TRANS";
+        }
 COB_name_init (sw_ansi);
 #endif
 
