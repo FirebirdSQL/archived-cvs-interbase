@@ -36,7 +36,7 @@
 
 
 PROD_DEBUG_OBJECTS=	nodebug.o
-PROD_SHRLIB_DIR=	-L source/jrd -L source/interbase/lib
+PROD_SHRLIB_DIR=	-Lsource/jrd -Lsource/interbase/lib
 PROD_VERSION_FLAG=	-DPROD_BUILD
 PROD_CFLAGS=		-O1 -mpentium
 
@@ -46,7 +46,7 @@ PROD_CFLAGS=		-O1 -mpentium
 # running solaris 2.6. As a quick-fix the level was changed from -O to -xO1
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
-DEV_SHRLIB_DIR=		-L source/jrd -L source/interbase/lib
+DEV_SHRLIB_DIR=		-Lsource/jrd -Lsource/interbase/lib
 DEV_VERSION_FLAG=	-DDEV_BUILD
 DEV_CFLAGS=		-ggdb		
 
@@ -126,7 +126,7 @@ LOCK_JRD_MISC=		source/jrd/thd.o
 LOCK_MANAGER=		## no manager KLK
 MARION_DB=		-d source/marion.gdb
 MUISQL=			muisql
-MUISQL_MU_LIB=		-L /usr/gds.sogood/qa_tools/lib -lmu
+MUISQL_MU_LIB=		-L/usr/gds.sogood/qa_tools/lib -lmu
 MUISQL_LINK_OPTS=	$(MUISQL_MU_LIB) $(PIPE_GDSSHR_LINK) -lm 
 PIC_FLAGS=		$(CFLAGS) -fPIC
 PIPE=			gds.a.solaris gds_pipe
