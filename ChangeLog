@@ -1,3 +1,17 @@
+2001-11-06 07:47  robocop
+
+	* interbase/remote/srvr_w32.c:
+	
+	Load SetProcessAffinityMask() dynamically because it doesn't exist
+	in Win9x.
+
+2001-11-06 07:45  robocop
+
+	* interbase/jrd/: dyn.h, dyn_proto.h, grant.e:
+	
+	Replace terminate() by DYN_terminate() that uses sizeof(argument)
+	as the 2nd parameter.
+
 2001-11-05 10:46  paul_reeves
 
 	* interbase/FB_Build_Win32_BSCMake.bat:
