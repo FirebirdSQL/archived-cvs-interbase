@@ -1457,6 +1457,7 @@ switch (node->nod_type)
     case nod_gen_id2:   verb = "gen_id2";       break;
     case nod_multiply2: verb = "multiply2";	break;
     case nod_subtract2:	verb = "subtract2";	break;
+    case nod_limit:	verb = "limit";		break;
 
     /* CVC: New node breakleave. */
     case nod_breakleave:	verb = "breakleave";	break;
