@@ -111,7 +111,6 @@ BLK ALL_alloc (
  **************************************/
 register BLK	block;
 FRB 		free, *best, *ptr;
-HNK 		hunk;
 ULONG		size, count;
 SLONG		best_tail, tail;
 USHORT		units;
@@ -134,7 +133,9 @@ if ((tail = block_sizes [type].typ_tail_length) &&
     size += (count - FUDGE) * tail;
 
 size = (size + MIN_ALLOC - 1) & ~((ULONG)MIN_ALLOC - 1);
-units = size >> SHIFT;
+/* TMN: Here we should really have the following assert */
+/* assert((size >> SHIFT) <= MAX_USHORT); */
+units = (USHORT)(size >> SHIFT);
 
 if (size >= MAX_BLOCK)
 #ifdef DOS_ONLY
@@ -208,7 +209,9 @@ V4_MUTEX_UNLOCK (pool->plb_mutex);
 
 MOVE_CLEAR (block, size);
 block->blk_type = type;
-block->blk_pool_id_mod = pool->plb_pool_id;
+/* TMN: Here we should really have the following assert */
+/* assert(pool->plb_pool_id <= MAX_UCHAR); */
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 block->blk_length = units;
 
 return block;
@@ -345,7 +348,9 @@ if (!(pool = tdbb->tdbb_default))
 
 length = strlen (in_string);
 string = (STR) ALL_alloc (pool, type_str, length, ERR_jmp);
-string->str_length = length;
+/* TMN: Here we should really have the following assert */
+/* assert(length <= MAX_USHORT); */
+string->str_length = (USHORT)length;
 
 p = (TEXT*) string->str_data;
 q = in_string;
@@ -662,7 +667,7 @@ temp_pool.plb_blk_type_count = NULL;
 #ifdef SUPERSERVER
 if (trace_pools)
     {
-    temp_pool.plb_blk_type_count = gds__alloc(sizeof(all_block_type_count));
+    temp_pool.plb_blk_type_count = (SLONG*)gds__alloc(sizeof(all_block_type_count));
     if (!temp_pool.plb_blk_type_count)
 	trace_pools = 0; /* No memmory!! stop tracing pool info */
     else
@@ -812,7 +817,7 @@ for ( k=1, dbb = databases; dbb; dbb = dbb->dbb_next, ++k)
     string = dbb->dbb_filename;
     ib_fprintf(fptr, "\n\t dbb%d -> %s\n", k, string->str_data);
     vector = (VEC) dbb->dbb_pools;
-    for (j=0, i=0; i<vector->vec_count; i++)
+    for (j=0, i=0; i<(int)vector->vec_count; i++)
         {
 	myPool = (PLB) vector->vec_object [i];
 	if (myPool) ++j;
@@ -820,7 +825,7 @@ for ( k=1, dbb = databases; dbb; dbb = dbb->dbb_next, ++k)
     ib_fprintf(fptr,"\t    %s has %d pools",string->str_data, j);
     for (j=0, att=dbb->dbb_attachments; att; att=att->att_next)j++;
     ib_fprintf(fptr," and %d attachment(s)", j);
-    for (i=0; i<vector->vec_count; i++)
+    for (i=0; i<(int)vector->vec_count; i++)
         {
 	myPool = (PLB) vector->vec_object [i];
 	if (!myPool) continue;
@@ -859,7 +864,9 @@ void ALL_release (
  *
  **************************************/
 
-release (block, find_pool (block));
+/* TMN: Here we should probably have the following assert */
+/* assert(block); */
+	release (block, find_pool (block ? &block->frb_header : (BLK)0));
 }
 
 void ALL_rlpool (
@@ -1065,7 +1072,9 @@ if (!(hunk = (HNK) ALL_sys_alloc ((ULONG) size, err_ret)))
     return NULL_PTR;
 hunk->hnk_header.blk_length = sizeof (struct hnk) >> SHIFT;
 hunk->hnk_header.blk_type = (UCHAR) type_hnk;
-hunk->hnk_header.blk_pool_id_mod = pool->plb_pool_id;
+/* TMN: Here we should really have the following assert */
+/* assert(pool->plb_pool_id <= MAX_UCHAR); */
+hunk->hnk_header.blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 hunk->hnk_address = (SCHAR*) hunk;
 hunk->hnk_length = size;
 V4_MUTEX_LOCK (pool->plb_mutex);
@@ -1077,7 +1086,9 @@ block = (BLK) (hunk + 1);
 MOVE_CLEAR (block, size - sizeof (struct hnk));
 block->blk_length = 0;
 block->blk_type = type;
-block->blk_pool_id_mod = pool->plb_pool_id;
+/* TMN: Here we should really have the following assert */
+/* assert(pool->plb_pool_id <= MAX_UCHAR); */
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 
 return block;
 }
@@ -1123,9 +1134,13 @@ if (size > MAX_BLOCK && minimum_size < MAX_BLOCK)
 
 if (!(block = (BLK) ALL_malloc ((ULONG) size, err_ret)))
     return FALSE;
-block->blk_length = size >> SHIFT;
+/* TMN: Here we should really have the following assert */
+/* assert((size >> SHIFT) <= MAX_USHORT); */
+block->blk_length = (USHORT)(size >> SHIFT);
 block->blk_type = (UCHAR) type_frb;
-block->blk_pool_id_mod = pool->plb_pool_id;
+/* TMN: Here we should really have the following assert */
+/* assert(pool->plb_pool_id <= MAX_UCHAR); */
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 #ifdef SUPERSERVER
 if (trace_pools)
     {
