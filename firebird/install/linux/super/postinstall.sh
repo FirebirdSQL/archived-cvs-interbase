@@ -419,7 +419,7 @@ InstallInitdScript() {
 
 # SuSE specific
 
-    elif [ -d /bin/fillup ]; then
+    elif [ -x /bin/fillup ]; then
 #    elif [ -d /etc/init.d ]; then
 
 # I'm not sure if this is enough to detect SuSE, but it works for now
