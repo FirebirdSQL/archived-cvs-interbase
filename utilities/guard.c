@@ -25,6 +25,7 @@
 #define SUPER_SERVER_BINARY	"bin/ibserver"
 
 #define INTERBASE_USER		"interbase"
+#define FIREBIRD_USER		"firebird"
 #define INTERBASE_USER_SHORT	"interbas"
 
 #include "../jrd/ib_stdio.h"
@@ -93,11 +94,12 @@ while (argv < end)
 ISC_get_user (user_name, NULL, NULL, NULL, NULL, NULL, NULL);
 
 if (strcmp (user_name, INTERBASE_USER) && strcmp (user_name, "root")
+    && strcmp (user_name, FIREBIRD_USER)
     && strcmp (user_name, INTERBASE_USER_SHORT))
     {
     /* invalid user bail out */
-    ib_fprintf (ib_stderr, "%s: Invalid user (must be %s, %s or root).\n",
-		prog_name, INTERBASE_USER, INTERBASE_USER_SHORT);
+    ib_fprintf (ib_stderr, "%s: Invalid user (must be %s, %s, %s or root).\n",
+		prog_name, FIREBIRD_USER, INTERBASE_USER, INTERBASE_USER_SHORT);
     exit (-2);
     }
 

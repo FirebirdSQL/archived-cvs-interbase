@@ -40,6 +40,7 @@
 #define OUTFILE			ib_stderr
 
 #define SYSDBA_USER_NAME	"SYSDBA"
+#define FIREBIRD_USER_NAME	"firebird"
 #define INTERBASE_USER_NAME	"interbase"
 #define INTERBASE_USER_SHORT	"interbas"
 #define SERVER_GUARDIAN		"bin/ibguard"

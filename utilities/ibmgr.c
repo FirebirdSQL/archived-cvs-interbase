@@ -116,8 +116,8 @@ host = getenv ("ISC_HOST");
 /* Let's get a real user name. This info is used by
    START server command. Because server is not running
    we can not check the password, thus we require a
-   real user to be root or INTERBASE_USER_NAME or
-   INTERBASE_USER_SHORT
+   real user to be root or FIREBIRD_USER_NAME or
+   INTERBASE_USER_NAME or INTERBASE_USER_SHORT
 */
 if ((pw = getpwuid (getuid())) == NULL)
     {
@@ -130,6 +130,7 @@ if ((pw = getpwuid (getuid())) == NULL)
 strcpy (ibmgr_data.real_user, pw->pw_name);
 
 if (!strcmp (pw->pw_name, "root") ||
+    !strcmp (pw->pw_name, FIREBIRD_USER_NAME) ||
     !strcmp (pw->pw_name, INTERBASE_USER_NAME) ||
     !strcmp (pw->pw_name, INTERBASE_USER_SHORT))
     strcpy (ibmgr_data.user, SYSDBA_USER_NAME);
@@ -884,6 +885,7 @@ switch (ibmgr_data.operation)
 
     case OP_START:
         if ((strcmp (ibmgr_data.real_user, "root") &&
+            strcmp (ibmgr_data.real_user, FIREBIRD_USER_NAME) &&
             strcmp (ibmgr_data.real_user, INTERBASE_USER_NAME) &&
 	    strcmp (ibmgr_data.real_user, INTERBASE_USER_SHORT)) ||
 	    strcmp (ibmgr_data.user, SYSDBA_USER_NAME))
