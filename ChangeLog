@@ -1,3 +1,21 @@
+2001-03-26 00:29  nmcc
+
+	* interbase/builds/original/prefix.solx86:
+	
+	Changes based on port to Solaris x86 by Konstantin Kuznetsov.
+
+2001-03-26 00:24  nmcc
+
+	* interbase/jrd/ib_stdio.c:
+	
+	Fixes for gcc compiling and add Solaris x86 support.
+
+2001-03-26 00:21  nmcc
+
+	* interbase/: gpre/cob.c, jrd/isc.c, jrd/isc_ipc.c, pipe/head.c:
+	
+	Changes based on port to Solaris x86 by Konstantin Kuznetsov.
+
 2001-03-23 09:14  fsg
 
 	* interbase/remote/inet.c:
