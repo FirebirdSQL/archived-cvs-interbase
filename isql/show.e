@@ -214,11 +214,18 @@ static CONST SCHAR	db_dialect_info [] = {
 	isc_info_end
 };
 
+/* Added support to display FORCED WRITES status. - PR 27-NOV-2001 */
+/* Added support to display transaction info when next_transaction id is fixed. */
 static CONST SCHAR	db_items [] = {
 	isc_info_page_size,
 	isc_info_db_size_in_pages,
 	isc_info_sweep_interval,
 	isc_info_limbo,
+	isc_info_forced_writes,
+	isc_info_oldest_transaction,
+	isc_info_oldest_active,
+	isc_info_oldest_snapshot,
+	isc_info_next_transaction,
 	isc_info_end
 };
 
@@ -356,6 +363,37 @@ for (d = buffer, info = info_buf; *d != isc_info_end;)
 	    	sprintf (info, "Sweep interval = %ld %s", value_out, NEWLINE);
 	    break;
  
+	case isc_info_forced_writes:
+	    value_out = isc_vax_integer (d, length);
+		sprintf (info, "Forced Writes are %s %s", (value_out==1 ? "ON" : "OFF"), NEWLINE);
+	    break;
+ 	
+/*
+ *	This would work, IF isc_info_next_transaction really picked up 
+ *  the value of the next transaction. Unfortunately, it picks up the value 
+ *	of the oldest transaction - PR 27-NOV-2001
+ *
+	case isc_info_oldest_transaction :
+	    value_out = isc_vax_integer (d, length);
+		sprintf (info, "Transaction - oldest = %ld %s", value_out, NEWLINE);
+	    break;
+ 	
+	case isc_info_oldest_active :
+	    value_out = isc_vax_integer (d, length);
+		sprintf (info, "Transaction - oldest active = %ld %s", value_out, NEWLINE);
+	    break;
+ 	
+	case isc_info_oldest_snapshot :
+	    value_out = isc_vax_integer (d, length);
+		sprintf (info, "Transaction - oldest snapshot = %ld %s", value_out, NEWLINE);
+	    break;
+ 	
+	case isc_info_next_transaction :
+	    value_out = isc_vax_integer (d, length);
+		sprintf (info, "Transaction - Next = %ld %s", value_out, NEWLINE);
+	    break;
+
+*/ 	
 	case isc_info_num_wal_buffers:       
 	    value_out = isc_vax_integer (d, length);
             if (translate)
