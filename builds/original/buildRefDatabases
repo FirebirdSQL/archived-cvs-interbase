@@ -1,0 +1,221 @@
+#!/bin/sh
+
+
+printUsage() {
+   echo "usage is : 'buildRefDatabases'"
+   echo "      or : 'buildRefDatabases <destDir>'"
+   echo "      or : 'buildRefDatabases <srcDir> <destDir>'"
+   echo ""
+   echo "usually as:"
+   echo "sh builds/original/buildRefDatabases"
+   echo "from the main interbase source directory"
+   echo "where defaults are srcDir=. and destDir=../refDatabases"
+   echo ""
+}
+
+checkVariables() {
+
+     if [ "$INTERBASE" = "" ]
+       then
+         export INTERBASE="/opt/interbase"
+
+     fi
+
+     if [ "$ISC_PASSWORD" = "" ]
+       then
+         export ISC_USER="sysdba"
+         export ISC_PASSWORD="masterkey"
+     fi
+
+     export IBBin=$INTERBASE/bin
+
+
+     echo ""
+     echo ""
+     echo ""
+     echo "- Firebird - Reference database build ------------------------"
+     echo ""
+     echo "Parameters :"
+     echo ""
+     echo "INTERBASE    (installed database root) : $INTERBASE "
+     echo "Source code dir root                   : $IBSrc"
+     echo "Dest root dir where to build ref db's  : $IBRefDir"
+     echo ""
+     echo "ISC_USER     (admin user)              : $ISC_USER"
+     echo "ISC_PASSWORD (admin password)          : $ISC_PASSWORD"
+     echo ""
+     echo "If you wish to have different values please set them before running"
+     echo "this script"
+     echo "usage is : 'buildRefDatabases'"
+     echo "      or : 'buildRefDatabases <destDir>'"
+     echo "      or : 'buildRefDatabases <srcDir> <destDir>'"
+     echo ""
+     echo "--------------------------------------------------------------"
+     echo ""
+     AskQuestion "Press return to continue"
+
+
+}
+
+
+
+
+
+#--------------------------------------------------------------------
+# Ask the user a question.
+
+Answer=""
+
+function AskQuestion() {
+    Test=$1
+    DefaultAns=$2
+    echo -n "${1}"
+    Answer="$DefaultAns"
+    read Answer
+}
+
+
+
+#--------------------------------------------------------------------
+# Build the databases needed for a standard interbase build
+
+function buildStdDatabases() {
+    echo "- building std databases"
+
+    cp $INTERBASE/isc4.gdb isc.gdb
+    (cd qli; cp $INTERBASE/help/help.gdb help.gdb)
+
+    (cd jrd; $IBBin/isql -i $IBSrc/builds_win32/original/metadata.sql)
+
+    (cd pyxis; ln -s  ../metadata.gdb forms.gdb)
+
+    (cd msgs; $IBBin/gbak -R $IBSrc/msgs/msg.gbak msg.gdb)
+
+    (cd utilities; $IBBin/gdef $IBSrc/utilities/rebuild.gdl)
+
+}
+
+
+#--------------------------------------------------------------------
+# Build the standard examples
+
+function buildExampleDatabases() {
+   echo "- building examples"
+    (cd examples; $IBBin/gdef $IBSrc/examples/atlas.gdl)
+    (cd examples; $IBBin/gdef $IBSrc/examples/emp.gdl)
+    (cd examples; $IBBin/gdef $IBSrc/examples/slides.gdl)
+    (cd examples; $IBBin/gdef $IBSrc/examples/nc_guide.gdl)
+    (cd examples; $IBBin/gdef $IBSrc/examples/c_guide.gdl)
+
+    (cd examples; $IBBin/gdef $IBSrc/examples/stocks.gdl)
+
+    # The following were not used but the source files exist
+    #(cd examples; $IBBin/gdef $IBSrc/examples/cs_load.gdl)
+    #(cd examples; $IBBin/gdef $IBSrc/examples/sources.gdl)
+    #(cd examples; $IBBin/gdef $IBSrc/examples/udf_trig.gdl)
+}
+
+
+
+#--------------------------------------------------------------------
+# Build the standard (4) examples
+
+function buildExample4Databases() {
+   echo "- building examples4"
+# Create examples4 db
+
+    cd example4
+
+    cp $IBSrc/example4/*.sql . 
+    ed empbld.sql <<e_o_f
+1,$s/employee.gdb/empbuild.gdb/g
+w
+q
+e_o_f
+
+
+    $IBBin/isql -i empbld.sql
+    $IBBin/isql -i intlbld.sql
+    rm -f *.sql
+
+    cd ..
+}
+
+
+#--------------------------------------------------------------------
+# Build the standard (5) examples
+
+function buildExample5Databases() {
+# Create examples5 db
+
+    cd example5
+
+    cp $IBSrc/example5/*.sql . 
+    ed empbld.sql <<e_o_f
+1,$s/employee.gdb/empbuild.gdb/g
+w
+q
+e_o_f
+
+
+    $IBBin/isql -i empbld.sql
+    $IBBin/isql -i intlbld.sql
+    rm -f *.sql
+
+    cd ..
+}
+
+#------------------------------------------------------------------------
+
+function createRefDir() {
+    if [ -d $IBRefDir ] 
+      then
+         echo "** Warning ** - The reference directory $IBRefDir already exists"
+         AskQuestion "Press return to delete it and continue or ^C to abort"
+
+         rm -rf $IBRefDir
+    fi
+ 
+    mkdir -p $IBRefDir
+}
+
+
+#== Main Program ==================================================
+
+
+# Check parameters 
+
+if [ $# = 0 ] 
+  then
+     export IBSrc=`pwd`
+     export IBRefDir=../refDatabases
+
+elif [ $# = 1 ]
+  then
+     export IBSrc=`pwd`
+     export IBRefDir=$1
+
+elif [ $# = 2 ]
+  then
+     export IBSrc=$1
+     export IBRefDir=$2
+
+else
+  printUsage
+  exit
+fi
+
+
+checkVariables
+
+
+createRefDir
+
+cd $IBRefDir
+
+mkdir -p msgs qli jrd utilities example4 example5 examples pyxis
+
+buildStdDatabases
+buildExampleDatabases
+#buildExample4Databases
+buildExample5Databases
