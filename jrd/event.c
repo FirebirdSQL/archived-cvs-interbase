@@ -153,6 +153,9 @@ REQ	request;
 SES	session;
 SRQ	*que, *que2;
 
+if (!EVENT_header)
+    return;
+
 ACQUIRE;
 
 process = (PRB) ABS_PTR (EVENT_process_offset);

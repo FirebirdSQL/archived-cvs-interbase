@@ -736,7 +736,7 @@ typedef struct tgbl {
     USHORT	RESTORE_format;
     ULONG	mvol_io_buffer_size;
     ULONG	mvol_actual_buffer_size;
-    ULONG   	mvol_cumul_count;
+    ULONG   	mvol_cumul_count_kb;
     UCHAR	*mvol_io_ptr;
     int	   	mvol_io_cnt;
     UCHAR   	*mvol_io_buffer;

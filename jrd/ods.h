@@ -142,7 +142,7 @@
 #define MIN_PAGE_SIZE	1024
 #endif
 
-#define MAX_PAGE_SIZE		8192
+#define MAX_PAGE_SIZE		16384
 #define DEFAULT_PAGE_SIZE	4096
 
 /* Basic page header */

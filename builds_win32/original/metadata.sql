@@ -19,8 +19,12 @@
  * files.
  */
 SET SQL DIALECT 1;
+/* 
+ * Commented out the delete since it gives an error message, that puts off 
+ * the builder.  Deletion handled in shell script instead. MOD 04-Jan-01
 CONNECT 'metadata.gdb';
 DROP DATABASE;
+*/
 
 CREATE DATABASE 'metadata.gdb' PAGE_SIZE 1024;
 

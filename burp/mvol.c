@@ -115,7 +115,7 @@ static BOOLEAN	write_header (DESC, ULONG, USHORT);
 static int	next_volume (DESC, int, USHORT);
 
 void MVOL_fini_read (
-    int		*count)
+    int		*count_kb)
 {
 /**************************************
  *
@@ -134,7 +134,7 @@ if (strcmp (tdgbl->mvol_old_file, "stdin") != 0)
     CLOSE (tdgbl->file_desc);
 
 tdgbl->file_desc = INVALID_HANDLE_VALUE;
-*count = tdgbl->mvol_cumul_count;
+*count_kb = tdgbl->mvol_cumul_count_kb;
 BURP_FREE (tdgbl->mvol_io_buffer);
 tdgbl->mvol_io_buffer = NULL;
 tdgbl->io_cnt = 0;
@@ -144,7 +144,7 @@ tdgbl->io_ptr = NULL;
 void MVOL_fini_write (
     int		*io_cnt,
     UCHAR	**io_ptr,
-    int		*count)
+    int		*count_kb)
 {
 /**************************************
  *
@@ -164,7 +164,7 @@ FLUSH (tdgbl->file_desc);
 if (strcmp (tdgbl->mvol_old_file, "stdout") != 0)
     CLOSE (tdgbl->file_desc);
 tdgbl->file_desc = INVALID_HANDLE_VALUE;
-*count = tdgbl->mvol_cumul_count;
+*count_kb = tdgbl->mvol_cumul_count_kb;
 BURP_FREE (tdgbl->mvol_io_header);
 tdgbl->mvol_io_header = NULL;
 tdgbl->mvol_io_buffer = NULL;
@@ -344,7 +344,7 @@ for (;;)
 	}
     }
 
-tdgbl->mvol_cumul_count += tdgbl->mvol_io_cnt;
+tdgbl->mvol_cumul_count_kb += tdgbl->mvol_io_cnt / 1024;
 file_not_empty();
 
 *ptr = tdgbl->mvol_io_ptr + 1;
@@ -400,7 +400,7 @@ for (;;)
 	}
     }
 
-tdgbl->mvol_cumul_count += tdgbl->mvol_io_cnt;
+tdgbl->mvol_cumul_count_kb += tdgbl->mvol_io_cnt / 1024;
 file_not_empty();
 
 *ptr = tdgbl->mvol_io_ptr + 1;
@@ -643,7 +643,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
     tdgbl->mvol_io_buffer = tdgbl->mvol_io_data;
     if (cnt > 0)
 	{
-	tdgbl->mvol_cumul_count += cnt;
+	tdgbl->mvol_cumul_count_kb += cnt / 1024;
 	file_not_empty();
 	if (tdgbl->action->act_action == ACT_backup_split)
 	    {
@@ -716,7 +716,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 		memcpy (tdgbl->mvol_io_data,
                         tdgbl->mvol_io_header + tdgbl->mvol_io_buffer_size,
 			left);
-		tdgbl->mvol_cumul_count += tdgbl->mvol_io_buffer_size;
+		tdgbl->mvol_cumul_count_kb += tdgbl->mvol_io_buffer_size / 1024;
 		tdgbl->mvol_io_buffer = tdgbl->mvol_io_data;
 		}
 	    else

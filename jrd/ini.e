@@ -467,7 +467,6 @@ major_version  = (SSHORT) dbb->dbb_ods_version;
 minor_original = (SSHORT) dbb->dbb_minor_original;
 vector         = dbb->dbb_relations;
 
-
 for (relfld = relfields; relfld [RFLD_R_NAME]; relfld = fld + 1)
     {
     if (relfld [RFLD_R_MINOR] > ENCODE_ODS(major_version, minor_original))
@@ -487,50 +486,53 @@ for (relfld = relfields; relfld [RFLD_R_NAME]; relfld = fld + 1)
         }
     else
         {
-    relation = MET_relation (tdbb, relfld [RFLD_R_ID]);
-    format = relation->rel_current_format;
+	relation = MET_relation (tdbb, relfld [RFLD_R_ID]);
+	format = relation->rel_current_format;
 
-    for (n = 0, fld = relfld + RFLD_RPT; fld [RFLD_F_NAME]; fld += RFLD_F_LENGTH)
-	{
-	/* If the ODS is less than 10, then remove the field
-	 * RDB$FIELD_PRECISION, as it is not present in < 10 ODS
-	 */
-	if (fld [RFLD_F_NAME] == nam_f_precision)
+	for (n = 0, fld = relfld + RFLD_RPT; fld [RFLD_F_NAME]; fld += RFLD_F_LENGTH)
 	    {
-	    if (major_version >= ODS_VERSION10)
-		if (!fld [RFLD_F_MINOR])
+	    /* If the ODS is less than 10, then remove all fields named
+	     * RDB$FIELD_PRECISION and field RDB$CHARACTER_LENGTH from
+	     * relation RDB$FUNCTION_ARGUMENTS , as they were not present
+	     * in < 10 ODS
+	     */
+	    if (fld [RFLD_F_NAME] == nam_f_precision ||
+	       (fld [RFLD_F_NAME] == nam_char_length && relfld [RFLD_R_NAME] == nam_args))
+	    	{
+	    	if (major_version >= ODS_VERSION10)
+		    if (!fld [RFLD_F_MINOR])
+		    	{
+		    	n++;
+		    	if (fld [RFLD_F_UPD_MINOR])
+			    relation->rel_flags |= REL_force_scan;
+		    	}
+		    else
+		    	relation->rel_flags |= REL_force_scan;
+	        }
+	    else
+	        {
+	        if (!fld [RFLD_F_MINOR])
 		    {
 		    n++;
 		    if (fld [RFLD_F_UPD_MINOR])
-			relation->rel_flags |= REL_force_scan;
+		    	relation->rel_flags |= REL_force_scan;
 		    }
-		else
+	    	else
 		    relation->rel_flags |= REL_force_scan;
+	        }
 	    }
-	else
-	    {
-	    if (!fld [RFLD_F_MINOR])
-		{
-		n++;
-		if (fld [RFLD_F_UPD_MINOR])
-		    relation->rel_flags |= REL_force_scan;
-		}
-	    else
-		relation->rel_flags |= REL_force_scan;
-	    }
-	}
 
-    relation->rel_fields->vec_count = n;
-    format->fmt_count = n;
-    format->fmt_length = FLAG_BYTES (n);
-    desc = format->fmt_desc;
-    for (fld = relfld + RFLD_RPT; fld [RFLD_F_NAME]; fld += RFLD_F_LENGTH, desc++)
-	if (n-- > 0)
-	    {
-	    format->fmt_length = MET_align (desc, format->fmt_length);
-	    desc->dsc_address = (UCHAR*) (SLONG) format->fmt_length;
-	    format->fmt_length += desc->dsc_length;
-	    }
+	relation->rel_fields->vec_count = n;
+	format->fmt_count = n;
+	format->fmt_length = FLAG_BYTES (n);
+	desc = format->fmt_desc;
+	for (fld = relfld + RFLD_RPT; fld [RFLD_F_NAME]; fld += RFLD_F_LENGTH, desc++)
+	    if (n-- > 0)
+	    	{
+	    	format->fmt_length = MET_align (desc, format->fmt_length);
+	    	desc->dsc_address = (UCHAR*) (SLONG) format->fmt_length;
+	    	format->fmt_length += desc->dsc_length;
+	    	}
         }
     }
 }

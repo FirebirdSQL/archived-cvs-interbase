@@ -1171,6 +1171,7 @@ void API_ROUTINE isc_set_login (
  *	or password already referenced).
  *
  **************************************/
+#ifndef SUPERSERVER
 TEXT	*username, *password;
 UCHAR	*p, *end_dpb;
 BOOLEAN	user_seen = FALSE, password_seen = FALSE;
@@ -1223,6 +1224,7 @@ if (username && !user_seen)
     }
 else if (password && !password_seen)
     isc_expand_dpb (dpb, dpb_size, gds__dpb_password, password, 0);
+#endif
 }
 
 BOOLEAN API_ROUTINE isc_set_path (

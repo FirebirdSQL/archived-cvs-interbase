@@ -1821,6 +1821,34 @@ if (node->nod_type == nod_field)
 	}
     return TRUE; 
     }
+else if (node->nod_type == nod_dbkey)
+    {
+    CTX	context;
+    NOD	reference, rel_node;
+
+    if (!list)
+        return TRUE;
+    rel_node = (NOD) node->nod_arg [0];
+    context = (CTX) rel_node->nod_arg [0];
+
+    DEV_BLKCHK (context, type_ctx);
+
+    for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
+	{
+	DEV_BLKCHK (*ptr, type_nod);
+	reference = *ptr;
+	if ((*ptr)->nod_type == nod_cast)
+	    {
+	    reference = (*ptr)->nod_arg[e_cast_source];
+	    }
+	DEV_BLKCHK (reference, type_nod);
+	if (reference->nod_type == nod_dbkey &&
+	    rel_node == (NOD) reference->nod_arg [0] &&
+	    context == (CTX) rel_node->nod_arg [0])
+	    return FALSE;
+	}
+    return TRUE; 
+    }
 else
     {
     if ((node->nod_type == nod_gen_id) || 
@@ -2578,8 +2606,9 @@ else
 	{
 	context = (CTX) stack->lls_object;
 	DEV_BLKCHK (context, type_ctx);
-	if (strcmp (qualifier->str_data, context->ctx_relation->rel_name) && ( 
-	    !(context->ctx_alias) || 
+	if ((!(context->ctx_relation) ||
+		    strcmp (qualifier->str_data, context->ctx_relation->rel_name)) && 
+	    (!(context->ctx_alias) || 
 		    strcmp (qualifier->str_data, context->ctx_alias)))
 	   continue;
 	node = MAKE_node (nod_dbkey, 1);

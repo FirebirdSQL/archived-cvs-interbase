@@ -120,9 +120,10 @@ void CNTL_main_thread (
  * Functional description
  *
  **************************************/
-int	flag;
+int	flag, status;
 TEXT	*p, default_mode [100];
-DWORD	last_error;
+DWORD	last_error = 0;
+DWORD	temp;
 
 HANDLE cleanup_thread_handle;
 DWORD  count, return_from_wait, cleanup_thread_id;
@@ -158,16 +159,21 @@ while (--argc)
 	parse_switch (p, &flag);
     }
 
+ status = 1;
+
 if (report_status (SERVICE_START_PENDING, NO_ERROR, 1, 3000) &&
     (stop_event_handle = CreateEvent (NULL, TRUE, FALSE, NULL)) != NULL &&
     report_status (SERVICE_START_PENDING, NO_ERROR, 2, 3000) &&
     !gds__thread_start ((FPTR_INT) main_handler, (void*) flag, 0, 0, NULL_PTR) &&
     report_status (SERVICE_RUNNING, NO_ERROR, 0, 0))
 {
-    WaitForSingleObject (stop_event_handle, INFINITE);
+    status = 0;
+    temp = WaitForSingleObject (stop_event_handle, INFINITE);
 }
 
-last_error = GetLastError();
+
+if (temp == WAIT_FAILED || status) 
+     last_error = GetLastError();     
 
 if (stop_event_handle)
     CloseHandle (stop_event_handle);
@@ -190,6 +196,7 @@ do
 /* TMN 29 Jul 2000 - close the thread handle */
 CloseHandle(cleanup_thread_handle);
 
+CloseHandle (cleanup_thread_handle);
 report_status (SERVICE_STOPPED, last_error, 0, 0);
 }
 

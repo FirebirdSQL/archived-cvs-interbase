@@ -1616,6 +1616,7 @@ static PAG db_read (
 SLONG	actual_length;
 FIL	fil;
 TDBA	tddba;
+LARGE_INTEGER liOffset;
 
 tddba = GET_THREAD_DATA;
 
@@ -1623,7 +1624,8 @@ for (fil = tddba->files; page_number > fil->fil_max_page && fil->fil_next;)
     fil = fil->fil_next;
 
 page_number -= fil->fil_min_page - fil->fil_fudge;
-if (SetFilePointer (fil->fil_desc, (ULONG) (page_number * tddba->page_size), NULL, FILE_BEGIN) == -1)
+liOffset.QuadPart = UInt32x32To64((DWORD)page_number, (DWORD)tddba->page_size);
+if (SetFilePointer (fil->fil_desc, (LONG)liOffset.LowPart, &liOffset.HighPart, FILE_BEGIN) == -1)
     db_error (GetLastError());
 
 if (!ReadFile (fil->fil_desc, tddba->global_buffer, tddba->page_size, &actual_length, NULL))

@@ -713,6 +713,7 @@ do
         {
         while (WaitForSingleObject (procHandle, INFINITE) == WAIT_FAILED);
         GetExitCodeProcess (procHandle, &exit_status);
+	CloseHandle(procHandle);
         }      
 
     if (exit_status != NORMAL_EXIT)

@@ -33,7 +33,7 @@
 #endif
 
 #define MAXSYMLEN	257	/* max length of symbol + terminator */
-#define MAX_PAGE_LEN	8192	/* max allowable length for a database page */
+#define MAX_PAGE_LEN	16384	/* max allowable length for a database page */
 
 #define DDL_MSG_FAC	2
 

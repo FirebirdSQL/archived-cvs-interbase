@@ -30,6 +30,8 @@
 #include <stdarg.h>
 #include "../jrd/ibsetjmp.h"
 #include "../jrd/msg_encode.h"
+#include "../jrd/thd_proto.h"
+#include "../jrd/ods.h"		// to get MAX_PAGE_SIZE
 #include "../burp/burp.h"
 #include "../burp/burpswi.h"
 #ifdef WIN_NT
@@ -490,7 +492,9 @@ VOLATILE struct tgbl	*tdgbl;
 JMP_BUF		env;
 IB_FILE		*tmp_outfile;
 
-struct tgbl	thd_context;
+/* TMN: This variable should probably be removed, but I left it in */
+/* in case some platform should redefine the BURP SET_THREAD_DATA. */
+/* struct tgbl	thd_context; */
 
 tdgbl = (struct tgbl *) gds__alloc (sizeof(*tdgbl));
 /* NOMEM: return error, FREE: during function exit in the SETJMP */
@@ -1064,20 +1068,22 @@ if (tdgbl->gbl_sw_page_size)
     if (sw_replace == IN_SW_BURP_B)
 	BURP_error (8, 0, 0, 0, 0, 0); /* msg 8 page size is allowed only on restore or create */
     temp = tdgbl->gbl_sw_page_size;
-    if (temp <= 1024)
-	temp = 1024;
-    else if (temp <= 2048)
-	temp = 2048;
-    else if (temp <= 4096)
-	temp = 4096;
-    else if (temp <= 8192)
-	temp = 8192;
-    else 
+	{
+		int curr_pg_size = 1024;
+		while (curr_pg_size <= MAX_PAGE_SIZE) {
+			if (temp <= curr_pg_size) {
+				temp = curr_pg_size;
+				break;
+			}
+			curr_pg_size <<= 1;
+		}
+	}
+	if (temp > MAX_PAGE_SIZE)
 #ifdef SUPERSERVER
 	BURP_svc_error (3, isc_arg_number, tdgbl->gbl_sw_page_size,
 			   0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-	BURP_error (3, (TEXT *) tdgbl->gbl_sw_page_size, 0, 0, 0, 0); /* msg 3 Page size specified (%ld) greater than limit (8192 bytes) */
+	BURP_error (3, (TEXT *) tdgbl->gbl_sw_page_size, 0, 0, 0, 0); /* msg 3 Page size specified (%ld) greater than limit (MAX_PAGE_SIZE bytes) */
 #endif
     if (temp != tdgbl->gbl_sw_page_size)
 	{
@@ -1168,6 +1174,8 @@ if (result == FINI_OK || result == FINI_DB_NOT_ONLINE)
     EXIT (result)
 else
     BURP_abort();
+
+return 0;	/* silence compiler warning */
 }
 
 void BURP_abort (void)

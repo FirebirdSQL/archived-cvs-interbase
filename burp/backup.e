@@ -206,7 +206,7 @@ REL	relation;
 STATUS	status_vector [ISC_STATUS_LENGTH];
 SSHORT	l;
 TEXT	temp [32];
-SLONG	cumul_count;
+SLONG	cumul_count_kb;
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 long            tr_status [20];
@@ -220,7 +220,7 @@ tdgbl->gbl_database_file_name = dbb_file;
 tdgbl->io_ptr = (UCHAR*) NULL;
 tdgbl->io_cnt = 0;
 tdgbl->relations = (REL) NULL;
-cumul_count = tdgbl->BCK_capabilities = 0;
+cumul_count_kb = tdgbl->BCK_capabilities = 0;
 
 gds__trans = NULL;
 
@@ -427,8 +427,8 @@ if (tdgbl->BCK_capabilities & BCK_ods9)
 /* Finish up */
 
 PUT (rec_end);
-MVOL_fini_write (&tdgbl->io_cnt, &tdgbl->io_ptr, &cumul_count);
-BURP_verbose (176, (TEXT*) cumul_count, NULL, NULL, NULL, NULL);
+MVOL_fini_write (&tdgbl->io_cnt, &tdgbl->io_ptr, &cumul_count_kb);
+BURP_verbose (176, (TEXT*) cumul_count_kb, NULL, NULL, NULL, NULL);
 	/* msg 176 closing file, committing, and finishing.  %ld bytes written */
 COMMIT;
 ON_ERROR

@@ -16,6 +16,7 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+#include <windows.h>
 #include "iscguard.rh"
 #include "windows.h"
 #include "../jrd/version_95.rc"
@@ -62,7 +63,7 @@ FONT 8, "MS Sans Serif"
  CONTROL IDI_IBGUARD, IDI_IBGUARD, "static", SS_ICON | SS_REALSIZEIMAGE | WS_CHILD | WS_VISIBLE, 12, 9, 21, 20, 0
  CONTROL "", IDC_RESTARTS, "static", SS_LEFT | WS_CHILD | WS_VISIBLE, 96, 80, 60, 8, 0
  CONTROL "", IDC_LOCATION, "static", SS_LEFT | WS_CHILD | WS_VISIBLE, 44, 49, 144, 8, 0
- CONTROL "InterBase Guardian for Windows NT / 95", -1, "static", SS_LEFT | WS_CHILD | WS_VISIBLE, 44, 12, 144, 8, 0
+ CONTROL "InterBase Guardian for Windows", -1, "static", SS_LEFT | WS_CHILD | WS_VISIBLE, 44, 12, 144, 8, 0
  CONTROL "Text7", IDC_VERSION, "static", SS_LEFT | WS_CHILD | WS_VISIBLE, 44, 61, 144, 8, 0
  CONTROL "ListView1", IDC_LOG, "SysListView32", LVS_REPORT | LVS_SINGLESEL | LVS_NOLABELWRAP | LVS_NOSORTHEADER | WS_CHILD | WS_VISIBLE | WS_BORDER, 12, 99, 184, 81
 }

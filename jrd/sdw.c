@@ -938,7 +938,7 @@ SDW	shadow;
 int	length, expanded_length, string_length;        
 SCHAR	expanded_name [MAX_PATH_LENGTH];
 UCHAR	*p;
-FIL	dbb_file, shadow_file;
+FIL	dbb_file, shadow_file = NULL_PTR;
 JMP_BUF	env, *old_env;
 WIN	window;
 HDR	database_header, shadow_header;
@@ -990,6 +990,13 @@ if (SETJMP(env))
     tdbb->tdbb_setjmp = (UCHAR*) old_env;
     if (header_fetched)
 	CCH_RELEASE (tdbb, &window);
+    if (shadow_file)
+	{
+	PIO_close (shadow_file);
+	ALL_release (shadow_file);
+	}
+    if (spare_buffer)
+        ALL_free (spare_buffer);
     if (file_flags & FILE_manual && !delete)
         ERR_post (gds__shadow_missing, gds_arg_number, (SLONG) shadow_number, 0);
     else
@@ -997,8 +1004,6 @@ if (SETJMP(env))
         MET_delete_shadow (tdbb, shadow_number);
 	gds__log ("shadow %s deleted from database %s due to unavailability on attach", expanded_name, dbb_file->fil_string);
 	}
-    if (spare_buffer)
-        ALL_free (spare_buffer);
     return;
     }
 

@@ -243,7 +243,7 @@ int RESTORE_restore (
  *	Recreate a database from a backup.
  *
  **************************************/
-int		cumul_count;
+int		cumul_count_kb;
 REL		relation;
 PRC		procedure;
 isc_req_handle  req_handle1 = NULL, req_handle2 = NULL, req_handle4 = NULL;
@@ -531,7 +531,7 @@ if (gds__status [0] == gds_arg_gds && gds__status [1] == 0 && gds__status [2] !=
 BURP_verbose (88, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 /* msg 88 finishing, closing, and going home */
 
-MVOL_fini_read (&cumul_count);
+MVOL_fini_read (&cumul_count_kb);
 
 /* attach database again to put it online */
 

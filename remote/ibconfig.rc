@@ -26,7 +26,7 @@ FONT 8, "MS Sans Serif"
  LTEXT "&Database Cache (pages):", IDC_CACHETEXT, 22, 84, 90, 12
  EDITTEXT IDC_DBPAGES, 137, 84, 47, 12, ES_RIGHT | WS_BORDER | WS_TABSTOP
  LTEXT "&Client map size (bytes):", IDC_MAPTEXT, 22, 107, 77, 12
- COMBOBOX IDC_MAPSIZE, 126, 106, 58, 40, CBS_DROPDOWNLIST | CBS_SORT | CBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+ COMBOBOX IDC_MAPSIZE, 126, 106, 58, 40, CBS_DROPDOWNLIST | CBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
  PUSHBUTTON "&Modify...", IDC_MODRES, 133, 132, 51, 13
  ICON IDI_CAUTION, IDC_CAUTION_ICON, 9, 17, 18, 20
  LTEXT "The following represent the InterBase Server settings. Changes to these settings can adversely affect server performance and can be adjusted by System Database Administrators only.", IDC_DEFAULT_TEXT, 35, 14, 164, 32

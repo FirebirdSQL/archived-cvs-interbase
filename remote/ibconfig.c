@@ -36,6 +36,7 @@
 
 #include "../jrd/svc_undoc.h"
 #include "../jrd/svc_proto.h"
+#include "../jrd/ods.h"		// to get MAX_PAGE_SIZE
 #include "../remote/window_proto.h"
 #include "../ipserver/ipsrv_proto.h"
 
@@ -399,10 +400,15 @@ else
 SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_RESETCONTENT, 0, 0);
 
 // Fill the Map Size Combo Box
-SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)"1024");
-SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)"2048");
-SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)"4096");
-SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)"8192");
+{
+	char szTmp[8];
+	int temp = 1024;
+	while (temp <= MAX_PAGE_SIZE) {
+		wsprintf(szTmp, "%d", temp);
+		SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)szTmp);
+		temp <<= 1;
+	}
+}
 
 // Select the right Map Size, inserting it if necessary
 wsprintf(pchTmp, "%d", lMapSize);

@@ -37,6 +37,7 @@ DATABASE
     DB = STATIC FILENAME "isc.gdb";
 
 #define MAX_PASSWORD_LENGTH	31
+#define SYSDBA_USER_NAME	"SYSDBA"
 
 SSHORT SECURITY_exec_line (
     STATUS	*isc_status,
@@ -263,16 +264,22 @@ switch (user_data->operation)
 	/* looks up the specified user record and deletes it */
 
 	found = FALSE;
-	FOR U IN USERS WITH U.USER_NAME EQ user_data->user_name
-	    found = TRUE;
-	    ERASE U
+	/* Do not allow SYSDBA user to be deleted */
+	if (!STRICMP(user_data->user_name, SYSDBA_USER_NAME))
+	    ret = GsecMsg23;
+	else
+	    {
+	    FOR U IN USERS WITH U.USER_NAME EQ user_data->user_name
+		found = TRUE;
+		ERASE U
+		ON_ERROR
+		    ret = GsecMsg23;	/* gsec - delete record error */
+		END_ERROR;
+	    END_FOR
 	    ON_ERROR
-		ret = GsecMsg23;	/* gsec - delete record error */
+		ret = GsecMsg24;	/* gsec - find/delete record error */
 	    END_ERROR;
-	END_FOR
-	ON_ERROR
-	    ret = GsecMsg24;	/* gsec - find/delete record error */
-	END_ERROR;
+	    }
 
 	if (!ret && !found)
 	    ret = GsecMsg22;	/* gsec - record not found for user: */

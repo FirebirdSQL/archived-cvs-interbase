@@ -674,8 +674,10 @@ static PAG db_read (
  *
  **************************************/
 SLONG	actual_length;
+LARGE_INTEGER liOffset;
 
-if (SetFilePointer (file, (ULONG) (page_number * page_size), NULL, FILE_BEGIN) == -1)
+liOffset.QuadPart = UInt32x32To64((DWORD)page_number, (DWORD)page_size);
+if (SetFilePointer (file, (LONG)liOffset.LowPart, &liOffset.HighPart, FILE_BEGIN) == -1)
     db_error (GetLastError());
 
 if (!ReadFile (file, global_buffer, page_size, &actual_length, NULL) ||

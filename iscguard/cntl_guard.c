@@ -27,6 +27,7 @@
 #include "../remote/remote.h"
 #include "../jrd/thd.h"
 #include "../jrd/isc_proto.h"
+#include "../jrd/gds_proto.h"
 #include "../jrd/sch_proto.h"
 #include "../jrd/thd_proto.h"
 #include "../jrd/gds_proto.h"
@@ -121,7 +122,9 @@ void CNTL_main_thread (
 int	flag;
 TEXT	*p;
 TEXT	default_mode[100] = { 0 };
-DWORD	last_error;
+DWORD	last_error = 0;
+DWORD 	temp;
+int	status;
 
 service_handle = RegisterServiceCtrlHandler (service_name, 
                                            (LPHANDLER_FUNCTION) control_thread);
@@ -160,14 +163,19 @@ while (--argc)
  * least until we get the stop event indicating that
  * the service is stoping. */
 
+status = 1;
 if (report_status (SERVICE_START_PENDING, NO_ERROR, 1, 3000) &&
     (stop_event_handle = CreateEvent (NULL, TRUE, FALSE, NULL)) != NULL &&
     report_status (SERVICE_START_PENDING, NO_ERROR, 2, 3000) &&
     !gds__thread_start ((FPTR_INT) main_handler, (void*) flag, 0, 0, NULL_PTR) &&
     report_status (SERVICE_RUNNING, NO_ERROR, 0, 0))
-    WaitForSingleObject (stop_event_handle, INFINITE);
+    {
+    status = 0;
+    temp = WaitForSingleObject (stop_event_handle, INFINITE);
+    }
 
-last_error = GetLastError();
+if (temp == WAIT_FAILED || status)
+    last_error = GetLastError();
 
 if (stop_event_handle)
     CloseHandle (stop_event_handle);

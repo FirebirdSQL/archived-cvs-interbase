@@ -159,7 +159,10 @@ extern int	h_errno;
 ** Winsock has a typedef for socket, so #define SOCKET to the typedef here
 ** so that it won't be redefined below.
 */
-#define SOCKET		SOCKET
+/* TMN: 28 Jul 2000 - Fixed compiler warning */
+# ifndef SOCKET
+#  define SOCKET		SOCKET
+# endif	/* SOCKET */
 #define ERRNO		WSAGetLastError()
 #define H_ERRNO		WSAGetLastError()
 #endif
@@ -178,7 +181,9 @@ extern int	h_errno;
 #define INET_RETRY_ERRNO	WSAEINPROGRESS
 #define INET_ADDR_IN_USE	WSAEADDRINUSE
 #define sleep(seconds)  Sleep ((seconds) * 1000)
-#endif
+
+#endif	/* WIN_NT */
+
 
 #ifdef PC_PLATFORM
 #define NO_FORK
@@ -377,7 +382,7 @@ static void	alarm_handler 	(int);
 static PORT	alloc_port 	(PORT);
 static PORT	aux_connect 	(PORT, 
 					PACKET *, 
-					int (*)(void));
+					XDR_INT (*)(void));
 static PORT	aux_request 	(PORT, 
 					PACKET *);
 #ifndef VMS
@@ -767,6 +772,8 @@ extern			ISC_tcp_socket();
 #endif
 
 #ifdef  SUPERSERVER
+/* TMN: 28 Jul 2000 - Added include to remove warnings */
+#include "../jrd/thd_proto.h"
 static  MUTX_T  port_mutex;
 static  BOOLEAN    port_mutex_inited = 0;
 
@@ -1101,7 +1108,9 @@ PORT DLL_EXPORT INET_connect (
 int			l, n;
 SOCKET 			s;
 PORT			port;
-TEXT			*protocol, temp [128], *p;
+	TEXT*				protocol;
+	TEXT				temp[128];
+	TEXT*				p;
 struct sockaddr_in	address;
 #ifndef VMS
 struct hostent		*host;
@@ -1125,9 +1134,10 @@ if (INET_trace & TRACE_operations)
     ib_fflush (ib_stdout);
     };
 INET_start_time = inet_debug_timer();
-if ((p = getenv ("INET_force_error")) != NULL) 
+		if ((p = getenv ("INET_force_error")) != NULL) {
     INET_force_error = atoi (p);
 }
+	}
 #endif
 
 port = alloc_port (NULL_PTR);
@@ -1145,6 +1155,7 @@ if (name)
     {
     strcpy (temp, name);
     for (p = temp; *p;)
+		{
 	if (*p++ == '/')
 	    {
 	    p [-1] = 0;
@@ -1153,26 +1164,30 @@ if (name)
 	    break;
 	    }
     }
+	}
 
 if (name && *name)
     {
-    if (port->port_connection)
+		if (port->port_connection) {
 	ALLR_free (port->port_connection);
+		}
     port->port_connection = REMOTE_make_string (name);
     }
 else
+	{
     name = port->port_host->str_data;
+	}
 
 /* Set up Inter-Net socket address */
 
 inet_zero ((SCHAR*) &address, sizeof (address));
 
-/* V M S */
-
 #ifdef VMS
+	/* V M S */
 if (getservport (protocol, "tcp", &address.sin_port) == -1)
     {
     inet_error (port, "getservbyname", isc_net_connect_err, 0);
+		disconnect (port);
     return NULL;
     }
 if (packet)
@@ -1180,16 +1195,21 @@ if (packet)
     if (getaddr (name, &address) == -1)
 	{
 	inet_error (port, "gethostbyname", isc_net_connect_err, 0);
+			disconnect (port);
 	return NULL;
 	}
     }
 else
+	{
     address.sin_addr.s_addr = INADDR_ANY;
+	}
 #else
 
 #ifdef WINDOWS_ONLY
-if (initWSA(port))
+	if (initWSA(port)) {
+		disconnect (port);
     return NULL;
+	}
 #endif  /* WINDOWS_ONLY */
 
 /* U N I X style sockets */
@@ -1235,6 +1255,7 @@ if (!host)
 #ifdef WINDOWS_ONLY
     NetworkLibraryCleanup ();
 #endif /* WINDOWS_ONLY */
+		disconnect (port);
     return NULL;
     }
 
@@ -1242,10 +1263,11 @@ if (!host)
    Winsock compatibility */
 
 address.sin_family = host->h_addrtype;
-if (packet)
-    inet_copy (host->h_addr, &address.sin_addr, sizeof (address.sin_addr));
-else
+	if (packet) {
+		inet_copy (host->h_addr, (SCHAR*)&address.sin_addr, sizeof (address.sin_addr));
+	} else {
     address.sin_addr.s_addr = INADDR_ANY;
+	}
 
 THREAD_EXIT;
 
@@ -1357,6 +1379,8 @@ if ((SOCKET) port->port_handle == INVALID_SOCKET)
 #ifdef WINDOWS_ONLY
     NetworkLibraryCleanup ();
 #endif /* WINDOWS_ONLY */	
+		disconnect (port);
+	disconnect (port);
     return NULL;
     }
 
@@ -1626,12 +1650,18 @@ BOOLEAN		user_verification;
 #ifdef APOLLO
 BOOLEAN		user_set;
 #endif
+
 #if !(defined OS2_ONLY || defined PC_PLATFORM)
+# if !defined(WINDOWS_ONLY) && !defined(NETWARE_386) && !defined(OS2_ONLY) && !defined(WIN_NT)
 int		trusted;
-SLONG		gids [128];
 TEXT		host [MAXHOSTLEN];
 struct passwd   *passwd;
+
+#  if !defined(VMS)
+	SLONG		gids [128];
 int		i, gid_count;
+#endif
+# endif
 #endif
 
 /* Default account to "guest" (in theory all packets contain a name) */
@@ -1705,15 +1735,16 @@ user_set = FALSE;
 user_verification = TRUE;
 #endif
 
-#ifndef WINDOWS_ONLY
+#if !defined(WINDOWS_ONLY)
+
 if (user_verification)
     {
     eff_gid = eff_uid = -1;
     port->port_flags |= PORT_not_trusted;
     }
-#ifndef NETWARE_386
-#ifndef OS2_ONLY
-#ifndef WIN_NT
+
+#if !defined(NETWARE_386) && !defined(OS2_ONLY) && !defined(WIN_NT)
+
 #ifdef VMS
 else
     {
@@ -1816,9 +1847,9 @@ if ((home = getenv ("ISC_INET_SERVER_HOME")) != NULL_PTR)
     }
 }
 #endif /* VMS */
-#endif /* OS2_ONLY */
-#endif /* WIN_NT */
-#endif /* NETWARE_386 */
+
+#endif /* !NETWARE_386 && !OS2_ONLY !WIN_NT */
+
 #endif /* WINDOWS_ONLY */
 
 /* store FULL user identity in port_user_name for security purposes */
@@ -1887,14 +1918,17 @@ if (!INET_initialized)
 #endif
 
 if (first_time == TRUE)
-    {char messg[128];
+    {
     ISC_get_config (LOCK_HEADER, INET_tcp_buffer);
     if (INET_remote_buffer < MAX_DATA_LW || INET_remote_buffer > MAX_DATA_HW)
         INET_remote_buffer = DEF_MAX_DATA; 
     INET_max_data = INET_remote_buffer; 
 #ifdef DEBUG
+	{
+		char messg[128];
     sprintf(messg, " Info: Remote Buffer Size set to %d", INET_remote_buffer);
     gds__log(messg, NULL_PTR);
+	}
 #endif
     first_time = FALSE;
     }
@@ -1942,10 +1976,10 @@ port->port_send_packet = send_full;
 port->port_send_partial = send_partial;
 port->port_connect = aux_connect;
 port->port_request = aux_request;
-port->port_buff_size = INET_remote_buffer;
+port->port_buff_size = (USHORT)INET_remote_buffer;
 
 xdrinet_create (&port->port_send, port, 
-	&port->port_buffer [INET_remote_buffer], INET_remote_buffer,
+	&port->port_buffer [INET_remote_buffer], (USHORT)INET_remote_buffer,
 	XDR_ENCODE);
 
 xdrinet_create (&port->port_receive, port, port->port_buffer, 0,
@@ -1957,7 +1991,7 @@ return port;
 static  PORT aux_connect (
     PORT	port,
     PACKET	*packet,
-    XDR_INT	(*ast)())
+    XDR_INT	(*ast)(void))
 {
 /**************************************
  *
@@ -1975,7 +2009,11 @@ SOCKET			n;
 int			l, status;
 PORT			new_port;
 struct sockaddr_in	address;
+#if !defined(WINDOWS_ONLY) && \
+	(!(defined VMS || defined NETWARE_386 || defined PC_PLATFORM || \
+	defined OS2_ONLY || defined WIN_NT) && !defined APOLLO)
 int			arg;
+#endif
 
 /* If this is a server, we're got an auxiliary connection.  Accept it */
 
@@ -2011,7 +2049,7 @@ if ((n = socket (AF_INET, SOCK_STREAM, 0)) == INVALID_SOCKET)
     }
 
 inet_zero ((SCHAR*) &address, sizeof (address));
-inet_copy (response->p_resp_data.cstr_address, &address,
+inet_copy (response->p_resp_data.cstr_address, (SCHAR*)&address,
        response->p_resp_data.cstr_length);
 address.sin_family = AF_INET;
 
@@ -2198,12 +2236,12 @@ if (!host)
                     0);
     return NULL;
     }
-inet_copy (host->h_addr, &address.sin_addr, sizeof (address.sin_addr));
+inet_copy (host->h_addr, (SCHAR*)&address.sin_addr, sizeof (address.sin_addr));
 #endif
 
 response->p_resp_data.cstr_address = (UCHAR*) &response->p_resp_blob_id;
 response->p_resp_data.cstr_length = sizeof (response->p_resp_blob_id);
-inet_copy (&address, response->p_resp_data.cstr_address, 
+inet_copy ((SCHAR*)&address, response->p_resp_data.cstr_address, 
        response->p_resp_data.cstr_length);
 
 return new_port;
@@ -2391,7 +2429,7 @@ static void disconnect (
  *	Break a remote connection.
  *
  **************************************/
-PORT	parent, *ptr;
+PORT	parent;
 int	n;
 #ifdef	DEFER_PORT_CLEANUP
 SSHORT	defer_cleanup = 0;
@@ -2414,13 +2452,27 @@ if (port->port_linger.l_onoff)
                     (SCHAR*)&port->port_linger, sizeof (port->port_linger));
     }
 
+#if defined WIN_NT
+
+	if (port->port_handle && (SOCKET)port->port_handle != INVALID_SOCKET) {
 shutdown ((int) port->port_handle, 2);
-#endif
+	}
+
+#else	/* WIN_NT */
+
+	if (port->port_handle) {
+		shutdown ((int) port->port_handle, 2);
+	}
+
+#endif	/* WIN_NT */
+
+#endif	/* !VMS */
 
 #if !(defined VMS || defined NETWARE_386 || defined PC_PLATFORM || \
 	defined OS2_ONLY || defined WIN_NT)
-if (port->port_ast)
+	if (port->port_ast) {
     ISC_signal_cancel (SIGURG, inet_handler, port);
+	}
 #endif
 
 /* If this is a sub-port, unlink it from it's parent */
@@ -2452,13 +2504,16 @@ else
 #endif
 	}
 
+	if (port->port_handle) {
 SOCLOSE ((SOCKET) port->port_handle);
+	}
 
 #ifdef WINDOWS_ONLY
 NetworkLibraryCleanup ();
-if (port->port_msg_handle)
+	if (port->port_msg_handle) {
     /* close socket should flush any async postings, so its safe to destroy */
     DestroyWindow (port->port_msg_handle);
+	}
 #endif
 
 gds__unregister_cleanup (exit_handler, (void*) port);
@@ -3252,11 +3307,15 @@ static PORT select_port (
  *
  **************************************/
 PORT	port;
+
+#if !defined(WIN_NT)
 int	n;
+#endif
 
 #ifdef WIN_NT
 
 /* NT's socket handles are addresses */
+/* TMN: No, they are "black-box" handles. */
 
 START_PORT_CRITICAL;
 #ifdef  DEFER_PORT_CLEANUP
@@ -3266,7 +3325,16 @@ for (port = main_port; port; port = port->port_next)
     if (FD_ISSET (port->port_handle, &selct->slct_fdset))
         {
 	port->port_dummy_timeout = port->port_dummy_packet_interval;
-        FD_CLR (port->port_handle, &selct->slct_fdset);
+
+#define TMNchSTR(x) #x
+#define chSTR2(x)   TMNchSTR(x)
+#define TMN_FILE_LINE_MESSAGE(desc) message(__FILE__ "(" chSTR2(__LINE__) "):" desc)
+#pragma TMN_FILE_LINE_MESSAGE("TODO: Make porthandle a SOCKET on Win32")
+#undef TMN_FILE_LINE_MESSAGE
+#undef chSTR2
+#undef TMNchSTR
+
+	FD_CLR ((SOCKET)port->port_handle, &selct->slct_fdset);
         --selct->slct_count;
         STOP_PORT_CRITICAL;
         return port;
@@ -3418,7 +3486,11 @@ for (;;)
             if (selct->slct_count == 0)
                 {
                 for (port = main_port; port; port = port->port_next)
+#ifdef WIN_NT
+                    FD_CLR ((SOCKET)port->port_handle, &selct->slct_fdset);
+#else
                     FD_CLR (port->port_handle, &selct->slct_fdset);
+#endif
                 }
 	    THREAD_ENTER;
 	    return TRUE;
@@ -3535,7 +3607,7 @@ static int xdrinet_create (
 xdrs->x_public = (caddr_t) port;
 xdrs->x_base = xdrs->x_private = (SCHAR*) buffer;
 xdrs->x_handy = length;
-xdrs->x_ops = &inet_ops;
+xdrs->x_ops = (struct xdr_ops*)&inet_ops;
 xdrs->x_op = x_op;
 
 return TRUE;
@@ -3615,10 +3687,12 @@ port->port_flags |= PORT_broken;
 port->port_state = state_broken;
 
 status_vector = NULL;
-if (port->port_context != NULL)
+	if (port->port_context != NULL) {
     status_vector = port->port_context->rdb_status_vector;
-if (status_vector == NULL)
+	}
+	if (status_vector == NULL) {
     status_vector = port->port_status_vector;
+	}
 if (status_vector != NULL)
     {
     STUFF_STATUS (status_vector, status)
@@ -3822,7 +3896,7 @@ static caddr_t inet_inline (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 return xdrs->x_base + bytecount;
@@ -4055,7 +4129,7 @@ static bool_t inet_setpostn (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 xdrs->x_private = xdrs->x_base + bytecount;
@@ -4161,9 +4235,9 @@ p = xdrs->x_base;
 while (length)
     {
     port->port_misc1 = (port->port_misc1 + 1) % MAX_SEQUENCE;
-    l = MIN (length, INET_max_data);
+    l = (SSHORT)MIN (length, INET_max_data);
     length -= l;
-    if (!packet_send (port, p, (length) ? -l : l))
+    if (!packet_send (port, p, (SSHORT)((length) ? -l : l)))
 	 return FALSE;
     p += l;
     }
