@@ -182,7 +182,7 @@ debug_inet_server:	inet_server.o $(SERVER_OBJECTS) $(INTERFACE_OBJECTS) \
 			$(JRD_LINK) $(GDSLIB_BACKEND)
 	-$(RM) debug_inet_server
 	$(CC) $(LINK_OPTS) -g inet_server.o $(SERVER_OBJECTS) $(INTERFACE_OBJECTS) \
-		-o inet_dbg $(GDSLIB_LINK)
+		-o inet_dbg $(GDSLIB_LINK) $(COREFOUNDATION_LINK)
 	$(TOUCH) debug_inet_server
 	$(CHMOD_6) debug_inet_server
 

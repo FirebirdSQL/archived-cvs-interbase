@@ -102,8 +102,8 @@ gds.so.1 $(LX_SUPER_GDSSHR): \
 	$(TOUCH) gds.so.1
 	$(CHMOD_6) gds.so.1
 
-gds.dylib.1 $(DARWIN_SUPER_GDSSHR): $(PYXIS_P_MISC) $(WAL_P_MISC) \
-		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS)
+gds.dylib.1 $(DARWIN_SUPER_GDSSHR): $(JRD_GDS_H) $(PYXIS_P_MISC) $(WAL_P_MISC) \
+		client_p_objects $(CLIENT_P_OBJECTS)
 	-$(RM) gds.dylib.1
 	libtool -dynamic -o gds.dylib.1 -install_name \
 		/Library/Frameworks/Firebird.framework/Versions/A/Firebird \
@@ -114,7 +114,7 @@ gds.dylib.1 $(DARWIN_SUPER_GDSSHR): $(PYXIS_P_MISC) $(WAL_P_MISC) \
 	$(MV) gds.dylib.1 $(DARWIN_SUPER_GDSSHR)
 	$(TOUCH) gds.dylib.1
 	$(CHMOD_6) gds.dylib.1
-	$(RM) $(WAL_P_MISC) $(WAL_MISC)
+	-$(RM) $(WAL_P_MISC) $(WAL_MISC)
 
 gdsshr.a.1 $(AIX_PPC_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
