@@ -38,6 +38,7 @@
   2001.11.23 Claudio Valderrama: skip any number of -- comments but only at
 	the beginning and ignore void statements like block comments followed by
 	a semicolon.
+  2002.02.21 Claudio Valderrama: fix SF Bug #518343 with add_row.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -2553,6 +2554,7 @@ if (sqlda->sqld > sqlda->sqln)
     {
     ISQL_FREE (sqlda);
     sqlda = (XSQLDA*) ISQL_ALLOC ((SLONG) (XSQLDA_LENGTH (n_cols)));
+    sqlda->version = SQLDA_VERSION1;
     sqlda->sqld = sqlda->sqln = n_cols;
 
     /*  We must re-describe the sqlda, no need to re-prepare */
@@ -2664,13 +2666,14 @@ while (!done)
 
 	/* On blank line or EOF, break the loop without doing an insert */
 
-	if (!ib_fgets (buffer,BUFFER_LENGTH512,ib_stdin) || !strlen (buffer))
+	if (!ib_fgets (buffer, BUFFER_LENGTH512, ib_stdin) || strlen (buffer) < 2)
 	    {
 	    done = TRUE;
 	    break;
 	    }
 
-	length = strlen (buffer);
+	length = strlen (buffer) - 1;
+	buffer [length] = 0; /* dispose of '\n' */
 	STDERROUT ("", 1);
 
 
@@ -2741,7 +2744,10 @@ while (!done)
 
 		case SQL_TYPE_TIME:
 		    if (3 != sscanf (buffer, "%d:%d:%d", &times.tm_hour, 
-			&times.tm_min, &times.tm_sec))
+			&times.tm_min, &times.tm_sec)
+			|| times.tm_hour > 23 || times.tm_hour < 0
+			|| times.tm_min > 59 || times.tm_min < 0
+			|| times.tm_sec > 59 || times.tm_sec < 0)
 			{
 			ISQL_msg_get (TIME_ERR, msg, buffer, NULL, NULL, NULL, NULL);
 			STDERROUT (msg, 1);	/* Bad date %s\n */
@@ -2759,8 +2765,25 @@ while (!done)
 
 		case SQL_TIMESTAMP:
 		case SQL_TYPE_DATE:
+		    {
+			BOOLEAN failure = FALSE;
 		    if (3 != sscanf (buffer, "%d/%d/%d", &times.tm_mon, 
-			&times.tm_mday, &times.tm_year))
+			&times.tm_mday, &times.tm_year)
+			|| times.tm_mon > 12 || times.tm_mon < 1
+			|| times.tm_mday > 31 || times.tm_mday < 1
+			|| times.tm_year < 1)
+			failure = TRUE;
+		    else
+			{
+			/* Verifications taken from the fbudf. */
+			int md[] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+			int ly = times.tm_year;
+			if (ly % 4 == 0 && ly % 100 != 0 || ly % 400 == 0)
+				md[1]++;
+			if (times.tm_mday > md[times.tm_mon - 1])
+				failure = TRUE;
+			}
+		    if (failure)
 			{
 			ISQL_msg_get (DATE_ERR, msg, buffer, NULL, NULL, NULL, NULL);
 			STDERROUT (msg, 1);	/* Bad date %s\n */
@@ -2769,6 +2792,7 @@ while (!done)
 		    else
 			{
 			ULONG	date [2];
+			times.tm_year -= 1900;
 			times.tm_mon--;
 			stringvalue = (SCHAR*) ISQL_ALLOC ((SLONG) (ivar->sqllen + 1));
 			isc_encode_date (&times, date);
@@ -2777,6 +2801,7 @@ while (!done)
 			if (type == SQL_TIMESTAMP)
 			    ((ULONG *)stringvalue) [1] = date [1];
 			}
+		    }
 		    break;
 
 		case SQL_TEXT:
