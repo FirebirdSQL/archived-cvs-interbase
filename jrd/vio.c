@@ -994,7 +994,21 @@ else
     length = tail - record->rec_data;
 
 if (format->fmt_length != length)
+    {
+#ifdef VIO_DEBUG
+    if (debug_flag > DEBUG_WRITES)
+	ib_printf ("VIO_erase (rpb %d, length %d expected %d)\n", rpb->rpb_number, 
+	    length, format->fmt_length);
+	
+    if (debug_flag > DEBUG_WRITES_INFO)
+	ib_printf ("   record  %d:%d, rpb_trans %d, flags %d, back %d:%d, fragment %d:%d\n",
+	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_flags,
+	    rpb->rpb_b_page, rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line);
+#endif
     BUGCHECK (183); /* msg 183 wrong record length */
+    }
+
+
 
 rpb->rpb_address = record->rec_data;
 rpb->rpb_length = format->fmt_length;
@@ -1920,9 +1934,11 @@ if (!(transaction->tra_flags & TRA_system))
 	    SCL_check_relation (&desc1, SCL_control);
 	    EVL_field (NULL_PTR, new_rpb->rpb_record, f_idx_name, &desc1);
 	    if (EVL_field (NULL_PTR, new_rpb->rpb_record, f_idx_exp_blr, &desc2))
-		DFW_post_work (transaction, dfw_create_expression_index, &desc1, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_expression_index, &desc1,
+		    tdbb->tdbb_database->dbb_max_idx);
 	    else
-		DFW_post_work (transaction, dfw_create_index, &desc1, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_index, &desc1,
+		    tdbb->tdbb_database->dbb_max_idx);
 	    break;
 
 	case rel_triggers :
@@ -2015,6 +2031,8 @@ SET_TDBB (tdbb);
    refetching the page in the context of the output stream. */
 
 lock_type = (rpb->rpb_stream_flags & RPB_s_update) ? LCK_write : LCK_read;
+if (rpb && (rpb->rpb_number == -1))
+    pool = pool;
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_TRACE)
@@ -2197,15 +2215,17 @@ if (!(transaction->tra_flags & TRA_system))
 	    SCL_check_relation (&desc, SCL_control);
 	    EVL_field (NULL_PTR, rpb->rpb_record, f_idx_name, &desc);
 	    if (EVL_field (NULL_PTR, rpb->rpb_record, f_idx_exp_blr, &desc2))
-		DFW_post_work (transaction, dfw_create_expression_index, &desc, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_expression_index, &desc,
+		    tdbb->tdbb_database->dbb_max_idx);
 	    else
-		DFW_post_work (transaction, dfw_create_index, &desc, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_index, &desc,
+		    tdbb->tdbb_database->dbb_max_idx);
 	    break;
 
 	case rel_rfr :
-	    EVL_field (NULL_PTR, rpb->rpb_record, f_rfr_rname, &desc);
-	    SCL_check_relation (&desc, SCL_control);
-	    DFW_post_work (transaction, dfw_update_format, &desc, 0);
+//	    EVL_field (NULL_PTR, rpb->rpb_record, f_rfr_rname, &desc);
+//	    SCL_check_relation (&desc, SCL_control);
+//	    DFW_post_work (transaction, dfw_update_format, &desc, 0);
 	    set_system_flag (rpb, f_rfr_sys_flag, 0);
 	    break;
 
@@ -2990,14 +3010,14 @@ delete (tdbb, rpb, prior_page, NULL_PTR);
 
 /* If there aren't any old versions, don't worry about garbage collection. */
 
-if (!rpb->rpb_b_page)
+//if (!rpb->rpb_b_page)
     return;
 
 /* Delete old versions fetching data for garbage collection. */
 
-temp = *rpb;
-garbage_collect (tdbb, &temp, rpb->rpb_page, NULL_PTR);
-bump_count (tdbb, DBB_expunge_count, rpb->rpb_relation);
+//temp = *rpb;
+//garbage_collect (tdbb, &temp, rpb->rpb_page, NULL_PTR);
+//bump_count (tdbb, DBB_expunge_count, rpb->rpb_relation);
 }
 
 static void garbage_collect (

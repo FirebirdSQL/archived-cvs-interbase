@@ -106,7 +106,7 @@ struct idx_repeat	*idx_desc;
 
 SET_TDBB (tdbb);
 
-idx.idx_id = (UCHAR) -1;
+idx.idx_id = (USHORT) -1;
 window.win_flags = 0;
 
 while (BTR_next_index (tdbb, relation, NULL_PTR, &idx, &window))
@@ -433,7 +433,7 @@ if ((idx->idx_flags & idx_unique) && ifl_data.ifl_duplicates)
 IDB IDX_create_index_block (
     TDBB	tdbb,
     REL		relation,
-    UCHAR	id)
+    USHORT	id)
 {
 /**************************************
  *
@@ -567,7 +567,7 @@ IDX_E	error_code;
 SET_TDBB (tdbb);
 
 error_code = idx_e_ok;
-idx.idx_id = (UCHAR) -1;
+idx.idx_id = (USHORT) -1;
 window.win_flags = 0;
 
 while (BTR_next_index (tdbb, rpb->rpb_relation, transaction, &idx, &window))
@@ -689,7 +689,7 @@ insertion.iib_key = &key1;
 insertion.iib_descriptor = &idx;
 insertion.iib_transaction = transaction;
 error_code = idx_e_ok;
-idx.idx_id = (UCHAR) -1;
+idx.idx_id = (USHORT) -1;
 window.win_flags = 0;
 
 while (BTR_next_index (tdbb, org_rpb->rpb_relation, transaction, &idx, &window))
@@ -738,7 +738,7 @@ IDX_E	error_code;
 SET_TDBB (tdbb);
 
 error_code = idx_e_ok;
-idx.idx_id = (UCHAR) -1;
+idx.idx_id = (USHORT) -1;
 window.win_flags = 0;
 
 /* If relation's primary/unique keys have no dependencies by other
@@ -836,7 +836,7 @@ insertion.iib_descriptor = &idx;
 insertion.iib_transaction = transaction;
     
 error_code = idx_e_ok;
-idx.idx_id = (UCHAR) -1;
+idx.idx_id = (USHORT) -1;
 window.win_flags = 0;
 
 while (BTR_next_index (tdbb, rpb->rpb_relation, transaction, &idx, &window))

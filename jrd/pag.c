@@ -1204,14 +1204,24 @@ else
 
 
 
-
 /* Compute the number of data pages per pointer page.  Each data page
    requires a 32 bit pointer and a 2 bit control field. */
 
 dbb->dbb_dp_per_pp = (dbb->dbb_page_size - OFFSETA (PPG, ppg_page)) * 8 /
 	(BITS_PER_LONG + 2);
+
+/* Compute the number of records that can fit on a page using the
+   size of the record index (dpb_repeat) and a record header.  This
+   gives an artificially high number, reducing the density of db_keys. */
+
 dbb->dbb_max_records = (dbb->dbb_page_size - sizeof (struct dpg)) /
 	(sizeof (struct dpg_repeat) + OFFSETA (RHD, rhd_data));
+
+/* Compute the number of index roots that will fit on an index root page,
+   assuming that each index has only one key */
+
+dbb->dbb_max_idx = (dbb->dbb_page_size - OFFSETA (IRT, irt_rpt)) /
+	sizeof (struct irt_repeat) + (1 * (sizeof (struct irtd)));
 
 /* Compute prefetch constants from database page size and maximum prefetch
    transfer size. Double pages per prefetch request so that cache reader

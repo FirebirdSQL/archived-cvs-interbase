@@ -162,7 +162,7 @@ static void	journal_btree_segment (TDBB, WIN *, BTR);
 static BOOLEAN	key_equality (KEY *, BTN);
 static INT64_KEY make_int64_key (SINT64, SSHORT);
 #ifdef DEBUG_INDEXKEY
-static void print_int64_key (SINT64, SSHORT, INT64_KEY);
+static void     print_int64_key (SINT64, SSHORT, INT64_KEY);
 #endif
 static void	quad_put (SLONG, SCHAR *);
 static void	quad_move (register UCHAR *, register UCHAR *);
@@ -210,7 +210,7 @@ if (!(root = fetch_root (tdbb, &window, relation)))
 
 if ((SLONG)(root->irt_count * sizeof (IDX)) > *idx_size)
     {
-    size = (sizeof (IDX) * MAX_IDX) + ALIGNMENT;
+    size = (sizeof (IDX) * dbb->dbb_max_idx) + ALIGNMENT;
     *csb_idx_allocation = new_buffer = (STR) ALLOCPV (type_str, size);
     buffer = *start_buffer = (IDX*) FB_ALIGN((U_IPTR) new_buffer->str_data, ALIGNMENT);
     *idx_size = size - ALIGNMENT;
@@ -347,6 +347,7 @@ BOOLEAN BTR_description (
  *
  * Functional description
  *	See if index exists, and if so, pick up its description.
+ *  Index id's must fit in a short - formerly a UCHAR.
  *
  **************************************/
 register struct irt_repeat	*irt_desc;
@@ -362,8 +363,8 @@ irt_desc = &root->irt_rpt [id];
 if (irt_desc->irt_root == 0)
     return FALSE;
 
-assert(id <= MAX_UCHAR);
-idx->idx_id = (UCHAR)id;
+assert(id <= MAX_USHORT);
+idx->idx_id = (USHORT)id;
 idx->idx_root = irt_desc->irt_root;
 idx->idx_selectivity = irt_desc->irt_stuff.irt_selectivity;
 idx->idx_count = irt_desc->irt_keys;
@@ -1400,7 +1401,8 @@ BOOLEAN BTR_next_index (
  **************************************
  *
  * Functional description
- *	Get next index for relation.
+ *	Get next index for relation.  Index ids
+ *  recently change from UCHAR to USHORT
  *
  **************************************/
 IRT	root;
@@ -1411,7 +1413,7 @@ struct	irt_repeat	*irt_desc;
 
 SET_TDBB (tdbb);
 
-if ((UCHAR) idx->idx_id == (UCHAR) -1)
+if ((USHORT) idx->idx_id == (USHORT) -1)
     {
     id = 0;
     window->win_bdb = NULL;
@@ -1646,13 +1648,13 @@ window.win_flags = 0;
 root = (IRT) CCH_FETCH (tdbb, &window, LCK_write, pag_root);
 CCH_MARK (tdbb, &window);
 
-/* check that we don't create an infinite number of indexes */
+/* check that we create no more indexes than will fit on a single root page */
 
-if (root->irt_count > MAX_IDX)
+if (root->irt_count > dbb->dbb_max_idx)
     {
     CCH_RELEASE (tdbb, &window); 
     ERR_post (gds__no_meta_update, gds_arg_gds, gds__max_idx,
-	gds_arg_number, (SLONG) MAX_IDX, 0);
+	gds_arg_number, (SLONG) dbb->dbb_max_idx, 0);
     }    
 
 /* Scan the index page looking for the high water mark of the descriptions and,
@@ -2552,10 +2554,14 @@ while (next)
     page = (BTR) CCH_FETCH (tdbb, &window, LCK_write, 0);
 
     /* do a little defensive programming--if any of these conditions 
-       are true we have a damaged pointer, so just stop deleting */
+       are true we have a damaged pointer, so just stop deleting. At
+	   the same time, allow updates of indexes with id > 255 even though
+	   the page header uses a byte for its index id.  This requires relaxing
+	   the check slightly introducing a risk that we'll pick up a page belonging
+	   to some other index that is ours +/- (256*n).  On the whole, unlikely.*/
 
     if (page->btr_header.pag_type != pag_index ||
-	page->btr_id != idx_id ||
+	page->btr_id != (UCHAR) (idx_id % 256) ||
 	page->btr_relation != rel_id)
 	{
 	CCH_RELEASE (tdbb, &window);
@@ -2680,12 +2686,17 @@ lp_fill_limit = pp_fill_limit = dbb->dbb_page_size - 2 * BTN_SIZE;
 #endif  /* IGNORE_NULL_IDX_KEY */
 keys [0].key_length = 0;
 
-/* Allocate and format the first leaf level bucket. */
+/* Allocate and format the first leaf level bucket.  Awkwardly,
+the bucket header has room for only a byte of index id and that's
+part of the ODS.  So, for now, we'll just record the first byte
+of the id and hope for the best.  Index buckets are (almost) always
+located through the index structure (dmp being an exception used 
+only for debug) so the id is actually redundant.*/
 
 bucket = buckets [0] = (BTR) DPM_allocate (tdbb, &windows [0]);
 bucket->btr_header.pag_type = pag_index;
 bucket->btr_relation = relation->rel_id;
-bucket->btr_id = idx->idx_id;
+bucket->btr_id = (UCHAR)(idx->idx_id % 256);
 bucket->btr_level = 0;
 bucket->btr_length = OFFSETA (BTR, btr_nodes);
 if (idx->idx_flags & idx_descending)
@@ -2866,7 +2877,8 @@ while (!error)
 	split_pages [level] = 0;
 	node = nodes [level];
 	
-	/* If there isn't already a bucket at this level, make one. */
+	/* If there isn't already a bucket at this level, make one.  Remember to 
+	   shorten the index id to a byte */
 	
 	if (!(bucket = buckets [level]))
 	    {
@@ -2874,7 +2886,7 @@ while (!error)
 	    buckets [level] = bucket = (BTR) DPM_allocate (tdbb, window);
 	    bucket->btr_header.pag_type = pag_index;
 	    bucket->btr_relation = relation->rel_id;
-	    bucket->btr_id = idx->idx_id;
+	    bucket->btr_id = (UCHAR)(idx->idx_id %256);
 	    assert(level <= MAX_UCHAR)
 	    bucket->btr_level = (UCHAR)level;
 	    if (idx->idx_flags & idx_descending)
@@ -2949,7 +2961,7 @@ while (!error)
 	node = NEXT_NODE (node);
 	assert(prefix <= MAX_UCHAR);
 	BTN_PREFIX (node) = (UCHAR)prefix;
-        bucket->btr_prefix_total += prefix;
+         bucket->btr_prefix_total += prefix;
 	quad_put (windows [level - 1].win_page, BTN_NUMBER (node));
 
 	/* Store the key associated with the page as the first unique key value 
@@ -3610,7 +3622,7 @@ if (result != contents_above_threshold)
 
     if ((parent_page->btr_header.pag_type != pag_index) ||
         (parent_page->btr_relation != relation_number) ||
-	(parent_page->btr_id != index_id) || 
+	(parent_page->btr_id != (UCHAR)(index_id % 256)) || 
 	(parent_page->btr_level != index_level + 1))
 	{
 	CCH_RELEASE (tdbb, window);

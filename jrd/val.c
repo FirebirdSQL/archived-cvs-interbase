@@ -565,6 +565,7 @@ VI. ADDITIONAL NOTES
 #include "../jrd/gds_proto.h"
 #include "../jrd/met_proto.h"
 #include "../jrd/sbm_proto.h"
+#include "../jrd/sch_proto.h"
 #include "../jrd/thd_proto.h"
 #include "../jrd/tra_proto.h"
 #include "../jrd/val_proto.h"
@@ -1473,7 +1474,7 @@ while (next)
     fetch_page (tdbb, control, next, pag_index, &window, &page);
 
     if (page->btr_relation != relation->rel_id ||
-	page->btr_id != id)
+	page->btr_id != (UCHAR) (id % 256))
 	{
 	corrupt (tdbb, control, VAL_INDEX_PAGE_CORRUPT, relation, id+1, next);
 	CCH_RELEASE (tdbb, &window);
