@@ -23,6 +23,8 @@
  * 2001.07.17 Claudio Valderrama: Stop crash with indices and recursive calls
  *   of OPT_compile: indicator csb_indices set to zero after used memory is
  *   returned to the free pool.
+ * 2001.02.15: Claudio Valderrama: Don't obfuscate the plan output if a selectable
+ *   stored procedure doesn't access tables, views or other procedures directly.
  */
 /*
 $Id$
@@ -2130,6 +2132,30 @@ switch (rsb->rsb_type)
 	procedure = rsb->rsb_procedure;
 	if (!procedure || !procedure->prc_request)
 	    return FALSE;
+
+	/* CVC: This is becoming trickier. There are procedures that don't have a plan
+	because they don't access tables. In this case, the engine gives up and swallows
+	the whole plan. Not acceptable. */
+	if (!procedure->prc_request->req_fors)
+	{
+		STR n = procedure->prc_name;
+		length = (n && n->str_data) ? n->str_length : 0;
+		*buffer_length -= 5 + length;
+		if (*buffer_length < 0)
+			return FALSE;
+		*buffer++ = gds__info_rsb_begin;
+		*buffer++ = gds__info_rsb_relation;
+		*buffer++ = (SCHAR) length;
+		name = (SCHAR*) n->str_data;
+		while (length--)
+			*buffer++ = *name++;
+		*buffer++ = gds__info_rsb_type;
+		*buffer++ = gds__info_rsb_sequential;
+		/* *buffer++ = gds__info_rsb_unknown; */
+		*buffer++ = gds__info_rsb_end;
+		break;
+	}
+
 	if (!OPT_access_path (procedure->prc_request, buffer, *buffer_length, &return_length))
 	    return FALSE;
 	if ((*buffer_length -= return_length) < 0)

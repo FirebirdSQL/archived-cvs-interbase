@@ -52,6 +52,7 @@
  * For now, the aforementioned macro is enabled.
  * 2001.6.18 Claudio Valderrama: substring() is working with international charsets,
  * thanks to Dave Schnepper's directions.
+ * 2002.2.15 Claudio Valderrama: divide2() should not mangle negative values.
  */
 
 #include <string.h>
@@ -109,7 +110,8 @@
 #define TEMP_SIZE(x)	sizeof (x)
 #endif
 
-#define INT64_LIMIT	(MAX_SINT64 / 10)
+#define MAX_INT64_LIMIT	(MAX_SINT64 / 10)
+#define MIN_INT64_LIMIT	(MIN_SINT64 / 10)
 
 #ifdef VMS
 extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
@@ -4281,11 +4283,22 @@ if ((i1 == MIN_SINT64) && (i2 == -1))
 /* Scale the dividend by as many of the needed powers of 10 as possible
    without causing an overflow. */
 addl_scale = 2 * desc->dsc_scale;
-while ((addl_scale < 0) && (i1 <= INT64_LIMIT))
-    {
-    i1 *= 10;
-    ++addl_scale;
-    }
+if (i1 >= 0)
+{
+	while ((addl_scale < 0) && (i1 <= MAX_INT64_LIMIT))
+		{
+		i1 *= 10;
+		++addl_scale;
+		}
+}
+else
+{
+	while ((addl_scale < 0) && (i1 >= MIN_INT64_LIMIT))
+		{
+		i1 *= 10;
+		++addl_scale;
+		}
+}
 
 /* If we couldn't use up all the additional scaling by multiplying the
    dividend by 10, but there are trailing zeroes in the divisor, we can
@@ -4306,11 +4319,22 @@ value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_int64;
    an overflow, do the rest of it now.  If we get an overflow now, then
    the result is really too big to store in a properly-scaled SINT64,
    so report the error. For example, MAX_SINT64 / 1.00 overflows. */
-while ((addl_scale < 0) && (value->vlu_misc.vlu_int64 < INT64_LIMIT))
-    {
-    value->vlu_misc.vlu_int64 *= 10;
-    addl_scale++;
-    }
+if (value->vlu_misc.vlu_int64 >= 0)
+{
+	while ((addl_scale < 0) && (value->vlu_misc.vlu_int64 <= MAX_INT64_LIMIT))
+		{
+		value->vlu_misc.vlu_int64 *= 10;
+		addl_scale++;
+		}
+}
+else
+{
+	while ((addl_scale < 0) && (value->vlu_misc.vlu_int64 >= MIN_INT64_LIMIT))
+		{
+		value->vlu_misc.vlu_int64 *= 10;
+		addl_scale++;
+		}
+}
 if (addl_scale < 0)
     ERR_post (gds__arith_except, 0);
 
