@@ -535,7 +535,7 @@ if (arg1->dsc_dtype != dtype_blob)
 	(*err)(gds__wish_list, 
 		gds_arg_gds, gds__datnotsup, 0);
 
-
+/* Is arg2 a blob? */
 if (arg2->dsc_dtype == dtype_blob)
 {
 	BLB		blob1, blob2;
@@ -554,7 +554,8 @@ if (arg2->dsc_dtype == dtype_blob)
 		/* Second test for blob id, checking relation and slot. */
 		BID bid1 = (BID) arg1->dsc_address, bid2 = (BID) arg2->dsc_address;
 		if (bid1->bid_relation_id == bid2->bid_relation_id &&
-			bid1->bid_stuff.bid_number == bid2->bid_stuff.bid_number)
+			(!bid1->bid_relation_id && bid1->bid_stuff.bid_blob == bid1->bid_stuff.bid_blob ||
+			bid1->bid_relation_id && bid1->bid_stuff.bid_number == bid2->bid_stuff.bid_number))
 			return 0;
 	}
 	
@@ -725,8 +726,12 @@ if (arg2->dsc_dtype == dtype_blob)
 		ALL_release (temp_str);
 #endif
 }
+
+/* We do not accept arrays for now. Maybe ADS in the future. */
 else if (arg2->dsc_dtype == dtype_array)
 	(*err)(gds__wish_list, gds_arg_gds, gds__datnotsup, 0);
+
+/* The second parameter should be a string. */
 else
 {
 	BLB		blob1;
@@ -747,7 +752,9 @@ else
 	else ttype2 = ttype_none;
 
     desc1.dsc_dtype = dtype_text;
-    desc1.dsc_address = dbuf;
+	/* CVC: Cannot be there since we need dbuf pointing to valid address first.
+	Moved after the #if/#endif shown some lines below.
+    desc1.dsc_address = dbuf; */
     INTL_ASSIGN_TTYPE (&desc1, ttype1);
 
 	/* Can we have a lightweight, binary comparison?*/
@@ -791,6 +798,7 @@ else
     else dbuf = buffer1;
 #endif
 
+	desc1.dsc_address = dbuf;
     blob1 = BLB_open (tdbb, tdbb->tdbb_request->req_transaction, (BID) arg1->dsc_address);
     l1 = BLB_get_segment (tdbb, blob1, dbuf, arg2->dsc_length);
     desc1.dsc_length = l1;
