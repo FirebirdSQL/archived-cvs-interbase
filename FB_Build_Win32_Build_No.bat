@@ -82,7 +82,8 @@ echo #define FB_MINOR_VER "%MINOR_VER%" >> jrd/build_no.h
 echo #define FB_REV_NO "%REV_NO%" >> jrd/build_no.h
 echo #define FB_BUILD_NO "%THISBUILD%" >> jrd/build_no.h
 echo #define FB_BUILD_TYPE "%BUILD_TYPE%" >> jrd/build_no.h
-echo #define FB_BUILD_SUFFIX "%BUILD_SUFFIX%\0" >> jrd/build_no.h
+echo #define FB_BUILD_SUFFIX "%BUILD_SUFFIX%" >> jrd/build_no.h
+echo #define FB_BUILD_SUFFIX_RC "%BUILD_SUFFIX%\0" >> jrd/build_no.h
 echo #define WIN_FILE_VER_NUMBER %WIN_FILE_VER_NUMBER% >> jrd/build_no.h
 echo #define ISC_MAJOR_VER "%ISC_MAJOR_VER%" >> jrd/build_no.h
 echo #define ISC_MINOR_VER "%ISC_MINOR_VER%" >> jrd/build_no.h
