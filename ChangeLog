@@ -1,3 +1,9 @@
+2002-10-16 11:07  eku
+
+	* interbase/dsql/preparse.c:
+	
+	Eventually fixed redefinition of PAGESIZE.
+
 2002-10-13 08:12  stryqx
 
 	* interbase/: builds/original/boot.sfx.interbase,
