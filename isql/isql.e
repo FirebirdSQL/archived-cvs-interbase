@@ -21,7 +21,13 @@
  * Contributor(s): ______________________________________.
  */
 /*
-  $Log$
+  $Id$
+  Revision 1.5  2000/11/18 16:49:24  fsg
+  Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans
+  Fixed Bug #122563 in extract.e get_procedure_args
+  Apparently this has to be done in show.e also,
+  but that is for another day :-)
+
 */
 
 #include "../jrd/ib_stdio.h"

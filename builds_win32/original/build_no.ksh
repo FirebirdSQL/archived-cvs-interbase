@@ -14,7 +14,21 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
-# $Log$
+# $Id$
+# Revision 1.2  2000/12/08 16:18:21  fsg
+# Preliminary changes to get IB_BUILD_NO automatically
+# increased on commits.
+#
+# setup_dirs will create 'jrd/build_no.h' by a call to
+# a slightly modified 'builds_win32/original/build_no.ksh'
+# that gets IB_BUILD_NO from 'this_build', that hopefully
+# will be increased automatically in the near future :-)
+#
+# I have changed 'jrd/iblicense.h' to use IB_BUILD_TYPE
+# from 'jrd/build_no.h'.
+# So all changes to version numbers, build types etc. can
+# now be done in 'builds_win32/original/build_no.ksh'.
+#
 #
 #
 #

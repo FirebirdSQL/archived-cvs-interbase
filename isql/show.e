@@ -19,7 +19,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
+ * Revision 1.2  2000/11/19 07:02:49  fsg
+ * Change in show.e to use CHARACTER_LENGTH instead of FIELD_LENGTH in
+ * SHOW PROCEDURE
+ *
  */
 
 #include "../jrd/ib_stdio.h"

@@ -15,7 +15,10 @@
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
 # Start of file prefix.linux:	$(VERSION)	$(PLATFORM)
-#$Log$
+#$Id$
+#Revision 1.6  2000/12/01 11:20:31  fsg
+#Added SHRLIB_EXT to  prefix.linux
+#
 
 .SUFFIXES: .c .e
 .e.c:

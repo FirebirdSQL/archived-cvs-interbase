@@ -19,7 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
  * Revision 1.3  2000/11/29 11:11:56  fsg
  * Added some more PYXIS datatypes to form_trn.c
  *

@@ -19,7 +19,10 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
+ * Revision 1.2  2000/11/28 15:09:01  fsg
+ * Changed fred.e to go through 6.0 gpre
+ *
  */
 
 #include <stdio.h>

@@ -19,7 +19,14 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
+ * Revision 1.2  2000/11/20 17:17:17  fsg
+ * Changes to get edit.e through gpre 6.0
+ * Still have to find out why gpre isn't processing
+ * PYXYS FORM FIELDS correctly.
+ * Probably no one ever will need this.
+ * But who cares :-)
+ *
  */
 
 #include "../jrd/gds.h"

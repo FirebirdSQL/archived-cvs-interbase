@@ -19,7 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
  * Revision 1.3  2000/11/16 15:54:29  fsg
  * Added new switch -verbose to gpre that will dump
  * parsed lines to stderr

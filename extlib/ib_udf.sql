@@ -15,7 +15,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
  * Revision 1.2  2000/11/28 06:47:52  fsg
  * Changed declaration of ascii_char in ib_udf.sql
  * to get correct result as proposed by Claudio Valderrama

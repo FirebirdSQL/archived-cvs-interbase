@@ -19,7 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
+ * Revision 1.3  2000/11/22 17:07:25  patrickgriffin
+ * In get_procedure_args change comment style from // to /*
+ *
+ * ...pat
+ *
  * Revision 1.2  2000/11/18 16:49:24  fsg
  * Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans
  * Fixed Bug #122563 in extract.e get_procedure_args

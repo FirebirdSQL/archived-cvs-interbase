@@ -19,7 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- * $Log$
+ * $Id$
  * Revision 1.2  2000/11/24 17:23:02  fsg
  * Another little fix in pyxis/debug.c that nobody
  * ever will notice :-)
