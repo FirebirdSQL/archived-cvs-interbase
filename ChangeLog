@@ -1,3 +1,13 @@
+2003-10-28 14:42  eku
+
+	* interbase/jrd/common.h:
+	
+	Replaced ib_printf with gds_log. stderr is usually connected to the
+	TCP-connection between database client and server, Writing an error
+	message to it means violating the Interbase protocol. The client
+	then aborts with an assertation in xdr_protocol
+	(remote/protocol.c).
+
 2003-10-27 08:47  eku
 
 	* interbase/alice/tdr.c:
