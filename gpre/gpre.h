@@ -74,7 +74,7 @@
 #endif
 
 #ifdef hpux
-#if (defined HP700 || defined HP10)
+#if (defined HP700 || defined HP10 || defined HP11)
 #define ADA             1
 #define ALSYS_ADA       1
 #define COBOL		1

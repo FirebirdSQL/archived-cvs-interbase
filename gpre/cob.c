@@ -134,8 +134,7 @@
 #ifdef DGUX
 #define MICROFOCUS
 #endif
-/* RITTER - added HP11 to the line below */
-#if (defined HP700 || defined HP10 || defined HP11)
+#if (defined HP700 || defined HPUX)
 #define MICROFOCUS
 #endif
 #ifdef UNIXWARE
@@ -303,8 +302,7 @@
 #endif /* DG_X86 */
 #endif
 
-/* RITTER - added HP11 to the line below */
-#if (defined HP700 || defined HP10 || defined HP11)
+#if (defined HP700 || defined HPUX)
 #define USAGE_COMP		" USAGE IS COMP"
 #endif
 
