@@ -1,3 +1,60 @@
+2002-06-28 15:50  dimitr
+
+	* interbase/this_build (1.862):
+	
+	inc_build_no
+
+2002-06-28 15:50  dimitr
+
+	* interbase/dsql/dsql.c (1.18):
+	
+	Fixed bug with the server crash when XSQLDAs are prepared for not
+	all statement parameters.
+
+2002-06-27 17:28  alexpeshkoff
+
+	* interbase/this_build (1.861):
+	
+	inc_build_no
+
+2002-06-27 17:28  alexpeshkoff
+
+	* interbase/jrd/inf.c (1.14):
+	
+	fixed bug #545725 - internal connections to database now reported
+	as user (SQL Server)
+
+2002-06-27 14:58  paul_reeves
+
+	* interbase/builds_win32/original/build_no.ksh (1.16):
+	
+	Fix syntax error
+
+2002-06-27 14:58  paul_reeves
+
+	* interbase/this_build (1.860):
+	
+	inc_build_no
+
+2002-06-27 12:13  dimitr
+
+	* interbase/this_build (1.859):
+	
+	inc_build_no
+
+2002-06-27 12:13  dimitr
+
+	* interbase/burp/: backup.e (1.18), restore.e (1.14):
+	
+	Fixed another bug with INT64 array slices. Thanks to Artem
+	Petkevych.
+
+2002-06-24 13:25  fsg
+
+	* interbase/this_build (1.858):
+	
+	inc_build_no
+
 2002-06-21 20:56  bellardo
 
 	* interbase/: this_build (1.849), this_build (1.848), this_build
