@@ -1200,7 +1200,7 @@ static CONST SCHAR blr_items [] = {isc_info_blob_max_segment,
 			     isc_info_blob_num_segments};
 STATUS	status_vector [ISC_STATUS_LENGTH];
 SLONG	length, n;
-void	*blob;
+SLONG	*blob;
 UCHAR	*p, blob_info [32], item, *buffer, static_buffer [1024], 
 	*new_buffer, *end_buffer;
 USHORT	l, max_segment, num_segments, new_len = 0;
@@ -1893,8 +1893,9 @@ static void get_blob (
 FLD		field;
 ATT_TYPE	attribute;
 STATUS		status_vector [ISC_STATUS_LENGTH];
-SLONG		segments, *blob_id;
-void		*blob;
+ULONG		segments;
+ISC_QUAD	*blob_id;
+SLONG		*blob;
 USHORT		field_number, max_segment, length;
 UCHAR		*buffer, static_buffer [1024];
 UCHAR	    scan_next_attr;
@@ -1944,7 +1945,7 @@ if (!field)
 
 /* Create new blob */
 
-blob_id = (SLONG*) ((UCHAR*) record_buffer + field->fld_offset);
+blob_id = (ISC_QUAD*) ((UCHAR*) record_buffer + field->fld_offset);
 blob = NULL;
 
 if (isc_create_blob (status_vector, 
@@ -1964,7 +1965,7 @@ else
 
 /* Eat up blob segments */
 
-while (--segments >= 0)
+for (; segments > 0; --segments )
     {
     length = GET();
     length |= GET() << 8;
