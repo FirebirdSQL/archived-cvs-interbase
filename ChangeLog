@@ -1,3 +1,9 @@
+2003-02-28 09:20  paul_reeves
+
+	* interbase/jrd/svc.h:
+	
+	Let gbak and friends use service_mgr again.
+
 2003-01-18 02:42  brodsom
 
 	* interbase/builds/original/sfx.intl:
