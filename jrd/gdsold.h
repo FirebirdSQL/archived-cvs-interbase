@@ -2012,7 +2012,7 @@ const GDS_LONG gds_arg_win32                   = 17;
 #define gds__gstat_read_err                   336920606L
 #define gds__gstat_sysmemex                   336920607L
 
-#define gds_err_max                          698
+#define gds_err_max                          699
 
 #else					/* c++ definitions */
 
@@ -2709,7 +2709,7 @@ const GDS_LONG gds_gstat_open_err                   = 336920605L;
 const GDS_LONG gds_gstat_read_err                   = 336920606L;
 const GDS_LONG gds_gstat_sysmemex                   = 336920607L;
 
-const GDS_LONG gds_err_max                          = 698L;
+const GDS_LONG gds_err_max                          = 699L;
 
 
 #endif
