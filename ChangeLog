@@ -1,3 +1,32 @@
+2001-12-24 09:44  robocop
+
+	* interbase/jrd/evl.c:
+	
+	Scale the double precision result in dialect 1 when converting it
+	from int64 if it doesn't fit in a 32-bit long.
+
+2001-12-24 09:42  robocop
+
+	* interbase/isql/isql.e:
+	
+	Fix a simple typo
+
+2001-12-24 09:41  robocop
+
+	* interbase/dsql/: dsql.c, make.c, parse.c, parse.y, pass1.c:
+	
+	Bulk update: Fix several crashes with invalid qualified
+	identifiers.  Reorganize the FIRST/SKIP handling and take care of
+	dialect 1.  Test the appropriate UDF name information is
+	DSQL_pretty.
+
+2001-12-24 01:47  nmcc
+
+	* interbase/firebird/nmcc/solaris-64bitio.patch:
+	
+	Clean up patch to work with source as at RC2 build 702.  Only
+	SuperServer tested with this patch.
+
 2001-12-21 20:20  skywalker
 
 	* interbase/firebird/install/linux/: classic/makeInstallImage.sh,
