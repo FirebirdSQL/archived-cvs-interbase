@@ -28,6 +28,7 @@
 #include "../jrd/time.h"
 #include "../jrd/common.h"
 #include <string.h>
+#include <stdlib.h>
 
 #ifdef APOLLO
 #define APOLLO_JOURNALLING
@@ -74,6 +75,9 @@
 
 #ifdef WIN_NT
 #include <windows.h>
+#ifdef TEXT
+#undef TEXT
+#endif
 #define TEXT		SCHAR
 #define SYS_ERROR	gds_arg_win32
 #endif
@@ -508,7 +512,8 @@ t = data;
 if (len = b_length)
     {
     *t++ = gds__dpb_wal_backup_dir;
-    *t++ = b_length;
+    assert(b_length <= MAX_UCHAR);
+    *t++ = (UCHAR)b_length;
     q = backup_dir;
     do *t++ = *q++; while (--len);
     }
@@ -516,7 +521,8 @@ if (len = b_length)
 if (len = db_len)
     {
     *t++ = JRNW_DB_NAME;
-    *t++ = db_len;
+    assert(db_len <= MAX_UCHAR);
+    *t++ = (UCHAR)db_len;
     q = db_name;
     do *t++ = *q++; while (--len);
     }
@@ -698,7 +704,9 @@ LTJW		jrnwal;
 struct jrnr	reply;
 int 		ret_val;
 
-jrnwal.ltjw_header.jrnh_type	= type;
+assert(type <= MAX_UCHAR);
+
+jrnwal.ltjw_header.jrnh_type	= (UCHAR)type;
 jrnwal.ltjw_mode 		= mode;
 jrnwal.ltjw_seqno 		= seqno;
 jrnwal.ltjw_offset 		= offset;
@@ -793,7 +801,10 @@ TEXT		*p, *q, name [MAX_PATH_LENGTH];
 SSHORT		l;
 JRN		journal;
 struct jrnr	reply;
-int		loop, ret_val;
+#ifdef BSD_SOCKETS
+int		loop;
+#endif
+int		ret_val;
 
 
 /* Make sure we don't return a bogus journal handle */

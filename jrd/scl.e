@@ -22,6 +22,8 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
+#include <ctype.h>
 #include "../jrd/ibsetjmp.h"
 #include "../jrd/gds.h"
 #include "../jrd/jrd.h"
@@ -120,7 +122,7 @@ void SCL_check_access (
  *
  **************************************/
 TDBB	tdbb;
-P_NAMES	*names;
+CONST P_NAMES	*names;
 SCL	att_class;
 ATT	attachment;
 
@@ -183,7 +185,6 @@ TEXT    reln_name[32];
 DBB	dbb;
 JMP_BUF env, *old_env;
 
-
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
 s_class = default_s_class = NULL;
@@ -209,7 +210,7 @@ FOR (REQUEST_HANDLE request) IND IN RDB$INDICES
 	default_s_class = SCL_get_class (REL.RDB$DEFAULT_CLASS);
 END_FOR;
 
-CMP_release (tdbb, request);
+CMP_release (tdbb, (REQ)request);
 
 /* check if the relation exixts. It may not have been created yet.
    Just return in that case. */
@@ -230,7 +231,7 @@ if (SETJMP (env))
     {
     tdbb->tdbb_setjmp = (UCHAR*) old_env;
     if (request)
-        CMP_release (tdbb, request);
+        CMP_release (tdbb, (REQ)request);
     LONGJMP (tdbb->tdbb_setjmp, (int) tdbb->tdbb_status_vector [1]);
     }
 
@@ -261,7 +262,7 @@ FOR (REQUEST_HANDLE request) ISEG IN RDB$INDEX_SEGMENTS
 
 END_FOR;
 
-CMP_release (tdbb, request);
+CMP_release (tdbb, (REQ)request);
 
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
 }
@@ -429,7 +430,7 @@ p = name;
 q = s_class->scl_name;
 while (*q++ = *p++)
     ;
-s_class->scl_flags = compute_access (tdbb, s_class, NULL_PTR,
+s_class->scl_flags = (USHORT)compute_access (tdbb, s_class, NULL_PTR,
 					NULL_PTR, NULL_PTR);
 
 if (s_class->scl_flags & SCL_exists)
@@ -439,7 +440,7 @@ if (s_class->scl_flags & SCL_exists)
     return s_class;
     }
 
-ALL_release (s_class);
+ALL_release ((FRB)s_class);
 
 return NULL;
 }
@@ -601,7 +602,7 @@ if (strlen (name) != 0)
             if (!REQUEST (irq_get_role_name))
                 REQUEST (irq_get_role_name) = request;
 
-	    EXE_unwind (tdbb, request);
+	    EXE_unwind (tdbb, (REQ)request);
             ERR_post (isc_login_same_as_role_name, 
                       gds_arg_string, ERR_cstring (login_name), 0);
 
@@ -652,7 +653,7 @@ if (!create)
         if (!X.RDB$SECURITY_CLASS.NULL)
            tdbb->tdbb_attachment->att_security_class = SCL_get_class (X.RDB$SECURITY_CLASS);
     END_FOR;
-    CMP_release (tdbb, handle);
+    CMP_release (tdbb, (REQ)handle);
     
     FOR (REQUEST_HANDLE handle1)
     	FIRST 1 REL IN RDB$RELATIONS WITH REL.RDB$RELATION_NAME EQ "RDB$DATABASE"
@@ -665,7 +666,7 @@ if (!create)
 	    	user->usr_flags |= USR_owner;
 	    }
     END_FOR;
-    CMP_release (tdbb, handle1);
+    CMP_release (tdbb, (REQ)handle1);
     }
 else
     user->usr_flags |= USR_owner;
@@ -689,7 +690,7 @@ void SCL_move_priv (
  *
  **************************************/
 UCHAR	*p;
-P_NAMES	*priv;
+CONST P_NAMES	*priv;
 
 p = *acl_ptr;
 
@@ -698,9 +699,12 @@ p = *acl_ptr;
 CHECK_AND_MOVE (p, ACL_end, *start_ptr, length_ptr);
 CHECK_AND_MOVE (p, ACL_priv_list, *start_ptr, length_ptr);
 
-for (priv = p_names; priv->p_names_priv; priv++)
-    if (mask & priv->p_names_priv)
-    CHECK_AND_MOVE (p, priv->p_names_acl, *start_ptr, length_ptr);
+for (priv = p_names; priv->p_names_priv; priv++) {
+    if (mask & priv->p_names_priv) {
+		assert(priv->p_names_acl <= MAX_UCHAR);
+        CHECK_AND_MOVE (p, (UCHAR)priv->p_names_acl, *start_ptr, length_ptr);
+    }
+}
 
 CHECK_AND_MOVE (p, 0, *start_ptr, length_ptr);
 
@@ -729,7 +733,7 @@ SET_TDBB (tdbb);
 if (!(s_class = SCL_get_class (string)))
     return NULL;
 
-s_class->scl_flags = compute_access (tdbb, s_class,
+s_class->scl_flags = (USHORT)compute_access (tdbb, s_class,
 					NULL_PTR, NULL_PTR, NULL_PTR);
 
 if (s_class->scl_flags & SCL_exists)
@@ -770,7 +774,7 @@ for (next = &attachment->att_security_classes; *next; next = &(*next)->scl_next)
 	break;
 	}
 
-ALL_release (s_class);
+ALL_release ((FRB)s_class);
 }
 
 static BOOLEAN check_hex (
@@ -880,7 +884,7 @@ if (SETJMP (env))
     {
     tdbb->tdbb_setjmp = (UCHAR*) old_env;
     if (buffer)
-         ALL_release (buffer);
+         ALL_release ((FRB)buffer);
     LONGJMP (tdbb->tdbb_setjmp, (int) tdbb->tdbb_status_vector [1]);
     }
 
@@ -910,7 +914,7 @@ buffer  = (STR) ALLOCPV (type_str, *length_ptr);
 	        }
 	    }
 
-        ALL_release (buffer);
+        ALL_release ((FRB)buffer);
         tdbb->tdbb_setjmp = (UCHAR*) old_env;
 	return (n != number);
 }
@@ -996,7 +1000,7 @@ if (SETJMP (env))
     {
     tdbb->tdbb_setjmp = (UCHAR*) old_env;
     if (str_buffer)
-         ALL_release (str_buffer);
+         ALL_release ((FRB)str_buffer);
     LONGJMP (tdbb->tdbb_setjmp, (int) tdbb->tdbb_status_vector [1]);
     }
 
@@ -1012,12 +1016,12 @@ FOR (REQUEST_HANDLE request) X IN RDB$SECURITY_CLASSES
     if (!REQUEST (irq_l_security))
 	REQUEST (irq_l_security) = request;
     privileges |= SCL_exists;
-    blob = BLB_open (tdbb, dbb->dbb_sys_trans, &X.RDB$ACL);
+    blob = BLB_open (tdbb, dbb->dbb_sys_trans, (BID)&X.RDB$ACL);
     acl = buffer;
     while (TRUE)
 	{
 	acl += BLB_get_segment (tdbb, blob, acl, 
-                (length - ((acl - buffer) * (sizeof(buffer[0])))));
+                (USHORT)(length - ((acl - buffer) * (sizeof(buffer[0])))));
 	if (blob->blb_flags & BLB_eof)
 	    break;
         /* there was not enough space, realloc point acl to the correct location */
@@ -1025,7 +1029,7 @@ FOR (REQUEST_HANDLE request) X IN RDB$SECURITY_CLASSES
             {
 	    ULONG old_offset = (ULONG) (acl - buffer);
             length += BLOB_BUFFER_SIZE;
-            (void) ALL_extend (&str_buffer, length);
+            (void) ALL_extend ((BLK*)&str_buffer, length);
             buffer = str_buffer->str_data;
 	    acl = buffer + old_offset;
             }
@@ -1039,7 +1043,7 @@ if (!REQUEST (irq_l_security))
     REQUEST (irq_l_security) = request;
 
 
-ALL_release (str_buffer);
+ALL_release ((FRB)str_buffer);
 
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
 return privileges;
@@ -1099,7 +1103,7 @@ struct usr	user;
 SLONG		privilege; 
 USHORT		hit;
 TEXT		c, *p, *role_name;
-BOOLEAN		is_member = FALSE, equivalent_proc_nm;
+BOOLEAN		is_member = FALSE;
 VOLATILE BLK    request;
 DBB		dbb;
 

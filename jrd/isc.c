@@ -169,6 +169,9 @@ extern struct passwd    *getpwnam(), *getpwuid();
 #if (defined (WIN_NT) || defined (WINDOWS_ONLY))
 
 #include <windows.h>
+#ifdef TEXT
+#undef TEXT
+#endif
 #define TEXT            SCHAR
 
 #ifdef WIN_NT
@@ -181,6 +184,9 @@ static SECURITY_ATTRIBUTES      security_attr;
 #define ROOTCHECK       "c:/interbas/"
 #endif /* WIN_NT */
 
+#ifdef MAXPATHLEN
+#undef MAXPATHLEN
+#endif
 #define MAXPATHLEN      512
 
 static TEXT                     interbase_directory [MAXPATHLEN];
@@ -504,9 +510,11 @@ if (ISC_cfg_tbl == NULL)
     IB_FILE        *fd;
     TEXT        *p, *q, buf[80];
     TEXT        buffer [256];
+#ifdef SUPERSERVER
     int         n;
     TEXT        dir_name[MAX_PATH_LENGTH];
     ULONG       size;
+#endif
 
     gds__prefix(buffer, config_file);
     config_file = buffer;
