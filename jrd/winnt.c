@@ -321,18 +321,18 @@ void PIO_force_write (
  **************************************/
 
 
-HANDLE  old_desc, new_desc;
+HANDLE  * old_desc, * new_desc;
 BOOLEAN old_force;
 
 old_force =  (file->fil_flags & FIL_force_write_init) != 0;
 
 if ((flag && !old_force) || (!flag && old_force))
     {
-    old_desc = flag ? file->fil_desc : file->fil_force_write_desc;
-    new_desc = flag ? file->fil_force_write_desc : file->fil_desc;
+    old_desc = flag ? &file->fil_desc : &file->fil_force_write_desc;
+    new_desc = flag ? &file->fil_force_write_desc : &file->fil_desc;
 
-    MaybeCloseFile(old_desc);
-    new_desc = CreateFile (file->fil_string,
+    MaybeCloseFile (old_desc);
+    *new_desc = CreateFile (file->fil_string,
                 GENERIC_READ | GENERIC_WRITE,
                 g_dwShareFlags,
                 NULL,
@@ -340,7 +340,7 @@ if ((flag && !old_force) || (!flag && old_force))
                 FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH | g_dwExtraFlags,
                 0);
 
-    if (new_desc == INVALID_HANDLE_VALUE)
+    if (*new_desc == INVALID_HANDLE_VALUE)
         ERR_post (isc_io_error,
                 gds_arg_string,
                     "CreateFile (force write)",
