@@ -1915,7 +1915,7 @@ if (!best)
      --------------------------------------------------*/
     if ( (!sfb || !DLS_get_temp_space(size, sfb)) || ((sfb->sfb_file_size + size) > MAX_TEMPFILE_SIZE) )
     /* Mike Grover */
-    //if (!sfb || !DLS_get_temp_space(size, sfb) || ((scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )
+    /*if (!sfb || !DLS_get_temp_space(size, sfb) || ((scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )*/
     {
     sfb = (SFB) alloc (scb, (ULONG) sizeof (struct sfb));
 	 /* FREE: scb_sfb chain is freed in local_fini() */
