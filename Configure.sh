@@ -53,6 +53,8 @@
 # $NOPROMPT_SETUP="Anything"; 
 # $export NOPROMPT_SETUP
 # before running this script file.
+# If you want 64bit IO with noprompt on a platform where it is still optional
+# set FIREBIRD_64_BIT_IO or it will default to 32bit.
 
 # Bourne shell (eg: /bin/sh) on Solaris can not do export and
 # assignment in one command, do assignment and export as two commands
@@ -281,13 +283,26 @@ setUnix64BitIo() {
 
     case "$SYS_TYPE" in 
     LINUX|FREEBSD|NETBSD|SGI|SOLARIS) 
-    AskYNQuestion "Build a 64 bit IO version of the engine"
-       if [ "$?" -eq 0 ]
-         then
-           echo "#define UNIX_64_BIT_IO" > jrd/64bitio.h
-         else
-           echo "" > jrd/64bitio.h
-       fi
+		if [ -z "$NOPROMPT_SETUP" ]; then
+			AskYNQuestion "Build a 64 bit IO version of the engine"
+			Answer=$?
+		else
+			if [ -z "$FIREBIRD_64_BIT_IO" ]; then
+				# not defined so default to 32bit
+				Answer=1
+			else
+				Answer=0
+			fi
+		fi
+			
+		if [ $Answer -eq 0 ]; then
+		 	echo "#ifndef _64_BIT_IO_H" > jrd/64bitio.h
+			echo "#define _64_BIT_IO_H" >> jrd/64bitio.h
+			echo "#define UNIX_64_BIT_IO" >> jrd/64bitio.h
+			echo "#endif" >> jrd/64bitio.h
+		else
+			echo "" > jrd/64bitio.h
+		fi
        ;;
     DARWIN)
         echo "#define UNIX_64_BIT_IO" > jrd/64bitio.h
