@@ -1,3 +1,57 @@
+2001-08-17 16:42  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSpostinstall.sh:
+	
+	Just when you thought it had finished... fix 'other' call to
+	mkpasswd to use full path, - that'll teach me to not search the
+	whole file.
+
+2001-08-17 12:17  skywalker
+
+	* interbase/firebird/skywalker/install/classic/CSrpmheader.txt:
+	
+	Fix version number in classic rpm file
+
+2001-08-17 10:12  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	super/SSTarInstall.sh, super/SSinstall.sh, super/SSpostinstall.sh,
+	super/SSrpmfiles.txt, super/SSrpmheader.txt:
+	
+	Changes to package 1.0.0 beta2 super
+
+2001-08-17 10:10  skywalker
+
+	* interbase/builds/original/: boot.sfx.interbase, sfx.interbase:
+	
+	Added make runsuperinstall as target
+
+2001-08-17 09:28  robocop
+
+	* interbase/jrd/opt.c:
+	
+	Don't crash me by joining complex views that throw several indices
+	to the party
+
+2001-08-17 09:27  robocop
+
+	* interbase/jrd/cmp.c:
+	
+	Don't crash me with user-supplied SQL plan
+
+2001-08-17 08:41  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSrpmheader.txt:
+	
+	Changes to build a super server 1.0.0Beta2 version
+
+2001-08-17 08:39  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSrpmheader.txt:
+	
+	Changes to build a 1.0.0Beta2 version
+
 2001-08-16 13:25  kkuznetsov
 
 	* interbase/jrd/common.h:
