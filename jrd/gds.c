@@ -2063,6 +2063,13 @@ switch ((UCHAR) (*vector)[0])
                 GetUserDefaultLangID(),
                 s,
                 128,
+                NULL)) &&
+            !(l = (SSHORT)FormatMessage (FORMAT_MESSAGE_FROM_SYSTEM,
+                NULL,
+                code,
+                NULL, /* TMN: Fallback to system known language */
+                s,
+                128,
                 NULL)))
             sprintf (s, "unknown Win32 error %ld", code);  /* TXNN */
         break;
