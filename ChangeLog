@@ -1,3 +1,20 @@
+2001-08-22 23:09  bellardo
+
+	* interbase/: jrd/codes.h, jrd/codetext.h, jrd/iberror.h,
+	jrd/msgs.h, jrd/rdb_codes.h, jrd/rse.c, jrd/sql_code.h,
+	msgs/msg.gbak:
+	
+	Cleaned up error message for FIRST and added a new one for SKIP. 
+	Also made SKIP 1 start returning the second row of data from the
+	result set instead of the first.
+
+2001-08-22 05:51  bellardo
+
+	* interbase/firebird/bellardo/darwin/: install, makefile:
+	
+	Updated the Darwin install process to handle the sysv sempahore
+	kext.
+
 2001-08-21 18:22  skywalker
 
 	* interbase/firebird/skywalker/install/: classic/CSpreinstall.sh,
