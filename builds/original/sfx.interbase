@@ -198,7 +198,7 @@ gdslib.linux:	\
 gdslib.dylib: \
 	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force 
 	$(QUIET_ECHO) "Building GDSLIB..."
-	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds.dylib
+	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds.dylib'
 
 gdslib.freebsd:	\
 	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force
