@@ -8,7 +8,7 @@
 ;  for the specific language governing rights and limitations under the
 ;  License.
 ;
-;  The Original Code is copyright 2001 IBPhoenix Inc.
+;  The Original Code is copyright 2001-2002 IBPhoenix Inc.
 ;
 ;  The Initial Developer of the Original Code is IBPhoenix Inc.
 ;
@@ -41,7 +41,7 @@
 AppName=Firebird Database Server 1.0
 ;this is important - all ISS install packages should duplicate this for v1
 AppID=FBDBServer1
-AppVerName=Firebird 1.0.0 RC2
+AppVerName=Firebird 1.0.0
 AppPublisher=Firebird Project
 AppPublisherURL=http://www.firebirdsql.org
 AppSupportURL=http://www.firebirdsql.org
@@ -61,7 +61,7 @@ WizardImageFile=builds_win32\install\firebird_install_logo1.bmp
 AdminPrivilegesRequired=true
 UninstallDisplayIcon={app}\bin\ibserver.exe
 OutputDir=builds_win32\install\install_image
-OutputBaseFilename=Firebird-1.0.0.679-RC2-Win32
+OutputBaseFilename=Firebird-1.0.0.731-Win32
 Compression=bzip
 ;WizardDebug=true
 
@@ -78,8 +78,10 @@ Name: Client; Description: Client; Types: Server Developer Client; Flags: fixed 
 [Tasks]
 Name: group; Description: Create a Menu &Group; Components: Server DevTools Client
 Name: desktopicon; Description: Create a &desktop icon; Components: Server DevTools Client; MinVersion: 4.0,0
-Name: InstallService; Description: "Install IBServer as a service"; Components: Server; MinVersion: 0,4;
-Name: StartService; Description: "Start IBServer service"; Components: Server; MinVersion: 0,4;
+;Name: SetupRegistry; Description: "Install registry settings"; Components: Server DevTools Client;
+Name: InstallService; Description: "Install IBServer as a standalone service"; Components: Server; MinVersion: 0,4; GroupDescription: "Use the guardian service?"; Flags: Exclusive;
+Name: InstallGuardian; Description: "Install IBServer using the guardian service"; Components: Server; MinVersion: 0,4; GroupDescription: "Use the guardian service?"; Flags: Exclusive;
+Name: StartService; Description: "Start Firebird service when setup complete?"; Components: Server; MinVersion: 0,4;
 
 [Files]
 Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: Server DevTools; CopyMode: alwaysoverwrite
@@ -88,7 +90,7 @@ Source: builds_win32\install\readme.txt; DestDir: {app}; Components: Server DevT
 Source: interbase\ibconfig; DestDir: {app}; Components: Server; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
 Source: interbase\isc4.gdb; DestDir: {app}; Components: Server; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
 Source: interbase\isc4.gbk; DestDir: {app}; Components: Server; CopyMode: alwaysoverwrite
-Source: interbase\interbase.log; DestDir: {app}; Components: Server; CopyMode: dontcopy; Flags: uninsneveruninstall
+Source: interbase\interbase.log; DestDir: {app}; Components: Server; CopyMode: dontcopy; Flags: uninsneveruninstall skipifsourcedoesntexist external
 Source: interbase\interbase.msg; DestDir: {app}; Components: Server DevTools Client; CopyMode: alwaysoverwrite
 Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\gdef.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
@@ -104,7 +106,7 @@ Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: Server DevToo
 Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\doc\*.*; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: interbase\doc\*.*; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite; Flags: skipifsourcedoesntexist external
 Source: interbase\help\*.*; DestDir: {app}\help; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\include\*.*; DestDir: {app}\include; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\intl\*.*; DestDir: {app}\intl; Components: Server DevTools; CopyMode: alwaysoverwrite
@@ -120,28 +122,29 @@ Name: {group}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tas
 Name: {userdesktop}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: desktopicon; IconIndex: 0
 
 [Registry]
-Root: HKLM; Subkey: SOFTWARE\Borland; Flags: uninsdeletekeyifempty
-Root: HKLM; Subkey: SOFTWARE\Borland\InterBase; Flags: uninsdeletekey
-Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; Flags: uninsdeletekey
-Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
-Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
+;Root: HKLM; Subkey: SOFTWARE\Borland; Flags: uninsdeletekeyifempty
+;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase; Flags: uninsdeletekey
+;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; Flags: uninsdeletekey
+;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
+;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
 ;These will be the Firebird entries
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
 
 [Run]
-;Register
-Filename: {app}\bin\instreg.exe; Parameters: "install ""{app}"" "" "; StatusMsg: Updating the registry; MinVersion: 4.0,4.0; Components: Server; Flags: runminimized; Tasks: InstallService;
+;Register Firebird
+Filename: {app}\bin\instreg.exe; Parameters: "install ""{app}"" "; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: Server DevTools Client; Flags: runminimized;
 ;Install and start service if on NT/Win2k etc
-Filename: {app}\bin\instsvc.exe; Parameters: "install ""{app}"" -auto"; StatusMsg: Setting up the service; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: InstallService;
-Filename: {app}\bin\instsvc.exe; Parameters: start; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: StartService;
+Filename: {app}\bin\instsvc.exe; Parameters: "install ""{app}"" -auto"; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: InstallService;
+Filename: {app}\bin\instsvc.exe; Parameters: "install ""{app}"" -auto -g"; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: InstallGuardian;
+Filename: {app}\bin\instsvc.exe; Parameters: start; StatusMsg: "Starting the server"; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: StartService;
 
 [UninstallRun]
 Filename: {app}\bin\instsvc.exe; Parameters: stop; StatusMsg:  "Stopping the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
-Filename: {app}\bin\instsvc.exe; Parameters: remove; StatusMsg:  "Removing the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
+Filename: {app}\bin\instsvc.exe; Parameters: remove -g; StatusMsg:  "Removing the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
 Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg:  "Updating the registry"; MinVersion: 4.0,4.0; Components: Server; Flags: runminimized;
 
 [UninstallDelete]

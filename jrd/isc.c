@@ -24,6 +24,8 @@
  * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden
  * 26-Sept-2001 Paul Beach - External File Directory Config. Parameter
  * 17-Oct-2001 Mike Nordell: CPU affinity
+ * 01-Feb-2002 Paul Reeves: Removed hard-coded registry path
+ *
  */
 /*
 $Id$
@@ -48,6 +50,7 @@ $Id$
 #include "../jrd/gds_proto.h"
 #include "../jrd/isc_proto.h"
 #include "../jrd/jrd_proto.h"
+#include "../utilities/registry.h"
 
 /* Initialize the structure that hold all the config information */
 
@@ -1138,7 +1141,8 @@ DWORD   len, type;
 if (!user_hkey)
     {
     if (RegOpenKeyEx (HKEY_LOCAL_MACHINE,
-	"SOFTWARE\\Borland\\InterBase\\CurrentVersion",
+/*	"SOFTWARE\\Borland\\InterBase\\CurrentVersion",*/
+	REG_KEY_BOR_ROOT_CUR_VER,
 	0, KEY_QUERY_VALUE, &hkey) != ERROR_SUCCESS)
 	return -1;
     }

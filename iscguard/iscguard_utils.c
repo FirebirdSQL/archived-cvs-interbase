@@ -26,11 +26,15 @@
  * Contributor(s): ______________________________________.
  * 2001.10.24 Claudio Valderrama: Let GetGuardStartupInfo detect problems
  *   with the three important system calls that open/query the registry.
-*/
+ *
+ * 01-Feb-2002 Paul Reeves: Removed hard-coded registry path
+ *
+ */
 
 #include <stdlib.h>
 #include <windows.h>
 #include "../iscguard/iscguard.h"
+#include "../utilities/registry.h"
 
 int GetGuardStartupInfo (char *svrpath, char* opt)
 {
@@ -50,12 +54,14 @@ int GetGuardStartupInfo (char *svrpath, char* opt)
  **************************************/
 
 HKEY    hKeyResult;
-LPCSTR  lpSubKey = "Software\\Borland\\InterBase\\CurrentVersion";
+/*LPCSTR  lpSubKey = "Software\\Borland\\InterBase\\CurrentVersion";*/
 DWORD   buffSize, retval;
 
 buffSize = MAX_PATH - 2; /* reserve place for null and the \ */
 
-retval = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_QUERY_VALUE, &hKeyResult);
+/*retval = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_QUERY_VALUE, &hKeyResult);*/
+retval = RegOpenKeyEx(HKEY_LOCAL_MACHINE, REG_KEY_ROOT_CUR_VER, 
+					  0, KEY_QUERY_VALUE, &hKeyResult);
 if (retval != ERROR_SUCCESS)
     return 0;
 
