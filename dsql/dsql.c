@@ -300,7 +300,6 @@ if (*trans_handle == NULL && request->req_type != REQ_START_TRANS)
 	    0);
 
 /* If the request is a SELECT or blob statement then this is an open.
-/* If the request is a SELECT or blob statement then this is an open.
    Make sure the cursor is not already open. */
 
 if (request->req_type == REQ_SELECT ||
