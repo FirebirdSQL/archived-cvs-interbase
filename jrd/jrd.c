@@ -140,6 +140,10 @@ static void ExtractDriveLetter(TEXT*, ULONG*);
 
 #define	WAIT_PERIOD	-1
 
+#ifdef SUPPORT_RAW_DEVICES
+#define unlink		PIO_unlink
+#endif
+
 #ifdef SUPERSERVER
 #define V4_THREADING
 

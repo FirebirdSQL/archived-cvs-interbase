@@ -110,48 +110,40 @@
 
 /* SINIX-Z 5.42 */
 #ifdef SINIXZ
-#define QUADFORMAT "ll"
-#define QUADCONST(n) (n##LL)
-#define MMAP_SUPPORTED
-
-#if 0 /* for I386 these are defined later */
-#define FB_ALIGN(n,b)	((n+1) & ~1)
-#define ALIGNMENT	4
-#define DOUBLE_ALIGN	4
-#endif
-
 #ifdef SUPERSERVER
-#define SET_TCP_NO_DELAY
+#error SINIX-Z does not support the SS architecture
 #endif
 
+#define QUADFORMAT	"ll"
+#define QUADCONST(n)	(n##LL)
+/* Alignment for i386 is defined later in this file. */
+#define UNIX		1
+#define VAX		1 /* Little endian */
+#define IEEE		1 /* Otherwhise compilation fails at btr.c:2237 */
+#define I386		1
+#define CURSES_KEYPAD   1
+
+#define INTL
+#define SUPPORT_RAW_DEVICES /* Turn on support for raw devices. */
 #define KILLER_SIGNALS
 #define SIGACTION_SUPPORTED
-
-#define VA_START(list,parmN)    va_start (list, parmN)
-#define UNIX    1
-#define IEEE    1
-
-#ifdef i386
-#define I386    1
-#define VAX     1
-/* Change version string into SINIXZ */
-#define INTL
-#define IMPLEMENTATION  isc_info_db_impl_sinixz  /* 64 */
-#endif /* i386 */
-
-#define SETPGRP         setpgrp ()
-#define ATEXIT(c)       atexit (c)
-#define setreuid(ruid,euid)     setuid(euid)
-#define setregid(rgid,egid)     setgid(egid)
+#define MMAP_SUPPORTED
 #define NO_FLOCK
 #define NO_PYXIS
 
-#define MEMMOVE(from,to,length)		memmove ((void *)to, (void *)from, (size_t) length)
-#define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
-#define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
-#define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
+/* Change version string into SINIXZ */
+#define IMPLEMENTATION  isc_info_db_impl_sinixz  /* 64 */
 
-#define VOLATILE        volatile
+#define VOLATILE			volatile
+#define VA_START(list,parmN)		va_start (list, parmN)
+#define MEMMOVE(from,to,length)		memmove ((void *)to, (void *)from, (size_t) length)
+#define MOVE_FAST(from,to,length)	memcpy (to, from, (int) (length))
+#define MOVE_FASTER(from,to,length)	memcpy (to, from, (int) (length))
+#define MOVE_CLEAR(to,length)		memset (to, 0, (int) (length))
+#define setreuid(ruid,euid)		setuid(euid)
+#define setregid(rgid,egid)		setgid(egid)
+#define SETPGRP				setpgrp ()
+#define ATEXIT(c)			atexit (c)
 #endif /* SINIXZ */
 
 
