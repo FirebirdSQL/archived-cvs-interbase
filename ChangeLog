@@ -1,3 +1,34 @@
+2003-05-29 15:01  paul_reeves
+
+	* interbase/: FB_Build_Win32_BSCMake.bat,
+	FB_Build_Win32_Build_No.bat, FB_Build_Win32_Clean.bat,
+	builds_win32/install/BuildExecutableInstall.bat,
+	builds_win32/install/FirebirdInstall.iss,
+	builds_win32/original/build_lib.bat:
+	
+	More updates to build and install process
+
+2003-05-29 13:39  paul_reeves
+
+	* interbase/: FB_Build_Win32.bat,
+	builds_win32/install/BuildExecutableInstall.bat,
+	builds_win32/install/installation_readme.txt,
+	builds_win32/original/include.mak, gpre/c_cxx.c:
+	
+	A few minor tweaks to the build process. Update the installer for
+	better compatibility with Fb 1.5.
+
+2003-05-29 13:37  paul_reeves
+
+	* interbase/utilities/fbcpl/: FBControl.dsp, FBControl.dsw,
+	FBControl.mak, FBControl.rc, ctrlpan.cpp, ctrlpan.h, fbcontrol.clw,
+	fbcontrol.cpp, fbcontrol.def, fbcontrol.h, fbdialog.cpp,
+	fbdialog.h, fbpanel.cpp, fbpanel.h, resource.h, servi_proto.h,
+	stdafx.cpp, stdafx.h, res/fbcontrol.rc2, res/server.ico,
+	res/server_stop.ico:
+	
+	MSVC based control panel applet
+
 2003-05-28 18:33  paul_reeves
 
 	* interbase/jrd/: btr.c, btr.h, build_no.h, dfw.e, idx.c,
