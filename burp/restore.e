@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -2374,7 +2377,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	    break;
 	}
     if (alignment)
-	offset = ALIGN (offset, alignment);
+	offset = FB_ALIGN(offset, alignment);
     field->fld_offset = offset;
     field->fld_parameter = count++;
     offset += length;
@@ -2388,7 +2391,7 @@ if (tdgbl->RESTORE_format >= 2)
 	if (field->fld_flags & FLD_computed)
 	    continue;
 	STUFF (blr_short); STUFF (0);
-	offset = ALIGN (offset, sizeof (SSHORT));
+	offset = FB_ALIGN(offset, sizeof (SSHORT));
 	field->fld_missing_parameter = count++;
 	offset += sizeof (SSHORT);
 	}
@@ -6392,8 +6395,8 @@ if (tdgbl->RESTORE_format >= 2)
 	{
 	if (field->fld_flags & FLD_computed)
 	    continue;
-	p = buffer + ALIGN (p - buffer, sizeof (SSHORT));
-	q = buffer + ALIGN (q - buffer, sizeof (SSHORT));
+	p = buffer + FB_ALIGN(p - buffer, sizeof (SSHORT));
+	q = buffer + FB_ALIGN(q - buffer, sizeof (SSHORT));
 	*p++ = *q++;
 	*p++ = *q++;
 	}
@@ -6447,7 +6450,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	length += sizeof (USHORT);
 	
     if (alignment)
-	offset = ALIGN (offset, alignment);
+	offset = FB_ALIGN(offset, alignment);
     field->fld_old_offset = offset;
     offset += length;
     }
@@ -6459,7 +6462,7 @@ if (tdgbl->RESTORE_format >= 2)
 	{
 	if (field->fld_flags & FLD_computed)
 	    continue;
-	offset = ALIGN (offset, sizeof (SSHORT));
+	offset = FB_ALIGN(offset, sizeof (SSHORT));
 	offset += sizeof (SSHORT);
 	}
 

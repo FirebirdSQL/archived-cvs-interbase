@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../csv/csi.h"
 #include "../jrd/license.h"
@@ -413,7 +416,7 @@ if (!process_response (response, status_vector, NULL_PTR))
     /* Print the server name */
 
     printf ("%s\n", list_msg->csu_list_name);
-    list_msg = (CSU_LIST) (list_msg->csu_list_name + ALIGN (list_msg->csu_list_length + 1, 2));
+    list_msg = (CSU_LIST) (list_msg->csu_list_name + FB_ALIGN(list_msg->csu_list_length + 1, 2));
 
     /* Loop over returned database name info */
 
@@ -424,7 +427,7 @@ if (!process_response (response, status_vector, NULL_PTR))
 	    (list_msg->csu_list_flags & DBN_disable) ? 'D' : ' ',
 	    (list_msg->csu_list_flags & DBN_kill) ? 'K' : ' ',
 	    list_msg->csu_list_name);
-	list_msg = (CSU_LIST) (list_msg->csu_list_name + ALIGN (l + 1, 2));
+	list_msg = (CSU_LIST) (list_msg->csu_list_name + FB_ALIGN(l + 1, 2));
 	}
     }
 else if (status_vector [1] != gds__unavailable)

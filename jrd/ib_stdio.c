@@ -81,6 +81,10 @@
  * trying to track the origin of this code.
  */
 
+/*
+$Id$
+*/
+
 #include "source/jrd/common.h"
 #ifdef NEED_IB_STDIO
 #include "ib_stdio.h"
@@ -618,7 +622,7 @@ static struct glue *moreglue(register int n)
 	 * jrd/common.h, not the one which BSD code expects to find in
 	 * <machine/param.h>, which has a different number of arguments
 	 */
-	p = (IB_FILE *)ALIGN(((unsigned)(g + 1)), (sizeof(int)));
+	p = (IB_FILE *)FB_ALIGN(((unsigned)(g + 1)), (sizeof(int)));
 	g->next = NULL;
 	g->niobs = n;
 	g->iobs = p;

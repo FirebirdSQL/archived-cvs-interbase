@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <string.h>
 #include "../jrd/ibsetjmp.h"
@@ -1524,7 +1527,7 @@ if (desc.dsc_length <= sizeof (temp))
 else
     {
     temp_str = (STR) ALLOCDV (type_str, desc.dsc_length + DOUBLE_ALIGN - 1);
-    desc.dsc_address = (UCHAR*) ALIGN ((U_IPTR) temp_str->str_data, DOUBLE_ALIGN);
+    desc.dsc_address = (UCHAR*) FB_ALIGN((U_IPTR) temp_str->str_data, DOUBLE_ALIGN);
     }
 
 number = SDL_compute_subscript (tdbb->tdbb_status_vector, array_desc, count, subscripts);
@@ -2360,7 +2363,7 @@ if (arg->slice_direction)
        text manually. */
 
     if (array_desc->dsc_dtype == dtype_varying &&
-	(U_IPTR) array_desc->dsc_address != ALIGN ((U_IPTR) array_desc->dsc_address, (MIN (sizeof (USHORT), ALIGNMENT))))
+	(U_IPTR) array_desc->dsc_address != FB_ALIGN((U_IPTR) array_desc->dsc_address, (MIN (sizeof (USHORT), ALIGNMENT))))
 	{
 	STR     tmp_buffer;
 	USHORT  tmp_len;
@@ -2398,7 +2401,7 @@ else
 	   length and then treat the string as if it had type text. */
 
 	if (array_desc->dsc_dtype == dtype_varying &&
-	    (U_IPTR) array_desc->dsc_address != ALIGN ((U_IPTR) array_desc->dsc_address, (MIN (sizeof (USHORT), ALIGNMENT))))
+	    (U_IPTR) array_desc->dsc_address != FB_ALIGN((U_IPTR) array_desc->dsc_address, (MIN (sizeof (USHORT), ALIGNMENT))))
 	    {
 	    temp_desc.dsc_dtype = dtype_text;
 	    temp_desc.dsc_sub_type = array_desc->dsc_sub_type;

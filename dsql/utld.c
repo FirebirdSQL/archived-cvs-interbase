@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -441,11 +444,11 @@ if (msg_length)
 
 	align = type_alignments [dtype];
 	if (align)
-	    msg_len = ALIGN (msg_len, align);
+	    msg_len = FB_ALIGN(msg_len, align);
 	msg_len += len;
 	align = type_alignments [dtype_short];
 	if (align)
-	    msg_len = ALIGN (msg_len, align);
+	    msg_len = FB_ALIGN(msg_len, align);
 	msg_len += sizeof (SSHORT);
 	}
 
@@ -532,12 +535,12 @@ for (i = 0; i < n; i++)
 
     align = type_alignments [dtype];
     if (align)
-	offset = ALIGN (offset, align);
+	offset = FB_ALIGN(offset, align);
     null_offset = offset + len;
 
     align = type_alignments [dtype_short];
     if (align)
-	null_offset = ALIGN (null_offset, align);
+	null_offset = FB_ALIGN(null_offset, align);
 
     null_ind = (SSHORT*) (msg_buf + null_offset);
     if (clause == DASUP_CLAUSE_select)

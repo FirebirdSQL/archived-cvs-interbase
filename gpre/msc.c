@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 /***************************************************
    THIS MODULE HAS SEVERAL KISSING COUSINS; IF YOU
@@ -101,7 +104,7 @@ SPC	next;
 int	n;
 UCHAR	*blk, *p, *end;
 
-size = ALIGN (size, ALIGNMENT);
+size = FB_ALIGN(size, ALIGNMENT);
 
 if (!space || size > space->spc_remaining)
     {
@@ -144,7 +147,7 @@ SPC	next;
 int	n;
 UCHAR	*blk, *p, *end;
 
-size = ALIGN (size, ALIGNMENT);
+size = FB_ALIGN(size, ALIGNMENT);
 
 if (!permanent_space || size > permanent_space->spc_remaining)
     {

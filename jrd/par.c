@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -1518,7 +1521,7 @@ for (desc = format->fmt_desc, end = desc + n; desc < end; desc++)
     {
     alignment = PAR_desc (csb, desc);
     if (alignment)
-	offset = ALIGN (offset, alignment);
+	offset = FB_ALIGN(offset, alignment);
     desc->dsc_address = (UCHAR*) (SLONG) offset;
     offset += desc->dsc_length;
     }

@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #ifdef SHLIB_DEFS
 #define LOCAL_SHLIB_DEFS
@@ -262,7 +265,7 @@ switch (desc->dsc_dtype)
 
 alignment = MIN (alignment, ALIGNMENT);
 
-return ALIGN (value, alignment);
+return FB_ALIGN(value, alignment);
 }
 
 void MET_change_fields (
@@ -3391,7 +3394,7 @@ while (BLR_BYTE == blr_message)
 	{
 	align = PAR_desc (csb, desc);
 	if (align)
-	    offset = ALIGN (offset, align);
+	    offset = FB_ALIGN(offset, align);
 	desc->dsc_address = (UCHAR*) offset;
 	offset += desc->dsc_length;
 	}

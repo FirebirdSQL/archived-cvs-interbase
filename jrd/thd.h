@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #ifndef _JRD_THD_H_
 #define _JRD_THD_H_
@@ -264,7 +267,7 @@ typedef struct wlck_t {
 /* Threading allocation size */
 
 #define THREAD_STRUCT_SIZE(type,n)	(n * sizeof (type) + ALIGNMENT)
-#define THREAD_STRUCT_ALIGN(blk)	ALIGN ((U_IPTR) blk, ALIGNMENT)
+#define THREAD_STRUCT_ALIGN(blk)	FB_ALIGN((U_IPTR) blk, ALIGNMENT)
 
 #ifdef V4_THREADING
 #define V4_INIT				THD_init()

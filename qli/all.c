@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 /***************************************************
    THIS MODULE HAS SEVERAL KISSING COUSINS; IF YOU
@@ -97,7 +100,7 @@ if (tail = block_sizes[type].typ_tail_length)
     size += count * tail;
 
 #ifndef VMS
-size = ALIGN (size, ALIGNMENT);
+size = FB_ALIGN(size, ALIGNMENT);
 #else
 size = ((size + ALIGNMENT - 1) & ~(ALIGNMENT - 1));
 #endif

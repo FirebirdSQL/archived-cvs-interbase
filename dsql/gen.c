@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <string.h>
 #include "../dsql/dsql.h"
@@ -564,7 +567,7 @@ for (parameter = message->msg_parameters, number = 0; parameter;
 	    };
     align = type_alignments [parameter->par_desc.dsc_dtype];
     if (align)
-	message->msg_length = ALIGN (message->msg_length, align);
+	message->msg_length = FB_ALIGN(message->msg_length, align);
     parameter->par_desc.dsc_address = (UCHAR*) (SLONG) message->msg_length;
     message->msg_length += parameter->par_desc.dsc_length;
     if (request->req_blr_string)
@@ -574,7 +577,7 @@ for (parameter = message->msg_parameters, number = 0; parameter;
 /* Allocate buffer for message */
 
 buffer = (STR) ALLOCDV (type_str, message->msg_length + DOUBLE_ALIGN - 1);
-message->msg_buffer = (UCHAR*) ALIGN ((U_IPTR) buffer->str_data, DOUBLE_ALIGN);
+message->msg_buffer = (UCHAR*) FB_ALIGN((U_IPTR) buffer->str_data, DOUBLE_ALIGN);
 
 /* Relocate parameter descriptors to point direction into message buffer */
 

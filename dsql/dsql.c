@@ -20,7 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
-
+/*
+$Id$
+*/
 /**************************************************************
 V4 Multi-threading changes.
 
@@ -3181,7 +3183,7 @@ for (index = 1; index <= count; index++)
 
     align = type_alignments [desc.dsc_dtype];
     if (align)
-	offset = ALIGN (offset, align);
+	offset = FB_ALIGN(offset, align);
     desc.dsc_address = (UCHAR*) offset;
     offset += desc.dsc_length;
 
@@ -3193,7 +3195,7 @@ for (index = 1; index <= count; index++)
 
     align = type_alignments [dtype_short];
     if (align)
-	offset = ALIGN (offset, align);
+	offset = FB_ALIGN(offset, align);
     null_offset = offset;
     offset += sizeof (SSHORT);
 

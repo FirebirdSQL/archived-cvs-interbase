@@ -20,6 +20,10 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
+
 #include "../jrd/common.h"
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
@@ -1259,7 +1263,7 @@ if (!out_message)
     format = (FMT) procedure->prc_output_msg->nod_arg [e_msg_format];
     out_msg_length = format->fmt_length;
     temp_buffer = (STR) ALLOCDV (type_str, out_msg_length + DOUBLE_ALIGN - 1);
-    out_msg = (SCHAR*) ALIGN ((U_IPTR) temp_buffer->str_data, DOUBLE_ALIGN);
+    out_msg = (SCHAR*) FB_ALIGN((U_IPTR) temp_buffer->str_data, DOUBLE_ALIGN);
     }
 
 /* Save the old pool */

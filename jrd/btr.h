@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #ifndef _JRD_BTR_H_
 #define _JRD_BTR_H_
@@ -108,7 +111,7 @@ typedef struct idx {
 #ifndef DECOSF
 #define NEXT_IDX(buffer,count)	(IDX*) (buffer + count)
 #else
-#define NEXT_IDX(buffer,count)	(IDX*) ALIGN ((U_IPTR) (buffer + count), ALIGNMENT)
+#define NEXT_IDX(buffer,count)	(IDX*) FB_ALIGN((U_IPTR) (buffer + count), ALIGNMENT)
 #endif
 
 /* Index insertion block -- parameter block for index insertions */

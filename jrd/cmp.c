@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
@@ -1678,7 +1681,7 @@ DEV_BLKCHK (csb, type_csb);
 if (!csb)
     return 0;
 
-offset = ALIGN (csb->csb_impure, ALIGNMENT);
+offset = FB_ALIGN(csb->csb_impure, ALIGNMENT);
 csb->csb_impure = offset + size;
 
 return offset;
@@ -4477,7 +4480,7 @@ switch (node->nod_type)
 
 	format = (FMT) node->nod_arg [e_msg_format];
 	if (!((tdbb->tdbb_flags & TDBB_prc_being_dropped) && !format))
-	    csb->csb_impure += ALIGN (format->fmt_length, 2);
+	    csb->csb_impure += FB_ALIGN(format->fmt_length, 2);
 	}
 	break;
 
@@ -5360,7 +5363,7 @@ for (desc = format->fmt_desc, end_desc = desc + format->fmt_count;
     {
     align = type_alignments [desc->dsc_dtype];
     if (align)
-	format->fmt_length = ALIGN (format->fmt_length, align);
+	format->fmt_length = FB_ALIGN(format->fmt_length, align);
     desc->dsc_address = (UCHAR*) (SLONG) format->fmt_length;
     format->fmt_length += desc->dsc_length;
     }

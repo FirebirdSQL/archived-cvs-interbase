@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
      
 #include <string.h>
 #include "../jrd/ib_stdio.h"
@@ -222,7 +225,7 @@ while (*blr++ == blr_message)
 	else
 	    net_length += (desc->dsc_length + 3) & ~3;
 	if (align > 1)
-	    offset = ALIGN (offset, align);
+	    offset = FB_ALIGN(offset, align);
 	desc->dsc_address = (UCHAR*) offset;
 	offset += desc->dsc_length;
 	}

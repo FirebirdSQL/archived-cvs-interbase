@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
@@ -206,7 +209,7 @@ if ((root->irt_count * sizeof (IDX)) > *idx_size)
     {
     size = (sizeof (IDX) * MAX_IDX) + ALIGNMENT;
     *csb_idx_allocation = new_buffer = (STR) ALLOCPV (type_str, size);
-    buffer = *start_buffer = (IDX*) ALIGN ((U_IPTR) new_buffer->str_data, ALIGNMENT);
+    buffer = *start_buffer = (IDX*) FB_ALIGN((U_IPTR) new_buffer->str_data, ALIGNMENT);
     *idx_size = size - ALIGNMENT;
     }
 

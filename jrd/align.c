@@ -16,6 +16,10 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
+
 #include "../jrd/ibsetjmp.h"
 #include <signal.h>
 #include "../jrd/ib_stdio.h"
@@ -90,7 +94,7 @@ for (rule = rules; rule->rule_offset; ++rule)
 	ib_printf ("\n/* %s */\n\n", rule->rule_system);
 	ib_printf ("#define ALIGNMENT\t%d\n", rule->rule_base_align);
 	ib_printf ("#define DOUBLE_ALIGN\t%d\n", rule->rule_double_align);
-	ib_printf ("#define ALIGN(n,b)\t%s\n", rule->rule_rule);
+	ib_printf ("#define FB_ALIGN(n,b)\t%s\n", rule->rule_rule);
 	check_byte_order();
 	ib_printf ("\n");
 	return 1;

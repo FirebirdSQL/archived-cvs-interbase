@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #ifndef _JRD_COMMON_H_
 #define _JRD_COMMON_H_
@@ -93,10 +96,10 @@
 #define SYS_ARG		isc_arg_domain
 #if _ISP__A88K
 #define DN10000         1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
 #else
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #endif
 
 #endif
@@ -199,7 +202,7 @@
 #define                 IEEE
 
 #ifdef sparc
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
 #define IMPLEMENTATION  30
 #define DOUBLE_ALIGN    8
@@ -211,7 +214,7 @@
 #define VAX             1
 #define IMPLEMENTATION  32
 #else  /* i386 */
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define IMPLEMENTATION  28
 #endif /* i386 */
 
@@ -229,7 +232,7 @@
 #define NO_PYXIS
 #define SETPGRP         setpgrp (0, 0)
 #define UNIX            1
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define IMPLEMENTATION  34
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
@@ -248,7 +251,7 @@
 #define UNIX            1
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    8
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 
 #ifdef  i386
 #define I386            1
@@ -278,13 +281,13 @@
 #define NO_FLOCK
 
 #ifdef hp9000s300
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
 #define IMPLEMENTATION  40
 #define SHMEM_PICKY
 #else
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define DOUBLE_ALIGN    8
 #define IMPLEMENTATION  31
@@ -319,7 +322,7 @@
 #define INTL_BACKEND
 #define UNIX            1
 #define VAX             1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define SETPGRP         setpgrp (0, 0)
 
 #ifdef mips
@@ -356,7 +359,7 @@
 #define IMPLEMENTATION  55
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    8
-#define ALIGN(n,b)      ((n + b - 1) & ~((ULONG)(b) - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~((ULONG)(b) - 1))
 #define ROUNDUP(n,b)    (((n) + (b) - 1) & ~((ULONG)(b) - 1))
 
 #define SPACE_IN_SEG(a)         ( 65536L - (ULONG)( FP_OFF( a))) 
@@ -440,7 +443,7 @@
 #ifdef VMS
 #define VAX             1
 #define VAX_FLOAT       1
-#define ALIGN(n,b)      (n)
+#define FB_ALIGN(n,b)      (n)
 #define ALIGNMENT       4
 #define NO_NFS
 #define CTO32L(p)       (*(long*)p)
@@ -486,7 +489,7 @@ typedef unsigned int64	UATOM;
 #define vfork           fork
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
 #define IMPLEMENTATION  35
 #define                 IEEE
@@ -507,7 +510,7 @@ typedef unsigned int64	UATOM;
 #define vfork           fork
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
 #define IMPLEMENTATION  35
 #define                 IEEE
@@ -603,7 +606,7 @@ typedef unsigned __int64 UINT64;
 #endif
 
 #ifdef _PPC_
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define DOUBLE_ALIGN    8
 #define IMPLEMENTATION	57
@@ -669,7 +672,7 @@ typedef unsigned char   BOOLEAN;
 #define INTL
 #define INTL_BACKEND
 #else
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define SETPGRP
 #define IMPLEMENTATION  37
 #endif
@@ -724,7 +727,7 @@ typedef unsigned char   BOOLEAN;
 #define ATEXIT(c)       atexit (c)
 #define CURSES_KEYPAD   1
 #ifndef DG_X86
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define IMPLEMENTATION  38
 #define DOUBLE_ALIGN    8
@@ -758,7 +761,7 @@ typedef unsigned char   BOOLEAN;
 #define SETPGRP         setpgrp (0, 0)
 #define UNIX            1
 #define VAX             1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8   
 #define DOUBLE_ALIGN    8  
 #define IMPLEMENTATION  52
@@ -795,7 +798,7 @@ typedef unsigned long	UATOM;
 #define SETPGRP         setpgid (0, 0)
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define IMPLEMENTATION  41
 #define DOUBLE_ALIGN    8
@@ -816,7 +819,7 @@ typedef unsigned long	UATOM;
 
 #ifdef mpexl
 #define ATEXIT(c)       atexit (c)
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define IMPLEMENTATION  39
 #define NO_NFS
@@ -839,7 +842,7 @@ typedef unsigned long	UATOM;
 #define HAS_64BIT_POINTERS /* if a machine has 64 bit pointers you need this */
 #define CURSES_KEYPAD   1
 #define AOF32L(l)       (((char*) &l) + 4)
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define IMPLEMENTATION  43
 #define DOUBLE_ALIGN    8
@@ -894,7 +897,7 @@ typedef unsigned long       DWORD;
 #define I386            1
 #define VAX             1
 #define IEEE            1
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define OLD_ALIGNMENT
 #define NO_NFS
 #define SETPGRP
@@ -932,7 +935,7 @@ typedef unsigned char   UCHAR;
 #define vfork           fork
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
 #define IMPLEMENTATION  45
@@ -960,7 +963,7 @@ typedef unsigned char   UCHAR;
 #define NO_FLOCK
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8   
 #define DOUBLE_ALIGN    8  
 #define IMPLEMENTATION  48
@@ -1052,7 +1055,7 @@ typedef unsigned char   UCHAR;
 #define vfork           fork
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define ALIGN(n,b)      ((n+1) & ~1)
+#define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
 #define IMPLEMENTATION  44
@@ -1146,7 +1149,7 @@ typedef unsigned char   UCHAR;
  */
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    8
-#define ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #endif
 #endif
 #endif

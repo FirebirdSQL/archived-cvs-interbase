@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <setjmp.h>
 #include "../jrd/common.h"
@@ -1414,7 +1417,7 @@ for (tail = map->map_rpt, end = tail + n; tail < end; ++tail)
 	}
 
     if (alignment)
-	offset = ALIGN (offset, alignment);
+	offset = FB_ALIGN(offset, alignment);
     desc->dsc_address = (UCHAR*) offset;
     offset += desc->dsc_length;
     }

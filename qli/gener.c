@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -1579,13 +1582,13 @@ for (message = request->req_messages; message; message = message->msg_next)
 	param->par_parameter = message->msg_parameter++;
 	alignment = type_alignments [desc->dsc_dtype];
 	if (alignment)
-	    message->msg_length = ALIGN (message->msg_length, alignment);
+	    message->msg_length = FB_ALIGN(message->msg_length, alignment);
 	param->par_offset = message->msg_length;
 	message->msg_length += desc->dsc_length;
         if (missing_param = param->par_missing)
 	    {
 	    missing_param->par_parameter = message->msg_parameter++;
-            message->msg_length = ALIGN (message->msg_length, sizeof (USHORT));
+            message->msg_length = FB_ALIGN(message->msg_length, sizeof (USHORT));
             desc = &missing_param->par_desc;
 	    missing_param->par_offset = message->msg_length;
 	    message->msg_length += desc->dsc_length;

@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -210,7 +213,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
     {
     if (field->fld_flags & FLD_computed)
 	continue;
-    offset = ALIGN (offset, sizeof (SSHORT)); 
+    offset = FB_ALIGN(offset, sizeof (SSHORT)); 
     p = data + offset;
     if (!xdr_short (xdrs, p))
 	return FALSE;

@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include "../csv/csi.h"
@@ -3464,14 +3467,14 @@ name = message->msg_util_data + message->msg_util_csn_len + 1;
 switch (cmd = message->msg_util_cmd)
     {
     case UTIL_list:
-	length = ALIGN (CSV_name_len + sizeof (struct csu_list), 2) + sizeof (struct csu_list);
+	length = FB_ALIGN(CSV_name_len + sizeof (struct csu_list), 2) + sizeof (struct csu_list);
 	for (db_name = CSV_dbnames; db_name; db_name = db_name->dbn_next)
-	    length += ALIGN (sizeof (struct csu_list) + db_name->dbn_length, 2);
+	    length += FB_ALIGN(sizeof (struct csu_list) + db_name->dbn_length, 2);
 	list_msg = ptr_data = (CSU_LIST) ALLOC (0, length);
 
 	ptr_data->csu_list_length = CSV_name_len;
 	move (CSV_name, ptr_data->csu_list_name, CSV_name_len + 1);
-	ptr_data = (CSU_LIST) (ptr_data->csu_list_name + ALIGN (CSV_name_len + 1, 2));
+	ptr_data = (CSU_LIST) (ptr_data->csu_list_name + FB_ALIGN(CSV_name_len + 1, 2));
 
 	for (db_name = CSV_dbnames; db_name; db_name = db_name->dbn_next)
 	    {
@@ -3479,7 +3482,7 @@ switch (cmd = message->msg_util_cmd)
 	    ptr_data->csu_list_flags = db_name->dbn_flags;
 	    ptr_data->csu_list_length = l = db_name->dbn_length;
 	    move (db_name->dbn_name, ptr_data->csu_list_name, l + 1);
-	    ptr_data = (CSU_LIST) (ptr_data->csu_list_name + ALIGN (l + 1, 2));
+	    ptr_data = (CSU_LIST) (ptr_data->csu_list_name + FB_ALIGN(l + 1, 2));
 	    }
 	ptr_data->csu_list_length = 0;
 

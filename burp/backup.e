@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <stdio.h>
 #include "../burp/burp.h"
@@ -1602,7 +1605,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	    break;
 	}
     if (alignment)
-	offset = ALIGN (offset, alignment);
+	offset = FB_ALIGN(offset, alignment);
     field->fld_offset = offset;
     field->fld_parameter = count++;
     offset += length;
@@ -1615,7 +1618,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
     if (field->fld_flags & FLD_computed)
 	continue;
     STUFF (blr_short); STUFF (0);
-    offset = ALIGN (offset, sizeof (SSHORT));
+    offset = FB_ALIGN(offset, sizeof (SSHORT));
     field->fld_missing_parameter = count++;
     offset += sizeof (SSHORT);
     }
@@ -1626,7 +1629,7 @@ STUFF (blr_short);		/* eof field */
 STUFF (0);			/* scale for eof field */
 record_length = offset;
 eof_parameter = count++;
-eof_offset = ALIGN (offset, sizeof (SSHORT));
+eof_offset = FB_ALIGN(offset, sizeof (SSHORT));
 length = eof_offset + sizeof (SSHORT);
 
 /* Build FOR loop, body, and eof handler */

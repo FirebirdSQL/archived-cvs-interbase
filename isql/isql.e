@@ -20,7 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
-
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <stdlib.h>
@@ -7606,7 +7608,7 @@ for (nullp = nullind, var = sqlda->sqlvar, end = var + sqlda->sqld; var < end; v
 	data_length += sizeof (SSHORT) + 1;
 	}
 
-    bufsize = ALIGN (bufsize, alignment) + data_length;
+    bufsize = FB_ALIGN(bufsize, alignment) + data_length;
     var->sqlind = nullp++;
     }
 
@@ -7730,7 +7732,7 @@ for (i = 0, var = sqlda->sqlvar, end = var + sqlda->sqld; var < end; var++, i++)
 
     /* Allocate space in buffer for data */
 
-    offset = ALIGN (offset, alignment);
+    offset = FB_ALIGN(offset, alignment);
     var->sqldata = (SCHAR*) buffer + offset;
     offset += data_length;
     }

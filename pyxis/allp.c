@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../pyxis/everything.h"
 
@@ -78,7 +81,7 @@ if ((tail = block_sizes[type].typ_tail_length) &&
     size += (count - 1) * tail;
 
 #ifndef VMS
-size = ALIGN (size, ALIGNMENT);
+size = FB_ALIGN(size, ALIGNMENT);
 #else
 size = ((size + ALIGNMENT - 1) & ~(ALIGNMENT - 1));
 #endif

@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -4274,7 +4277,7 @@ for (node_ptr = sort->nod_arg; node_ptr < end_node; node_ptr++, map_item++)
     map_length = ROUNDUP (map_length, sizeof (SLONG));
 #else
     if (desc->dsc_dtype >= dtype_aligned)
-	map_length = ALIGN (map_length, type_alignments [desc->dsc_dtype]);
+	map_length = FB_ALIGN(map_length, type_alignments [desc->dsc_dtype]);
 #endif
     sort_key->skd_offset = (USHORT) map_length;
     sort_key->skd_flags = SKD_ascending;
@@ -4324,7 +4327,7 @@ while (stream_stack)
     if (id >= format->fmt_count || desc->dsc_length == 0)
 	IBERROR (157); /* msg 157 cannot sort on a field that does not exist */
     if (desc->dsc_dtype >= dtype_aligned)
-	map_length = ALIGN (map_length, type_alignments [desc->dsc_dtype]);
+	map_length = FB_ALIGN(map_length, type_alignments [desc->dsc_dtype]);
 
     map_item->smb_field_id = (SSHORT) id;
     map_item->smb_stream = stream;
@@ -5569,7 +5572,7 @@ size += sizeof (struct irsb_nav) + 3 * key_length;
 #else
 size += sizeof (struct irsb_nav) + 2 * key_length;
 #endif
-size = ALIGN (size, ALIGNMENT);
+size = FB_ALIGN(size, ALIGNMENT);
 
 /* make room for an idx structure to describe the index
    that was used to generate this rsb */

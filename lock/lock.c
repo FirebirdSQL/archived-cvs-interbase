@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/time.h"
 #include "../jrd/ib_stdio.h"
@@ -1752,7 +1755,7 @@ ULONG		length, block;
 LHB		header;
 OWN		owner;
 
-size = ALIGN (size, sizeof (IPTR));
+size = FB_ALIGN(size, sizeof (IPTR));
 ASSERT_ACQUIRED;
 block = LOCK_header->lhb_used;
 LOCK_header->lhb_used += size;
@@ -3547,7 +3550,7 @@ if (LOCK_ordering)
 
 length = sizeof (struct lhb) + (LOCK_header->lhb_hash_slots * sizeof (LOCK_header->lhb_hash [0]));
 LOCK_header->lhb_length = shmem_data->sh_mem_length_mapped;
-LOCK_header->lhb_used = ALIGN (length, sizeof (IPTR));
+LOCK_header->lhb_used = FB_ALIGN(length, sizeof (IPTR));
 
 if (!(shb = (SHB) alloc (sizeof (struct shb), NULL)))
     {

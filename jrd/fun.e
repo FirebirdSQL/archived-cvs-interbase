@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -140,7 +143,7 @@ else
 
     temp_string = (STR) ALLOCDV (type_str, function->fun_temp_length + DOUBLE_ALIGN - 1);
     MOVE_CLEAR (temp_string->str_data, temp_string->str_length);
-    temp_ptr = (UCHAR*) ALIGN ((U_IPTR) temp_string->str_data, DOUBLE_ALIGN);
+    temp_ptr = (UCHAR*) FB_ALIGN((U_IPTR) temp_string->str_data, DOUBLE_ALIGN);
     }
 
 MOVE_CLEAR (args, sizeof (args));
@@ -212,7 +215,7 @@ for (tail = function->fun_rpt + 1, end = tail + function->fun_count; tail < end;
 
     temp_desc = tail->fun_desc;
     temp_desc.dsc_address = temp_ptr;
-    length = ALIGN (temp_desc.dsc_length, DOUBLE_ALIGN);
+    length = FB_ALIGN(temp_desc.dsc_length, DOUBLE_ALIGN);
                                                  
     /* If we've got a null argument, just pass zeros (got any better ideas?) */
 
@@ -659,7 +662,7 @@ FOR (REQUEST_HANDLE request_fun) X IN RDB$FUNCTIONS
 
 	if (Y.RDB$ARGUMENT_POSITION != X.RDB$RETURN_ARGUMENT)
 	    ++args;
-	l = ALIGN (tail->fun_desc.dsc_length, DOUBLE_ALIGN);
+	l = FB_ALIGN(tail->fun_desc.dsc_length, DOUBLE_ALIGN);
 	if (tail->fun_desc.dsc_dtype == dtype_blob)
 	    l = sizeof (struct blob);
 	length += l;

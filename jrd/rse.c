@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <errno.h>
 #include "../jrd/ib_stdio.h"
@@ -2172,7 +2175,7 @@ if (!impure->irsb_message)
     impure->irsb_message = (STR) ALLOCDV (type_str,size);
     impure->irsb_message->str_length = size;
     }
-om = (UCHAR*) ALIGN ((U_IPTR) impure->irsb_message->str_data, ALIGNMENT);
+om = (UCHAR*) FB_ALIGN((U_IPTR) impure->irsb_message->str_data, ALIGNMENT);
 oml = impure->irsb_message->str_length - ALIGNMENT;
 
 if (!rpb->rpb_record)
