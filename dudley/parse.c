@@ -3685,7 +3685,17 @@ func_arg->funcarg_sub_type = field->fld_sub_type;
 func_arg->funcarg_has_sub_type = field->fld_has_sub_type;
 func_arg->funcarg_position = (*position)++;
 
-KEYWORD (KW_BY);
+/* KEYWORD (KW_BY);  */
+/*
+The previous call has been commented out since it has no effect, at some 
+stage it may need to be replaced with 
+   if (!KEYWORD(KW_BY)) {
+        PARSE_error(...)
+   }
+   Mark O'Donohue - 8/00
+*/
+
+
 LEX_token();
 
 switch (PARSE_keyword())

@@ -880,7 +880,7 @@ if (tdgbl->BCK_capabilities & BCK_ods10)
 	    STUFF (blr_assignment);
 		STUFF (blr_gen_id);
 		   STUFF (name_len);
-		   for (; c = *name++, name_len--; name_len)
+		   for (; c = *name++, name_len--;)
 		       STUFF (c);
 		   STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
 	     STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
@@ -898,7 +898,7 @@ else
 	    STUFF (blr_assignment);
 		STUFF (blr_gen_id); 
 		   STUFF (name_len);
-		   for (; c = *name++, name_len--; name_len)
+		   for (; c = *name++, name_len--;)
 		       STUFF (c);
 		   STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
 	     STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
@@ -2188,7 +2188,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
     if (field->fld_flags & FLD_array)
         {
 	PUT_NUMERIC (att_field_dimensions, field->fld_dimensions);
-        for (rp = field->fld_ranges, n = field->fld_dimensions; *rp, n; rp+=2, n--)
+        for (rp = field->fld_ranges, n = field->fld_dimensions; n; rp+=2, n--)
             {
             PUT_NUMERIC (att_field_range_low, *rp);
             PUT_NUMERIC (att_field_range_high, *(rp+1));

@@ -3489,7 +3489,6 @@ TEXT	*p, *end;;
 if (!(length = truncate_string (string)))
     return NULL;
 
-length;
 
 symbol = (SYM) ALLOCPV (type_sym, length);
 symbol->sym_type = SYM_relation;

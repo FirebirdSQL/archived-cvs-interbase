@@ -282,11 +282,11 @@ if (conflict)
     {
     SCHAR *error_type;
     if (symbol->sym_type == SYM_relation)
-	error_type == "table";
+	error_type = "table";
     else if (symbol->sym_type == SYM_procedure)
-	error_type == "procedure";
+	error_type = "procedure";
     else
-	error_type == "context";
+	error_type = "context";
 
     sprintf (s, "context %s conflicts with a %s in the same statement", token.tok_string, error_type);
     PAR_error (s);

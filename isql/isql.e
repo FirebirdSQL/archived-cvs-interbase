@@ -841,7 +841,7 @@ if (!Quiet)
 #endif
     }
 
-status[2] == gds_arg_end;
+status[2] = gds_arg_end;
 
 }
 

@@ -819,7 +819,7 @@ while (argv < end)
 	    if (!redirect)
 		BURP_error (4, 0, 0, 0, 0, 0); /* msg 4 redirect location for output is not specified */
 
-	    for (p = redirect, string = OUTPUT_SUPPRESS, tdgbl->sw_redirect = NOOUTPUT; c = *p++; *string)
+	    for (p = redirect, string = OUTPUT_SUPPRESS, tdgbl->sw_redirect = NOOUTPUT; c = *p++;)
 		{
 		if (UPPER (c) != *string++)
 		    {
