@@ -176,6 +176,8 @@ extern int	h_errno;
 #define SOCLOSE		closesocket
 #define SYS_ERR		gds_arg_win32
 #define INET_RETRY_ERRNO	WSAEINPROGRESS
+#define INET_ADDR_IN_USE	WSAEADDRINUSE
+#define sleep(seconds)  Sleep ((seconds) * 1000)
 #endif
 
 #ifdef PC_PLATFORM
@@ -225,6 +227,10 @@ extern int	h_errno;
 
 #ifndef ERRNO
 #define ERRNO	errno
+#endif
+
+#ifndef INET_ADDR_IN_USE
+#define INET_ADDR_IN_USE EADDRINUSE
 #endif
 
 #ifndef INET_RETRY_ERRNO
@@ -308,7 +314,7 @@ return (now.time*1000 + now.millitm - INET_start_time);
 #endif
 #endif
 
-
+
 
 #ifndef PROXY_FILE
 #define PROXY_FILE	"/etc/gds_proxy"
@@ -564,7 +570,7 @@ static TaskInfoType     Tasks[MAX_TASKS];
 static HINSTANCE  	hWinsockDLL;
 #endif
 
-
+
 #ifdef SHLIB_DEFS
 #define select		(*_libgds_select)
 #define gethostname	(*_libgds_gethostname)
@@ -637,7 +643,7 @@ extern pid_t		getppid();
 extern int		h_errno;
 extern int		errno;
 #endif /* SHLIB_DEFS */
-
+
 #ifdef WINDOWS_ONLY
 /* 
 ** The windows network libraries have to be dynamically loaded because the
@@ -708,7 +714,7 @@ int	(PASCAL FAR *WSAStartupProcPtr) (WORD, LPWSADATA);
 static int	INET_initialized = FALSE;
 
 #endif /* WINDOWS_ONLY */
-
+
 #ifdef VMS
 #define accept		ISC_tcp_accept
 #define bind		ISC_tcp_bind
@@ -788,7 +794,7 @@ static  BOOLEAN    port_mutex_inited = 0;
 
 
 
-
+
 PORT INET_analyze (
     TEXT	*file_name, 
     USHORT	*file_length, 
@@ -1070,7 +1076,7 @@ if (packet->p_acpt.p_acpt_type != ptype_out_of_band)
 
 return port;
 }
-
+
 PORT DLL_EXPORT INET_connect (
     TEXT	*name,
     PACKET	*packet,
@@ -1213,22 +1219,22 @@ if (!host)
 THREAD_ENTER;
 if (!host)
     {
-    sprintf (msg, 
-	      "INET/INET_connect: gethostbyname failed, error code = %d", 
+    sprintf (msg,
+	      "INET/INET_connect: gethostbyname failed, error code = %d",
 	      H_ERRNO);
     gds__log (msg, NULL_PTR);
     inet_gen_error (port,
             isc_network_error,
-		    isc_arg_string, 
-		    port->port_connection->str_data, 
-		    isc_arg_gds, 
+		    isc_arg_string,
+		    port->port_connection->str_data,
+		    isc_arg_gds,
 		    isc_net_lookup_err,
             isc_arg_gds,
-		    isc_host_unknown, 
+		    isc_host_unknown,
 		    0);
 #ifdef WINDOWS_ONLY
     NetworkLibraryCleanup ();
-#endif /* WINDOWS_ONLY */	
+#endif /* WINDOWS_ONLY */
     return NULL;
     }
 
@@ -1242,11 +1248,12 @@ else
     address.sin_addr.s_addr = INADDR_ANY;
 
 THREAD_EXIT;
+
 service = GETSERVBYNAME (protocol, "tcp");
 #ifdef WIN_NT
 /* On Windows NT/9x, getservbyname can only accomodate
  * 1 call at a time.  In this case it returns the error
- * WSAEINPROGRESS. 
+ * WSAEINPROGRESS.
  * If this happens, retry the operation a few times.
  * NOTE: This still does not guarantee success, but helps.
  */
@@ -1264,40 +1271,76 @@ service = GETSERVBYNAME (protocol, "tcp");
     }
 #endif /* WIN_NT */
 THREAD_ENTER;
+
+/* Modification by luz (slightly modified by FSG)
+    instead of failing here, try applying hard-wired
+    translation of "gds_db" into "3050"
+    This way, a connection to a remote IB server
+    works even from clients with missing "gds_db"
+    entry in "services" file, which is important
+    for zero-installation clients.
+    */
 if (!service)
-    {
-    sprintf (msg, 
-	      "INET/INET_connect: getservbyname failed, error code = %d", 
-	      H_ERRNO);
-    gds__log (msg, NULL_PTR);
-    inet_gen_error (port, 
-            isc_network_error,
-		    isc_arg_string, 
-		    port->port_connection->str_data, 
-		    isc_arg_gds,
-		    isc_net_lookup_err, 
-		    isc_arg_gds, 
-		    isc_service_unknown,
- 		    isc_arg_string, 
-		    protocol,
-		    isc_arg_string, 
-		    "tcp", 
-		    0);
-#ifdef WINDOWS_ONLY
-    NetworkLibraryCleanup ();
-#endif /* WINDOWS_ONLY */	 
-   return NULL;
-    }
+     {
+     if (strcmp(protocol,PROTOCOL_NAME)==0)
+        {
+         /* apply hardwired translation */
+                address.sin_port = htons (3050);
+         }
 
+     /* modification by FSG 23.MAR.2001 */ 
+     else {
+        /* modification by FSG 23.MAR.2001 */
+        /* The user has supplied something as protocol
+         * let's see whether this is a port number
+         * instead of a service name
+         */
+          address.sin_port = htons(atoi(protocol));
+          }
+         
+      if (address.sin_port==0)
+      {   
+      /* end of modification by FSG */
+        /* this is the original code */
+            sprintf (msg,
+                      "INET/INET_connect: getservbyname failed, error code = %d",
+                      H_ERRNO);
+            gds__log (msg, NULL_PTR);
+            inet_gen_error (port,
+                    isc_network_error,
+                            isc_arg_string,
+                            port->port_connection->str_data,
+                            isc_arg_gds,
+                            isc_net_lookup_err,
+                            isc_arg_gds,
+                            isc_service_unknown,
+                            isc_arg_string,
+                            protocol,
+                            isc_arg_string,
+                            "tcp",
+                            0);
+        #ifdef WINDOWS_ONLY
+            NetworkLibraryCleanup ();
+        #endif /* WINDOWS_ONLY */
+                return NULL;
+                } /* else / not hardwired gds_db translation */
+        }
+else
+        {
+        /* if we have got a service-struct, get port number from there
+        * (in case of hardwired gds_db to 3050 translation, address.sin_port was
+        * already set above */
 #ifdef NETWARE_386
-/* LATER, bug in NOVELL getservbyname() */
+        /* LATER, bug in NOVELL getservbyname() */
 
-service->s_port = 3050;
-address.sin_port = htons (service->s_port);
+        service->s_port = 3050;
+        address.sin_port = htons (service->s_port);
 #else
-address.sin_port = service->s_port;
+        address.sin_port = service->s_port;
 #endif
+        }  /* else (service found) */
 
+/* end of modifications by luz */
 #endif  /* VMS */
 
 /* Allocate a port block and initialize a socket for communications */
@@ -1407,9 +1450,28 @@ n = bind ((SOCKET) port->port_handle,
 
 if (n == -1)
     {
-    inet_error (port, "bind", isc_net_connect_listen_err, ERRNO);
-    disconnect (port);
-    return NULL;
+    /* On Linux platform, when the server dies the system holds a port
+       for some time. */
+    
+    if (ERRNO == INET_ADDR_IN_USE)
+        {
+        int retry;
+
+        for (retry = 0; retry < INET_RETRY_CALL; retry++)
+            {
+            sleep (10);
+            n = bind ((SOCKET) port->port_handle,
+		      (struct sockaddr *) &address, sizeof (address));
+            if (n == 0)
+		break;
+            }
+        }
+    else
+	{
+	inet_error (port, "bind", isc_net_connect_listen_err, ERRNO);
+	disconnect (port);
+	return NULL;
+	}
     }
 
 n = listen ((SOCKET) port->port_handle, 5);
@@ -1462,7 +1524,7 @@ while (TRUE)
     SOCLOSE (s);
     }
 }
-
+
 PORT INET_reconnect (
     HANDLE	handle,
     TEXT	*name,
@@ -1493,7 +1555,7 @@ port->port_server_flags |= SRVR_server;
 
 return port;
 }
-
+
 PORT DLL_EXPORT INET_server (
     int		sock)
 {
@@ -1519,7 +1581,7 @@ port->port_handle = (HANDLE) sock;
 
 return port;
 }
-
+
 void INET_set_clients (
     int		count)
 {
@@ -1537,7 +1599,7 @@ void INET_set_clients (
 
 INET_max_clients = (count && count < MAXCLIENTS) ? count : MAXCLIENTS;
 }
-
+
 static int accept_connection (
     PORT	port,
     P_CNCT	*cnct)
@@ -1780,7 +1842,7 @@ else
 
 return TRUE;
 }
-
+
 static  PORT alloc_port (
     PORT	parent)
 {
@@ -1891,7 +1953,7 @@ xdrinet_create (&port->port_receive, port, port->port_buffer, 0,
 
 return port;
 }
-
+
 static  PORT aux_connect (
     PORT	port,
     PACKET	*packet,
@@ -2042,7 +2104,7 @@ new_port->port_flags |= port->port_flags & PORT_no_oob;
 
 return new_port;
 }
-
+
 static PORT aux_request (
     PORT	port,
     PACKET	*packet)
@@ -2146,7 +2208,7 @@ inet_copy (&address, response->p_resp_data.cstr_address,
 
 return new_port;
 }
-
+
 #ifdef VMS
 static check_host (
     PORT	port,
@@ -2183,7 +2245,7 @@ if ((result = parse_hosts (hosts_file, host_name, user_name)) == -1)
 return result;
 }
 #endif
-
+
 #if !(defined VMS || defined NETWARE_386 || defined PC_PLATFORM || \
 	defined OS2_ONLY || defined WIN_NT)
 static int check_host (
@@ -2247,7 +2309,7 @@ if (result == -1)
 return result;
 }
 #endif
-
+
 #if !(defined NETWARE_386 || defined PC_PLATFORM || \
 	defined OS2_ONLY || defined WIN_NT)
 static BOOLEAN check_proxy (
@@ -2315,7 +2377,7 @@ ib_fclose (proxy);
 return result;
 }
 #endif
-
+
 static void disconnect (
     PORT	port)
 {
@@ -2419,7 +2481,7 @@ if (INET_trace & TRACE_summary)
 
 return;
 }
-
+
 #ifdef WINDOWS_ONLY
 static void NetworkLibraryCleanup ()
 {
@@ -2475,7 +2537,7 @@ if (i < MAX_TASKS && Tasks[i].nUseCount == 0)
 return;
 }
 #endif /* WINDOWS_ONLY */
-
+
 #ifdef WINDOWS_ONLY
 void inet_cleanup ()
 {
@@ -2497,7 +2559,7 @@ if (INET_initialized)
 return;
 }
 #endif /* WINDOWS_ONLY */
-
+
 static void cleanup_port (
     PORT	port)
 {
@@ -2536,7 +2598,7 @@ if (port->port_packet_vector)
 ALLR_release ((UCHAR*) port);
 return;
 }
-
+
 static void exit_handler (
     void	*arg)
 {
@@ -2571,7 +2633,7 @@ for (port = main_port; port; port = port->port_next)
     }
 #endif
 }
-
+
 #ifdef NO_FORK
 static int fork (void)
 {
@@ -2589,7 +2651,7 @@ static int fork (void)
 return 1;
 }
 #endif
-
+
 #ifdef WIN_NT
 static int fork (
     SOCKET	old_handle,
@@ -2676,7 +2738,7 @@ CloseHandle (new_handle);
 return 1;
 }
 #endif
-
+
 static void inet_copy (
     SCHAR	*from,
     SCHAR	*to,
@@ -2696,7 +2758,7 @@ static void inet_copy (
 if (length)
     do *to++ = *from++; while ((--length) != 0);
 }
-
+
 static void inet_zero (
     SCHAR	*address,
     int		length)
@@ -2715,7 +2777,7 @@ static void inet_zero (
 if (length)
     do *address++ = 0; while ((--length) != 0);
 }
-
+
 #if !(defined NETWARE_386 || defined PC_PLATFORM || \
 	defined OS2_ONLY || defined WIN_NT)
 static int parse_hosts (
@@ -2762,7 +2824,7 @@ if (fp)
 return result;
 }
 #endif
-
+
 #if !(defined NETWARE_386 || defined PC_PLATFORM || \
 	defined OS2_ONLY || defined WIN_NT)
 static int parse_line (
@@ -2862,7 +2924,7 @@ if (entry2[1] == '@')
 return -1;
 }
 #endif
-
+
 static PORT receive (
     PORT	main_port,
     PACKET	*packet)
@@ -2987,7 +3049,7 @@ for (;;)
 	return NULL;
     }
 }
-
+
 static PORT select_accept (
     PORT	main_port)
 {
@@ -3060,7 +3122,7 @@ if (main_port->port_server_flags & SRVR_thread_per_port)
 
 return NULL_PTR;
 }
-
+
 #ifdef NETWARE_386
 static PORT select_port (PORT	main_port)
 {
@@ -3097,7 +3159,7 @@ for (i = 0; i < MAX_FD_SETS; i++)
 select_count = 0;
 return NULL;
 }
-
+
 static int select_wait (PORT	main_port)
 {
 /**************************************
@@ -3168,7 +3230,7 @@ THREAD_ENTER;
 return(TRUE);
 }
 #endif
-
+
 #ifndef NETWARE_386
 static PORT select_port (
     PORT	main_port,
@@ -3259,7 +3321,7 @@ STOP_PORT_CRITICAL;
 
 return NULL;
 }
-
+
 static int select_wait (
     PORT	main_port,
     SLCT	*selct)
@@ -3383,7 +3445,7 @@ for (;;)
     }
 }
 #endif
-
+
 static int send_full (
     PORT	port,
     PACKET	*packet)
@@ -3418,7 +3480,7 @@ if (INET_trace & TRACE_operations)
 
 return xdrinet_endofrecord (&port->port_send, TRUE);
 }
-
+
 static int send_partial (
     PORT	port,
     PACKET	*packet)
@@ -3451,7 +3513,7 @@ if (INET_trace & TRACE_operations)
 return xdr_protocol (&port->port_send, packet);
 }
 
-
+
 static int xdrinet_create (
     XDR			*xdrs,
     PORT		port,
@@ -3478,7 +3540,7 @@ xdrs->x_op = x_op;
 
 return TRUE;
 }
-
+
 static bool_t xdrinet_endofrecord (
     XDR		*xdrs,
     bool_t	flushnow)
@@ -3496,7 +3558,7 @@ static bool_t xdrinet_endofrecord (
 
 return inet_write (xdrs, flushnow);
 }
-
+
 static void alarm_handler (
     int		x)
 {
@@ -3512,7 +3574,7 @@ static void alarm_handler (
  *
  **************************************/
 }
-
+
 static XDR_INT inet_destroy (
     XDR		*xdrs)
 {
@@ -3529,7 +3591,7 @@ static XDR_INT inet_destroy (
 
 return NULL;
 }
-
+
 static void inet_gen_error (
     PORT	port,
     STATUS	status,
@@ -3563,7 +3625,7 @@ if (status_vector != NULL)
     REMOTE_save_status_strings (status_vector);
     }
 }
-
+
 static bool_t inet_getbytes (
     XDR		*xdrs,
     SCHAR	*buff,
@@ -3630,7 +3692,7 @@ while (--bytecount >= 0)
 
 return TRUE;
 }
-
+
 static bool_t inet_getlong (
     XDR		*xdrs,
     SLONG	*lp)
@@ -3664,7 +3726,7 @@ if (!(*xdrs->x_ops->x_getbytes) (xdrs, &l, 4))
 
 return TRUE;
 }
-
+
 static u_int inet_getpostn (
     XDR		*xdrs)
 {
@@ -3681,7 +3743,7 @@ static u_int inet_getpostn (
 
 return (u_int) (xdrs->x_private - xdrs->x_base);
 }
-
+
 #if !(defined NETWARE_386 || defined PC_PLATFORM || \
 	defined OS2_ONLY || defined WIN_NT)
 static void inet_handler (
@@ -3744,7 +3806,7 @@ if ((n = recv ((SOCKET) port->port_handle, &junk, 1, MSG_OOB)) < 0)
 (*port->port_ast) (port);
 }
 #endif
-
+
 static caddr_t inet_inline (
     XDR		*xdrs,
     u_int	bytecount)
@@ -3765,7 +3827,7 @@ if (bytecount > xdrs->x_handy)
 
 return xdrs->x_base + bytecount;
 }
-
+
 static int inet_error (
     PORT	port,
     CONST TEXT	*function,
@@ -3821,7 +3883,7 @@ else
 
 return (int) NULL;
 }
-
+
 static bool_t inet_putbytes (
     XDR		*xdrs,
     SCHAR	*buff,
@@ -3888,7 +3950,7 @@ while (--bytecount >= 0)
 
 return TRUE;
 }
-
+
 static bool_t inet_putlong (
     XDR		*xdrs,
     SLONG	*lp)
@@ -3908,7 +3970,7 @@ SLONG	l;
 l = htonl (*lp);
 return (*xdrs->x_ops->x_putbytes) (xdrs, AOF32L(l), 4);
 }
-
+
 static bool_t inet_read (
     XDR		*xdrs)
 {
@@ -3977,7 +4039,7 @@ xdrs->x_private = xdrs->x_base;
 
 return TRUE;
 }
-
+
 static bool_t inet_setpostn (
     XDR		*xdrs,
     u_int	bytecount)
@@ -4000,7 +4062,7 @@ xdrs->x_private = xdrs->x_base + bytecount;
 
 return TRUE;
 }
-
+
 static PORT inet_try_connect (
     PACKET	*packet,
     RDB		rdb,
@@ -4060,7 +4122,7 @@ if (!RECEIVE (port, packet))
 
 return port;
 }
-
+
 static bool_t inet_write (
     XDR		*xdrs,
     bool_t	end_flag)
@@ -4159,7 +4221,7 @@ port->port_flags |= PORT_pend_ack;
 return TRUE;
 #endif
 }
-
+
 #ifdef DEBUG
 static void packet_print (
     TEXT	*string,
@@ -4189,7 +4251,7 @@ ib_fprintf (ib_stdout,"%05d:    PKT %s\t(%4d): length = %4d, checksum = %d\n",
 ib_fflush (ib_stdout);
 }
 #endif
-
+
 static int packet_receive (
     PORT	port,
     UCHAR	*buffer,
@@ -4347,7 +4409,7 @@ if (INET_force_error == 0)
 
 return TRUE;
 }
-
+
 static bool_t packet_send (
     PORT	port,
     SCHAR	*buffer,
@@ -4504,7 +4566,7 @@ port->port_flags &= ~PORT_pend_ack;
 
 return TRUE;
 }
-
+
 #ifdef WINDOWS_ONLY
 static int FAR PASCAL blocking_stub (void)
 {
@@ -4524,7 +4586,7 @@ static int FAR PASCAL blocking_stub (void)
 
 return FALSE;
 }
-
+
 static void cleanup_library (
     void	*arg)
 {
@@ -4546,7 +4608,7 @@ if (arg != NULL)
 else
     WSACleanup();
 }
-
+
 LRESULT FAR PASCAL inet_wndproc (
     HWND	hwnd,
     UINT	message,
@@ -4605,7 +4667,7 @@ switch (message)
 
 return DefWindowProc (hwnd, message, wParam, lParam);
 }
-
+
 #define GET_WIN_ENTRYPOINT(funcp,funcname) \
 	funcp = GetProcAddress (hWinsockDLL, funcname); \
 	if (funcp == NULL) { inet_gen_error (port, \
@@ -4738,7 +4800,7 @@ if (ret == SUCCESS)
 return ret;
 }
 #endif /* WINDOWS_ONLY */
-
+
 static void unhook_port (
     PORT        port,
     PORT        parent)
@@ -4766,7 +4828,7 @@ for (ptr = &parent->port_clients; *ptr; ptr = &(*ptr)->port_next)
         break;
         }
 }
-
+
 #ifdef  SUPERSERVER
 static void unhook_disconnected_ports (
     PORT        main_port)
