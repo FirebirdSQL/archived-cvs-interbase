@@ -1,3 +1,18 @@
+2003-11-25 19:43  bellardo
+
+	* interbase/builds/original/sfx.interbase:
+	
+	Terminate the string
+
+2003-11-25 07:40  bellardo
+
+	* interbase/lock/: lock.c, lock.h:
+	
+	POSIX standard says you can only call an exec* function or exit
+	after a vfork().  This precludes nested vfork()s, which caused the
+	lock manager not to launch in darwin.  This fix removes the nested
+	vfork()s.
+
 2003-10-28 14:42  eku
 
 	* interbase/jrd/common.h:
