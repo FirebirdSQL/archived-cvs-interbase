@@ -1,3 +1,30 @@
+2001-12-03 15:17  kkuznetsov
+
+	* interbase/jrd/gds.c:
+	
+	
+	
+	Correcting message in interbase.log about "incresing file limit
+	from xx to 0" then using 64 bit i/o/ . It's differs on size of
+	rlim_t on Solaris
+
+2001-12-03 15:13  paul_reeves
+
+	* interbase/builds_win32/original/: include.mak, std.mk:
+	
+	Removed references to DELPHI define in the Win32 make files.
+	Delphi6 encourages the setting of a DELPHI env var which rather
+	confuses the current build process.
+
+2001-12-03 06:35  robocop
+
+	* interbase/jrd/: exe.c, req.h:
+	
+	Bread and circus for the people, the Roman emperors said.  Make
+	tool developers happy and report only virtual insertions, updates
+	and deletions on views instead of physical I/O on the underlying
+	tables... even if JRD had to be twisted.
+
 2001-12-02 12:16  paul_reeves
 
 	* interbase/jrd/inf.c:
