@@ -89,6 +89,31 @@ $Id$
 #define VOLATILE        volatile
 #endif /* LINUX */
 
+/* Darwin Platforms */
+#ifdef DARWIN
+#define ALIGNMENT       4
+#define DOUBLE_ALIGN    4 
+#define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
+#define SETPGRP         setpgrp (0, 0)
+#define BSD_UNIX        1
+#define UNIX            1
+#define ATEXIT(c)       atexit (c)
+#define IMPLEMENTATION  63
+#define IEEE
+#define QUADCONST(n) (n##LL)
+#define QUADFORMAT "q"
+#define NON_MNTENT
+#define MMAP_SUPPORTED
+#define LSEEK_OFFSET_CAST (off_t)
+#define INTL
+
+#define _PPC_PARAM_H_
+#ifndef MAXPATHLEN
+#include <sys/param.h>
+#endif
+#endif /* Darwin Platforms */
+
+
 /* FreeBSD for Intel platforms */
 #ifdef FREEBSD
 
@@ -1263,8 +1288,16 @@ typedef unsigned char   UCHAR;
 #endif
 
 #define NULL_PTR        ((void*) 0)
+
+/* Darwin - TRUE & FALSE defined in other system headers */
+#ifndef TRUE
 #define TRUE            1
+#endif
+
+#ifndef FALSE
 #define FALSE           0
+#endif
+
 #define SUCCESS         0
 #define FAILURE         1
 
@@ -1557,6 +1590,11 @@ typedef USHORT		FLD_LENGTH;
 #define BUFFER_MEDIUM   512
 #define BUFFER_SMALL    256
 #define BUFFER_TINY     128
+
+/* The default lseek offset type */
+#ifndef LSEEK_OFFSET_CAST
+#define LSEEK_OFFSET_CAST
+#endif
 
 #ifndef DOUBLE_MULTIPLY
 #define DOUBLE_MULTIPLY(a,b)    (((double) (a)) * ((double) (b)))

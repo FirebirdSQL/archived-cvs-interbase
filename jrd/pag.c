@@ -106,6 +106,7 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
        20             LINUX on sparc systems
 	   21             FreeBSD/i386
 	   22             NetBSD/i386
+       23		Darwin on PowerPC
        
 */
 
@@ -243,6 +244,10 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
 
 #ifdef NETBSD
 #define CLASS           22
+#endif
+
+#ifdef DARWIN
+#define CLASS		23
 #endif
 
 

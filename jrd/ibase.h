@@ -2243,7 +2243,11 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define isc_arg_win32                      17
 #define isc_arg_warning                    18
 
+#ifdef DARWIN
+#include <Firebird/iberror.h>
+#else
 #include <iberror.h>
+#endif
 
 /**********************************************/
 /* Dynamic Data Definition Language operators */

@@ -120,8 +120,9 @@ typedef enum {
     arch_linux		= 36,
     arch_freebsd	= 37,
     arch_netbsd		= 38,
+    arch_darwin_ppc	= 39,
 
-    arch_max		= 39	/* Keep this at the end */
+    arch_max		= 40	/* Keep this at the end */
 } P_ARCH;
 
 #ifdef DECOSF

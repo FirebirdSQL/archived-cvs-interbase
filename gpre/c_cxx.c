@@ -169,6 +169,10 @@ static TEXT	*status_name;
 #define GDS_INCLUDE	"\"interbase:[syslib]gds.h\""
 #endif
 
+#ifdef DARWIN
+#define GDS_INCLUDE     "<Firebird/ibase.h>"
+#endif
+  
 #ifndef GDS_INCLUDE
 #define GDS_INCLUDE	"<ibase.h>"
 #endif

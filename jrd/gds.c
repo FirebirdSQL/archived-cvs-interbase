@@ -52,6 +52,11 @@
 #include <io.h>
 #endif
 
+#ifdef DARWIN
+#include <CoreFoundation/CFBundle.h>
+#include <CoreFoundation/CFURL.h>
+#endif
+
 #if (defined DOS_ONLY && !defined WINDOWS_ONLY)
 #include <dos.h>
 #define InProtectMode()	_AX = 0x1686, geninterrupt(0x2f), _AX = !_AX 
@@ -200,7 +205,7 @@ extern int	ib_printf();
 #endif
 #endif
 
-#if !(defined VMS || defined PC_PLATFORM || defined OS2_ONLY || defined WIN_NT || defined linux || defined FREEBSD || defined NETBSD)
+#if !(defined VMS || defined PC_PLATFORM || defined OS2_ONLY || defined WIN_NT || defined linux || defined FREEBSD || defined NETBSD || defined DARWIN )
 extern int	errno;
 extern SCHAR	*sys_errlist[];
 extern int	sys_nerr;
@@ -2403,7 +2408,7 @@ position = message->msg_top_tree;
 
 for (n = 1, status = 0; !status; n++)
     {
-    if (lseek (message->msg_file, position, 0) < 0)
+    if (lseek (message->msg_file, LSEEK_OFFSET_CAST position, 0) < 0)
 	status = -6;
     else if (read (message->msg_file, message->msg_bucket, 
 		   message->msg_bucket_size) < 0)
@@ -2644,6 +2649,11 @@ void API_ROUTINE gds__prefix (
  *	the enviroment variable INTERBASE if it is set.
  *
  **************************************/
+    #ifdef DARWIN   /* Variables needed for Darwin specific code */
+    CFBundleRef     ibaseBundle;
+    CFURLRef        msgFileUrl;
+    CFStringRef     msgFilePath;
+    #endif
 
     string [0] = 0;
 
@@ -2687,8 +2697,25 @@ void API_ROUTINE gds__prefix (
 				}
 			}
 #else	/* WIN_NT || WINDOWS_ONLY */
-            ib_prefix = ISC_PREFIX;
-            strcat(ib_prefix_val, ib_prefix);
+#ifdef DARWIN
+        /** Darwin specific code to locate the generic prefix directory in the
+          * Firebird framework resources.
+          **/
+            if ( (ibaseBundle = CFBundleGetBundleWithIdentifier(
+                                   CFSTR(DARWIN_FRAMEWORK_ID)) ) &&
+                 (msgFileUrl = CFBundleCopyResourceURL(ibaseBundle,
+                                         CFSTR(DARWIN_GEN_DIR), NULL, NULL)) &&
+                 (msgFilePath = CFURLCopyFileSystemPath(msgFileUrl,
+                                                kCFURLPOSIXPathStyle)) &&
+                 (CFStringGetCString(msgFilePath, ib_prefix_val, MAXPATHLEN,
+                                          kCFStringEncodingMacRoman ))
+               ) { }
+            else
+#endif
+            {
+                ib_prefix = ISC_PREFIX;
+                strcat(ib_prefix_val, ib_prefix);
+            }
 #endif
             ib_prefix = ib_prefix_val;
         }

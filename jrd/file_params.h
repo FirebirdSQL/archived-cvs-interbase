@@ -152,7 +152,13 @@
 #ifdef LINUX
 #define ISC_PREFIX	"/opt/interbase/"
 #else
+#ifdef DARWIN /* Use Darwin specific paths */
+#define ISC_PREFIX      "/all/files/are/in/framework/resources"   
+#define DARWIN_GEN_DIR  "var"
+#define DARWIN_FRAMEWORK_ID     "com.firebird.Firebird"
+#else
 #define ISC_PREFIX	"/usr/interbase/"
+#endif
 #endif
 #endif
 

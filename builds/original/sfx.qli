@@ -40,16 +40,10 @@ QLI_OBJECTS=	all.o command.o compile.o dtr.o err.o eval.o expand.o exe.o \
 
 all:	qli$(EXEC_EXT)
 
-qli:	qlilib.a $(JRD_LINK_OBJECTS) $(GPRE_LINK) $(GDSSHR)
+# JMB $(JRD_LINK_OBJECTS) already in shared library
+qli:	qlilib.a $(GPRE_LINK) $(GDSSHR)
 	-$(RM) qli
 	$(CC) $(LINK_OPTS) $(QLI_OBJECTS) \
-		$(T_SWITCH) $(ISC_LINK) \
-		$(T_SWITCH) $(ISC_FILE_LINK) \
-		$(T_SWITCH) $(WALF_LINK) \
-		$(T_SWITCH) $(LLIO_LINK) \
-		$(T_SWITCH) $(MISC_LINK) \
-		$(T_SWITCH) $(IBERR_LINK) \
-		$(T_SWITCH) $(DSC_LINK) \
 		$(GPRE_LINK) -o qli $(GDSSHR_LINK) $(CURSES_LIB)
 	$(CHMOD_7) qli
 	$(MV) qli $(QLI)

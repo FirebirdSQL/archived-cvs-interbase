@@ -27,9 +27,10 @@ SPIT_OBJECTS=	spit.o
 
 all:		burp$(EXEC_EXT) spit$(EXEC_EXT)
 
-burp:		burplib.a $(JRD_LINK) $(BURP_REMOTE_LINK) $(GDSSHR)
+# JMB $(JRD_LINK) already in shared library
+burp:		burplib.a $(BURP_REMOTE_LINK) $(GDSSHR)
 	-$(RM) burp
-	$(CC) $(LINK_OPTS) $(BURP_OBJECTS) $(T_SWITCH) $(JRD_LINK) \
+	$(CC) $(LINK_OPTS) $(BURP_OBJECTS) $(T_SWITCH) \
 	$(BURP_REMOTE_LINK) -o burp $(GDSSHR_LINK) $(SO_NETWORK_LIB)
 	$(CHMOD_7) burp
 	$(MV) burp $(BURP)

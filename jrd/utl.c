@@ -297,7 +297,8 @@ static CONST TEXT
 	"InterBase/SCO_SV Intel",	/* 59 */ /* 5.5 SCO Port */ 
         "InterBase/linux Intel",        /* 60 */
         "InterBase/FreeBSD/i386",       /* 61 */
-        "InterBase/NetBSD/i386"         /* 62 */
+        "InterBase/NetBSD/i386",        /* 62 */
+        "InterBase/Darwin/PowerPC"      /* 63 */
 	};
 
 

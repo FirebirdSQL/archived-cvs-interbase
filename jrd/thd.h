@@ -81,6 +81,11 @@ $Id$
 #define MULTI_THREAD            1
 #endif
 
+#if (defined(DARWIN) && defined(SUPERSERVER))
+#define POSIX_THREADS		1
+#define MULTI_THREAD		1
+#endif
+
 #ifdef VMS
 #ifndef GATEWAY
 #define MULTI_THREAD		1

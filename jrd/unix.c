@@ -461,7 +461,7 @@ for (i = 0; i < IO_RETRY; i++)
 #ifndef PREAD_PWRITE
     THD_MUTEX_LOCK (file->fil_mutex);
 
-    if ((lseek (file->fil_desc, 0, 0)) == -1)
+    if ((lseek (file->fil_desc, LSEEK_OFFSET_CAST 0, 0)) == -1)
         {
         THD_MUTEX_UNLOCK (file->fil_mutex);
         unix_error ("lseek", file, isc_io_read_err, NULL_PTR);
@@ -985,7 +985,7 @@ page -= file->fil_min_page - file->fil_fudge;
 #else
 THD_MUTEX_LOCK (file->fil_mutex);
 
-if ((lseek (file->fil_desc, (SLONG) (page * dbb->dbb_page_size), 0)) == -1)
+if ((lseek (file->fil_desc, LSEEK_OFFSET_CAST (page * dbb->dbb_page_size), 0)) == -1)
     {
     THD_MUTEX_UNLOCK (file->fil_mutex);
     return (FIL) unix_error ("lseek", file, isc_io_access_err, status_vector);

@@ -70,9 +70,14 @@
 static FILE *log_file;
 #endif
 
+#ifdef DARWIN
+#define getmaxx(s) ((s)->maxx)
+#define getmaxy(s) ((s)->maxy)
+#else
 #ifndef NETBSD
 #define getmaxx(s) ((s)->_maxx)
 #define getmaxy(s) ((s)->_maxy)
+#endif
 #endif
 
 static USHORT	disabled = 1;

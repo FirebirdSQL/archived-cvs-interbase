@@ -26,7 +26,8 @@ JRD_LINK2=	source/jrd/isc_file.o
 REMOTE_OBJECTS=		allr.o inet.o merge.o parser.o protocol.o remote.o \
 			$(NET_OBJECTS)
 INTERFACE_OBJECTS=	interface.o $(REMOTE_OBJECTS)
-SERVER_OBJECTS=		divorce.o server.o
+#JMB - SERVER_OBJECTS=		divorce.o server.o
+SERVER_OBJECTS=		server.o
 INTERFACE_P_OBJECTS=	interface.bin allr.bin inet.bin merge.bin parser.bin \
 			protocol.bin remote.bin $(NET_P_OBJECTS)
 REMOTE_J_OBJECTS=	merge.j
@@ -96,8 +97,10 @@ super_server.quantify:  super_server
 	$(TOUCH) super_server.quantify
 	$(CHMOD_6) super_server.quantify
 
-inet_server:	inet_server.o $(SERVER_OBJECTS) $(REMOTE_OBJECTS) \
-		$(JRD_LINK) $(REMOTE_GDSSHR) debug_$(VERSION)
+# JMB $(JRD_LINK) is not used in $(CC) line, so removed if from dependancies
+# JMN $(REMOTE_OBJECTS) are already in the shared library
+inet_server:	inet_server.o $(SERVER_OBJECTS) \
+		$(REMOTE_GDSSHR) debug_$(VERSION)
 	-$(RM) inet_server
 	$(CC) $(LINK_OPTS) inet_server.o $(SERVER_OBJECTS) \
 		-o inet_server $(REMOTE_GDSSHR_LINK)

@@ -26,9 +26,11 @@ ALICE_OBJECTS=	alice.o all.o exe.o met.o tdr.o
 
 all:	alice$(EXEC_EXT)
 
+# JMB $(JRD_LINK) (source/jrd/isc.o) is already in the shared library (isc.bin)
+# so I removed it from the link line on the executable.
 alice:		$(ALICE_OBJECTS) $(JRD_LINK) $(GDSSHR)
 	-$(RM) alice
-	$(CC) $(LINK_OPTS) $(ALICE_OBJECTS) $(T_SWITCH) $(JRD_LINK) -o alice \
+	$(CC) $(LINK_OPTS) $(ALICE_OBJECTS) $(T_SWITCH) -o alice \
 	$(GDSSHR_LINK)
 	$(CHMOD_7) alice
 	$(MV) alice $(ALICE)

@@ -186,6 +186,10 @@ typedef int		pid_t;
 #define SEMUN
 #endif
 
+#ifdef DARWIN
+#define SEMUN
+#endif
+
 #ifdef LINUX
 /*
  * NOTE: this definition is copied from linux/sem.h: if we do ...
@@ -315,7 +319,7 @@ static SLONG	init_semaphores (STATUS *, SLONG, int);
 static void	longjmp_sig_handler (int);
 #endif /* UNIX */
 #endif /* SUPERSERVER */
-static BOOLEAN	semaphore_wait (int, int, int *);
+static BOOLEAN	semaphore_wait_isc_sync (int, int, int *);
 #ifdef NETWARE_386
 static void	cleanup_semaphores (ULONG);
 #endif
@@ -1463,7 +1467,7 @@ else
     pthread_mutex_init (event->event_mutex, pthread_mutexattr_default);
     pthread_cond_init (event->event_semnum, pthread_condattr_default);
 #else
-#ifdef linux
+#if (defined linux || defined DARWIN)
     pthread_mutex_init (event->event_mutex, NULL);
     pthread_cond_init (event->event_semnum, NULL);
 #else
@@ -1592,7 +1596,7 @@ for (;;)
 #ifdef HP10
     if (micro_seconds > 0 && (ret == -1) && (errno == EAGAIN))
 #else
-#ifdef linux
+#if (defined linux || defined DARWIN)
     if (micro_seconds > 0 && (ret == ETIMEDOUT))
 #else
     if (micro_seconds > 0 && (ret == ETIME))
@@ -1918,10 +1922,10 @@ for (;;)
 	ret = SUCCESS;
 	break;
 	}
-    (void) semaphore_wait (count, semid, semnums);
+    (void) semaphore_wait_isc_sync (count, semid, semnums);
     if (micro_seconds > 0)
 	{
-	/* semaphore_wait() routine may return SUCCESS if our timeout
+	/* semaphore_wait_isc_sync() routine may return SUCCESS if our timeout
 	   handler poked the semaphore.  So make sure that the event 
 	   actually happened.  If it didn't, indicate failure. */
 
@@ -3890,7 +3894,7 @@ ib_fprintf (fp, "%ld", key);
 /* Get an exclusive lock on the file until the initialization process
    is complete.  That way potential race conditions are avoided. */
 
-#ifndef sun
+#if !(defined sun || defined DARWIN)
 if (lockf (ib_fileno (fp), F_LOCK, 0))
     {
     error (status_vector, "lockf", errno);
@@ -6925,14 +6929,19 @@ strcpy (p, object_type);
 
 #ifdef UNIX
 #ifndef NeXT
-static BOOLEAN semaphore_wait (
+/* Darwin has its own semaphore_wait function, so the name got
+ * changed to semaphore_wait_isc_sync for the Darwin port
+ */
+static BOOLEAN semaphore_wait_isc_sync (
     int		count,
     int		semid,
     int		*semnums)
 {
 /**************************************
  *
- *	s e m a p h o r e _ w a i t 
+ *	s e m a p h o r e _ w a i t _ i s c _ s y n c
+ *
+ *          (formerly semaphore_wait)
  *
  **************************************
  *

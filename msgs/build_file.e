@@ -426,7 +426,7 @@ header.msghdr_top_tree = position;
 
 /* Re-write header record and finish */
 
-lseek (file, (SLONG) 0, 0);
+lseek (file, LSEEK_OFFSET_CAST 0, 0);
 write (file, &header, sizeof (header));
 close (file);
 file = -1;

@@ -147,6 +147,10 @@
 #define MICROFOCUS
 #endif
 
+#ifdef DARWIN
+#define MICROFOCUS
+#endif
+
 #ifdef MICROFOCUS
 #define OMITTED 		"BY VALUE 0"
 #define BY_VALUE		"BY VALUE "

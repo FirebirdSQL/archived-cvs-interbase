@@ -30,10 +30,12 @@ GPRE_OBJECTS=	cmd.o cme.o cmp.o c_cxx.o exp.o gpre.o hsh.o int.o \
 
 all:	gpre$(EXEC_EXT)
 
+# JMB / DARWIN dsc.o (dsc.bin) already in shared lib.  Removed link with
+# $(DSC_LINK)
 gpre:		gprelib.a $(JRD_LINK) $(GDSSHR)
 	-$(RM) gpre
 	$(CC) $(LINK_OPTS) $(GPRE_OBJECTS) $(FORM_OBJECTS) $(FORM_TRN_OBJECTS) \
-		$(T_SWITCH) $(NODE_LINK) $(T_SWITCH) $(DSC_LINK) \
+		$(T_SWITCH) $(NODE_LINK) $(T_SWITCH) \
 		-o gpre $(GDSSHR_LINK) $(CURSES_LIB)
 	$(CHMOD_7) gpre
 	$(MV) gpre $(GPRE)

@@ -16,7 +16,7 @@
 # Contributor(s): ______________________________________.
 
 WAL_OBJECTS=	wal.o walc.o walf.o walr.o wstatus.o
-WALW_OBJECTS=	walc.o walf.o walw.o
+WALW_OBJECTS=	walc.o walf.o walw.o walw_main.o
 WAL_P_OBJECTS=	wal.bin walc.bin walf.bin walr.bin
 
 JRD_OBJECTS=	source/jrd/gds.o source/jrd/iberr.o \

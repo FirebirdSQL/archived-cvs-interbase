@@ -62,6 +62,10 @@ $Id$
 #define USER_INFO_NAME	"isc4.gdb"
 #endif
 
+#ifdef DARWIN
+#define USER_INFO_NAME  "isc4.gdb"
+#endif 
+ 
 #ifdef AIX_PPC
 #define USER_INFO_NAME	"isc4.gdb"
 #endif

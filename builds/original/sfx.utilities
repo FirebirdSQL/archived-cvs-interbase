@@ -57,9 +57,11 @@ dba.exe:	dba.o ppg.o
 	$(RM) dba.exe
 	$(TOUCH) dba.exe
 
-drop:		drop.o dropv3.o $(JRD_LINK) $(LOCK_LINK)
+# JMB all $(JRD_LINK) $(LOCK_LINK) files are in the shared library, so I
+# removed them from the link line.
+drop:		drop.o dropv3.o
 	-$(RM) drop
-	$(CC) $(LINK_OPTS) drop.o dropv3.o $(JRD_LINK) $(LOCK_LINK) \
+	$(CC) $(LINK_OPTS) drop.o dropv3.o \
 		$(STDIO) -o drop $(SCO_SOCKET_LIB) $(SO_THREAD_LIB) $(NSL_LIB)
 	$(CHMOD_S7) drop
 	$(MV) drop $(DROP)
@@ -82,9 +84,11 @@ ibmgr:	ibmgr.o srvrmgr.o $(GDSSHR)
 	$(TOUCH) ibmgr
 	$(CHMOD_6) ibmgr
 
-gsec:		gsec.o security.o $(ENC_LINK) $(GDSSHR)
+# JMB $(ENC_LINK) already in shared library
+# JMB security.o already in shared library
+gsec:		gsec.o $(GDSSHR)
 	-$(RM) gsec
-	$(CC) $(LINK_OPTS) gsec.o security.o $(STDIO) $(T_SWITCH) $(ENC_LINK) -o gsec $(GDSSHR_LINK)
+	$(CC) $(LINK_OPTS) gsec.o $(STDIO) -o gsec $(GDSSHR_LINK)
 	$(CHMOD_7) gsec
 	$(MV) gsec $(GSEC)
 	$(TOUCH) gsec

@@ -102,6 +102,20 @@ gds.so.1 $(LX_SUPER_GDSSHR): \
 	$(TOUCH) gds.so.1
 	$(CHMOD_6) gds.so.1
 
+gds.dylib.1 $(DARWIN_SUPER_GDSSHR): $(PYXIS_P_MISC) $(WAL_P_MISC) \
+		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS)
+	-$(RM) gds.dylib.1
+	libtool -dynamic -o gds.dylib.1 -install_name \
+		/Library/Frameworks/Firebird.framework/Versions/A/Firebird \
+		-current_version 1.0.0 -compatibility_version 1.0.0 \
+		$(CLIENT_P_OBJECTS) $(PYXIS_P_MISC) $(WAL_P_MISC) \
+		$(LD_LIBS) -framework System -framework Foundation
+	$(CHMOD_7) gds.dylib.1
+	$(MV) gds.dylib.1 $(DARWIN_SUPER_GDSSHR)
+	$(TOUCH) gds.dylib.1
+	$(CHMOD_6) gds.dylib.1
+	$(RM) $(WAL_P_MISC) $(WAL_MISC)
+
 gdsshr.a.1 $(AIX_PPC_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
 	-$(RM) gdsshr.a.1

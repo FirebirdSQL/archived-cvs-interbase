@@ -21,6 +21,7 @@
 #       Tom Coleman TMC Systems <tcoleman@autowares.com>
 #	    Reed Mideke <rfm@cruzers.com>
 #       Mark O'Donohue <mark.odonohue@ludwig.edu.au>
+#	John Bellardo <bellardo@cs.ucsd.edu>
 
 #
 # $Id$
@@ -193,7 +194,7 @@ printUsage() {
     echo ""
     echo "where system = AIX|AP|AX|DELTA|DG|EPSON|HP700|HP800|HP9.0|"
     echo "               HP10|IMP|MU|SCO|SGI|SOLARIS|SUN4|UNIXWARE|"
-    echo "               AIX_PPC|LINUX|FREEBSD|NETBSD"
+    echo "               AIX_PPC|LINUX|FREEBSD|NETBSD|DARWIN"
     echo ""
     echo "default values are: noboot, uname -s, DEV, ./refDatabases"
     echo ""
@@ -207,7 +208,7 @@ getDefaultSystemType() {
     SystemName=`uname -s | tr [:lower:] [:upper:]`
 
     case $SystemName in 
-    LINUX|FREEBSD|NETBSD) 
+    LINUX|FREEBSD|NETBSD|DARWIN) 
        BuildHostType=$SystemName
        ;;
     IRIX*) 
@@ -217,6 +218,26 @@ getDefaultSystemType() {
        BuildHostType=""
        ;;
     esac
+}
+#------------------------------------------------------------------------
+# set the INTERBASE environment value correctly for DARWIN systems
+
+setDarwinInterbaseEnv() {
+  if [ "$BuildBootFlg" = "Yes" ]
+    then
+      export INTERBASE="/Library/Frameworks/Firebird.framework/Resources/English.lproj/var"
+    else
+      cd firebird/bellardo/darwin
+      rm -f varpath
+      cc -framework Firebird -DVAR_PATH installpath.c -o varpath
+      if [ -f varpath ]
+        then
+          export INTERBASE="`./varpath`"
+        else
+          export INTERBASE="/Library/Frameworks/Firebird.framework/Resources/English.lproj/var"
+      fi
+      cd ../../..
+  fi
 }
 #------------------------------------------------------------------------
 # Check initial variables required for build of interbase
@@ -229,7 +250,12 @@ checkVariables() {
            then
              export INTERBASE="/usr/interbase"
            else
-             export INTERBASE="/opt/interbase"
+             if [ $SYS_TYPE = 'DARWIN' ]
+               then
+                 setDarwinInterbaseEnv
+               else
+                 export INTERBASE="/opt/interbase"
+             fi
 	 fi
      fi
 

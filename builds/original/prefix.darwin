@@ -79,7 +79,7 @@ GDSLIB_LINK=		-Lsource/jrd -lgds_b
 LINK_OPTS=		-Fsource/interbase -framework Firebird
 GPRE_BOOT_LINK_OPTS=	
 
-GDSSHR_DEST=		source/interbase/Firebird.framework/Versions/A/Firebird
+GDSSHR_DEST=		source/interbase/lib/gds.dylib
 GDSSHR=			gds.dylib
 LINUX_GDSSHR=		$(GDSSHR)
 GDSSHR_LINK=		$(SHRLIB_DIR)
@@ -92,10 +92,10 @@ HOSTNAME=		`hostname | cut -d'.' -f1`
 INCLUDES=		include_so include_so_ada include_darwin
 INTL=			intl
 
-INTL_CFLAGS=		$(CFLAGS)
-INTL_LD_LINE=		ld -o gdsintl 
-INTL_PIC_FLAGS=		$(PIC_FLAGS)
-INTL_TARGET=		intl_p_objs
+INTL_CFLAGS=		-bundle $(CFLAGS)
+INTL_LD_LINE=		cc -bundle -o gdsintl -framework Firebird
+INTL_PIC_FLAGS=		-bundle $(PIC_FLAGS)
+INTL_TARGET=		intl_shr_objs
 IO_OBJECTS=		unix.o
 IO_P_OBJECTS=		unix.bin
 JRD_MISC_OBJECTS=	source/jrd/sun_ftn.o
@@ -132,7 +132,7 @@ NETWORK_LIB=
 SOCKET_LIB=		
 THREAD_LIB=		-lpthread
 SUN_FUNCSHR=		$(FUNCSHR)
-LX_SUPER_GDSSHR=		source/interbase/lib/gds.so.1
+DARWIN_SUPER_GDSSHR=		source/interbase/lib/gds.dylib.1
 SUPER_CLIENT_GDSSHR=    $(LX_SUPER_GDSSHR)
 SUPER_BACKEND=		source/jrd/gds_ss.a
 SUPER_LINK=		-Lsource/jrd -lgds_ss -lpthread
@@ -175,4 +175,4 @@ V3PRINTER=		source/lock/printv3.o
 MSG_INSTALL_CMD=	$(CP) source/interbase/interbase.msg source/interbase/Firebird.framework/Resources/English.lproj
 CARBONCORE_DIR_FLAG=	-F/System/Library/Frameworks/CoreServices.framework/Frameworks
 
-#   End of file prefix.macos:	$(VERSION)	$(PLATFORM)
+#   End of file prefix.darwin:	$(VERSION)	$(PLATFORM)

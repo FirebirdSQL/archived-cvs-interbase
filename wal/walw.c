@@ -165,7 +165,11 @@ int main_walw (
 
 #else
 
-int CLIB_ROUTINE main (
+/* JMB - I didn't like have a "main" symbol is the shared library, so
+ * I change the function name from main to walw_classic_main and
+ * added the walw_main.c file.
+ */
+int CLIB_ROUTINE walw_classic_main (
     int		argc,
     char	**argv)
 #endif

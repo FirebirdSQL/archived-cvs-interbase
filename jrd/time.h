@@ -62,7 +62,7 @@
 #endif
 
 #if defined(_AIX) || defined(IMP) || defined(DELTA) || defined(sgi) || \
-	defined(MAC) || defined(M_I386) || defined(_CRAY)
+	defined(MAC) || defined(M_I386) || defined(_CRAY) || defined(DARWIN)
 #include <time.h>
 #endif
 

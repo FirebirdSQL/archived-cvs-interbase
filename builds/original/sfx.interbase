@@ -89,7 +89,7 @@ run_codes:
 
 #added completed according to inprise tree
 #FSG  093000
-completed:	force
+completed:	$(POST_BUILD_TARGET) force
 	$(QUIET_ECHO) "Build succeeded!"
 
 alice gfix:	gpre force
@@ -98,11 +98,11 @@ alice gfix:	gpre force
 
 burp gbak:	gpre msgs force
 	$(QUIET_ECHO) "Building GBAK..."
-	$(SH) '$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" burp'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" burp'
 
 burplib.a:	burp
 	$(QUIET_ECHO) "Building interbase/lib/gbaklib.a..."
-	$(SH) '$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" libgbaklib.a'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" libgbaklib.a'
 
 central_server gds_cserver:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_CSERVER..."
@@ -120,11 +120,11 @@ csvs:		central_server csu
 
 gds_archive:	$(ACCESS_METHOD) gpre force
 	$(QUIET_ECHO) "Building GDS_ARCHIVE..."
-	$(SH) '$(CD) source/journal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds_archive'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/journal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds_archive'
 
 dba gstat:	gpre force
 	$(QUIET_ECHO) "Building GSTAT..."
-	$(SH) '$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" dba'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" dba'
 
 dnet_server gds_dnet_server:	$(DNET_SERVER_LIB) $(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_DNET_SERVER..."
@@ -144,20 +144,20 @@ driver:	$(ACCESS_METHOD) force
 
 dudley gdef:	gpre msgs force
 	$(QUIET_ECHO) "Building GDEF..."
-	$(SH) '$(CD) source/dudley; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" dudley'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/dudley; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" dudley'
 
 extlib:	force
 	$(QUIET_ECHO) "Building EXTLIB..."
-	$(SH) '$(CD) source/extlib; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" ib_util'
-	$(SH) '$(CD) source/extlib; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" ib_udf'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/extlib; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" ib_util'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/extlib; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" ib_udf'
 
 examples:	v5_examples gbak gpre force
 	$(QUIET_ECHO) "Building examples directory..."
-	$(SH) '$(CD) source/examples; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" examples'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/examples; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" examples'
 
 fred:		gpre force
 	$(QUIET_ECHO) "Building FRED..."
-	$(SH) '$(CD) source/pyxis; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" fred'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/pyxis; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" fred'
 
 gds.h:		force
 	$(QUIET_ECHO) "Building GDS.H..."
@@ -169,7 +169,7 @@ codes.h:	force
 
 gds_server:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_SERVER..."
-	$(SH) '$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds_server'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds_server'
 
 gdslib.aix gdslib.aix_ppc:	$(GPRE) $(EXTERNAL_OBJECTS) force
 	$(QUIET_ECHO) "Building GDSSHR..."
@@ -188,6 +188,11 @@ gdslib.linux:	\
 	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force
 	$(QUIET_ECHO) "Building GDSLIB..."
 	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds.so.linux'
+
+gdslib.dylib: \
+	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force 
+	$(QUIET_ECHO) "Building GDSLIB..."
+	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds.dylib
 
 gdslib.freebsd:	\
 	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force
@@ -284,7 +289,7 @@ s_dba:	force
 
 gsec:	gpre force
 	$(QUIET_ECHO) "Building GSEC..."
-	$(SH) '$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gsec'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gsec'
 
 $(GPRE):
 	$(QUIET_ECHO) "Building bootstrap version of GPRE..."
@@ -292,10 +297,10 @@ $(GPRE):
 
 help:		gbak force
 	$(QUIET_ECHO) "Building the QLI help database..."
-	$(SETUP_ISC_REMOTE) $(GBAK) $(DBALOGIN) $(HLPDIR)master_help_db $(HELP_GBAK)
+	$(SH) '$(PHASE2_SHLIB_PATH)$(SETUP_ISC_REMOTE) $(GBAK) $(DBALOGIN) $(HLPDIR)master_help_db $(HELP_GBAK)'
 	-$(RM) $(HELP_GDB)
-	$(SETUP_ISC_LOCAL) \
-	$(GBAK) $(DBALOGIN) -r $(HELP_GBAK) $(HELP_GDB)
+	$(SH) '$(PHASE2_SHLIB_PATH)$(SETUP_ISC_LOCAL) \
+	$(GBAK) $(DBALOGIN) -r $(HELP_GBAK) $(HELP_GDB)'
 
 include_generic:	force
 	$(QUIET_ECHO) "Building the include directory..."
@@ -339,6 +344,28 @@ include_sgi:	include_generic
 include_so:	include_generic
 	$(CP) source/jrd/gds_sun.f $(INCLUDE_DEST)gds.f
  
+include_darwin: include_generic force
+	$(RM) -rf source/interbase/Firebird.framework
+	mkdir -p source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var
+	ln -s Versions/Current/Firebird \
+		source/interbase/Firebird.framework/Firebird
+	ln -s Versions/Current/Resources \
+		source/interbase/Firebird.framework/Resources
+	ln -s Versions/Current/Headers \
+		source/interbase/Firebird.framework/Headers
+	ln -s A source/interbase/Firebird.framework/Versions/Current
+	sed "s/__VERSION__/`source/interbase/bin/gpre -Z | sed 's/gpre version //g'`/g" source/firebird/bellardo/darwin/FrameworkInfo.plist > source/interbase/Firebird.framework/Resources/Info.plist
+	ln -s ../../../include \
+		source/interbase/Firebird.framework/Versions/A/Headers
+	ln -s ../../../lib/gds.dylib \
+		source/interbase/Firebird.framework/Versions/A/Firebird
+	ln -s ../../../../../../interbase.msg \
+		source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/interbase.msg
+	ln -s ../../../../../../bin source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/bin
+	ln -s ../../../../../../intl source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/intl
+	ln -s ../../../../../../isc4.gdb source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/isc4.gdb
+	ln -s ../../../../../../help source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/help
+
 include_so_ada:	include_generic
 #	$(ECHO) "sm interbase_sol.a $(INCLUDE_DEST)interbase.a" >> sm_include
 
@@ -352,11 +379,11 @@ includes:	include_generic $(INCLUDES) force
 
 inet_server gds_inet_server:	$(INET_LIBRARY) $(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_INET_SERVER..."
-	$(SH) '$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" inet_server'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" inet_server'
 
 inet_server.a gds_inet_server.a:	force
 	$(QUIET_ECHO) "Building GDS_INET_SERVER.A..."
-	$(SH) '$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" inet_server.a'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" inet_server.a'
 
 intl:		force
 	$(QUIET_ECHO) "Building INTL..."
@@ -368,19 +395,19 @@ iscinstall:	$(ACCESS_METHOD) force
 
 isql:		gpre msgs force
 	$(QUIET_ECHO) "Building ISQL..."
-	$(SH) '$(CD) source/isql; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" all'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/isql; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" all'
 
 isqllib.a:	isql
 	$(QUIET_ECHO) "Building interbase/lib/isqllib.a..."
-	$(SH) '$(CD) source/isql; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" libisqllib.a'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/isql; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" libisqllib.a'
 
 gjrn:	$(ACCESS_METHOD) gpre force
 	$(QUIET_ECHO) "Building GJRN..."
-	$(SH) '$(CD) source/journal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gjrn'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/journal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gjrn'
 
 journals:	gjrn gds_archive gdef gfix gbak force
 	$(QUIET_ECHO) "Building journal database backup file..."
-	$(SH) '$(CD) source/journal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" journal.db'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/journal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" journal.db'
 	-$(RM) $(JRN_GBAK)
 	$(COMPRESS_JRN)
 	$(SETUP_ISC_LOCAL) \
@@ -396,7 +423,7 @@ locks:		lock_print $(LOCK_MANAGER) force
 
 lock_print gds_lock_print:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_LOCK_PRINT..."
-	$(SH) '$(CD) source/lock; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" lock_print'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/lock; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" lock_print'
 
 manager gds_lock_manager:	$(ACCESS_METHOD) drop force
 	$(QUIET_ECHO) "Building GDS_LOCK_MANAGER..."
@@ -404,10 +431,10 @@ manager gds_lock_manager:	$(ACCESS_METHOD) drop force
 
 msgs:		$(ACCESS_METHOD) $(LOCK_MANAGER) force
 	$(QUIET_ECHO) "Building message file(s)..."
-	$(SH) '$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" check_messages'
-	$(SH) '$(CD) source/msgs; ./check_messages -d $(MSGSDIR)master_msg_db -l'
-	$(SH) '$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" interbase.msg'
-	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" includes.msg'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" check_messages'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/msgs; ./check_messages -d $(MSGSDIR)master_msg_db -l'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" interbase.msg'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" includes.msg'
 
 msgs_intl:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building international message file(s)..."
@@ -421,25 +448,25 @@ pyxis:		force
 
 qli:		gpre msgs force
 	$(QUIET_ECHO) "Building QLI..."
-	$(SH) '$(CD) source/qli; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" qli'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/qli; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" qli'
 
 qlilib.a:	qli
 	$(QUIET_ECHO) "Building interbase/lib/qlilib.a..."
-	$(SH) '$(CD) source/qli; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" libqlilib.a'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/qli; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" libqlilib.a'
 
 register:	gpre force
 	$(QUIET_ECHO) "Building REGISTER..."
-	$(SH) '$(CD) source/register; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" register'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/register; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" register'
 
 relay gds_relay:	force
 	$(QUIET_ECHO) "Building GDS_RELAY..."
-	$(SH) '$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" relay'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" relay'
 
 remote:		inet_server $(DNET_SERVER) $(AMBX_SERVER)
 
 spit:	force
 	$(QUIET_ECHO) "Building GSPLIT..."
-	$(SH) '$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" spit'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" spit'
 
 super_server:		force
 	$(QUIET_ECHO) "Building super_server... "
@@ -452,11 +479,11 @@ super_utils:		force
 utilities:	dba relay gsec $(UTILITIES)
 	$(QUIET_ECHO) "Building the ISC security database..."
 	-$(RM) $(ISC_GBAK) isc4.gdb
-	$(SETUP_ISC_LOCAL) \
+	$(SH) '$(PHASE2_SHLIB_PATH)$(SETUP_ISC_LOCAL) \
 	source/interbase/bin/isql -z -i source/utilities/isc4.sql; \
 	source/interbase/bin/gdef -z source/utilities/isc4.gdl; \
 	source/interbase/bin/gsec -da isc4.gdb -add sysdba -pw masterkey; \
-	$(GBAK) -z isc4.gdb $(ISC_GBAK)
+	$(GBAK) -z isc4.gdb $(ISC_GBAK)'
 	-$(MV) interbase/isc4.gdb interbase/isc4_tmp.gdb
 	-$(MV) isc4.gdb $(ISC_GDB)
 	$(CHMOD_6) $(ISC_GBAK) $(ISC_GDB)
@@ -464,19 +491,19 @@ utilities:	dba relay gsec $(UTILITIES)
 
 v4_examples:	gbak force
 	$(QUIET_ECHO) "Building V4 examples directory..."
-	$(SH) '$(CD) source/example4; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" v4_examples'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/example4; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" v4_examples'
 
 v5_examples:	gbak force
 	$(QUIET_ECHO) "Building V5 examples directory..."
-	$(SH) '$(CD) source/example5; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" v5_examples'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/example5; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" v5_examples'
 
 wal_print:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_WAL_PRINT..."
-	$(SH) '$(CD) source/wal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" wal_print'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/wal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" wal_print'
 
 wal_writer:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_WAL_WRITER..."
-	$(SH) '$(CD) source/wal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" wal_writer'
+	$(SH) '$(PHASE2_SHLIB_PATH)$(CD) source/wal; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" wal_writer'
 
 csi_objects:
 	$(QUIET_ECHO) "Building CSI OBJECTS..."
@@ -529,6 +556,24 @@ rem_p_objects:
 	$(QUIET_ECHO) "Building REMOTE PIC OBJECTS..."
 	$(SH) '$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" $(@F)'
 
+darwin_framework:
+	$(QUIET_ECHO) "Building Firebird Installer..."
+	$(RM) -rf source/interbase/Firebird.framework
+	$(MAKE) -f firebird/bellardo/darwin/FirebirdFramework.make \
+		source/interbase/Firebird.framework  
+	mkdir -p source/interbase/installer_tmp
+	$(MV) source/interbase/Firebird.framework source/interbase/installer_tmp
+	$(CP) source/firebird/bellardo/darwin/makefile \
+		source/interbase/installer_tmp
+	ln -s source/firebird/bellardo/darwin \
+		source/interbase/installer_tmp/files   
+	ln -s ../.. source/interbase/installer_tmp/source   
+	$(MAKE) -C source/interbase/installer_tmp install_package
+	$(RM) -rf source/interbase/installer_tmp
+	$(QUIET_ECHO) "Building Firebird Framework..."
+	$(RM) -rf source/interbase/Firebird.framework
+	$(MAKE) -f firebird/bellardo/darwin/FirebirdFramework.make \
+		source/interbase/Firebird.framework
 
 # Note:	So far this target is only available on Solaris
 makedepend:

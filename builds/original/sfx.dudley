@@ -35,12 +35,12 @@ DDL_LINK_OBJECTS= $(DUDLEY_OBJECTS) $(ISC_LINK) $(JRD_LINK) $(GPRE_LINK) \
 
 all:		dudley$(EXEC_EXT)
 
+# JMB $(ISC_LINK) already in shared library
+# JMB $(JRD_LINK) already in shared library
+# JMB $(WALF_LINK) already in shared library
 dudley:		ddllib.a $(DDL_LINK_OBJECTS) $(GDSSHR)
 	-$(RM) dudley
 	$(CC) $(LINK_OPTS) $(DUDLEY_OBJECTS) \
-		$(T_SWITCH) $(ISC_LINK) \
-		$(T_SWITCH) $(JRD_LINK) \
-		$(T_SWITCH) $(WALF_LINK) \
 		$(GPRE_LINK) -o dudley $(GDSSHR_LINK)
 	$(CHMOD_7) dudley
 	$(MV) dudley $(DUDLEY)

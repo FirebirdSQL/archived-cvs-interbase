@@ -232,7 +232,7 @@ printUsage() {
     echo "or you can manually specify one of the following:"
     echo "               AIX|AP|AX|DELTA|DG|EPSON|HP700|HP800|HP9.0|"
     echo "               HP10|IMP|MU|SCO|SGI|SOLARIS|SUN4|UNIXWARE|"
-    echo "               AIX_PPC|LINUX|FREEBSD|NETBSD"
+    echo "               AIX_PPC|LINUX|FREEBSD|NETBSD|DARWIN"
     echo ""
     echo ""
 
@@ -246,7 +246,7 @@ getDefaultSystemType() {
     SystemName=`uname -s | tr [:lower:] [:upper:]`
 
     case $SystemName in 
-    LINUX|FREEBSD|NETBSD) 
+    LINUX|FREEBSD|NETBSD|DARWIN) 
        BuildHostType=$SystemName
        ;;
     IRIX*) 
@@ -274,6 +274,29 @@ getDefaultSystemType() {
     esac
 }
 #------------------------------------------------------------------------
+# set the INTERBASE environment value correctly for DARWIN systems
+
+setDarwinInterbaseEnv() {
+  if [ "$BuildBootFlg" = "Yes" ]
+    then 
+      INTERBASE="/Library/Frameworks/Firebird.framework/Resources/English.lproj/var" 
+      export INTERBASE
+    else
+      cd firebird/bellardo/darwin
+      rm -f varpath
+      cc -framework Firebird -DVAR_PATH installpath.c -o varpath
+      if [ -f varpath ] 
+        then
+          INTERBASE="`./varpath`"
+          export INTERBASE
+        else
+          INTERBASE="/Library/Frameworks/Firebird.framework/Resources/English.lproj/var"
+          export INTERBASE
+      fi
+      cd ../../..
+  fi
+}
+#------------------------------------------------------------------------
 # Check initial variables required for build of interbase
 
 checkVariables() {
@@ -285,9 +308,14 @@ checkVariables() {
              INTERBASE="/usr/interbase"
              export INTERBASE
            else
-            INTERBASE="/opt/interbase"
-            export INTERBASE
-	     fi
+             if [ $SYS_TYPE = 'DARWIN' ]
+               then
+                 setDarwinInterbaseEnv
+               else
+                 INTERBASE="/opt/interbase"
+                 export INTERBASE
+               fi
+	   fi
      fi
 
      if [ "$ISC_PASSWORD" = "" ]

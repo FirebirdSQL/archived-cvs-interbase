@@ -459,6 +459,28 @@ gds.so.0 $(DG_GDSSHR) $(DG_X86_GDSSHR) $(UNIXWARE_GDSSHR) $(NCR3000_GDSSHR): \
 	$(TOUCH) gds.so.0
 	$(CHMOD_6) gds.so.0
 
+# For the Darwin port
+gds.dylib: \
+		$(JRD_P_OBJECTS) flu.bin $(CSI_P_MISC) $(DSQL_P_MISC) \
+		$(LOCK_P_MISC) $(REMOTE_P_MISC) $(SECURITY_P_MISC) $(BRIDGE_P_MISC) \
+		$(INTL_P_MISC) $(REGISTER_P_MISC) $(WAL_P_MISC) \
+		$(FUNCTIONS) $(GDSFLIB) $(PYXIS_P_OBJECTS) $(PYXIS_P_MISC)
+	-$(RM) gds.dylib
+	libtool -dynamic -o gds.dylib -install_name \
+	/Library/Frameworks/Firebird.framework/Versions/A/Firebird \
+		-current_version 1.0.0 -compatibility_version 1.0.0 \
+		$(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
+		$(CSI_P_MISC) $(DSQL_P_MISC) $(LOCK_P_MISC) \
+		$(REMOTE_P_MISC) $(SECURITY_P_MISC) $(BRIDGE_P_MISC) $(INTL_P_MISC) \
+		$(REGISTER_P_MISC) $(WAL_P_MISC) $(FUNCTIONS) $(GDSF_LIB) \
+		$(PYXIS_P_OBJECTS) $(PYXIS_P_MISC) \
+		$(LD_LIBS) -framework System -framework CoreFoundation
+	$(CHMOD_6) gds.dylib
+	$(MV) gds.dylib $(GDSSHR_DEST)
+	$(TOUCH) gds.dylib
+	$(CHMOD_6) gds.dylib
+
+
 # Solaris has two Shared libraries - the traditional style one
 # is called gdsmt.so.0, as it requires v3.3 -> v4.0 customers
 # to recompile and relink.
@@ -609,11 +631,14 @@ gds.a.solaris:	$(HEAD_J_OBJECTS)
 	$(TOUCH) gds.a.solaris
 	$(CHMOD_6) gds.a.solaris
 
-gds_pipe:	$(FOOT_OBJECTS) $(WHYPS_O) $(MERGE_MISC) $(GDSSHR) \
+# JMB MERGE_MISC (merge.o) is already in the shlib with REMOTE_P_OBJECTS.
+# allp.bin already in the shared library. ($(ALLP_OBJECT))
+# So don't link in with executable.
+gds_pipe:	$(FOOT_OBJECTS) $(WHYPS_O) $(GDSSHR) \
 		$(GDSLIB_BACKEND) $(NOLINK_MACHINES)
 	-$(RM) gds_pipe gdsshr_pipe
 	$(CC) $(LINK_OPTS) $(FOOT_OBJECT) \
-		$(T_SWITCH) $(ALLP_OBJECT) $(T_SWITCH) $(MERGE_MISC) \
+		$(T_SWITCH) $(T_SWITCH) \
 		$(WHYPS_O) -o gds_pipe $(SERVER_LINK)
 	$(CHMOD_7) gds_pipe
 	$(MV) gds_pipe $(FOOT)
@@ -878,6 +903,12 @@ gds.h:		ibase.h gdsold.h
 gds.o:		gds.c sql_code.h blr.h msg.h fil.h msgs.h blp.h thd.h \
 		ibsetjmp.h \
 		gds_proto.h isc_proto.h
+	$(CC) -c $(CFLAGS) $(CARBONCORE_DIR_FLAG) $(VERSION_FLAG) $<  
+
+gds.bin: gds.c  
+	$(CC) -c $(PIC_FLAGS) $(CARBONCORE_DIR_FLAG) $(VERSION_FLAG) \
+		-o $*.bin $<  
+
 grammar.c:	grammar.y
 grammar.o:	grammar.c dbg.h jlx.c
 grant.c:	grant.e

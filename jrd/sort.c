@@ -1043,7 +1043,7 @@ while (length)
 #endif
     for (i = 0; i < IO_RETRY; i++)
 	{
-    if (lseek (sfb->sfb_file, seek, SEEK_SET) == -1)
+    if (lseek (sfb->sfb_file, LSEEK_OFFSET_CAST seek, SEEK_SET) == -1)
 	    {
 	    THREAD_ENTER;
 	    SORT_error (status_vector, sfb, "lseek", isc_io_read_err, errno);
@@ -1366,7 +1366,7 @@ while (length)
 #endif
     for (i = 0; i < IO_RETRY; i++)
 	{
-    if (lseek (sfb->sfb_file, seek, SEEK_SET) == -1)
+    if (lseek (sfb->sfb_file, LSEEK_OFFSET_CAST seek, SEEK_SET) == -1)
 	    {
 	    THREAD_ENTER;
 	    SORT_error (status_vector, sfb, "lseek", isc_io_write_err, errno);

@@ -242,6 +242,10 @@
 #define FB_PLATFORM     "NB"         /* NetBSD */
 #endif
 
+#ifdef DARWIN
+#define FB_PLATFORM	"UP"         /* Darwin/PowerPC */
+#endif
+
 #ifndef GDS_VERSION
 #define GDS_VERSION	FB_PLATFORM "-" FB_BUILD_TYPE FB_MAJOR_VER "." FB_MINOR_VER "." FB_REV_NO "." FB_BUILD_NO " " FB_BUILD_SUFFIX
 #endif
