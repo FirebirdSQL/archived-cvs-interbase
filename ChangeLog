@@ -1,3 +1,17 @@
+2000-12-27 22:58  rfm
+
+	* interbase/build_docs/: ibbuild-unix-overview.txt,
+	metadata_gdb.txt, msgs-overview.txt:
+	
+	make sourceforge url the place to look for new versions, make dates
+	comprehensible by non-americans.
+
+2000-12-27 22:04  rfm
+
+	* interbase/build_docs/ibbuild-win32.txt:
+	
+	Document cygwin execute problem, clean up.
+
 2000-12-27 17:47  fsg
 
 	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h,
@@ -625,10 +639,10 @@
 	builds/original/sfx.interbase, gpre/cob.c, gpre/ftn.c,
 	jrd/common.h, jrd/file_params.h, jrd/flu.c, jrd/gds.c,
 	jrd/isc_file.c, jrd/isc_ipc.c, jrd/isc_sync.c, jrd/license.h,
-	jrd/pag.c, jrd/pwd.c, jrd/pwd.h, jrd/sort.c, jrd/svc.c, jrd/utl.c,
-	jrd/why.c, lock/fparamv3.h, lock/lock.c, lock/lockv3.h,
-	pyxis/cdm.c, remote/inet_server.c, remote/protocol.h,
-	remote/remote_def.h, utilities/dba.e, utilities/drop.c:
+	jrd/pag.c, jrd/pwd.c, jrd/sort.c, jrd/svc.c, jrd/utl.c, jrd/why.c,
+	lock/fparamv3.h, lock/lock.c, lock/lockv3.h, pyxis/cdm.c,
+	remote/inet_server.c, remote/protocol.h, remote/remote_def.h,
+	utilities/dba.e, utilities/drop.c:
 	
 	NetBSD support. Thanks to Geoffrey C. Speicher for the FreeBSD
 	port, which made this much easier.
@@ -735,7 +749,7 @@
 
 2000-09-08 23:27  tmcsys
 
-	* interbase/jrd/: pwd.c, pwd.h:
+	* interbase/jrd/pwd.c:
 	
 	security db path for AIX_PPC
 
@@ -1104,10 +1118,10 @@
 	builds/original/prefix.freebsd, builds/original/sfx.interbase,
 	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h, jrd/flu.c,
 	jrd/gds.c, jrd/ids.h, jrd/isc.gdb, jrd/isc_file.c, jrd/isc_sync.c,
-	jrd/license.h, jrd/pag.c, jrd/pwd.c, jrd/pwd.h, jrd/sort.c,
-	jrd/svc.c, jrd/utl.c, jrd/why.c, lock/fparamv3.h, lock/lock.c,
-	lock/lockv3.h, remote/protocol.h, remote/remote_def.h,
-	utilities/dba.e, utilities/drop.c:
+	jrd/license.h, jrd/pag.c, jrd/pwd.c, jrd/sort.c, jrd/svc.c,
+	jrd/utl.c, jrd/why.c, lock/fparamv3.h, lock/lock.c, lock/lockv3.h,
+	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
+	utilities/drop.c:
 	
 	- Main purpose of commit is to incorporate FreeBSD-specific changes
 	  to the tree.	As such, most modifications are patches that make  
@@ -1637,7 +1651,7 @@
 	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
 	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
 	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
-	jrd/pwd.h, jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
+	jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
 	jrd/quad_proto.h, jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h,
 	jrd/rdbcodes.h, jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c,
 	jrd/rdbint.c, jrd/rec.c, jrd/rec_proto.h, jrd/relations.h,
@@ -1766,7 +1780,7 @@
 	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
 	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
 	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
-	jrd/pwd.h, jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
+	jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
 	jrd/quad_proto.h, jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h,
 	jrd/rdbcodes.h, jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c,
 	jrd/rdbint.c, jrd/rec.c, jrd/rec_proto.h, jrd/relations.h,
