@@ -13,9 +13,7 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): This file is to be used for HP-UX 10.x builds only
-#		  If you want to build a kit for HP-UX 11.x then please
-#		  use a prefix.hp11!
+# Contributor(s): HP-UX 11.x
 .SUFFIXES: .c .e
 .e.c:
 	$(GPRE) $(GPRE_FLAGS) $<
@@ -39,7 +37,7 @@ DEV_CFLAGS=		-g
 DEBUG_OBJECTS=		$($(VERSION)_DEBUG_OBJECTS)
 SHRLIB_DIR=		$($(VERSION)_SHRLIB_DIR)
 VERSION_FLAG=		$($(VERSION)_VERSION_FLAG)
-CFLAGS=			$($(VERSION)_CFLAGS) -w -Isource/interbase/include -DHP10 -DHPUX -DUNIX -Ae -z +DAportable -DEXACT_NUMERICS $(SUPER_FLAG)
+CFLAGS=			$($(VERSION)_CFLAGS) -w -Isource/interbase/include -DHP11 -DHPUX -DUNIX -Ae -z +DAportable -DEXACT_NUMERICS $(SUPER_FLAG)
 UDF_LINK_CMD=		ld
 UDF_CFLAGS= 		-O +z -Ae 
 UDF_SHRLIBS= 		-lm
@@ -125,8 +123,8 @@ THREAD_LIB=
 SUN_FUNCSHR=		$(FUNCSHR)
 SUPER_CLIENT_GDSSHR=	$(HP_SUPER_GDSSHR)
 SUPER_BACKEND=		source/jrd/gds_ss.a
-#HP10 Only
-SUPER_LINK=		-Lsource/jrd -lgds_ss -lV3 -lcma -ldld
+#HP11
+SUPER_LINK=		-Lsource/jrd -lgds_ss -lV3 -lpthread -lnsl -ldld
 SUPER_SERVER=
 UTILITIES=		
 WAL_P_OBJS=		wal_p_objects

@@ -26,8 +26,8 @@ JRD_LINK2=	source/jrd/isc_file.o
 REMOTE_OBJECTS=		allr.o inet.o merge.o parser.o protocol.o remote.o \
 			$(NET_OBJECTS)
 INTERFACE_OBJECTS=	interface.o $(REMOTE_OBJECTS)
-#JMB - SERVER_OBJECTS=		divorce.o server.o
-SERVER_OBJECTS=		server.o
+SERVER_OBJECTS=		divorce.o server.o
+#SERVER_OBJECTS=		server.o
 INTERFACE_P_OBJECTS=	interface.bin allr.bin inet.bin merge.bin parser.bin \
 			protocol.bin remote.bin $(NET_P_OBJECTS)
 REMOTE_J_OBJECTS=	merge.j
