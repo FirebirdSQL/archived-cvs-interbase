@@ -193,12 +193,12 @@ PATH=.:$PATH
 if [ $# != 3 ]
 then
     echo 'Usage: setup_dirs {AIX   | AP      | AX   } {DEV}  master_source_dir '
-    	echo '                  {DELTA | DG      | EPSON} {PROD}'
-    	echo '                  {HP700 | HP800   | HP9.0 | HP10 }'
-    	echo '                  {IMP   | MU      | SCO  }'
-    	echo '                  {SGI   | SOLARIS | SUN4 }'
-    	echo '                  {UNIXWARE | AIX_PPC | LINUX }'
-    	exit 1
+        echo '                  {DELTA | DG      | EPSON} {PROD}'
+        echo '                  {HP700 | HP800   | HP9.0 | HP10 }'
+        echo '                  {IMP   | MU      | SCO  }'
+        echo '                  {SGI   | SOLARIS | SUN4 }'
+        echo '                  {UNIXWARE | AIX_PPC | LINUX }'
+        exit 1
 fi
 
 export BuildHostType=$1
@@ -253,7 +253,7 @@ refreshLink builds/refresh.all refresh.all
 refreshLink builds/special_opt special_opt
 
 if [ $1 = 'SCO' ]; then
-	refreshLink builds/original/sco_ship sco_ship
+        refreshLink builds/original/sco_ship sco_ship
 fi
 
 
@@ -274,47 +274,49 @@ then
             echo "Deleted."
             echo ""
         fi
-	mkdir interbase
-	cd interbase
-	cp $INTERBASE/interbase.msg .
-	copyIfExists $INTERBASE/ib_license.dat .
-	mkdir bin
-	cp $INTERBASE/bin/gpre bin
-	cp $INTERBASE/bin/gbak bin
-	copyIfExists $INTERBASE/bin/gds_lock_mgr bin
-	mkdir lib
-	mkdir help
-	cp $INTERBASE/help/help.gdb help
-	mkdir UDF
-	mkdir -p examples/v5
-	mkdir include
+        mkdir interbase
+        cd interbase
+        cp $INTERBASE/interbase.msg .
+        copyIfExists $INTERBASE/ib_license.dat .
+        mkdir bin
+        cp $INTERBASE/bin/gpre bin
+        cp $INTERBASE/bin/gbak bin
+        copyIfExists $INTERBASE/bin/gds_lock_mgr bin
+        mkdir lib
+        mkdir help
+        cp $INTERBASE/help/help.gdb help
+        mkdir UDF
+        mkdir -p examples/v5
+        mkdir include
 # create metadata.gdb (run one level above root) 
-	if [ ! -f ../metadata.gdb ]; then
-		$INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
-	fi
+        if [ ! -f ../metadata.gdb ]; then
+                $INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
+        fi
 #
-	cd ..
+        cd ..
 #
 # for purely legal reasons
-	rmIfExists isc.gdb
-	cp $INTERBASE/isc4.gdb isc.gdb
-	rmIfExists jrd/isc.gdb
+        rmIfExists isc.gdb
+        cp $INTERBASE/isc4.gdb isc.gdb
+        rmIfExists jrd/isc.gdb
 # replace old "yachts"
-	cd jrd
-	rmIfExists yachts.gdb
-	refreshLink ../metadata.gdb yachts.gdb
-	cd ..
-
+        cd jrd
+        rmIfExists yachts.gdb
+        refreshLink ../metadata.gdb yachts.gdb
+        cd ..
+        cd super/jrd                                  # TMC 081100
+        refreshLink ../../jrd/yachts.gdb yachts.gdb   # TMC 081100
+        cd ../..                                      # TMC 081100 
 
 echo "- Creating messages database"
 echo ""
 
 # Create the messages database from the gbak version
-	cd msgs
-	if [ ! -f msgs.gdb ]; then
-		$INTERBASE/bin/gbak -r msg.gbak msg.gdb
-	fi
-	cd ..
+        cd msgs
+        if [ ! -f msgs.gdb ]; then
+                $INTERBASE/bin/gbak -r msg.gbak msg.gdb
+        fi
+        cd ..
 #
 # The following two files are not needed on linux, as they have already
 # been copied to /usr/lib as part of the normal install
@@ -412,7 +414,7 @@ refreshLink source/builds/make.journal_ss super/journal/makefile
 # Jrd
 refreshLink .. jrd/source
 refreshLink yachts.gdb jrd/yachts.lnk
-refreshLink source/msgs/master_msg_db jrd/msg.gdb
+refreshLink source/msgs/msg.gdb jrd/msg.gdb  ## TMC 081100
 #refreshLink $3/jrd/yachts.gdb jrd/yachts.gdb
 #refreshLink $3/jrd/isc.gdb jrd/isc.gdb
 refreshLink source/builds/make.jrd jrd/makefile
@@ -421,7 +423,6 @@ refreshLink source/pipe/foot.c jrd/foot.c
 refreshLink source/pipe/head.c jrd/head.c
 refreshLink .. super/jrd/source
 #refreshLink yachts.gdb super/jrd/yachts.lnk
-#refreshLink $3/jrd/yachts.gdb super/jrd/yachts.gdb
 #refreshLink $3/jrd/isc.gdb super/jrd/isc.gdb
 refreshLink gds_ss.a super/jrd/libgds_ss.a
 refreshLink $3/msgs/msg.gdb super/jrd/msg.gdb
@@ -501,7 +502,7 @@ refreshLink source/builds/make.lock_ss super/lock/makefile
 refreshLink source/lock/$LOCK_HEADER lock/lock_header
 # Msgs
 refreshLink .. msgs/source
-refreshLink $3/msgs/msg.gdb msgs/master_msg_db
+refreshLink source/msgs/msg.gdb msgs/master_msg_db # TMC 081100
 #refreshLink master_msg_db msgs/msg.gdb
 refreshLink source/builds/make.msgs msgs/makefile
 # Pipe
@@ -565,19 +566,19 @@ if [ $SYS_TYPE = 'SUNOS4' ]; then
     refreshLink original/install.sun4 builds/install
     refreshLink original/servers.isc builds/servers.isc
 else
-	refreshLink original/install.unix builds/install
-	if [ $1 = 'SUN3_3' ]; then
-	    refreshLink original/servers.isc builds/servers.isc
-	fi
+        refreshLink original/install.unix builds/install
+        if [ $1 = 'SUN3_3' ]; then
+            refreshLink original/servers.isc builds/servers.isc
+        fi
 fi
 if [ $1 = 'MU' -o $1 = 'UL' ]; then
     refreshLink original/inetd.conf.ultrix builds/inetd.conf.isc
 else
-	if [ $1 = 'IMP' -o $1 = 'SCO' -o $1 = 'EPSON' ]; then
-	    refreshLink original/inetd.conf.psx builds/inetd.conf.isc
+        if [ $1 = 'IMP' -o $1 = 'SCO' -o $1 = 'EPSON' ]; then
+            refreshLink original/inetd.conf.psx builds/inetd.conf.isc
         else
-	    refreshLink original/inetd.conf.unx builds/inetd.conf.isc
-	fi
+            refreshLink original/inetd.conf.unx builds/inetd.conf.isc
+        fi
 fi
 
 
