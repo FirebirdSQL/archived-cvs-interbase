@@ -140,7 +140,7 @@
 #define MICROFOCUS
 #endif
 
-#ifdef FREEBSD
+#if defined FREEBSD || defined NETBSD
 #define MICROFOCUS
 #endif
 

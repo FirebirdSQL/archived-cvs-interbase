@@ -96,6 +96,7 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
        19             LINUX on Intel series
        20             LINUX on sparc systems
 	   21             FreeBSD/i386
+	   22             NetBSD/i386
        
 */
 
@@ -229,6 +230,10 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
 
 #ifdef FREEBSD
 #define CLASS           21
+#endif
+
+#ifdef NETBSD
+#define CLASS           22
 #endif
 
 

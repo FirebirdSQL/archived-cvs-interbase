@@ -223,6 +223,10 @@
 #define IB_PLATFORM     "FB-B"         /* FreeBSD/i386 */
 #endif
 
+#ifdef NETBSD
+#define IB_PLATFORM     "NB-B"         /* NetBSD */
+#endif
+
 #ifndef GDS_VERSION
 #define GDS_VERSION	IB_PLATFORM IB_MAJOR_VER "." IB_MINOR_VER "." IB_REV_NO "." IB_BUILD_NO
 #endif

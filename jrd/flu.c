@@ -72,7 +72,7 @@ static int	condition_handler (int *, int *, int *);
 #define IB_UDF_DIR              "UDF/"
 #endif
 
-#if defined FREEBSD
+#if defined FREEBSD || defined NETBSD
 #include <dlfcn.h>
 #define DYNAMIC_SHARED_LIBRARIES
 #include <unistd.h>
@@ -257,7 +257,7 @@ for (mod = &FLU_modules; *mod; mod = &(*mod)->mod_next)
 shl_unload (module->mod_handle);
 #endif
 
-#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD) || defined (AIX_PPC)
+#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD) || defined(NETBSD) || defined (AIX_PPC)
 dlclose (module->mod_handle);
 #endif
 #ifdef WIN_NT

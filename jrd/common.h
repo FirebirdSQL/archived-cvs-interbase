@@ -114,6 +114,43 @@ $Id$
 
 #endif /* FREEBSD */
 
+/* NetBSD */
+#ifdef NETBSD
+
+#if defined(__i386__)
+#define FB_ALIGN(n,b) ((n + b - 1) & ~(b - 1))
+#define ALIGNMENT     4
+#define DOUBLE_ALIGN  4
+
+#define IEEE  1
+#define I386  1
+#define VAX   1
+#define IMPLEMENTATION        62
+
+#define QUADFORMAT "ll"
+#define QUADCONST(n) (n##LL)
+#else /* !__i386__ */
+#error Please add support for other ports
+#endif
+
+#define UNIX  1
+#define SETPGRP         setpgrp ()
+#define ATEXIT(c)       atexit(c)
+
+#define KILLER_SIGNALS
+#define MMAP_SUPPORTED
+#define SIGACTION_SUPPORTED
+#define NO_NFS        /* no MTAB_OPEN or MTAB_CLOSE in isc_file.c */
+
+#define MEMMOVE(from,to,length)     memmove ((void *)to, (void *)from, (size_t) length)
+#define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
+#define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
+#define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
+
+#define VOLATILE        volatile
+
+#endif /* NETBSD */
+
 /* Apollo platforms */
 
 #ifdef apollo

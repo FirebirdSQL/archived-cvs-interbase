@@ -295,8 +295,9 @@ static CONST TEXT
 	"InterBase/PPC/Windows NT",	/* 57 */
 	"InterBase/DG_X86",		/* 58 */
 	"InterBase/SCO_SV Intel",	/* 59 */ /* 5.5 SCO Port */ 
-        "InterBase/linux Intel",         /* 60 */
-        "InterBase/FreeBSD/i386"         /* 61 */
+        "InterBase/linux Intel",        /* 60 */
+        "InterBase/FreeBSD/i386",       /* 61 */
+        "InterBase/NetBSD/i386"         /* 62 */
 	};
 
 
@@ -2273,7 +2274,7 @@ TEXT	buffer [3];
 #endif
 #endif
 IB_FILE	*file;
-#if defined FREEBSD
+#if defined FREEBSD || defined NETBSD
 int  fd;
 #endif
 
@@ -2300,7 +2301,7 @@ for (p = buffer; *q && p < buffer + sizeof (buffer) - 1; q++)
 sprintf (file_name, "%sXXXXXX", buffer);
 #endif
 
-#if defined FREEBSD
+#if defined FREEBSD || defined NETBSD
 fd = mkstemp(file_name);
 if (!(file = fdopen(fd, "w+"))) {
     close(fd);

@@ -23,7 +23,7 @@
 
 #include <errno.h>
 #include <string.h>
-#if ( defined FREEBSD || defined LINUX )
+#if ( defined FREEBSD || defined NETBSD || defined LINUX )
 #include <unistd.h>
 #endif
 #include "../jrd/common.h"
@@ -3194,7 +3194,7 @@ static void write_trace (
  *
  **************************************/
 UCHAR   file_name [32], data [41], *p;
-#if defined FREEBSD
+#if defined FREEBSD || defined NETBSD
 int  fd;
 #endif
 
@@ -3205,7 +3205,7 @@ if (!trace_file)
 #else
     strcpy (file_name, "/interbase/sort_trace_XXXXXX");
 #endif
-#if defined FREEBSD
+#if defined FREEBSD || defined NETBSD
     fd = mkstemp (file_name);
     trace_file = fdopen(fd, "w");
 #else

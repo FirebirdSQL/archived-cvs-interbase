@@ -152,7 +152,7 @@ checkVariables() {
 
      if [ "$INTERBASE" = "" ]
        then
-         if [ $SYS_TYPE = 'FREEBSD' ]
+         if [ $SYS_TYPE = 'FREEBSD' -o $SYS_TYPE = 'NETBSD' ]
            then
              export INTERBASE="/usr/interbase"
            else
@@ -206,7 +206,7 @@ then
         echo '                  {IMP   | MU      | SCO  }'
         echo '                  {SGI   | SOLARIS | SUN4 }'
         echo '                  {UNIXWARE | AIX_PPC | LINUX }'
-        echo '                  {FREEBSD}'
+        echo '                  {FREEBSD | NETBSD}'
         exit 1
 fi
 
@@ -266,9 +266,9 @@ if [ $1 = 'SCO' ]; then
 fi
 
 
-if [ $SYS_TYPE = 'LINUX' -o $SYS_TYPE = 'FREEBSD' ]
+if [ $SYS_TYPE = 'LINUX' -o $SYS_TYPE = 'FREEBSD' -o $SYS_TYPE = 'NETBSD' ]
 then
-		# TODO this does not belong in the linux/freebsd section
+		# TODO this does not belong in the linux/*bsd section
         if [ -d interbase ] 
           then
             echo ""

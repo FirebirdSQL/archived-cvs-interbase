@@ -130,7 +130,7 @@
 #include <sys/ipc.h>
 #endif
 
-#ifdef FREEBSD
+#if defined FREEBSD || defined NETBSD
 #include <sys/types.h>
 #include <sys/ipc.h>
 #endif

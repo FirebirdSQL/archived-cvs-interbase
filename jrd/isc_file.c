@@ -76,7 +76,7 @@ typedef struct itm {
 
 /* Unix/NFS specific stuff */
 
-#if (defined NFS || defined FREEBSD)
+#if (defined NFS || defined FREEBSD || defined NETBSD)
 #include <pwd.h>
 #define MAXPATHLEN	1024
 #endif
@@ -137,7 +137,7 @@ typedef struct itm {
 #include <sys/vmount.h>
 #endif
 
-#if (defined SOLARIS || defined UNIXWARE || defined NCR3000 || defined linux || defined M88K || defined FREEBSD)
+#if (defined SOLARIS || defined UNIXWARE || defined NCR3000 || defined linux || defined M88K || defined FREEBSD || defined NETBSD)
 #define GETWD(buf)		getcwd (buf, MAXPATHLEN)
 #endif
 
@@ -962,7 +962,7 @@ return p - expanded_name;
 }
 #endif
 
-#if (defined NFS || defined FREEBSD)
+#if (defined NFS || defined FREEBSD || defined NETBSD)
 int ISC_expand_filename (
     TEXT	*from_buff,
     USHORT	length,
@@ -2060,7 +2060,7 @@ return file_length;
 }
 #endif
 
-#if (defined NFS || defined FREEBSD)
+#if (defined NFS || defined FREEBSD || defined NETBSD)
 static expand_filename2 (
     TEXT	*from_buff,
     USHORT	length,

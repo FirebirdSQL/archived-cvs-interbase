@@ -156,7 +156,7 @@ if (sw_shutmngr)
     shut_manager ("lock manager");
 #endif
 
-#if !(defined WIN_NT || defined OS2_ONLY || defined NETWARE_386 || defined linux || defined FREEBSD || defined AIX_PPC )
+#if !(defined WIN_NT || defined OS2_ONLY || defined NETWARE_386 || defined linux || defined FREEBSD || defined NETBSD || defined AIX_PPC )
 if (!sw_nobridge)
     {
     ib_printf ("\nBRIDGE RESOURCES\n\n");
@@ -358,7 +358,7 @@ static int sem_exclusive (
  **************************************/
 int	semid;
 
-#if !(defined SUNOS4 || defined linux || defined FREEBSD)
+#if !(defined SUNOS4 || defined linux || defined FREEBSD || defined NETBSD)
 return semget (key, (int) count, IPC_EXCL);
 #else
 if ((semid = semget (key, (int) count, IPC_EXCL)) != -1)

@@ -190,7 +190,7 @@ SSHORT	LOCK_debug_level = 0;
 #define DUMMY_OWNER_DELETE	((PTR) -2)
 #define DUMMY_OWNER_SHUTDOWN	((PTR) -3)
 
-#if !(defined linux || defined NETWARE_386 || defined WIN_NT || defined OS2_ONLY || defined mpexl || defined FREEBSD)
+#if !(defined linux || defined NETWARE_386 || defined WIN_NT || defined OS2_ONLY || defined mpexl || defined FREEBSD || defined NETBSD)
 extern SCHAR	*sys_errlist[];
 #endif
 
@@ -872,7 +872,7 @@ if (owner_flag &&
     return FAILURE;
 
 #ifndef  SUPERSERVER
-#if defined(SCO_EV) || defined(LINUX) || defined(FREEBSD) || defined(AIX_PPC)
+#if defined(SCO_EV) || defined(LINUX) || defined(FREEBSD) || defined(NETBSD) || defined(AIX_PPC)
 /* 5.5 SCO port: might also help other classic ports, but not sure. This
    and a few subsequent pieces of code later, solve problem of gds_drop 
    giving following message 
@@ -888,7 +888,7 @@ if ( LOCK_owner_offset = *owner_handle )
 #endif
 
 #if !(defined NETWARE_386 || defined WIN_NT || defined OS2_ONLY || defined SOLARIS_MT || POSIX_THREADS)
-#if defined(SCO_EV) || defined(LINUX) || defined(FREEBSD) || defined(AIX_PPC)
+#if defined(SCO_EV) || defined(LINUX) || defined(FREEBSD) || defined(NETBSD) || defined(AIX_PPC)
 if (LOCK_owner_offset )   /* 5.5 SCO port: gds_drop */
 #endif
     ISC_signal (LOCK_block_signal, blocking_action, (void*) LOCK_owner_offset);
@@ -988,7 +988,7 @@ if (status = gds__thread_start ((FPTR_INT) blocking_action_thread,
     return FAILURE;
     }
 #else
-#if defined(SCO_EV) || defined(LINUX) || defined(FREEBSD) || defined(AIX_PPC)
+#if defined(SCO_EV) || defined(LINUX) || defined(FREEBSD) || defined(NETBSD) || defined(AIX_PPC)
 if ( LOCK_owner_offset ) /* 5.5 SCO Port: gds_drop */
 #endif
 	if (!(LOCK_owner = (OWN) ISC_map_object (status_vector, &LOCK_data,

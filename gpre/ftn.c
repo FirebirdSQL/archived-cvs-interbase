@@ -254,7 +254,7 @@ static ADL      array_decl_list;
 #define COMMA           ","
 #endif
 
-#ifdef FREEBSD
+#if defined FREEBSD || defined NETBSD
 #define INCLUDE_ISC_FTN  "       INCLUDE  '/usr/interbase/include/gds.f\' \n\n"
 #define INCLUDE_FTN_FILE "include/gds.f"
 #define DOUBLE_DCL      "DOUBLE PRECISION"

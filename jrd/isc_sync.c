@@ -99,7 +99,11 @@ static UCHAR	*next_shared_memory;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#ifdef NETBSD
+#include <signal.h>
+#else
 #include <sys/signal.h>
+#endif
 #include <errno.h>
 #ifndef NeXT
 #include <unistd.h>
@@ -226,7 +230,7 @@ union semun {
 #endif
 
 #if !(defined M88K || defined hpux || defined DECOSF || defined SOLARIS || \
-      defined DG_X86 || defined linux || defined FREEBSD)
+      defined DG_X86 || defined linux || defined FREEBSD || defined NETBSD)
 extern SLONG		ftok();
 #endif
 #endif
@@ -337,7 +341,7 @@ static void	make_object_name (TEXT *, TEXT *, TEXT *);
 #define SV_INTERRUPT    0
 #endif
 
-#ifdef FREEBSD
+#if defined FREEBSD || defined NETBSD
 #define sigset      signal
 #endif
 

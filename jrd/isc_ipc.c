@@ -128,7 +128,11 @@ static int	process_id = 0;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
+#ifdef NETBSD
+#include <signal.h>
+#else
 #include <sys/signal.h>
+#endif
 #include <errno.h>
 #ifndef NeXT
 #include <unistd.h>

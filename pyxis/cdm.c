@@ -70,6 +70,11 @@
 static FILE *log_file;
 #endif
 
+#ifndef NETBSD
+define getmaxx(s) ((s)->_maxx)
+define getmaxy(s) ((s)->_maxy)
+#endif
+
 static USHORT	disabled = 1;
 static USHORT	debug_curses = 0;
 
@@ -265,10 +270,10 @@ if (debug_curses)
 enable (window);
 
 window->win_width = (window->win_width) ? 
-	MIN (stdscr->_maxx, window->win_width) : stdscr->_maxx;
+	MIN (getmaxx(stdscr), window->win_width) : getmaxx(stdscr);
 
 window->win_height = (window->win_height) ? 
-	MIN (stdscr->_maxy, window->win_height) : stdscr->_maxy;
+	MIN (getmaxy(stdscr), window->win_height) : getmaxy(stdscr);
 
 for (p = keypad_equiv; *p; p += 2)
     key_pad [p[1]] = p [0];
@@ -322,7 +327,7 @@ SCHAR buf[BUFSIZ];
 if (disabled)
     return;
 
-wmove (stdscr, stdscr->_maxy - 1, 0);
+wmove (stdscr, getmaxy(stdscr) - 1, 0);
 clear();
 wrefresh (stdscr);
 wstandend (stdscr);

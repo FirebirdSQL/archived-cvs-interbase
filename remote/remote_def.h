@@ -158,6 +158,10 @@
 #define ARCHITECTURE		arch_freebsd
 #endif
 
+#ifdef NETBSD
+#define ARCHITECTURE		arch_netbsd
+#endif
+
 
 #define SRVR_server		1	/* 0x0001 server */
 #define SRVR_multi_client	2	/* 0x0002 multi-client server */

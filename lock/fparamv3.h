@@ -78,7 +78,7 @@
 #endif
 #endif
 
-#if (defined linux || defined FREEBSD)
+#if (defined linux || defined FREEBSD || defined NETBSD)
 #include <sys/types.h>
 #include <sys/ipc.h>
 #ifndef i386

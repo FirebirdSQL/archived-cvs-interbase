@@ -165,6 +165,11 @@ gdslib.freebsd:	\
 	$(QUIET_ECHO) "Building GDSLIB..."
 	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds.so.linux'
 
+gdslib.netbsd:	\
+	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force
+	$(QUIET_ECHO) "Building GDSLIB..."
+	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gds.so.linux'
+
 gdslib.sco_ev:	\
 	$(GPRE) $(EXTERNAL_OBJECTS) $(GDS_PYXIS) force
 	$(QUIET_ECHO) "Building GDSLIB..."

@@ -63,7 +63,11 @@
 #endif
 
 #ifdef UNIX
+#ifdef NETBSD
+#include <signal.h>
+#else
 #include <sys/signal.h>
+#endif
 #endif
 
 #ifndef hpux
