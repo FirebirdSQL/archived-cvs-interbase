@@ -18,8 +18,11 @@
  * Copyright (C) Inprise Corporation.
  *
  * All Rights Reserved.
- * Contributor(s): ______________________________________.
- */
+ * Contributor(s): __Ann W. Harrison_______________________
+ *   9 July 01
+ *   made some indexes unique.  The indexes on ID fields can not
+ *   be unique because they are created after the definitions are
+ *   stored.  
 
 #ifndef _JRD_IDX_H_
 #define _JRD_IDX_H_
@@ -61,10 +64,10 @@ define index RDB$INDEX_0 for RDB$RELATIONS unique
 
 
 /*
-define index RDB$INDEX_1 for RDB$RELATIONS unique
+define index RDB$INDEX_1 for RDB$RELATIONS 
 	RDB$RELATION_ID;
 */
-    INDEX (1, ODS_8_0, rel_relations, idx_unique, 1)
+    INDEX (1, ODS_8_0, rel_relations, 0, 1)
     	SEGMENT (f_rel_id, idx_numeric)		/* relation id */
     }},
 
@@ -271,10 +274,10 @@ define index RDB$INDEX_21 for RDB$PROCEDURES unique
 
 
 /*
-define index RDB$INDEX_22 for RDB$PROCEDURES unique
+define index RDB$INDEX_22 for RDB$PROCEDURES
 	RDB$PROCEDURE_ID;
 */
-    INDEX (22, ODS_8_0, rel_procedures, idx_unique, 1)
+    INDEX (22, ODS_8_0, rel_procedures, 0, 1)
 	SEGMENT (f_prc_id, idx_numeric)		/* procedure id */
     }},
 
@@ -289,10 +292,10 @@ define index RDB$INDEX_23 for RDB$EXCEPTIONS unique
 
 
 /*
-define index RDB$INDEX_24 for RDB$EXCEPTIONS idx_unique
+define index RDB$INDEX_24 for RDB$EXCEPTIONS 
 	RDB$EXCEPTION_NUMBER;
 */
-    INDEX (24, ODS_8_0, rel_exceptions, idx_unique, 1)
+    INDEX (24, ODS_8_0, rel_exceptions, 0, 1)
 	SEGMENT (f_xcp_number, idx_numeric)	/* exception number */
     }},
 
