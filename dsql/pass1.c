@@ -107,7 +107,7 @@ ASSERT_FILENAME				/* Define things assert() needs */
 
 static BOOLEAN	aggregate_found (REQ, NOD, NOD *);
 static BOOLEAN	aggregate_found2 (REQ, NOD, NOD *, BOOLEAN *);
-static BOOLEAN	aggregate_in_list (NOD);
+static BOOLEAN	aggregate_in_list (NOD, BOOLEAN *);
 static NOD	ambiguity_check (NOD, REQ, FLD, LLS, LLS);
 static void	assign_fld_dtype_from_dsc (FLD, DSC *);
 static NOD	compose (NOD, NOD, NOD_TYPE);
@@ -162,6 +162,9 @@ STR	temp_collation_name = NULL;
 					 * Bug 10061, bsriram - 19-Apr-1999
 					 */
 
+#ifndef PRINTF
+#define PRINTF		ib_printf
+#endif
 
 CTX PASS1_make_context (
     REQ		request,
@@ -1021,7 +1024,8 @@ switch (sub->nod_type)
 }
 
 static BOOLEAN aggregate_in_list (
-    NOD		sub)
+    NOD		sub,
+	BOOLEAN	*field)
 {
 /**************************************
  *
@@ -1056,6 +1060,8 @@ switch (sub->nod_type)
 		return TRUE;
 
     case nod_field:
+		*field = TRUE;
+		return FALSE;
     case nod_constant:
 		return FALSE;
 
@@ -1080,7 +1086,7 @@ switch (sub->nod_type)
 		for (ptr = sub->nod_arg, end = ptr + sub->nod_count; ptr < end; ptr++)
 	    	{
 	    	DEV_BLKCHK (*ptr, type_nod);
-	    	aggregate |= aggregate_in_list (*ptr);
+	    	aggregate |= aggregate_in_list (*ptr,field);
 	    	}
 		return aggregate;
 
@@ -1089,7 +1095,7 @@ switch (sub->nod_type)
     case nod_gen_id:
     case nod_gen_id2:
 		if (sub->nod_count == 2)
-            	return (aggregate_in_list (sub->nod_arg[1]));
+            	return (aggregate_in_list (sub->nod_arg[1],field));
 		else 
 	    	return FALSE;
 
@@ -1723,12 +1729,12 @@ else
 	{
 
 		NOD reference;
-		STR udf_name1;
-		STR udf_name2;
-
+		BOOLEAN non_agg_field;
+		
 		if (!list)      /* validating select element with no group by */
 		{
-			invalid = invalid_reference (node->nod_arg [1], list);
+			if (node->nod_count == 2)
+				invalid = invalid_reference (node->nod_arg [1], list);
 			return invalid;
 		}
 
@@ -1744,26 +1750,10 @@ else
 			DEV_BLKCHK(reference, type_nod);
 			if (reference->nod_type == nod_udf) 
 			{
-				udf_name1 = (STR)(node->nod_arg[0]);
-				udf_name2 = (STR)(reference->nod_arg[0]);
-				if ((udf_name1->str_length == udf_name2->str_length) &&
-					(strncmp(udf_name1->str_data, udf_name2->str_data,
-						udf_name1->str_length) == 0))
+				if (node_match (node, reference) == TRUE)
 				{
-
-					if (node->nod_count == 2) 
-					{
-						if (node_match (node, reference) == TRUE)
-						{
-							invalid = FALSE;
-						}
-						else
-						{
-							invalid = TRUE;
-						}
-						return invalid;
-					}
-					else return FALSE;
+					/* select item exists in group by */
+					return FALSE;
 				}
 			}
 		}
@@ -1776,9 +1766,19 @@ else
 		
 		if (node->nod_count == 2) 
 		{		
-			if(aggregate_in_list (node->nod_arg [1]) == TRUE)
+			if(aggregate_in_list (node->nod_arg [1], &non_agg_field) == TRUE)
 			{
-				invalid = FALSE;
+				/* abs(trunc(sum(total)+field)) is not valid in select list
+				   if a group by clause as field is 'undefined' 
+				*/
+				if (non_agg_field == TRUE)
+				{
+					invalid = TRUE;
+				}
+				else
+				{
+					invalid = FALSE;
+				}
 			}
 			else
 			{
