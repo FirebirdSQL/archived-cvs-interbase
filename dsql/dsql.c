@@ -1349,6 +1349,10 @@ switch (node->nod_type)
     case nod_def_filter:        verb = "define filter";         break;
     case nod_def_index:		verb = "define index"; 		break;
     case nod_def_relation:	verb = "define relation"; 	break;
+
+	/* CVC: New node redef_relation.*/
+	case nod_redef_relation:    verb = "redefine relation";     break;
+
     case nod_def_view:		verb = "define view"; 		break;
     case nod_delete:		verb = "delete";		break;
     case nod_del_field:		verb = "delete field";		break;
