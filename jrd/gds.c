@@ -2838,7 +2838,9 @@ if (ib_prefix_lock == NULL)
         }
     else
         {
-        strcat (ib_prefix_lock_val, ib_prefix_lock); 
+//Fix BugTraq item SRT2003-04-03-1300 reported to SecurityFocus
+//        strcat (ib_prefix_lock_val, ib_prefix_lock); 
+		strncat (ib_prefix_lock_val, ib_prefix_lock, sizeof(ib_prefix_lock_val)-1);
         ib_prefix_lock = ib_prefix_lock_val;
         }
     }
