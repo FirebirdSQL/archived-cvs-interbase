@@ -100,8 +100,8 @@ III.  OPERATION
    If other attachments are already made locally or through the same multi-
    client server, validate gives up with the message:
 
-   "Lock timeout during wait transaction
-   -- Object "database_filename.gdb" is in use"
+   Lock timeout during wait transaction
+   -- Object "database_filename.gdb" is in use
 
    If other processes or servers are attached to the database, validate 
    waits for the exclusive lock on the database (i.e. waits for every 
