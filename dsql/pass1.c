@@ -66,13 +66,17 @@
  *
  * 2001.11.17 Neil McCalden: Add aggregate_in_list procedure to handle cases
  *   where select statement has aggregate as a parameter to a udf which does
- *   not have to be in a group by clause. *
+ *   not have to be in a group by clause.
  *
  * 2001.11.21 Claudio Valderrama: don't try to detect ambiguity in pass1_field()
  *   if the field or output procedure parameter has been fully qualified!!!
  *
  * 2001.11.27 Ann Harrison:  Redo the amiguity checking so as to give better
  *   error messages, return warnings for dialect 1, and simplify.
+ *
+ * 2001.11.28 Claudio Valderrama: allow udf arguments to be query parameters.
+ *   Honor the code in the parser that already accepts those parameters.
+ *   This closes SF Bug# 409769.
  *
  * 2001.11.29 Claudio Valderrama: make the nice new ambiguity checking code do the
  *   right thing instead of crashing the engine and restore fix from 2001.11.21.
@@ -136,7 +140,7 @@ static NOD	pass1_rse (REQ, NOD, NOD);
 static NOD	pass1_sel_list ( REQ, NOD);
 static NOD	pass1_sort (REQ, NOD, NOD);
 static NOD	pass1_udf (REQ, NOD, USHORT);
-static void	pass1_udf_args (REQ, NOD, LLS *, USHORT);
+static void	pass1_udf_args (REQ, NOD, UDF, USHORT, LLS *, USHORT);
 static NOD	pass1_union (REQ, NOD, NOD);
 static NOD	pass1_update (REQ, NOD);
 static NOD	pass1_variable (REQ, NOD);
@@ -328,7 +332,7 @@ if (procedure)
 	{
     	context->ctx_proc_inputs = PASS1_node (request, 
 				relation_node->nod_arg [e_rpn_inputs], 0);
-    	count = context->ctx_proc_inputs->nod_count;
+	count = context->ctx_proc_inputs->nod_count;
 	}
     else
 	count = 0;
@@ -860,7 +864,7 @@ switch (input->nod_type)
 
     case nod_union:
 	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -901, 
-	    gds_arg_gds, gds__dsql_command_err, 
+	    gds_arg_gds, gds__dsql_command_err,
 	    gds_arg_gds, gds__union_err,    /* union not supported */
 	    0);
 	break;
@@ -898,7 +902,7 @@ static BOOLEAN aggregate_found (
  **************************************
  *
  * Functional description
- *	Check for an aggregate expression in an 
+ *	Check for an aggregate expression in an
  *	rse select list.  It could be buried in 
  *	an expression tree.
  *
@@ -1326,7 +1330,7 @@ switch (field->nod_type)
     case nod_gen_id2:
     case nod_udf:
         temp = MAKE_node (field->nod_type, field->nod_count);
-        temp->nod_arg[0] = field->nod_arg[0];
+	temp->nod_arg[0] = field->nod_arg[0];
         if (field->nod_count == 2)
             temp->nod_arg[1] = copy_field (field->nod_arg[1], context);
         return temp;
@@ -1402,7 +1406,7 @@ else
 	    DEV_BLKCHK (field, type_fld);
 	    node = MAKE_field (context, field, NULL_PTR);
 	    if (aggregate) 
-                {
+		{
 		if (invalid_reference (node, aggregate->nod_arg [e_agg_group]))
 		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
 		        gds_arg_gds, gds__field_ref_err,
@@ -1744,7 +1748,7 @@ else
 				udf_name2 = (STR)(reference->nod_arg[0]);
 				if ((udf_name1->str_length == udf_name2->str_length) &&
 					(strncmp(udf_name1->str_data, udf_name2->str_data,
-						udf_name1->str_length) == 0)) 
+						udf_name1->str_length) == 0))
 				{
 
 					if (node->nod_count == 2) 
@@ -1782,7 +1786,7 @@ else
 			}
 			return invalid;			
 		}
-				
+
 		return TRUE;			
 	}
 	
@@ -1896,7 +1900,7 @@ static void mark_ctx_outer_join (
 {
 /**************************************
  *
- *	m a r k _ c t x _ o u t e r _ j o i n 
+ *	m a r k _ c t x _ o u t e r _ j o i n
  *
  **************************************
  *
@@ -2622,7 +2626,7 @@ static NOD pass1_field (
  *	If list is TRUE, then this function can detect and
  *	return a relation node if there is no name. This
  *	is used for cases of "SELECT <table_name>.* ...".
- *  CVC: the function attempts to detect
+ *  CVC: The function attempts to detect
  *  if an unqualified field appears in more than one context
  *  and hence it returns the number of occurrences. This was
  *  added to allow the caller to detect ambiguous commands like
@@ -2718,7 +2722,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
     {
     context = (CTX) stack->lls_object;
     field = resolve_context (request, name, qualifier, context);
-	    
+
     if (field)
 	{
 	if (list && !name)
@@ -2745,7 +2749,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 		break;
 		}
 	    }
-				 
+
 	if (qualifier && !field)
 	    break;
 
@@ -2759,9 +2763,9 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 		field->fld_dtype == dtype_sql_time ||
 		field->fld_dtype == dtype_int64))
 		{
-		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
-			gds_arg_gds, gds__dsql_field_err, 
-			gds_arg_gds, gds__random, 
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206,
+			gds_arg_gds, gds__dsql_field_err,
+			gds_arg_gds, gds__random,
 			gds_arg_string, field->fld_name,
 			gds_arg_gds, isc_sql_dialect_datatype_unsupport,
 			gds_arg_number, request->req_client_dialect,
@@ -2779,12 +2783,12 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 		indices = PASS1_node (request, indices, FALSE);
 
 	    node = MAKE_field (context, field, indices);
-			
+
 /* remember the agg context so that we can post the agg to its map. */
-	    
+
 	    if (context->ctx_parent)
 		{
-	        if (!request->req_inhibit_map)
+		if (!request->req_inhibit_map)
 		    node = post_map (node, context->ctx_parent);
 		else if (request->req_context != stack)
 		    request->req_outer_agg_context = context->ctx_parent;
@@ -2890,7 +2894,7 @@ else
 
 if (fields->nod_count != values->nod_count)
     /* count of column list and value list don't match */
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
 	gds_arg_gds, gds__dsql_var_count_err, 
 	0);
 
@@ -2966,7 +2970,7 @@ switch (input->nod_type)
 	DEV_BLKCHK (field, type_fld);
 	DDL_resolve_intl_type (request, field, NULL);
 	MAKE_desc_from_field (&node->nod_desc, field);
-        /* If the source is nullable, so is the target       */
+	/* If the source is nullable, so is the target       */
 	MAKE_desc (&sub1->nod_desc, sub1);
         if (sub1->nod_desc.dsc_flags & DSC_nullable)
             node->nod_desc.dsc_flags |= DSC_nullable;
@@ -3004,7 +3008,7 @@ switch (input->nod_type)
 	    case blr_extract_yearday:
 		if (sub1->nod_desc.dsc_dtype != dtype_sql_date &&
 		    sub1->nod_desc.dsc_dtype != dtype_timestamp)
-		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -105, 
+		    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -105,
 			gds_arg_gds, gds__extract_input_mismatch,
 			0);
 		break;
@@ -3460,7 +3464,7 @@ if (context = pass1_alias (request, (STR) *arg))
     relation = context->ctx_relation;
     }
 
-/* if the first alias didn't specify a table in the context stack, 
+/* if the first alias didn't specify a table in the context stack,
    look through all contexts to find one which might be a view with
    a base table having a matching table name or alias */
 
@@ -3726,7 +3730,7 @@ if (node = input->nod_arg [e_sel_limit])
         if (node->nod_arg [e_limit_length]->nod_type == nod_parameter)
             {
             limPar->par_desc.dsc_dtype = dtype_int64; 
-            limPar->par_desc.dsc_sub_type = 0;  
+	    limPar->par_desc.dsc_sub_type = 0;
             limPar->par_desc.dsc_length = sizeof(SINT64);
             }
         }
@@ -3964,8 +3968,8 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
     DEV_BLKCHK (*ptr, type_nod);
     node1 = *ptr;
     if (node1->nod_type != nod_order)
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-	    gds_arg_gds, gds__dsql_command_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
+	    gds_arg_gds, gds__dsql_command_err,
 	    gds_arg_gds, gds__order_by_err,     /* invalid ORDER BY clause */
 	    0);
     node2 = MAKE_node (nod_order, e_order_count);
@@ -3974,21 +3978,20 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
     if (node1->nod_type == nod_field_name)
 	{
 	node2->nod_arg[0] = pass1_field (request, node1, 0);
-
 	}
     else if (node1->nod_type == nod_position)
 	{
 	position =  (ULONG) (node1->nod_arg[0]);
 	if ((position < 1) || !s_list || (position > (ULONG) s_list->nod_count))
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-		gds_arg_gds, gds__dsql_command_err, 
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
+		gds_arg_gds, gds__dsql_command_err,
 		gds_arg_gds, gds__order_by_err,   /* invalid ORDER BY clause */
 		0);
 	node2->nod_arg[0] = PASS1_node (request, s_list->nod_arg[position - 1], 0);
 	}
     else
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
-	    gds_arg_gds, gds__dsql_command_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
+	    gds_arg_gds, gds__dsql_command_err,
 	    gds_arg_gds, gds__order_by_err,     /* invalid ORDER BY clause */
 	    0);
 
@@ -4031,10 +4034,10 @@ name = (STR) input->nod_arg [0];
 DEV_BLKCHK (name, type_str);
 udf = METD_get_function (request, name);
 if (!udf)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-	gds_arg_gds, gds__dsql_function_err, 
-	gds_arg_gds, gds__random, 
-	gds_arg_string, name->str_data, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+	gds_arg_gds, gds__dsql_function_err,
+	gds_arg_gds, gds__random,
+	gds_arg_string, name->str_data,
 	0);
 
 node = MAKE_node (nod_udf, input->nod_count);
@@ -4042,7 +4045,7 @@ node->nod_arg [0] = (NOD) udf;
 if (input->nod_count == 2)
     {
     stack = NULL;
-    pass1_udf_args (request, input->nod_arg [1], &stack, proc_flag);
+    pass1_udf_args (request, input->nod_arg [1], udf, 0, &stack, proc_flag);
     node->nod_arg [1] = MAKE_list (stack);
     }
 
@@ -4052,6 +4055,8 @@ return node;
 static void pass1_udf_args (
     REQ		request,
     NOD		input,
+    UDF		udf,
+    USHORT	arg_pos,
     LLS		*stack,
     USHORT	proc_flag)
 {
@@ -4066,18 +4071,27 @@ static void pass1_udf_args (
  *
  **************************************/
 NOD	*ptr, *end;
+NOD	temp, args;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
+DEV_BLKCHK (udf, type_udf);
 
 if (input->nod_type != nod_list)
     {
-    LLS_PUSH (PASS1_node (request, input, proc_flag), stack);
+    temp = PASS1_node (request, input, proc_flag);
+    args = udf->udf_arguments;
+    if (temp->nod_type == nod_parameter)
+	if (args && args->nod_count > arg_pos)
+		set_parameter_type (temp, args->nod_arg [arg_pos], FALSE);
+	else; /* We should complain here in the future! The parameter is
+		out of bounds or the function doesn't declare input params. */
+    LLS_PUSH (temp, stack);
     return;
     }
 
 for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
-    pass1_udf_args (request, *ptr, stack, proc_flag);
+    pass1_udf_args (request, *ptr, udf, arg_pos++, stack, proc_flag);
 }
 
 static NOD pass1_union (

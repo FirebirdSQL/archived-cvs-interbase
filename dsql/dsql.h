@@ -20,6 +20,10 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.11.26 Claudio Valderrama: include udf_arguments and udf_flags
+ *   in the udf struct, so we can load the arguments and check for
+ *   collisions between dropping and redefining the udf concurrently.
+ *   This closes SF Bug# 409769.
  */
 
 #ifndef _DSQL_DSQL_H_
@@ -304,6 +308,8 @@ typedef struct udf {
     USHORT	udf_length;
     SSHORT	udf_character_set_id;
     USHORT	udf_character_length;
+    struct nod	*udf_arguments;
+    USHORT	udf_flags;
     TEXT	udf_name [2];
 } *UDF;
 
@@ -316,6 +322,12 @@ typedef ENUM {
     FUN_blob_struct,
     FUN_scalar_array
 } FUN_T;
+
+/* udf_flags bits */
+
+#define UDF_new_udf		1	/* udf is newly declared, not committed yet */
+#define UDF_dropped		2	/* udf has been dropped */
+
 
 /* Variables - input, output & local */
 

@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.11.28 Claudio Valderrama: load not only udfs but udf arguments;
+ *   handle possible collisions with udf redefinitions (drop->declare).
+ *   This closes SF Bug# 409769.
  */
 
 #include <string.h>
@@ -77,12 +80,13 @@ DATABASE
     DB = STATIC "yachts.lnk";
 
 static CONST UCHAR    blr_bpb [] =
-                   { isc_bpb_version1,
-                     isc_bpb_source_type, 1, BLOB_blr,
-                     isc_bpb_target_type, 1, BLOB_blr};
+		   { isc_bpb_version1,
+		     isc_bpb_source_type, 1, BLOB_blr,
+		     isc_bpb_target_type, 1, BLOB_blr};
 
 static void	check_array (REQ, SCHAR *, FLD);
 static void	convert_dtype (FLD, SSHORT);
+static void	free_function (UDF);
 static void	free_procedure (PRC);
 static void	free_relation (DSQL_REL);
 static TEXT	*metd_exact_name (TEXT *);
@@ -92,7 +96,7 @@ static  REC_MUTX_T      rec_mutex; /* Recursive metadata mutex */
 static  USHORT          rec_mutex_inited = 0;
 
 #define METD_REC_LOCK   if ( !rec_mutex_inited)\
-                        {\
+			{\
                             rec_mutex_inited = 1;\
                             THD_rec_mutex_init (&rec_mutex);\
                         }\
@@ -104,6 +108,55 @@ static  USHORT          rec_mutex_inited = 0;
 #define METD_REC_LOCK
 #define METD_REC_UNLOCK
 #endif
+
+void METD_drop_function (
+    REQ		request,
+    STR		name)
+{
+/**************************************
+ *
+ *	M E T D _ d r o p _ f u n c t i o n
+ *
+ **************************************
+ *
+ * Functional description
+ *	Drop a user defined function from our metadata, and
+ *	the next caller who wants it will
+ *	look up the new version.
+ *
+ *	Dropping will be achieved by marking the function
+ *	as dropped.  Anyone with current access can continue
+ *	accessing it.
+ *
+ **************************************/
+UDF	udf;
+SYM	symbol;
+
+METD_REC_LOCK;
+
+/* If the symbol wasn't defined, we've got nothing to do */
+
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+		name->str_length, SYM_udf, 0);
+for (; symbol; symbol = symbol->sym_homonym)
+    if ((symbol->sym_type == SYM_udf) &&
+	    ((udf = (UDF) symbol->sym_object) &&
+	    (!(udf->udf_flags & UDF_dropped))))
+	break;
+
+if (symbol)
+    {
+    udf = (UDF) symbol->sym_object;
+    udf->udf_flags |= UDF_dropped;
+    }
+
+/* mark other potential candidates as maybe dropped */
+
+HSHD_set_flag( request->req_dbb, name->str_data, name->str_length,
+	       SYM_udf, UDF_dropped);
+
+METD_REC_UNLOCK;
+}
 
 void METD_drop_procedure (
     REQ		request,
@@ -149,7 +202,7 @@ if (symbol)
 /* mark other potential candidates as maybe dropped */
 
 HSHD_set_flag( request->req_dbb, name->str_data, name->str_length,
-               SYM_procedure, PRC_dropped);
+	       SYM_procedure, PRC_dropped);
 
 METD_REC_UNLOCK;
 }
@@ -167,7 +220,7 @@ void METD_drop_relation (
  * Functional description
  *	Drop a relation from our metadata, and
  *	rely on the next guy who wants it to
- *	look up the new version. 
+ *	look up the new version.
  *
  *      Dropping will be achieved by marking the relation
  *      as dropped.  Anyone with current access can continue
@@ -182,8 +235,8 @@ METD_REC_LOCK;
 
 /* If the symbol wasn't defined, we've got nothing to do */
 
-symbol = HSHD_lookup (request->req_dbb, name->str_data, 
-			name->str_length, SYM_relation, 0); 
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_relation, 0);
 for (; symbol; symbol = symbol->sym_homonym)
     if ((symbol->sym_type == SYM_relation) &&
 	    ((relation = (DSQL_REL) symbol->sym_object) &&
@@ -199,7 +252,7 @@ if (symbol)
 /* mark other potential candidates as maybe dropped */
 
 HSHD_set_flag( request->req_dbb, name->str_data, name->str_length,
-               SYM_relation, REL_dropped);
+	       SYM_relation, REL_dropped);
 
 METD_REC_UNLOCK;
 }
@@ -226,10 +279,10 @@ SYM	symbol;
 
 /* Start by seeing if symbol is already defined */
 
-symbol = HSHD_lookup (request->req_dbb, name->str_data, 
-			name->str_length, SYM_intlsym, 0); 
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_intlsym, 0);
 for (; symbol; symbol = symbol->sym_homonym)
-    if ((symbol->sym_type == SYM_intlsym) && 
+    if ((symbol->sym_type == SYM_intlsym) &&
 	(((INTLSYM) symbol->sym_object)->intlsym_type == INTLSYM_collation))
 	return (INTLSYM) symbol->sym_object;
 
@@ -244,7 +297,7 @@ iname = NULL;
 THREAD_EXIT;
 
 FOR (REQUEST_HANDLE dbb->dbb_requests [irq_collation])
-          X IN RDB$COLLATIONS 
+	  X IN RDB$COLLATIONS
     CROSS Y IN RDB$CHARACTER_SETS OVER RDB$CHARACTER_SET_ID
      WITH X.RDB$COLLATION_NAME EQ name->str_data;
 
@@ -350,14 +403,14 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_col_default])
     else if (!FLD.RDB$DEFAULT_VALUE.NULL)
         {
         blob_id = &FLD.RDB$DEFAULT_VALUE;
-        *has_default = TRUE;
+	*has_default = TRUE;
         }
     else
         *has_default = FALSE;
 
     if (*has_default)
         {
-        /* open the blob */
+	/* open the blob */
 	THREAD_EXIT;
         stat = isc_open_blob2 (status_vect, &DB,  &gds__trans, 
             &blob_handle, blob_id, sizeof (blr_bpb), blr_bpb);
@@ -388,7 +441,7 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_col_default])
 
             }
 	THREAD_EXIT;
-        isc_close_blob (status_vect, &blob_handle);
+	isc_close_blob (status_vect, &blob_handle);
 	THREAD_ENTER;
 
 	/* the default string must be of the form:
@@ -540,7 +593,7 @@ handle = NULL_PTR;
 THREAD_EXIT;
 
 FOR (REQUEST_HANDLE handle)
-    FIRST 1 DBB IN RDB$DATABASE 
+    FIRST 1 DBB IN RDB$DATABASE
     WITH DBB.RDB$CHARACTER_SET_NAME NOT MISSING;
 
     THREAD_ENTER;
@@ -692,14 +745,14 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_domain_2])
 
     if (!FLD.RDB$DEFAULT_VALUE.NULL)
         {
-        blob_id = &FLD.RDB$DEFAULT_VALUE;
+	blob_id = &FLD.RDB$DEFAULT_VALUE;
         *has_default = TRUE;
         }
     else
         *has_default = FALSE;
 
     if (*has_default)
-        {
+	{
         /* open the blob */
 	THREAD_EXIT;
         stat = isc_open_blob2 (status_vect, &DB,  &gds__trans, 
@@ -718,7 +771,7 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_domain_2])
                 &length, buff_length,
                 ptr_in_buffer);
 	    THREAD_ENTER;
-            ptr_in_buffer = ptr_in_buffer + length;
+	    ptr_in_buffer = ptr_in_buffer + length;
             buff_length = buff_length - length;
 
             if (!stat) 
@@ -779,16 +832,34 @@ UDF METD_get_function (
  **************************************/
 SLONG	*DB, *gds__trans;
 DBB	dbb;
-UDF	udf;
-USHORT	return_arg;
+UDF	udf, temp;
+USHORT	return_arg, arg_count;
 SYM	symbol;
+LLS	stack, stack_temp;
+NOD	udf_param_node, *ptr;
+
+METD_REC_LOCK;
 
 /* Start by seeing if symbol is already defined */
 
-symbol = HSHD_lookup (request->req_dbb, name->str_data, 
-			name->str_length, SYM_udf, 0); 
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_udf, 0);
+for (; symbol; symbol = symbol->sym_homonym)
+    if ((symbol->sym_type == SYM_udf) &&
+	    ((udf = (UDF) symbol->sym_object) &&
+	    (!(udf->udf_flags & UDF_dropped))))
+	{
+	METD_REC_UNLOCK;
+	return (UDF) symbol->sym_object;
+	}
+
+/* This was the old code that didn't do the loop above to check for the flag.
 if (symbol)
-    return (UDF) symbol->sym_object;
+	{
+	METD_REC_UNLOCK;
+	return (UDF) symbol->sym_object;
+	}
+*/
 
 /* Now see if it is in the database */
 
@@ -796,6 +867,7 @@ dbb = request->req_dbb;
 DB = dbb->dbb_database_handle;
 gds__trans = request->req_trans;
 udf = NULL;
+stack = 0;
 
 THREAD_EXIT;
 
@@ -806,10 +878,13 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_function])
     THREAD_ENTER;
 
     udf = (UDF) ALLOCV (type_udf, dbb->dbb_pool, name->str_length);
+    /* Moved below as still can't say for sure it will be stored.
+    Following the same logic than MET_get_procedure and MET_get_relation.
     udf->udf_next = dbb->dbb_functions;
-    dbb->dbb_functions = udf;
+    dbb->dbb_functions = udf; */
     strcpy (udf->udf_name, (TEXT*) name->str_data);
     return_arg = X.RDB$RETURN_ARGUMENT;
+    udf->udf_arguments = 0;
 
     THREAD_EXIT;
 
@@ -820,7 +895,11 @@ END_FOR
 THREAD_ENTER;
 
 if (!udf)
-    return NULL;
+	{
+	METD_REC_UNLOCK;
+	return NULL;
+	}
+
 
 /* Note: The following two requests differ in the fields which are
  *	 new since ODS7 (DBB_v3 flag).  One of the two requests
@@ -833,9 +912,9 @@ THREAD_EXIT;
 if (dbb->dbb_flags & DBB_v3)
     {
     FOR (REQUEST_HANDLE dbb->dbb_requests [irq_func_return])
-        X IN RDB$FUNCTION_ARGUMENTS WITH
-        X.RDB$FUNCTION_NAME EQ name->str_data AND
-        X.RDB$ARGUMENT_POSITION EQ return_arg
+	X IN RDB$FUNCTION_ARGUMENTS WITH
+	X.RDB$FUNCTION_NAME EQ name->str_data AND
+	X.RDB$ARGUMENT_POSITION EQ return_arg
 
 	THREAD_ENTER;
 
@@ -854,20 +933,58 @@ if (dbb->dbb_flags & DBB_v3)
 else	/* V4 or greater dbb */
     {
     FOR (REQUEST_HANDLE dbb->dbb_requests [irq_func_return])
-        X IN RDB$FUNCTION_ARGUMENTS WITH
-        X.RDB$FUNCTION_NAME EQ name->str_data AND
-        X.RDB$ARGUMENT_POSITION EQ return_arg
+	X IN RDB$FUNCTION_ARGUMENTS WITH
+	X.RDB$FUNCTION_NAME EQ name->str_data
+	SORTED BY X.RDB$ARGUMENT_POSITION
+
+	/* AND
+	X.RDB$ARGUMENT_POSITION EQ return_arg */
 
 	THREAD_ENTER;
 
-	udf->udf_dtype = (X.RDB$FIELD_TYPE != blr_blob) ?
-	    gds_cvt_blr_dtype [X.RDB$FIELD_TYPE] : dtype_blob;
-	udf->udf_scale = X.RDB$FIELD_SCALE;
-	udf->udf_sub_type = X.RDB$FIELD_SUB_TYPE;
-	udf->udf_length = X.RDB$FIELD_LENGTH;
+	if (X.RDB$ARGUMENT_POSITION == return_arg)
+	{
+		udf->udf_dtype = (X.RDB$FIELD_TYPE != blr_blob) ?
+			gds_cvt_blr_dtype [X.RDB$FIELD_TYPE] : dtype_blob;
+		udf->udf_scale = X.RDB$FIELD_SCALE;
+		if (!X.RDB$FIELD_SUB_TYPE.NULL)
+			udf->udf_sub_type = X.RDB$FIELD_SUB_TYPE;
+		else
+			udf->udf_sub_type = 0;
+		udf->udf_length = X.RDB$FIELD_LENGTH;
 
-	if (!X.RDB$CHARACTER_SET_ID.NULL)
-	    udf->udf_character_set_id = X.RDB$CHARACTER_SET_ID;
+		if (!X.RDB$CHARACTER_SET_ID.NULL)
+			udf->udf_character_set_id = X.RDB$CHARACTER_SET_ID;
+	}
+	else
+	{
+		DSC* d;
+		/* udf_param_node = MAKE_node (type_nod, 0); */
+		udf_param_node = (NOD) ALLOC (type_nod, dbb->dbb_pool);
+		d = &udf_param_node->nod_desc;
+		d->dsc_dtype = (X.RDB$FIELD_TYPE != blr_blob) ?
+			gds_cvt_blr_dtype [X.RDB$FIELD_TYPE] : dtype_blob;
+		d->dsc_scale = X.RDB$FIELD_SCALE;
+		if (!X.RDB$FIELD_SUB_TYPE.NULL)
+			d->dsc_sub_type = X.RDB$FIELD_SUB_TYPE;
+		else
+			d->dsc_sub_type = 0;
+		d->dsc_length = X.RDB$FIELD_LENGTH;
+		if (d->dsc_dtype == dtype_varying)
+			d->dsc_length += sizeof (USHORT);
+		d->dsc_address = 0;
+
+		if (!X.RDB$CHARACTER_SET_ID.NULL)
+			if (d->dsc_dtype != dtype_blob)
+				d->dsc_ttype = X.RDB$CHARACTER_SET_ID;
+			else
+				d->dsc_scale = X.RDB$CHARACTER_SET_ID;
+
+		if (X.RDB$MECHANISM != FUN_value && X.RDB$MECHANISM != FUN_reference)
+			d->dsc_flags = DSC_nullable;
+
+		LLS_PUSH (udf_param_node, &stack);
+	}
 
 	THREAD_EXIT;
 
@@ -878,7 +995,7 @@ else	/* V4 or greater dbb */
 
 THREAD_ENTER;
 
-/* Adjust the return type & length of the UDF to account for 
+/* Adjust the return type & length of the UDF to account for
  * cstring & varying.  While a UDF can return CSTRING, we convert it
  * to CHAR for manipulation as CSTRING is not a SQL type.
  * (Q: why not use varying?)
@@ -891,7 +1008,44 @@ if (udf->udf_dtype == dtype_cstring)
 else if (udf->udf_dtype == dtype_varying)
     udf->udf_length += sizeof (USHORT);
 
+/* Can't call MAKE_list because it allocates an initial list node
+in the default pool. */
+for (stack_temp = stack, arg_count = 0; stack_temp; stack_temp = stack_temp->lls_next)
+	++arg_count;
+/* udf->udf_arguments = MAKE_node (nod_list, count); */
+udf->udf_arguments = (NOD) ALLOCV (type_nod, dbb->dbb_pool, arg_count);
+udf->udf_arguments->nod_type = nod_list;
+udf->udf_arguments->nod_count = arg_count;
+
+ptr = udf->udf_arguments->nod_arg + arg_count;
+while (stack)
+	*--ptr = (NOD) LLS_POP (&stack);
+
+
+/* Since we could give up control due to the THREAD_EXIT and THEAD_ENTER
+ * calls, another thread may have added the same udf in the mean time
+ */
+
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_udf, 0);
+for (; symbol; symbol = symbol->sym_homonym)
+    if ((symbol->sym_type == SYM_udf) &&
+	    ((temp = (UDF) symbol->sym_object) &&
+	    (!(temp->udf_flags & UDF_dropped))))
+	{
+	/* Get rid of all the stuff we just read in. Use existing one */
+
+	free_function (udf);
+	METD_REC_UNLOCK;
+	return (UDF) symbol->sym_object;
+	}
+
+/* Add udf in the front of the list. */
+udf->udf_next = dbb->dbb_functions;
+dbb->dbb_functions = udf;
+
 /* Store in the symbol table */
+/* The UDF_new_udf flag is not used, so nothing extra to check. */
 
 symbol = udf->udf_symbol = (SYM) ALLOCV (type_sym, dbb->dbb_pool, 0);
 symbol->sym_object = (BLK) udf;
@@ -901,6 +1055,7 @@ symbol->sym_type = SYM_udf;
 symbol->sym_dbb = dbb;
 HSHD_insert (symbol);
 
+METD_REC_UNLOCK;
 return udf;
 }
 
@@ -916,7 +1071,7 @@ NOD METD_get_primary_key (
  *
  * Functional description
  *	Lookup the fields for the primary key
- *	index on a relation, returning a list 
+ *	index on a relation, returning a list
  *	node of the fields.
  *
  **************************************/
@@ -937,7 +1092,7 @@ THREAD_EXIT;
 
 FOR (REQUEST_HANDLE dbb->dbb_requests [irq_primary_key])
     X IN RDB$INDICES CROSS
-    Y IN RDB$INDEX_SEGMENTS 
+    Y IN RDB$INDEX_SEGMENTS
     OVER RDB$INDEX_NAME
     WITH X.RDB$RELATION_NAME EQ relation_name->str_data
     AND X.RDB$INDEX_NAME STARTING "RDB$PRIMARY"
@@ -946,7 +1101,7 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_primary_key])
     THREAD_ENTER;
 
     if (!list)
-        list = MAKE_node (nod_list, (int) X.RDB$SEGMENT_COUNT);
+	list = MAKE_node (nod_list, (int) X.RDB$SEGMENT_COUNT);
     field_name = MAKE_cstring (Y.RDB$FIELD_NAME);
     field_node = MAKE_node (nod_field_name, (int) e_fln_count);
     field_node->nod_arg [e_fln_name] = (NOD) field_name;
@@ -960,7 +1115,7 @@ END_FOR
     END_ERROR;
 
 THREAD_ENTER;
- 
+
 return list;
 }
 
@@ -992,16 +1147,16 @@ METD_REC_LOCK;
 
 /* Start by seeing if symbol is already defined */
 
-symbol = HSHD_lookup (request->req_dbb, name->str_data, 
-			name->str_length, SYM_procedure, 0); 
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_procedure, 0);
 for (; symbol; symbol = symbol->sym_homonym)
-    if ((symbol->sym_type == SYM_procedure) && 
-	    ((procedure = (PRC) symbol->sym_object) && 
+    if ((symbol->sym_type == SYM_procedure) &&
+	    ((procedure = (PRC) symbol->sym_object) &&
 	    (!(procedure->prc_flags & PRC_dropped))))
-        {
-        METD_REC_UNLOCK;
-        return (PRC) symbol->sym_object;
-        }
+	{
+	METD_REC_UNLOCK;
+	return (PRC) symbol->sym_object;
+	}
 
 /* see if the procedure is the one currently being defined in this request */
 
@@ -1057,9 +1212,9 @@ if (!procedure)
 for (type = 0; type < 2; type++)
     {
     if (type)
-        ptr = &procedure->prc_outputs;
+	ptr = &procedure->prc_outputs;
     else
-        ptr = &procedure->prc_inputs;
+	ptr = &procedure->prc_inputs;
     count = 0;
 
     THREAD_EXIT;
@@ -1075,38 +1230,38 @@ for (type = 0; type < 2; type++)
 	THREAD_ENTER;
 
 	count++;
-        /* allocate the field block */             
+	/* allocate the field block */
 
-        metd_exact_name (PR.RDB$PARAMETER_NAME);
-        parameter = (FLD) ALLOCV (type_fld, dbb->dbb_pool,
+	metd_exact_name (PR.RDB$PARAMETER_NAME);
+	parameter = (FLD) ALLOCV (type_fld, dbb->dbb_pool,
 			strlen (PR.RDB$PARAMETER_NAME));
-        parameter->fld_next = *ptr;
+	parameter->fld_next = *ptr;
 	*ptr = parameter;
-                                      
-        /* get parameter information */
 
-        strcpy (parameter->fld_name, PR.RDB$PARAMETER_NAME);
-        parameter->fld_id = PR.RDB$PARAMETER_NUMBER;
-        parameter->fld_length = RFR.RDB$FIELD_LENGTH;
-        parameter->fld_scale = RFR.RDB$FIELD_SCALE;
-        parameter->fld_sub_type = RFR.RDB$FIELD_SUB_TYPE;
+	/* get parameter information */
+
+	strcpy (parameter->fld_name, PR.RDB$PARAMETER_NAME);
+	parameter->fld_id = PR.RDB$PARAMETER_NUMBER;
+	parameter->fld_length = RFR.RDB$FIELD_LENGTH;
+	parameter->fld_scale = RFR.RDB$FIELD_SCALE;
+	parameter->fld_sub_type = RFR.RDB$FIELD_SUB_TYPE;
 	parameter->fld_procedure = procedure;
 
-        if (!RFR.RDB$CHARACTER_SET_ID.NULL)
+	if (!RFR.RDB$CHARACTER_SET_ID.NULL)
 	    parameter->fld_character_set_id = RFR.RDB$CHARACTER_SET_ID;
 
-        if (!RFR.RDB$COLLATION_ID.NULL)
+	if (!RFR.RDB$COLLATION_ID.NULL)
 	    parameter->fld_collation_id = RFR.RDB$COLLATION_ID;
 
 	convert_dtype (parameter, RFR.RDB$FIELD_TYPE);
 
 
-        if (!RFR.RDB$NULL_FLAG) 
-            parameter->fld_flags |= FLD_nullable;
+	if (!RFR.RDB$NULL_FLAG)
+	    parameter->fld_flags |= FLD_nullable;
 
-        if (RFR.RDB$FIELD_TYPE == blr_blob)
+	if (RFR.RDB$FIELD_TYPE == blr_blob)
 	    {
-            parameter->fld_seg_length = RFR.RDB$SEGMENT_LENGTH;
+	    parameter->fld_seg_length = RFR.RDB$SEGMENT_LENGTH;
 	    }
 
 	THREAD_EXIT;
@@ -1127,22 +1282,23 @@ for (type = 0; type < 2; type++)
  * calls, another thread may have added the same procedure in the mean time
  */
 
-symbol = HSHD_lookup (request->req_dbb, name->str_data, 
-			name->str_length, SYM_procedure, 0); 
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_procedure, 0);
 for (; symbol; symbol = symbol->sym_homonym)
-    if ((symbol->sym_type == SYM_procedure) && 
-	    ((temp = (PRC) symbol->sym_object) && 
+    if ((symbol->sym_type == SYM_procedure) &&
+	    ((temp = (PRC) symbol->sym_object) &&
 	    (!(temp->prc_flags & PRC_dropped))))
 	{
 	/* Get rid of all the stuff we just read in. Use existing one */
 
 	free_procedure (procedure);
-        METD_REC_UNLOCK;
-        return (PRC) symbol->sym_object;
+	METD_REC_UNLOCK;
+	return (PRC) symbol->sym_object;
 	}
 
 
 /* store in the symbol table unless the procedure is not yet committed */
+/* CVC: This is strange, because PRC_new_procedure is never set. */
 
 if (!(procedure->prc_flags & PRC_new_procedure))
     {
@@ -1196,7 +1352,7 @@ symbol = HSHD_lookup (request->req_dbb, name->str_data,
 			name->str_length, SYM_relation, 0); 
 for (; symbol; symbol = symbol->sym_homonym)
     if ((symbol->sym_type == SYM_relation) &&
-	    ((relation = (DSQL_REL) symbol->sym_object) && 
+	    ((relation = (DSQL_REL) symbol->sym_object) &&
 	    (!(relation->rel_flags & REL_dropped))))
         {
         METD_REC_UNLOCK;
@@ -1225,9 +1381,9 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_relation])
     X IN RDB$RELATIONS WITH
     X.RDB$RELATION_NAME EQ name->str_data
 
-    /* allocate the relation block -- if the relation id has not yet 
-       been assigned, and this is a type of request which does not 
-       use ids, prepare a temporary relation block to provide 
+    /* allocate the relation block -- if the relation id has not yet
+       been assigned, and this is a type of request which does not
+       use ids, prepare a temporary relation block to provide
        information without caching it */
 
     THREAD_ENTER;
@@ -1236,18 +1392,18 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_relation])
 
     if (!X.RDB$RELATION_ID.NULL)
 	{
-        relation = (DSQL_REL) ALLOCV (
+	relation = (DSQL_REL) ALLOCV (
 	    type_dsql_rel, dbb->dbb_pool, name->str_length + strlen (X.RDB$OWNER_NAME));
-        relation->rel_id = X.RDB$RELATION_ID;
+	relation->rel_id = X.RDB$RELATION_ID;
 	}
     else if (!DDL_ids (request))
 	{
-        relation = (DSQL_REL) ALLOCDV (type_dsql_rel, name->str_length + strlen (X.RDB$OWNER_NAME));
-  	relation->rel_flags |= REL_new_relation;
+	relation = (DSQL_REL) ALLOCDV (type_dsql_rel, name->str_length + strlen (X.RDB$OWNER_NAME));
+	relation->rel_flags |= REL_new_relation;
 	}
 
     /* fill out the relation information */
-             
+
     if (relation)
 	{
 	relation->rel_name = relation->rel_data;
@@ -1284,7 +1440,7 @@ THREAD_EXIT;
 if (dbb->dbb_flags & DBB_v3)
     {
     FOR (REQUEST_HANDLE dbb->dbb_requests [irq_fields])
-	    FLX IN RDB$FIELDS CROSS 
+	    FLX IN RDB$FIELDS CROSS
 	    RFR IN RDB$RELATION_FIELDS
 	    WITH FLX.RDB$FIELD_NAME EQ RFR.RDB$FIELD_SOURCE
 	    AND RFR.RDB$RELATION_NAME EQ name->str_data
@@ -1292,20 +1448,20 @@ if (dbb->dbb_flags & DBB_v3)
 
 	THREAD_ENTER;
 
-	/* allocate the field block */             
+	/* allocate the field block */
 
 	metd_exact_name (RFR.RDB$FIELD_NAME);
 
 	/* Allocate from default or permanent pool as appropriate */
 
 	if (relation->rel_flags & REL_new_relation)
-	    *ptr = field = (FLD) ALLOCDV (type_fld, 
+	    *ptr = field = (FLD) ALLOCDV (type_fld,
 					  strlen (RFR.RDB$FIELD_NAME));
 	else
 	    *ptr = field = (FLD) ALLOCV (type_fld, dbb->dbb_pool,
 					 strlen (RFR.RDB$FIELD_NAME));
 	ptr = &field->fld_next;
-	                                  
+
 	/* get field information */
 
 	strcpy (field->fld_name, RFR.RDB$FIELD_NAME);
@@ -1338,7 +1494,7 @@ if (dbb->dbb_flags & DBB_v3)
 else /* V4 ODS8 dbb */
    {
     FOR (REQUEST_HANDLE dbb->dbb_requests [irq_fields])
-	    FLX IN RDB$FIELDS CROSS 
+	    FLX IN RDB$FIELDS CROSS
 	    RFR IN RDB$RELATION_FIELDS
 	    WITH FLX.RDB$FIELD_NAME EQ RFR.RDB$FIELD_SOURCE
 	    AND RFR.RDB$RELATION_NAME EQ name->str_data
@@ -1346,21 +1502,21 @@ else /* V4 ODS8 dbb */
 
 	THREAD_ENTER;
 
-	/* allocate the field block */             
+	/* allocate the field block */
 
 	metd_exact_name (RFR.RDB$FIELD_NAME);
 
 	/* Allocate from default or permanent pool as appropriate */
 
 	if (relation->rel_flags & REL_new_relation)
-	    *ptr = field = (FLD) ALLOCDV (type_fld, 
+	    *ptr = field = (FLD) ALLOCDV (type_fld,
 					  strlen (RFR.RDB$FIELD_NAME));
 	else
 	    *ptr = field = (FLD) ALLOCV (type_fld, dbb->dbb_pool,
 					 strlen (RFR.RDB$FIELD_NAME));
 
 	ptr = &field->fld_next;
-	                                  
+
 	/* get field information */
 
 	strcpy (field->fld_name, RFR.RDB$FIELD_NAME);
@@ -1396,7 +1552,7 @@ else /* V4 ODS8 dbb */
 	else if (!FLX.RDB$COLLATION_ID.NULL)
 	    field->fld_collation_id = FLX.RDB$COLLATION_ID;
 
-	if (!(RFR.RDB$NULL_FLAG || FLX.RDB$NULL_FLAG)) 
+	if (!(RFR.RDB$NULL_FLAG || FLX.RDB$NULL_FLAG))
 	    field->fld_flags |= FLD_nullable;
 
 	THREAD_EXIT;
@@ -1412,15 +1568,15 @@ THREAD_ENTER;
  * another thread may have added the same table in the mean time
  */
 
-symbol = HSHD_lookup (request->req_dbb, name->str_data, 
-			name->str_length, SYM_relation, 0); 
+symbol = HSHD_lookup (request->req_dbb, name->str_data,
+			name->str_length, SYM_relation, 0);
 for (; symbol; symbol = symbol->sym_homonym)
     if ((symbol->sym_type == SYM_relation) &&
-	    ((temp = (DSQL_REL) symbol->sym_object) && 
+	    ((temp = (DSQL_REL) symbol->sym_object) &&
 	    (!(temp ->rel_flags & REL_dropped))))
 	{
 	free_relation (relation);
-        METD_REC_UNLOCK;
+	METD_REC_UNLOCK;
 	return (DSQL_REL) symbol->sym_object;
 	}
 
@@ -1503,7 +1659,7 @@ USHORT METD_get_type (
 {
 /**************************************
  *
- *	M E T D _ g e t _ t y p e 
+ *	M E T D _ g e t _ t y p e
  *
  **************************************
  *
@@ -1557,8 +1713,8 @@ DSQL_REL METD_get_view_relation (
  **************************************
  *
  * Functional description
- *	Return TRUE if the passed view_name represents a 
- *	view with the passed relation as a base table 
+ *	Return TRUE if the passed view_name represents a
+ *	view with the passed relation as a base table
  *	(the relation could be an alias).
  *
  **************************************/
@@ -1575,7 +1731,7 @@ relation = NULL;
 
 THREAD_EXIT;
 
-FOR (REQUEST_HANDLE dbb->dbb_requests [irq_view], 
+FOR (REQUEST_HANDLE dbb->dbb_requests [irq_view],
      LEVEL level)
     X IN RDB$VIEW_RELATIONS WITH
     X.RDB$VIEW_NAME EQ view_name
@@ -1588,7 +1744,7 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_view],
     if (!strcmp (X.RDB$RELATION_NAME, relation_or_alias) ||
 	!strcmp (X.RDB$CONTEXT_NAME, relation_or_alias))
 	{
-	relation_name = MAKE_string (X.RDB$RELATION_NAME, 
+	relation_name = MAKE_string (X.RDB$RELATION_NAME,
 				     strlen (X.RDB$RELATION_NAME));
 	relation = METD_get_relation (request, relation_name);
 	ALLD_release (relation_name);
@@ -1642,13 +1798,13 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_dimensions])
     THREAD_ENTER;
 
     if (!X.RDB$DIMENSIONS.NULL && X.RDB$DIMENSIONS)
-        {
-        field->fld_element_dtype = field->fld_dtype;
-        field->fld_element_length = field->fld_length;
-        field->fld_dtype = dtype_array;
-        field->fld_length = sizeof (GDS__QUAD);
-        field->fld_dimensions = X.RDB$DIMENSIONS;
-        }
+	{
+	field->fld_element_dtype = field->fld_dtype;
+	field->fld_element_length = field->fld_length;
+	field->fld_dtype = dtype_array;
+	field->fld_length = sizeof (GDS__QUAD);
+	field->fld_dimensions = X.RDB$DIMENSIONS;
+	}
 
     THREAD_EXIT;
 
@@ -1702,6 +1858,39 @@ else
     }
 }
 
+static void free_function (
+	UDF	udf)
+{
+/**************************************
+ *
+ *	f r e e _ f u n c t i o n
+ *
+ **************************************
+ *
+ * Functional description
+ *	Free memory allocated for a function block and args
+ *
+ **************************************/
+USHORT	arg_count;
+NOD	args, udf_argument;
+
+/* release the arguments blocks */
+
+if (udf->udf_arguments)
+	{
+	args = udf->udf_arguments;
+	for (arg_count = 0; arg_count < args->nod_count; ++arg_count)
+		{
+		udf_argument = args->nod_arg [arg_count];
+		ALLD_release (udf_argument);
+		}
+	}
+
+/* release the udf & symbol blocks */
+
+ALLD_release (udf);
+}
+
 static void free_procedure (
 	PRC	procedure)
 {

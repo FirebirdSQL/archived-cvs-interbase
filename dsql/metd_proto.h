@@ -24,6 +24,7 @@
 #ifndef _DSQL_METD_PROTO_H
 #define _DSQL_METD_PROTO_H
 
+extern void	METD_drop_function (struct req *, struct str *);
 extern void	METD_drop_procedure (struct req *, struct str *);
 extern void	METD_drop_relation (struct req *, struct str *);
 extern INTLSYM	METD_get_charset (struct req *, USHORT, UCHAR *);
