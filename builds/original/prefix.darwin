@@ -62,7 +62,7 @@ UDF_SHRLIBS=        	-lcc_dynamic -framework System
 #NOTE: -Xt is ANSI C transition mode (default)
 #      -DBDS_COMP is for BSD Compatibility package and is used in <sys/ioctl.h>
 
-ACCESS_METHOD=		gdslib.dylib pipe
+ACCESS_METHOD=		gdslib.dylib
 BACKEND_BRIDGE_MISC=	head5.o allp.o
 BIN_PATH=		/usr/isc/bin
 BRIDGE_MISC=		head5.o allp.o
@@ -118,7 +118,8 @@ MUISQL=			muisql
 MUISQL_MU_LIB=		-L /usr/gds.$(HOSTNAME)/qa_tools/lib -lmu
 MUISQL_LINK_OPTS=	$(MUISQL_MU_LIB) $(PIPE_GDSSHR_LINK)
 PIC_FLAGS=		$(CFLAGS) -dynamic -fno-common
-PIPE=			gds.a gds_pipe
+#PIPE=			gds.a gds_pipe
+PIPE=			gds.a
 PYXIS=			pyxis
 PYXIS_MISC_OBJS=	$(PYXIS_MISC)
 PYXIS_P_MISC_OBJS=	$(PYXIS_P_MISC)
