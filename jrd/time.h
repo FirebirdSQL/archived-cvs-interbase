@@ -54,6 +54,11 @@
 
 #ifdef LINUX
 #include <libio.h>
+#ifndef _JRD_TIME_H_
+#define _JRD_TIME_H_
+#include <time.h>
+#include <sys/time.h>
+#endif
 #endif
 
 #ifndef _JRD_TIME_H_
