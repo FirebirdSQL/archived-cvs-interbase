@@ -19,11 +19,10 @@
 #include <winver.h>
 #include "../jrd/build_no.h"
 
-
 VS_VERSION_INFO VERSIONINFO
 FILEFLAGSMASK   VS_FF_PRERELEASE
 FILEFLAGS       VS_FF_PRERELEASE | VS_FF_SPECIALBUILD
-FILEVERSION     FILE_VER_NUMBER
+FILEVERSION     WIN_FILE_VER_NUMBER
 PRODUCTVERSION  FILE_VER_NUMBER
 FILEOS          VOS_NT_WINDOWS32
 
@@ -33,12 +32,12 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "CompanyName", "Inprise Corporation\0"
-      VALUE "FileDescription", "InterBase Server\0"
+      VALUE "CompanyName", "FirebirdSQL Project\0"
+      VALUE "FileDescription", "Firebird Database Server\0"
       VALUE "FileVersion", FILE_VER_STRING
       VALUE "InternalName", "IBSERVER60\0"
-      VALUE "LegalCopyright", "Copyright (c) 1999 Inprise Corporation\0"
-      VALUE "ProductName", "InterBase Server\0"
+      VALUE "LegalCopyright", "Original Code created by Inprise Corporation and its predecessors.\n Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation.\n Portions created by others are Copyright (C) 2000-2001 FirebirdSQL Project.  \0"
+      VALUE "ProductName", "Firebird Database Server\0"
       VALUE "ProductVersion", PRODUCT_VER_STRING
     END
   END
@@ -48,3 +47,5 @@ BEGIN
     VALUE "Translation", 0x409, 1252  /* U.S. English, Windows Multilingual */
   END
 END
+
+
