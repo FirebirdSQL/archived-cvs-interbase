@@ -4866,11 +4866,11 @@ SET_TDBB (tdbb);
 desc.dsc_dtype = dtype_text;
 
 if (dtype_blob == value->dsc_dtype && (BLOB_text != value->dsc_sub_type
-	|| value->dsc_scale == ttype_ascii || value->dsc_scale == ttype_none
-	|| ((obj1 = INTL_obj_lookup (tdbb, type_texttype, ttype, (FPTR_VOID) ERR_post, NULL) != 0)
+	|| (ttype = value->dsc_scale) == ttype_ascii || ttype == ttype_none
+	|| ((obj1 = INTL_obj_lookup (tdbb, type_texttype, ttype, (FPTR_VOID) ERR_post, NULL)) != 0
 		&& 1 == obj1->texttype_bytes_per_char)))
 {
-    /* Source string is a blob, things get interesting */
+    /* Source string is a blob, things get interesting. */
 
 	BLB blob = BLB_open (tdbb, tdbb->tdbb_request->req_transaction, value->dsc_address);
 	if (!blob->blb_length || blob->blb_length <= offset)
