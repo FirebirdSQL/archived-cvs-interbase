@@ -279,7 +279,7 @@ while (argv < end)
 		    break;
 
 		case 'Z':
-		    ib_printf ("InterBase TCP/IP server version %s\n", GDS_VERSION);
+		    ib_printf ("Firebird TCP/IP server version %s\n", GDS_VERSION);
 		    exit (FINI_OK);			
 		}
          if (done) break;
