@@ -922,7 +922,7 @@ page = bdb->bdb_buffer;
 file = dbb->dbb_file;
 retryCount = 0;
 
-/* We will rad a page, and if there is an I/O we will try to 
+/* We will read a page, and if there is an I/O error we will try to 
    use the shadow file, and try reading again, for a maximum of
    3 tries, before it gives up.
 
@@ -944,10 +944,8 @@ while (!PIO_read (file, bdb, page, status))
     {
     if (!read_shadow)
         {
-	break;
-	}
-    else
-	{
+        break;
+        }
 #ifdef SUPERSERVER
 	THREAD_ENTER;
 #endif
@@ -970,7 +968,6 @@ while (!PIO_read (file, bdb, page, status))
 #ifdef SUPERSERVER
 	THREAD_EXIT;
 #endif
-	}
     }
 
 #ifdef DEBUG_SAVE_BDB_PAGE 
@@ -2575,13 +2572,13 @@ old code --> if (sdw->sdw_flags & SDW_INVALID)
 	header->hdr_end = HDR_SIZE;
 	header->hdr_next_page = 0;
 
-	PAG_add_header_entry (header, HDR_root_file_name, (SSHORT)strlen ((char*)q), q);
+	PAG_add_header_entry (header, HDR_root_file_name, (USHORT)strlen ((char*)q), q);
 
 	if (next_file = shadow_file->fil_next)
 	    {
 	    q = (UCHAR*) next_file->fil_string;
 	    last = next_file->fil_min_page - 1;
-	    PAG_add_header_entry (header, HDR_file, (SSHORT)strlen ((char*)q), q);
+	    PAG_add_header_entry (header, HDR_file, (USHORT)strlen ((char*)q), q);
 	    PAG_add_header_entry (header, HDR_last_page, sizeof (last),
 							    (UCHAR*)&last);
 	    }
