@@ -14,7 +14,9 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): ______________________________________.
+# Contributor(s):
+#	Reed Mideke <rfm@cruzers.com>
+#	______________________________________.
 #
 # $Id$
 #
@@ -266,6 +268,7 @@ fi
 
 if [ $SYS_TYPE = 'LINUX' -o $SYS_TYPE = 'FREEBSD' ]
 then
+		# TODO this does not belong in the linux/freebsd section
         if [ -d interbase ] 
           then
             echo ""
@@ -296,40 +299,29 @@ then
         mkdir UDF
         mkdir -p examples/v5
         mkdir include
-# create metadata.gdb (run one level above root) 
-        if [ ! -f ../metadata.gdb ]; then
-                $INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
-        fi
-#
+		mkdir intl
         cd ..
-#
-# for purely legal reasons
-        rmIfExists isc.gdb
-        cp $INTERBASE/isc4.gdb isc.gdb
-        rmIfExists jrd/isc.gdb
-# replace old "yachts"
+
         cd jrd
-        rmIfExists yachts.gdb
-        refreshLink ../metadata.gdb yachts.gdb
+        refreshLink $MasterSourceDir/jrd/isc.gdb isc.gdb
+        refreshLink $MasterSourceDir/jrd/metadata.gdb yachts.gdb
         cd ..
+
         cd super/jrd                                  # TMC 081100
         refreshLink ../../jrd/yachts.gdb yachts.gdb   # TMC 081100
         cd ../..                                      # TMC 081100 
 
-echo "- Creating messages database"
+echo "- Creating messages link"
 echo ""
 
-# Create the messages database from the gbak version
         cd msgs
-        if [ ! -f msgs.gdb ]; then
-                $INTERBASE/bin/gbak -r msg.gbak msg.gdb
-        fi
+        refreshLink $MasterSourceDir/msgs/msg.gdb msg.gdb
         cd ..
-#
-# The following two files are not needed on linux, as they have already
-# been copied to /usr/lib as part of the normal install
-   copyIfExists $INTERBASE/lib/gds.so.0 jrd/libgds.so
-   copyIfExists $INTERBASE/lib/gds_pyxis.a jrd/libgds_pyxis.a
+  # Link these to the ones we will build, so we can do -lgds and -lgds_pyxis
+        cd jrd
+        refreshLink source/interbase/lib/gds.so libgds.so
+        refreshLink source/interbase/lib/gds_pyxis.a libgds_pyxis.a
+        cd ..
 fi
 
 echo "- Setting up makefile and database links"
@@ -423,15 +415,11 @@ refreshLink source/builds/make.journal_ss super/journal/makefile
 refreshLink .. jrd/source
 refreshLink yachts.gdb jrd/yachts.lnk
 refreshLink source/msgs/msg.gdb jrd/msg.gdb   # TMC 081100
-#refreshLink $MasterSourceDir/jrd/yachts.gdb jrd/yachts.gdb
-#refreshLink $MasterSourceDir/jrd/isc.gdb jrd/isc.gdb
 refreshLink source/builds/make.jrd jrd/makefile
 refreshLink source/pipe/allp.c jrd/allp.c
 refreshLink source/pipe/foot.c jrd/foot.c
 refreshLink source/pipe/head.c jrd/head.c
 refreshLink .. super/jrd/source
-#refreshLink yachts.gdb super/jrd/yachts.lnk
-#refreshLink $MasterSourceDir/jrd/isc.gdb super/jrd/isc.gdb
 refreshLink gds_ss.a super/jrd/libgds_ss.a
 refreshLink $MasterSourceDir/msgs/msg.gdb super/jrd/msg.gdb
 refreshLink source/builds/make.jrd_ss super/jrd/makefile
@@ -527,7 +515,6 @@ refreshLink .. qli/source
 refreshLink source/jrd/yachts.gdb qli/yachts.lnk
 refreshLink source/jrd/yachts.gdb qli/yachts.link
 refreshLink $MasterSourceDir/qli/help.gdb qli/help.gdb              # TMC 081700
-#refreshLink $MasterSourceDir/interbase/help/help.gdb qli/help.gdb  # TMC 081700
 refreshLink $MasterSourceDir/qli/help.gdb qli/master_help_db        # TMC 081700
 refreshLink source/builds/make.qli qli/makefile
 # Register
@@ -551,8 +538,7 @@ if [ $1 = "DG" ]; then
 fi
 # Utilities
 refreshLink .. utilities/source
-refreshLink source/isc.gdb jrd/isc.gdb
-refreshLink source/isc.gdb utilities/isc.gdb
+refreshLink source/jrd/isc.gdb utilities/isc.gdb
 refreshLink source/jrd/yachts.gdb utilities/yachts.lnk
 refreshLink source/builds/make.utilities utilities/makefile
 refreshLink $MasterSourceDir/utilities/rebuild.gdb utilities/rebuild.gdb
@@ -599,7 +585,7 @@ echo "$1" > .platform_type
 cd ../..
 chmod +x setup_build
 
-./setup_build $2 
+./setup_build $BuildBuildType 
 
 echo "- Directory setup is now complete!"
 echo ""
