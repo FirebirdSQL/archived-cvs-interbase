@@ -201,7 +201,7 @@ if (size <= sizeof (struct blk) || size >= MAX_BLOCK)
 needed_blocks = SIZE_TO_BLOCKS (BLOCK_ROUNDUP (size));
 
 if (BLOCKS_TO_SIZE (needed_blocks) < size)
-    BUGCHECK ("ALLD_alloc rounded up when it should round down");
+    BUGCHECK ("ALLD_alloc rounded down when it should round up");
 
 /* Find best fit.  Best fit is defined to be the free block of shortest
    tail.  If there isn't a fit, extend the pool and try, try again. */
@@ -271,7 +271,7 @@ memset (block, 0, BLOCKS_TO_SIZE (needed_blocks));
 block->blk_type = type;
 block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 
-if (needed_blocks > MAX_USHORT);
+if (needed_blocks > MAX_USHORT)
     BUGCHECK ("ALLD_alloc: too greedy");
 
 block->blk_length = (USHORT)needed_blocks;
