@@ -99,7 +99,7 @@ static UCHAR	*next_shared_memory;
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/file.h>
-#ifdef NETBSD
+#if defined(NETBSD) || defined(SINIXZ)
 #include <signal.h>
 #else
 #include <sys/signal.h>

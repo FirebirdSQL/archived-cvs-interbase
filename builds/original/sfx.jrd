@@ -260,7 +260,7 @@ gds_b.lib:	$(WHYBK_O) $(JRD_OBJECTS)
 	$(TOUCH) gds_b.lib
 
 gdsshr.a $(AIX_GDSSHR) $(AIX_PPC_GDSSHR): gds_b.a gds.bind
-	ld -bE:gds.bind -bM:SRE -H1024 $(GDSLIB_LINK) $(SCREEN_LIB) -lc -o gdsshr.o
+	$(LD) -bE:gds.bind -bM:SRE -H1024 $(GDSLIB_LINK) $(SCREEN_LIB) -lc -o gdsshr.o
 	strip -t gdsshr.o
 	-$(RM) gdsshr.a
 	$(AR) gdsshr.a gdsshr.o
@@ -289,7 +289,7 @@ gds.sl $(HP_GDSSHR): $(JRD_P_OBJECTS) flu.bin $(DSQL_P_MISC) $(LOCK_P_MISC) \
 		$(REMOTE_P_MISC) $(WAL_P_MISC) \
 		$(HM300_BRIDGE_P_MISC) $(SECURITY_P_MISC) functions.bin gds.bind
 	-$(RM) gds.sl
-	ld -b $(LD_OPTS) $(JRD_P_OBJECTS) flu.bin $(DSQL_P_MISC) \
+	$(LD) -b $(LD_OPTS) $(JRD_P_OBJECTS) flu.bin $(DSQL_P_MISC) \
 		$(LOCK_P_MISC) $(PYXIS_P_MISC_OBJS) $(REMOTE_P_MISC) \
 		$(REGISTER_P_MISC) $(WAL_P_MISC) $(HM300_BRIDGE_P_MISC) \
 		$(SECURITY_P_MISC) functions.bin -o gds.sl
@@ -304,7 +304,7 @@ gds.sl $(HP_GDSSHR): $(JRD_P_OBJECTS) flu.bin $(DSQL_P_MISC) $(LOCK_P_MISC) \
 
 bridge.shared_o:	$(GDSSHR)
 	-$(RM) bridge5
-	ld $(BLD_OPTS) all.o blb.o blf.o btr.o cch.o cmp.o \
+	$(LD) $(BLD_OPTS) all.o blb.o blf.o btr.o cch.o cmp.o \
 		cvt.o dpm.o dyn.o dyn_def.o dyn_del.o \
 		dyn_mod.o dyn_util.o enc.o err.o event.o \
 		evl.o exe.o ext.o filters.o fun.o gds.o grant.o \
@@ -322,7 +322,7 @@ bridge.shared_o:	$(GDSSHR)
 
 bridge.shared_bin:	$(GDSSHR)
 	-$(RM) bridge5
-	ld $(BLD_OPTS) all.bin blb.bin blf.bin btr.bin cch.bin cmp.bin \
+	$(LD) $(BLD_OPTS) all.bin blb.bin blf.bin btr.bin cch.bin cmp.bin \
 		cvt.bin dpm.bin dyn.bin dyn_def.bin dyn_del.bin \
 		dyn_mod.bin dyn_util.bin enc.bin err.bin event.bin \
 		evl.bin exe.bin ext.bin filters.bin fun.bin gds.bin grant.bin \
@@ -366,7 +366,7 @@ gdslib.so.1.0 $(SUN_GDSSHR):	$(JRD_P_OBJECTS) flu.bin $(CSI_P_MISC) \
 		$(REGISTER_P_MISC) \
 		$(BRIDGE_P_MISC) $(WAL_P_MISC) functions.bin gdslib.so.0.1
 	-$(RM) gdslib.so.1.0
-	ld -assert pure-text $(JRD_P_OBJECTS) flu.bin $(CSI_P_MISC) \
+	$(LD) -assert pure-text $(JRD_P_OBJECTS) flu.bin $(CSI_P_MISC) \
 		$(DSQL_P_MISC) $(LOCK_P_MISC) $(REMOTE_P_MISC) $(SECURITY_P_MISC) \
 		$(REGISTER_P_MISC) \
 		$(BRIDGE_P_MISC) $(WAL_P_MISC) functions.bin -o gdslib.so.1.0
@@ -380,7 +380,7 @@ gdslib.so.0.1:	$(JRD_P_OBJECTS) flu_non_dl.bin $(CSI_P_MISC) $(DSQL_P_MISC) \
 		$(REGISTER_P_MISC) $(SECURITY_P_MISC) \
 		gdsflib.so.0.0
 	-$(RM) gdslib.so.0.1
-	ld -assert pure-text $(JRD_P_OBJECTS) flu_non_dl.bin $(CSI_P_MISC) \
+	$(LD) -assert pure-text $(JRD_P_OBJECTS) flu_non_dl.bin $(CSI_P_MISC) \
 		$(DSQL_P_MISC) $(LOCK_P_MISC) $(REMOTE_P_MISC) $(SECURITY_P_MISC) \
 		$(REGISTER_P_MISC) \
 		$(BRIDGE_P_MISC) $(WAL_P_MISC) -lgdsflib -o gdslib.so.0.1
@@ -391,7 +391,7 @@ gdslib.so.0.1:	$(JRD_P_OBJECTS) flu_non_dl.bin $(CSI_P_MISC) $(DSQL_P_MISC) \
 
 gdsflib.so.0.0 $(SUN_FUNCSHR):	functions.bin
 	-$(RM) gdsflib.so.0.0
-	ld -assert pure-text functions.bin -o gdsflib.so.0.0
+	$(LD) -assert pure-text functions.bin -o gdsflib.so.0.0
 	$(CHMOD_6) gdsflib.so.0.0
 	$(MV) gdsflib.so.0.0 $(SUN_FUNCSHR)
 	$(TOUCH) gdsflib.so.0.0
@@ -402,7 +402,7 @@ gds.so.o $(SGI_GDSSHR) $(DECOSF_GDSSHR) $(EPSON_GDSSHR) : \
 		$(REMOTE_MISC) $(BRIDGE_MISC) $(REGISTER_MISC) \
 		$(INTL_MISC) $(WAL_MISC) $(FUNCTIONS) $(GDSFLIB) $(SECURITY_MISC)
 	-$(RM) gds.so.o
-	ld $(LD_OPTS) libgds.so.0 $(ZDEFS) $(WHY_O) $(JRD_OBJECTS) $(CSI_MISC) \
+	$(LD) $(LD_OPTS) libgds.so.0 $(ZDEFS) $(WHY_O) $(JRD_OBJECTS) $(CSI_MISC) \
 		$(DSQL_MISC) $(LOCK_MISC) $(REMOTE_MISC) $(BRIDGE_MISC) \
 		$(REGISTER_MISC) \
 		$(INTL_MISC) $(WAL_MISC) $(FUNCTIONS) $(SECURITY_MISC) \
@@ -418,7 +418,7 @@ gds.so.O $(SCO_EV_GDSSHR): \
 	$(REMOTE_MISC) $(BRIDGE_MISC) \
 	$(INTL_MISC) $(WAL_MISC) $(GDSFLIB) $(SECURITY_MISC) $(REGISTER_MISC)
 	-$(RM) gds.so.O
-	ld $(LD_OPTS) libgds.so.0 $(ZDEFS) $(WHY_O) $(JRD_OBJECTS) $(CSI_MISC) \
+	$(LD) $(LD_OPTS) libgds.so.0 $(ZDEFS) $(WHY_O) $(JRD_OBJECTS) $(CSI_MISC) \
 		$(DSQL_MISC) $(LOCK_MISC) $(REMOTE_MISC) $(BRIDGE_MISC) \
 		$(INTL_MISC) $(WAL_MISC) $(SECURITY_MISC) $(REGISTER_MISC) \
 		$(GDSF_LIB) $(LD_LIBS) -o gds.so.0
@@ -433,7 +433,7 @@ gds.so gds.so.linux: \
 		$(INTL_P_MISC) $(REGISTER_P_MISC) $(WAL_P_MISC) \
 		$(FUNCTIONS) $(GDSFLIB)
 	-$(RM) gds.so
-	ld $(LD_OPTS) $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
+	$(LD) $(LD_OPTS) $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
 		$(CSI_P_MISC) $(DSQL_P_MISC) $(LOCK_P_MISC) \
 		$(REMOTE_P_MISC) $(SECURITY_P_MISC) $(BRIDGE_P_MISC) $(INTL_P_MISC) \
 		$(REGISTER_P_MISC) $(WAL_P_MISC) $(FUNCTIONS) $(GDSF_LIB) \
@@ -449,7 +449,7 @@ gds.so.0 $(DG_GDSSHR) $(DG_X86_GDSSHR) $(UNIXWARE_GDSSHR) $(NCR3000_GDSSHR): \
 		$(INTL_P_MISC) $(REGISTER_P_MISC) $(WAL_P_MISC) \
 		$(FUNCTIONS) $(GDSFLIB)
 	-$(RM) gds.so.0
-	ld $(LD_OPTS) libgds.so.0 $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
+	$(LD) $(LD_OPTS) libgds.so.0 $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
 		$(CSI_P_MISC) $(DSQL_P_MISC) $(LOCK_P_MISC) \
 		$(REMOTE_P_MISC) $(SECURITY_P_MISC) $(BRIDGE_P_MISC) $(INTL_P_MISC) \
 		$(REGISTER_P_MISC) $(WAL_P_MISC) $(FUNCTIONS) $(GDSF_LIB) \
@@ -496,7 +496,7 @@ gdsmt.so.0: \
 		$(INTL_P_MISC) $(WAL_P_MISC) \
 		$(FUNCTIONS) $(GDSFLIB)
 	-$(RM) gdsmt.so.0
-	ld $(LD_OPTS) libgdsmt.so.0 $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
+	$(LD) $(LD_OPTS) libgdsmt.so.0 $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
 		$(CSI_P_MISC) $(DSQL_P_MISC) $(LOCK_P_MISC) \
 		$(REGISTER_P_MISC) \
 		$(REMOTE_P_MISC) $(SECURITY_P_MISC) $(BRIDGE_P_MISC) \
@@ -509,7 +509,7 @@ gdsmt.so.0: \
 
 gdsf.so $(DG_FUNCSHR) $(DG_X86_FUNCSHR):	functions.bin
 	-$(RM) gdsf.so
-	ld -G functions.bin -o gdsf.so
+	$(LD) -G functions.bin -o gdsf.so
 	$(CHMOD_6) gdsf.so
 	$(MV) gdsf.so $(FUNCSHR)
 	$(TOUCH) gdsf.so
@@ -612,7 +612,7 @@ gds.a:		$(HEAD_OBJECTS) $(NOLINK_MACHINES)
 gdspipe.so.0:	$(HEAD_J_OBJECTS) 
 	-$(RM) gdspipe.so.0
 	-$(RM) gds.so.0
-	ld $(LD_OPTS) libgds.so.0 $(HEAD_J_OBJECTS) $(LD_LIBS_J) \
+	$(LD) $(LD_OPTS) libgds.so.0 $(HEAD_J_OBJECTS) $(LD_LIBS_J) \
 		-o gds.so.0
 	$(CHMOD_6) gds.so.0
 	$(MV) gds.so.0 $(PIPE_GDSSHR)

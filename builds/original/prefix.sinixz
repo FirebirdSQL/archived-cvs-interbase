@@ -28,17 +28,16 @@
 .c.bin:
 	$(CC) -c $(PIC_FLAGS) $(VERSION_FLAG) -o $*.bin $<
 
-WARNINGS=		-Wall -Wno-implicit -Wno-switch -Wno-unused -Wno-uninitialized -Wno-parentheses
-
 PROD_DEBUG_OBJECTS=	nodebug.o
 PROD_SHRLIB_DIR=	-Lsource/jrd -L$(INTERBASE)/interbase/lib -L$(INTERBASE)/source/interbase/lib
 PROD_VERSION_FLAG=	-DPROD_BUILD
-PROD_CFLAGS=		-O3 -DHADES -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ $(WARNINGS) -fwritable-strings -I$(INTERBASE)/include
+PROD_CFLAGS=		-O3 -DHADES -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ -w -fwritable-strings -I$(INTERBASE)/include
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
 DEV_SHRLIB_DIR=		-Lsource/jrd -L$(INTERBASE)/interbase/lib -L$(INTERBASE)/source/interbase/lib
 DEV_VERSION_FLAG=	-DDEV_BUILD
-DEV_CFLAGS=		-g -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ $(WARNINGS) -fwritable-strings -I$(INTERBASE)/include
+DEV_WARNINGS=		-Wall -Wno-implicit -Wno-switch -Wno-unused -Wno-uninitialized -Wno-parentheses
+DEV_CFLAGS=		-g -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ $(DEV_WARNINGS) -fwritable-strings -I$(INTERBASE)/include
 
 DEBUG_OBJECTS=		$($(VERSION)_DEBUG_OBJECTS)
 SHRLIB_DIR=		$($(VERSION)_SHRLIB_DIR)
@@ -68,7 +67,7 @@ GDSSHR_LINK=		$(SHRLIB_DIR) -lgds -lsocket -lresolv -lnsl
 HLPDIR=			source/qli/
 INTL=			intl
 INTL_CFLAGS=		$(CFLAGS)
-INTL_LD_LINE=		ld -G -z text -o gdsintl
+INTL_LD_LINE=		$(LD) -G -z text -o gdsintl
 INTL_P_OBJS=		intl
 INTL_PIC_FLAGS=		$(PIC_FLAGS)
 INTL_TARGET=		intl_shr_objs
@@ -76,7 +75,7 @@ IO_OBJECTS=		unix.o
 IO_P_OBJECTS=		unix.bin
 JRD_MISC_OBJECTS=	stubs.o
 JRD_P_MISC_OBJECTS=	nodebug.bin stubs.bin
-LANG_OBJECTS=		cob.o
+LANG_OBJECTS=		ada.o ftn.o cob.o
 LANGUAGES=		cc cxx microfocus_cob make15 gdl1
 LD_LIBS=		-ldl
 LD_OPTS=		-G -h

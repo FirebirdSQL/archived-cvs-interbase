@@ -64,8 +64,8 @@ extern USHORT	minor_ods;
 extern SSHORT	V4;
 extern SSHORT	V33;
 
-static void	*local_fprintf (UCHAR *, UCHAR *);
-static SCHAR	*remove_delimited_double_quotes (TEXT *);
+static void	local_fprintf (UCHAR *, UCHAR *);
+static void	remove_delimited_double_quotes (TEXT *);
 static void	make_priv_string (USHORT, UCHAR *);
 static int	show_all_tables (SSHORT);
 static void	show_charsets (SCHAR *, SCHAR *);
@@ -1638,7 +1638,7 @@ if (ret == NOT_FOUND)
 return (ret);
 }
 
-static void *local_fprintf (
+static void local_fprintf (
     UCHAR	*format,
     UCHAR	*string)
 {
@@ -1663,7 +1663,7 @@ PaintOutputWindow (NEWLINE);
 #endif 
 }
 
-static SCHAR *remove_delimited_double_quotes (
+static void remove_delimited_double_quotes (
     TEXT	*string)
 {
 /**************************************

@@ -112,7 +112,7 @@ static void	put_asciz (SCHAR, SCHAR *);
 static void	put_numeric (SCHAR, int);
 static BOOLEAN	read_header (DESC, ULONG *, USHORT *, USHORT);
 static BOOLEAN	write_header (DESC, ULONG, USHORT);
-static void *	next_volume (DESC, int, USHORT);
+static DESC	next_volume (DESC, int, USHORT);
 
 void MVOL_fini_read (
     int		*count_kb)
@@ -944,7 +944,7 @@ if (l)
 return l2;
 }
 
-static void * next_volume (
+static DESC next_volume (
     DESC	handle,
     int		mode,
     USHORT	full_buffer)

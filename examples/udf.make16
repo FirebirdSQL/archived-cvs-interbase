@@ -100,7 +100,7 @@ trigger.flag:	udf_trig.gdl
 	echo "gdef'd udf_trig.gdl" > trigger.flag
 
 $(FUNCLIB): 	$(FUNCOBJ) 
-	ld -G -Bsymbolic $(FUNCOBJ) $(SHRLIBS) -lc -o $(FUNCLIB)
+	$(LD) -G -Bsymbolic $(FUNCOBJ) $(SHRLIBS) -lc -o $(FUNCLIB)
 
 udf.o:		udf.c
 

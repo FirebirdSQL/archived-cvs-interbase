@@ -85,7 +85,7 @@ new:
 #	Build special gdsf that includes the udf.
 
 gdsf.so: cs_convert.o functions.o
-	ld -G -o gdsf.so functions.o cs_convert.o -z defs -lm -lc
+	$(LD) -G -o gdsf.so functions.o cs_convert.o -z defs -lm -lc
 #
 #	To test shareable objects use ln to define links to gds and gdsf.
 #	gds.so needs to include the gdsf.so found in the same directory

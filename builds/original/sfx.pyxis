@@ -52,7 +52,7 @@ pyx_p_objects:	$(PYXIS_P_OBJECTS)
 
 pyxlib.o:	$(PHASE2_OBJECTS)
 	-$(RM) pyxlib.o
-	ld -r $(PHASE2_OBJECTS) $(SCREEN_LIBS) -o pyxlib.o
+	$(LD) -r $(PHASE2_OBJECTS) $(SCREEN_LIBS) -o pyxlib.o
 	$(CHMOD_6) pyxlib.o
 
 pyxislib:	$(PHASE2_OBJECTS)
@@ -79,14 +79,14 @@ libpyxis.a:	pyxis_objects
 
 scr_libs.o:
 	-$(RM) scr_libs.o
-	ld -r -u _endwin -u _tgetent -u _tgetflag -u _tgetent -u _tgoto \
+	$(LD) -r -u _endwin -u _tgetent -u _tgetflag -u _tgetent -u _tgoto \
 	-u _initscr -u _tputs -u _waddstr -u _wclear -u _wgetch -u _wrefresh \
 	-u _wstandend -ltermlib -lcurses -o scr_libs.o
 	$(CHMOD_6) scr_libs.o
 
 scr_libs_si.o:
 	-$(RM) scr_libs_si.o
-	ld -r -u endwin -u tgetent -u tgetflag -u tgetent -u tgoto \
+	$(LD) -r -u endwin -u tgetent -u tgetflag -u tgetent -u tgoto \
 	-u initscr -u tputs -u waddstr -u wclear -u wgetch -u wrefresh \
 	-u wstandend -ltermlib -lcurses -o scr_libs_si.o
 	$(CHMOD_6) scr_libs_si.o
@@ -103,8 +103,8 @@ cdm.o:		cdm.c pyxis.h scr.h
 # loading the lncurses library.  The create of relocatable code
 # works without it, obviously this will need some testing on 
 # platofrms other than linux.  
-#	ld -r cdm.o $(LIB_TYPE) $(SCREEN_LIBS) -o cdmfoo.o
-	ld -r cdm.o $(LIB_TYPE)  -o cdmfoo.o
+#	$(LD) -r cdm.o $(LIB_TYPE) $(SCREEN_LIBS) -o cdmfoo.o
+	$(LD) -r cdm.o $(LIB_TYPE)  -o cdmfoo.o
 	$(MV) cdmfoo.o cdm.o
 
 debug.o:	debug.c pyxis.h scr.h attributes.h

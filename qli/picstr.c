@@ -343,7 +343,7 @@ else
 return picture;
 }
 
-int PIC_edit (
+void PIC_edit (
     DSC		*desc,
     PIC		picture,
     TEXT	**output,

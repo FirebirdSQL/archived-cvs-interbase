@@ -117,14 +117,14 @@ $Id$
 
 static int	assign (SCHAR *);
 #ifndef DECOSF
-static int	bzero (SCHAR *, int);
+static void	bzero (SCHAR *, int);
 #endif
 static void	name_process (UCHAR *);
 static void	signal_handler (void);
 #ifdef SUPERSERVER
 static void	signal_sigpipe_handler (void);
 #endif
-static int	set_signal (int, FPTR_VOID);
+static void	set_signal (int, FPTR_VOID);
 
 #ifdef WINDOWS_ROUTER
 static int	atov (UCHAR *, UCHAR**, SSHORT);
@@ -538,7 +538,7 @@ return (status & 1) ? channel : 0;
 #endif
 
 #if !(defined OS2_ONLY || defined DECOSF)
-static int bzero (
+static void bzero (
     SCHAR	*address,
     int		length)
 {
@@ -560,7 +560,7 @@ if (length)
 
 
 #if !(defined VMS || defined NETWARE_386 || defined PC_PLATFORM || defined OS2_ONLY)
-static int set_signal (
+static void set_signal (
     int		signal_number,
     void	(*handler)(void))
 {

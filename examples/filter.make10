@@ -57,7 +57,7 @@ QLI=	$(IBEXE)/qli -z
 #	Build special gdsf that includes the filter.
 
 gdsf.so:	nr_filter.o slides.gdb filter_func.o
-	ld -G -o gdsf.so filter_func.o nr_filter.o -z defs -lc
+	$(LD) -G -o gdsf.so filter_func.o nr_filter.o -z defs -lc
 #
 #	To test shareable objects use ln to define links to gds and gdsf.
 #	gds.so needs to include the gdsf.so found in the same directory

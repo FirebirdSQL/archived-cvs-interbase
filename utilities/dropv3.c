@@ -28,6 +28,9 @@
 #include <sys/types.h>
 #endif
 #include <sys/stat.h>
+#ifdef SINIXZ
+#include <stdlib.h>
+#endif
 
 #include "../jrd/common.h"
 #include "../jrd/isc.h"

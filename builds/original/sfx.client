@@ -75,7 +75,7 @@ super_client:	$(SUPER_CLIENT_GDSSHR)
 gdsmt.so.1 $(SO_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
 	-$(RM) gdsmt.so.1
-	ld $(LD_OPTS) libgdsmt.so.0 $(ZDEFS) $(CLIENT_P_OBJECTS) \
+	$(LD) $(LD_OPTS) libgdsmt.so.0 $(ZDEFS) $(CLIENT_P_OBJECTS) \
 		$(LD_LIBS) -o gdsmt.so.1
 	$(CHMOD_6) gdsmt.so.1
 	$(MV) gdsmt.so.1 $(SO_SUPER_GDSSHR)
@@ -85,7 +85,7 @@ gdsmt.so.1 $(SO_SUPER_GDSSHR): \
 gds.sl.1 $(HP_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
 	-$(RM) gds.sl.1
-	ld -b $(LD_OPTS) $(CLIENT_P_OBJECTS) $(LD_LIBS) \
+	$(LD) -b $(LD_OPTS) $(CLIENT_P_OBJECTS) $(LD_LIBS) \
 		-o gds.sl.1
 	$(CHMOD_7) gds.sl.1
 	$(MV) gds.sl.1 $(HP_SUPER_GDSSHR)
@@ -95,7 +95,7 @@ gds.sl.1 $(HP_SUPER_GDSSHR): \
 gds.so.1 $(LX_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
 	-$(RM) gds.so.1
-	ld $(LD_OPTS) $(CLIENT_P_OBJECTS) $(LD_LIBS_WITH_PTHREAD) \
+	$(LD) $(LD_OPTS) $(CLIENT_P_OBJECTS) $(LD_LIBS_WITH_PTHREAD) \
 		-o gds.so.1
 	$(CHMOD_7) gds.so.1
 	$(MV) gds.so.1 $(LX_SUPER_GDSSHR)
@@ -119,7 +119,7 @@ gds.dylib.1 $(DARWIN_SUPER_GDSSHR): $(JRD_GDS_H) $(PYXIS_P_MISC) $(WAL_P_MISC) \
 gdsshr.a.1 $(AIX_PPC_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
 	-$(RM) gdsshr.a.1
-	ld $(CLIENT_P_OBJECTS) -bM:SRE -H1024 -bE:source/jrd/gds.bind -lc \
+	$(LD) $(CLIENT_P_OBJECTS) -bM:SRE -H1024 -bE:source/jrd/gds.bind -lc \
 		-o gdsshr.a.1
 	$(CHMOD_6) gdsshr.a.1
 	$(MV) gdsshr.a.1 $(AIX_PPC_SUPER_GDSSHR)
@@ -132,7 +132,7 @@ gds.so.0 $(DG_GDSSHR) $(DG_X86_GDSSHR) $(SOL_GDSSHR) $(UNIXWARE_GDSSHR): \
 		$(INTL_P_MISC) $(WAL_P_MISC) \
 		$(FUNCTIONS) $(GDSFLIB)
 	-$(RM) gds.so.0
-	ld $(LD_OPTS) libgds.so.0 $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
+	$(LD) $(LD_OPTS) libgds.so.0 $(ZDEFS) $(JRD_P_OBJECTS) flu.bin \
 		$(CSI_P_MISC) $(DSQL_P_MISC) $(LOCK_P_MISC) \
 		$(REMOTE_P_MISC) $(BRIDGE_P_MISC) \
 		$(INTL_P_MISC) $(WAL_P_MISC) $(FUNCTIONS) $(GDSF_LIB) \
@@ -144,7 +144,7 @@ gds.so.0 $(DG_GDSSHR) $(DG_X86_GDSSHR) $(SOL_GDSSHR) $(UNIXWARE_GDSSHR): \
 
 gdsf.so $(DG_FUNCSHR) $(DG_X86_FUNCSHR):	functions.bin
 	-$(RM) gdsf.so
-	ld -G functions.bin -o gdsf.so
+	$(LD) -G functions.bin -o gdsf.so
 	$(CHMOD_6) gdsf.so
 	$(MV) gdsf.so $(FUNCSHR)
 	$(TOUCH) gdsf.so

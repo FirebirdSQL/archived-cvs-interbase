@@ -1410,7 +1410,7 @@ for (; *str1; str1++)
 return TRUE;
 }
 
-static arg_is_string (
+static int arg_is_string (
     SLONG	argc,
     TEXT	**argvstring,
     TEXT	*errstring)
@@ -1790,7 +1790,7 @@ for (; action; action = action->act_rest)
     }
 } 
 
-static get_char (
+static int get_char (
     IB_FILE	*file)
 {
 /**************************************
@@ -2494,7 +2494,7 @@ if (sw_language == lan_basic && (int)token.tok_keyword == (int)KW_AMPERSAND)
 return &token;
 }
 
-static nextchar (void)
+static int nextchar (void)
 {
 /**************************************
  *

@@ -322,104 +322,104 @@ extern DBB	isc_databases;
 extern REQ	requests;
 extern IB_FILE	*out_file;
 
-static int	align();
-static int	asgn_from (ACT, REF);
-static int	asgn_sqlda_from (REF, SCHAR);
-static int	asgn_to (ACT, REF);
-static int	asgn_to_proc (REF);
-static int	gen_any (ACT);
-static int	gen_at_end (ACT);
-static int	gen_based (ACT);
-static int	gen_blob_close (ACT);
-static int	gen_blob_end (ACT);
-static int	gen_blob_for (ACT);
-static int	gen_blob_open (ACT);
+static void	align();
+static void	asgn_from (ACT, REF);
+static void	asgn_sqlda_from (REF, SCHAR);
+static void	asgn_to (ACT, REF);
+static void	asgn_to_proc (REF);
+static void	gen_any (ACT);
+static void	gen_at_end (ACT);
+static void	gen_based (ACT);
+static void	gen_blob_close (ACT);
+static void	gen_blob_end (ACT);
+static void	gen_blob_for (ACT);
+static void	gen_blob_open (ACT);
 static int	gen_blr (int *, int, TEXT *);
-static int	gen_clear_handles (ACT);
-static int	gen_compile (ACT);
-static int	gen_create_database (ACT);
-static int	gen_cursor_close (ACT, REQ);
-static int	gen_cursor_init (ACT);
-static int	gen_cursor_open (ACT, REQ);
-static int	gen_database (ACT);
-static int	gen_ddl (ACT);
-static int	gen_dyn_close (ACT);
-static int	gen_dyn_declare (ACT);
-static int	gen_dyn_describe (ACT, BOOLEAN);
-static int	gen_dyn_execute (ACT);
-static int	gen_dyn_fetch (ACT);
-static int	gen_dyn_immediate (ACT);
-static int	gen_dyn_insert (ACT);
-static int	gen_dyn_open (ACT);
-static int	gen_dyn_prepare (ACT);
-static int	gen_emodify (ACT);
-static int	gen_estore (ACT);
-static int	gen_end_fetch (ACT);
-static int	gen_endfor (ACT);
-static int	gen_erase (ACT);
+static void	gen_clear_handles (ACT);
+static void	gen_compile (ACT);
+static void	gen_create_database (ACT);
+static void	gen_cursor_close (ACT, REQ);
+static void	gen_cursor_init (ACT);
+static void	gen_cursor_open (ACT, REQ);
+static void	gen_database (ACT);
+static void	gen_ddl (ACT);
+static void	gen_dyn_close (ACT);
+static void	gen_dyn_declare (ACT);
+static void	gen_dyn_describe (ACT, BOOLEAN);
+static void	gen_dyn_execute (ACT);
+static void	gen_dyn_fetch (ACT);
+static void	gen_dyn_immediate (ACT);
+static void	gen_dyn_insert (ACT);
+static void	gen_dyn_open (ACT);
+static void	gen_dyn_prepare (ACT);
+static void	gen_emodify (ACT);
+static void	gen_estore (ACT);
+static void	gen_end_fetch (ACT);
+static void	gen_endfor (ACT);
+static void	gen_erase (ACT);
 static SSHORT	gen_event_block (ACT);
-static int	gen_event_init (ACT);
-static int	gen_event_wait (ACT);
-static int	gen_fetch (ACT);
-static int	gen_finish (ACT);
-static int	gen_for (ACT);
-static int	gen_form_display (ACT);
-static int	gen_form_end (ACT);
-static int	gen_form_for (ACT);
-static int	gen_function (ACT);
-static int	gen_get_or_put_slice (ACT, REF, BOOLEAN);
-static int	gen_get_segment (ACT);
-static int	gen_item_end (ACT);
-static int	gen_item_for (ACT);
-static int	gen_loop (ACT);
-static int	gen_menu (ACT);
-static int	gen_menu_display (ACT);
-static int	gen_menu_end (ACT);
-static int	gen_menu_entree (ACT);
-static int	gen_menu_entree_att (ACT);
-static int	gen_menu_for (ACT);
-static int	gen_menu_item_end (ACT);
-static int	gen_menu_item_for (ACT);
-static int	gen_menu_request (REQ);
+static void	gen_event_init (ACT);
+static void	gen_event_wait (ACT);
+static void	gen_fetch (ACT);
+static void	gen_finish (ACT);
+static void	gen_for (ACT);
+static void	gen_form_display (ACT);
+static void	gen_form_end (ACT);
+static void	gen_form_for (ACT);
+static void	gen_function (ACT);
+static void	gen_get_or_put_slice (ACT, REF, BOOLEAN);
+static void	gen_get_segment (ACT);
+static void	gen_item_end (ACT);
+static void	gen_item_for (ACT);
+static void	gen_loop (ACT);
+static void	gen_menu (ACT);
+static void	gen_menu_display (ACT);
+static void	gen_menu_end (ACT);
+static void	gen_menu_entree (ACT);
+static void	gen_menu_entree_att (ACT);
+static void	gen_menu_for (ACT);
+static void	gen_menu_item_end (ACT);
+static void	gen_menu_item_for (ACT);
+static void	gen_menu_request (REQ);
 static TEXT	*gen_name (TEXT *, REF, BOOLEAN);
-static int	gen_on_error (ACT);
-static int	gen_procedure (ACT);
-static int	gen_put_segment (ACT);
-static int	gen_raw (UCHAR *, enum req_t, int, int);
-static int	gen_ready (ACT);
-static int	gen_receive (ACT, POR);
-static int	gen_release (ACT);
-static int	gen_request (REQ);
-static int	gen_s_end (ACT);
-static int	gen_s_fetch (ACT);
-static int	gen_s_start (ACT);
-static int	gen_segment (ACT);
-static int	gen_select (ACT);
-static int	gen_send (ACT, POR);
-static int	gen_slice (ACT);
-static int	gen_start (ACT, POR);
-static int	gen_store (ACT);
-static int	gen_t_start (ACT);
-static int	gen_tpb (TPB);
-static int	gen_trans (ACT);
-static int	gen_type (ACT);
-static int	gen_update (ACT);
-static int	gen_variable (ACT);
-static int	gen_whenever (SWE);
-static int	gen_window_create (ACT);
-static int	gen_window_delete (ACT);
-static int	gen_window_suspend (ACT);
-static int	make_array_declaration (REF);
+static void	gen_on_error (ACT);
+static void	gen_procedure (ACT);
+static void	gen_put_segment (ACT);
+static void	gen_raw (UCHAR *, enum req_t, int, int);
+static void	gen_ready (ACT);
+static void	gen_receive (ACT, POR);
+static void	gen_release (ACT);
+static void	gen_request (REQ);
+static void	gen_s_end (ACT);
+static void	gen_s_fetch (ACT);
+static void	gen_s_start (ACT);
+static void	gen_segment (ACT);
+static void	gen_select (ACT);
+static void	gen_send (ACT, POR);
+static void	gen_slice (ACT);
+static void	gen_start (ACT, POR);
+static void	gen_store (ACT);
+static void	gen_t_start (ACT);
+static void	gen_tpb (TPB);
+static void	gen_trans (ACT);
+static void	gen_type (ACT);
+static void	gen_update (ACT);
+static void	gen_variable (ACT);
+static void	gen_whenever (SWE);
+static void	gen_window_create (ACT);
+static void	gen_window_delete (ACT);
+static void	gen_window_suspend (ACT);
+static void	make_array_declaration (REF);
 static TEXT	*make_name (TEXT *, SYM);
 static TEXT	*make_name_formatted (TEXT *, TEXT *, SYM);
-static int	make_port (POR);
-static int	make_ready (DBB, TEXT *, TEXT *, REQ, USHORT);
-static int	printa (TEXT *, BOOLEAN, TEXT *, ...);
-static int	printb (TEXT *, ... );
+static void	make_port (POR);
+static void	make_ready (DBB, TEXT *, TEXT *, REQ, USHORT);
+static void	printa (TEXT *, BOOLEAN, TEXT *, ...);
+static void	printb (TEXT *, ... );
 static TEXT	*request_trans (ACT, REQ);
-static int	set_sqlcode (ACT);
+static void	set_sqlcode (ACT);
 static TEXT	*status_vector (ACT);
-static int	t_start_auto (REQ, TEXT *, ACT, SSHORT);
+static void	t_start_auto (REQ, TEXT *, ACT, SSHORT);
 
 static TEXT	output_buffer [512];
 static int	first_flag;
@@ -840,7 +840,7 @@ ib_fprintf (out_file, "%s", s);
 output_buffer[0] = 0;
 }
 
-static int align (
+static void align (
     int column)
 {
 /**************************************
@@ -869,7 +869,7 @@ for (i = column % 8; i; --i)
 }
 
 
-static asgn_from (
+static void asgn_from (
     ACT		action,
     REF		reference)
 {
@@ -929,7 +929,7 @@ for (; reference; reference = reference->ref_next)
 
 
 #ifdef UNDEF
-static int asgn_sqlda_from (
+static void asgn_sqlda_from (
     REF		reference,
     int		number,
     SCHAR	*string,
@@ -962,7 +962,7 @@ for (; reference; reference = reference->ref_next)
 #endif
 
 
-static asgn_to (
+static void asgn_to (
     ACT		action,
     REF		reference)
 {
@@ -1008,7 +1008,7 @@ if (reference = reference->ref_null)
     }
 }
 
-static asgn_to_proc (
+static void asgn_to_proc (
     REF	reference)
 {
 /**************************************
@@ -1037,7 +1037,7 @@ for (; reference; reference = reference->ref_next)
     }
 }
 
-static int gen_any (
+static void gen_any (
     ACT		action )
 {
 /**************************************
@@ -1068,7 +1068,7 @@ if (port = request->req_vport)
 ib_fprintf (out_file, ")");
 }
 
-static gen_at_end (
+static void gen_at_end (
     ACT		action)
 {
 /**************************************
@@ -1090,7 +1090,7 @@ printa (names [COLUMN], FALSE,
 ib_fprintf (out_file, names [COLUMN]);
 }
 
-static gen_based (
+static void gen_based (
     ACT		action)
 {
 /**************************************
@@ -1192,7 +1192,7 @@ if (*based_on->bas_terminator == '.')
     ib_fprintf (out_file, "%s\n", based_on->bas_terminator);
 }
 
-static gen_blob_close (
+static void gen_blob_close (
     ACT		action)
 {
 /**************************************
@@ -1227,7 +1227,7 @@ printa (names [COLUMN], TRUE, "CALL \"%s\" USING %s, %s%s%d",
 set_sqlcode (action);
 }
 
-static gen_blob_end (
+static void gen_blob_end (
     ACT		action)
 {
 /**************************************
@@ -1260,7 +1260,7 @@ else
 	    BY_REF, names [ISC_], blob->blb_ident);
 }
 
-static gen_blob_for (
+static void gen_blob_for (
     ACT		action)
 {
 /**************************************
@@ -1284,7 +1284,7 @@ printa (names [COLUMN], FALSE, "%s%s(2) NOT = 0 AND %s(2) NOT = 335544366",
 	    names [ISC_STATUS]);
 }
 
-static gen_blob_open (
+static void gen_blob_open (
     ACT		action)
 {
 /**************************************
@@ -1449,7 +1449,7 @@ ib_fprintf (out_file, "%s\n", p);
 return TRUE;
 }
 
-static int gen_clear_handles (
+static void gen_clear_handles (
     ACT		action )
 {
 /**************************************
@@ -1474,7 +1474,7 @@ for (request = requests; request; request = request->req_next)
     }
 }
 
-static gen_compile (
+static void gen_compile (
     ACT		action)
 {
 /**************************************
@@ -1546,7 +1546,7 @@ if (blob = request->req_blobs)
 	}
 }
 
-static gen_create_database (
+static void gen_create_database (
     ACT		action)
 {
 /**************************************
@@ -1722,7 +1722,7 @@ printa (names [COLUMN], FALSE, "END-IF");
 set_sqlcode (action);
 }
 
-static gen_cursor_close (
+static void gen_cursor_close (
     ACT		action,
     REQ		request)
 {
@@ -1749,7 +1749,7 @@ printa (names [COLUMN], FALSE, "IF %s(2) = 0 THEN",
     names [ISC_STATUS]);
 }
 
-static gen_cursor_init (
+static void gen_cursor_init (
     ACT		action)
 {
 /**************************************
@@ -1771,7 +1771,7 @@ if (action->act_request->req_flags & (REQ_sql_blob_open | REQ_sql_blob_create))
 	names [ISC_], action->act_request->req_blobs->blb_ident);
 }
 
-static gen_cursor_open (
+static void gen_cursor_open (
     ACT		action,
     REQ		request)
 {
@@ -1839,7 +1839,7 @@ printa (names [COLUMN], FALSE, "IF %s(2) = 0 THEN",
     names [ISC_STATUS]);
 }
 
-static gen_database (
+static void gen_database (
     ACT		action)
 {
 /**************************************
@@ -2111,7 +2111,7 @@ if (max_count)
 printa (names[COMMENT], FALSE, "**** end of GPRE definitions ****\n");
 } 
  
-static gen_ddl (
+static void gen_ddl (
     ACT		action)
 {
 /**************************************
@@ -2169,7 +2169,7 @@ COB_print_buffer (output_buffer, TRUE);
 set_sqlcode (action);
 }
 
-static gen_dyn_close (
+static void gen_dyn_close (
     ACT		action)
 {
 /**************************************
@@ -2199,7 +2199,7 @@ printa (names [COLUMN], TRUE,
 set_sqlcode (action);
 }
 
-static gen_dyn_declare (
+static void gen_dyn_declare (
     ACT		action)
 {
 /**************************************
@@ -2234,7 +2234,7 @@ printa (names [COLUMN], TRUE,
 set_sqlcode (action);
 }
 
-static gen_dyn_describe (
+static void gen_dyn_describe (
     ACT		action,
     BOOLEAN	bind_flag)
 {
@@ -2269,7 +2269,7 @@ printa (names [COLUMN], TRUE,
 set_sqlcode (action);
 }
 
-static gen_dyn_execute (
+static void gen_dyn_execute (
     ACT		action)
 {
 /**************************************
@@ -2331,7 +2331,7 @@ if (sw_auto)
 set_sqlcode (action);
 }
 
-static gen_dyn_fetch (
+static void gen_dyn_fetch (
     ACT		action)
 {
 /**************************************
@@ -2377,7 +2377,7 @@ set_sqlcode (action);
 printa (names [COLUMN], FALSE, "END-IF");
 }
 
-static gen_dyn_immediate (
+static void gen_dyn_immediate (
     ACT		action)
 {
 /**************************************
@@ -2454,7 +2454,7 @@ if (sw_auto)
 set_sqlcode (action);
 }
 
-static gen_dyn_insert (
+static void gen_dyn_insert (
     ACT		action)
 {
 /**************************************
@@ -2490,7 +2490,7 @@ printa (names [COLUMN], TRUE,
 set_sqlcode (action);
 }
 
-static gen_dyn_open (
+static void gen_dyn_open (
     ACT		action)
 {
 /**************************************
@@ -2552,7 +2552,7 @@ if (sw_auto)
 set_sqlcode (action);
 }
 
-static gen_dyn_prepare (
+static void gen_dyn_prepare (
     ACT		action)
 {
 /**************************************
@@ -2622,7 +2622,7 @@ if (sw_auto)
 set_sqlcode (action);
 }
 
-static gen_emodify (
+static void gen_emodify (
     ACT		action)
 {
 /**************************************
@@ -2666,7 +2666,7 @@ for (reference= modify->upd_port->por_references; reference;
 gen_send (action, modify->upd_port);
 }
 
-static gen_estore (
+static void gen_estore (
     ACT		action)
 {
 /**************************************
@@ -2685,7 +2685,7 @@ request = action->act_request;
 gen_start (action, request->req_primary);
 }
 
-static gen_end_fetch (
+static void gen_end_fetch (
     ACT		action)
 {
 /**************************************
@@ -2703,7 +2703,7 @@ printa (names [COLUMN], FALSE, "END-IF");
 
 }
 
-static gen_endfor (
+static void gen_endfor (
     ACT		action)
 {
 /**************************************
@@ -2726,7 +2726,7 @@ gen_receive (action, request->req_primary);
 printa (names [COLUMN], FALSE, "END-PERFORM");
 }
 
-static gen_erase (
+static void gen_erase (
     ACT		action)
 {
 /**************************************
@@ -2779,7 +2779,7 @@ list = init->nod_arg [1];
 return list->nod_count;
 }
 
-static gen_event_init (
+static void gen_event_init (
     ACT		action)
 {
 /**************************************
@@ -2861,7 +2861,7 @@ PATTERN_expand (column, pattern3, &args);
 set_sqlcode (action);
 }
 
-static gen_event_wait (
+static void gen_event_wait (
     ACT		action)
 {
 /**************************************
@@ -2907,7 +2907,8 @@ for (stack_ptr = events; stack_ptr; stack_ptr = stack_ptr->lls_next)
 if (ident < 0)
     {
     sprintf (s, "event handle \"%s\" not found", event_name->sym_string);
-    return IBERROR (s);
+    IBERROR (s);
+    return;
     }
 
 column = strlen (names [COLUMN]);
@@ -2927,7 +2928,7 @@ PATTERN_expand (column, pattern2, &args);
 set_sqlcode (action);
 }
 
-static gen_fetch (
+static void gen_fetch (
     ACT		action)
 {
 /**************************************
@@ -3016,7 +3017,7 @@ if (port)
 #endif
 }  
 
-static gen_finish (
+static void gen_finish (
     ACT		action)
 {
 /**************************************
@@ -3085,7 +3086,7 @@ if (!db)
 set_sqlcode (action);
 }
 
-static gen_for (
+static void gen_for (
     ACT		action)
 {
 /**************************************
@@ -3115,7 +3116,7 @@ if (port = action->act_request->req_primary)
 	    gen_get_or_put_slice (action, reference, TRUE);
 }
 
-static gen_form_display (
+static void gen_form_display (
     ACT		action)
 {
 /**************************************
@@ -3168,7 +3169,7 @@ printa (names [COLUMN], TRUE,
 	BY_REF, out);
 }
 
-static gen_form_end (
+static void gen_form_end (
     ACT		action)
 {
 /**************************************
@@ -3186,7 +3187,7 @@ printa (names [COLUMN], TRUE, "CALL \"%s\" USING %s%s",
 	PYXIS_POP_WINDOW, BY_REF, names [ISC_WINDOW]);
 }
 
-static int gen_function (
+static void gen_function (
     ACT		function)
 {
 /**************************************
@@ -3289,7 +3290,7 @@ port = request->req_primary;
 ib_fprintf (out_file, "\nreturn %s;\n}\n", gen_name (s, port->por_references, TRUE));
 }
 
-static gen_form_for (
+static void gen_form_for (
     ACT		action)
 {
 /**************************************
@@ -3359,7 +3360,7 @@ printa (names [COLUMN], TRUE, "CALL \"%s\" USING %s, %s%s",
     BY_REF, request->req_handle);
 }
 
-static gen_get_or_put_slice (
+static void gen_get_or_put_slice (
     ACT		action,
     REF		reference,
     BOOLEAN	get)
@@ -3422,7 +3423,7 @@ PATTERN_expand (column, (get) ? pattern1 : pattern2, &args);
 ib_fprintf (out_file, "\n");
 }
 
-static gen_get_segment (
+static void gen_get_segment (
     ACT		action)
 {
 /**************************************
@@ -3478,7 +3479,7 @@ if (action->act_flags & ACT_sql)
     }
 }
 
-static gen_item_end (
+static void gen_item_end (
     ACT		action)
 {
 /**************************************
@@ -3543,7 +3544,7 @@ printa (names [COLUMN], TRUE,
 	BY_REF, names [ISC_], port->por_ident);
 }
 
-static gen_item_for (
+static void gen_item_for (
     ACT		action)
 {
 /**************************************
@@ -3605,7 +3606,7 @@ if (action->act_error || (action->act_flags & ACT_sql))
 printa (names [COLUMN], FALSE, "PERFORM UNTIL %s = 0", index);
 }
 
-static gen_loop (
+static void gen_loop (
     ACT		action)
 {
 /**************************************
@@ -3635,7 +3636,7 @@ printa (names [COLUMN], FALSE, "END-IF");
 printa (names [COLUMN], FALSE, "END-IF");
 }
 
-static gen_menu (
+static void gen_menu (
     ACT		action)
 {
 /**************************************
@@ -3669,7 +3670,7 @@ printa (names [COLUMN], TRUE,
     request->req_handle);
 }
 
-static gen_menu_display (
+static void gen_menu_display (
     ACT		action)
 {
 /**************************************
@@ -3716,7 +3717,7 @@ printa (names [CONTINUE], TRUE,
 
 }
 
-static gen_menu_end (
+static void gen_menu_end (
     ACT		action)
 {
 /**************************************
@@ -3738,7 +3739,7 @@ if (request->req_flags & REQ_menu_for)
 printa (names [COLUMN], FALSE, "END-IF");
 }
 
-static gen_menu_entree (
+static void gen_menu_entree (
     ACT		action)
 {
 /**************************************
@@ -3760,7 +3761,7 @@ printa (names [COLUMN], FALSE,
 	"IF %sS = %d THEN", request->req_handle, action->act_count);
 }
 
-static gen_menu_entree_att (
+static void gen_menu_entree_att (
     ACT		action)
 {
 /**************************************
@@ -3796,7 +3797,7 @@ else
     ib_fprintf (out_file,"%s%s%d", names [COLUMN], names [ISC_], ident);
 }
 
-static gen_menu_for (
+static void gen_menu_for (
     ACT		action)
 {
 /**************************************
@@ -3821,7 +3822,7 @@ if (!(request->req_flags & REQ_exp_hand))
 	BY_REF, request->req_handle);
 }
 
-static gen_menu_item_end (
+static void gen_menu_item_end (
     ACT		action)
 {
 /**************************************
@@ -3866,7 +3867,7 @@ printa (names [COLUMN],
 	BY_REF, names [ISC_], entree->entree_value);
 }
 
-static gen_menu_item_for (
+static void gen_menu_item_for (
     ACT		action)
 {
 /**************************************
@@ -3906,7 +3907,7 @@ printa (names [COLUMN], FALSE, "PERFORM UNTIL %s%d NOT = 0",
 
 }
 
-static gen_menu_request (
+static void gen_menu_request (
     REQ		request)
 {
 /**************************************
@@ -4014,7 +4015,7 @@ else
 return string;
 }
 
-static gen_on_error (
+static void gen_on_error (
     ACT		action)
 {
 /**************************************
@@ -4033,7 +4034,7 @@ printa (names [COLUMN], FALSE, "IF %s (2) NOT = 0 THEN",
 ib_fprintf (out_file, names [COLUMN]);
 }
 
-static gen_procedure (
+static void gen_procedure (
     ACT		action)
 {
 /**************************************
@@ -4100,7 +4101,7 @@ asgn_to_proc (request->req_references);
 printa (names [COLUMN], FALSE, "END-IF");
 }
 
-static gen_put_segment (
+static void gen_put_segment (
     ACT		action)
 {
 /**************************************
@@ -4150,7 +4151,7 @@ COB_print_buffer (output_buffer, TRUE);
 set_sqlcode (action);
 }
 
-static gen_raw (
+static void gen_raw (
     UCHAR	*blr,
     enum req_t	request_type,
     int		request_length,
@@ -4214,7 +4215,7 @@ while (blr_length)
     }
 }
 
-static gen_ready (
+static void gen_ready (
     ACT		action)
 {
 /**************************************
@@ -4277,7 +4278,7 @@ for (ready = (RDY) action->act_object; ready; ready = ready->rdy_next)
 ib_fprintf (out_file, names [COLUMN]);
 }
 
-static gen_release (
+static void gen_release (
     ACT		action)
 {
 /**************************************
@@ -4319,7 +4320,7 @@ for (request = requests; request; request = request->req_next)
     }
 }
 
-static gen_receive (
+static void gen_receive (
     ACT		action,
     POR		port)
 {
@@ -4351,7 +4352,7 @@ COB_print_buffer (output_buffer, TRUE);
 set_sqlcode (action);
 }
 
-static gen_request (
+static void gen_request (
     REQ		request)
 {
 /**************************************
@@ -4558,7 +4559,7 @@ if (request->req_type == REQ_slice)
     }
 }
 
-static gen_s_end (
+static void gen_s_end (
     ACT		action)
 {
 /**************************************
@@ -4594,7 +4595,7 @@ if (action->act_type == ACT_close)
 set_sqlcode (action);
 }
 
-static gen_s_fetch (
+static void gen_s_fetch (
     ACT		action)
 {
 /**************************************
@@ -4616,7 +4617,7 @@ if (request->req_sync)
 gen_receive (action, request->req_primary);
 }
 
-static gen_s_start (
+static void gen_s_start (
     ACT		action)
 {
 /**************************************
@@ -4671,7 +4672,7 @@ if (action->act_type == ACT_open)
     }
 }
 
-static gen_send (
+static void gen_send (
     ACT		action,
     POR		port)
 {
@@ -4704,7 +4705,7 @@ COB_print_buffer (output_buffer, TRUE);
 set_sqlcode (action);
 }
 
-static gen_slice (
+static void gen_slice (
     ACT		action)
 {
 /**************************************
@@ -4774,7 +4775,7 @@ args.pat_string7 = (action->act_type == ACT_get_slice) ? ISC_GET_SLICE : ISC_PUT
 PATTERN_expand (column, (action->act_type == ACT_get_slice) ? pattern1 : pattern2, &args);
 }
 
-static gen_segment (
+static void gen_segment (
     ACT		action)
 {
 /**************************************
@@ -4798,7 +4799,7 @@ names [ISC_],
     blob->blb_ident);
 }
 
-static gen_select (
+static void gen_select (
     ACT		action)
 {
 /**************************************
@@ -4850,7 +4851,7 @@ printa (names [COLUMN], FALSE, "END-IF");
 printa (names [COLUMN], FALSE, "END-IF");
 }
 
-static gen_start (
+static void gen_start (
     ACT		action,
     POR		port)
 {
@@ -4905,7 +4906,7 @@ COB_print_buffer (output_buffer, TRUE);
 set_sqlcode (action);
 }
 
-static gen_store (
+static void gen_store (
     ACT		action)
 {
 /**************************************
@@ -4942,7 +4943,7 @@ for (reference = port->por_references; reference;
     }
 }
 
-static gen_t_start (
+static void gen_t_start (
     ACT		action)
 {
 /**************************************
@@ -5011,7 +5012,7 @@ set_sqlcode (action);
 
 }
 
-static gen_tpb (
+static void gen_tpb (
     TPB	tpb)
 {
 /**************************************
@@ -5069,7 +5070,7 @@ sprintf (output_buffer, "%sEnd of data for %s%d\n",
 COB_print_buffer (output_buffer, FALSE);
 }
 
-static gen_trans (
+static void gen_trans (
     ACT		action)
 {
 /**************************************
@@ -5097,7 +5098,7 @@ else
 set_sqlcode (action);
 }
 
-static int gen_type (
+static void gen_type (
     ACT		action)
 {
 /**************************************
@@ -5114,7 +5115,7 @@ static int gen_type (
 printa (names[COLUMN], "%ld", action->act_object);
 }
 
-static gen_update (
+static void gen_update (
     ACT		action)
 {
 /**************************************
@@ -5136,7 +5137,7 @@ asgn_from (action, port->por_references);
 gen_send (action, port);
 }
 
-static gen_variable (
+static void gen_variable (
     ACT		action)
 {
 /**************************************
@@ -5158,7 +5159,7 @@ ib_fprintf (out_file,"\n%s%s",
     gen_name (s, reference, FALSE));
 }
 
-static gen_whenever (
+static void gen_whenever (
     SWE		label)
 {
 /**************************************
@@ -5198,7 +5199,7 @@ while (label)
     }
 }
 
-static gen_window_create (
+static void gen_window_create (
     ACT		action)
 {
 /**************************************
@@ -5221,7 +5222,7 @@ printa (names [COLUMN], TRUE,
     BY_REF, names [ISC_HEIGHT]);
 }
 
-static gen_window_delete (
+static void gen_window_delete (
     ACT		action)
 {
 /**************************************
@@ -5239,7 +5240,7 @@ printa (names [COLUMN], TRUE, "CALL \"%s\" USING %s%s",
 	PYXIS_DELETE_WINDOW, BY_REF, names [ISC_WINDOW]);
 }
 
-static gen_window_suspend (
+static void gen_window_suspend (
     ACT		action)
 {
 /**************************************
@@ -5257,7 +5258,7 @@ printa (names [COLUMN], TRUE, "CALL \"%s\" USING %s%s",
 	PYXIS_SUSPEND_WINDOW, BY_REF, names [ISC_WINDOW]);
 }
 
-static make_array_declaration (
+static void make_array_declaration (
     REF		reference)
 {
 /**************************************
@@ -5445,7 +5446,7 @@ for (s = string; *s; s++)
 return string;
 }
 
-static make_port (
+static void make_port (
     POR	port)
 {
 /**************************************
@@ -5543,7 +5544,7 @@ for (reference = port->por_references; reference;
 printa (names [COLUMN], FALSE, " ");
 }
 
-static make_ready (
+static void make_ready (
     DBB		db,
     TEXT	*filename,
     TEXT	*vector,
@@ -5743,7 +5744,7 @@ if (request && request->req_flags & REQ_extend_dpb)
     }
 }
 
-static printa (
+static void printa (
     TEXT	*column,
     BOOLEAN	call,
     TEXT	*string,
@@ -5770,7 +5771,7 @@ vsprintf (output_buffer, s, ptr);
 COB_print_buffer (output_buffer, call);
 }
 
-static int printb (
+static void printb (
     TEXT	*string,
     ...)
 {
@@ -5816,7 +5817,7 @@ else
     return (request) ? request->req_trans : names [ISC_TRANS];
 }
 
-static set_sqlcode (
+static void set_sqlcode (
     ACT		action)
 {
 /**************************************
@@ -5869,7 +5870,7 @@ if (action &&
 return (OMITTED);
 }
 
-static t_start_auto (
+static void t_start_auto (
     REQ		request,
     TEXT	*vector,
     ACT		action,

@@ -37,6 +37,9 @@
 #endif
 
 #ifdef UNIX
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <unistd.h>
 #define UNIX_JOURNALLING
 #define BSD_SOCKETS
 #define SYS_ERROR	gds_arg_unix

@@ -103,7 +103,7 @@ intl_shr_objs:	$(INTL_SHLIBS)
 
 gdsintl.so.0.0:	$(INTL_P_OBJECTS1)
 	-$(RM) gdsintl.so.0.0
-	ld -assert pure-text -assert nosymbolic $(INTL_P_OBJECTS1) -o gdsintl
+	$(LD) -assert pure-text -assert nosymbolic $(INTL_P_OBJECTS1) -o gdsintl
 	$(MV) gdsintl $(INTL_DEST)
 	$(TOUCH) gdsintl.so.0.0
 	$(CHMOD_6) gdsintl.so.0.0

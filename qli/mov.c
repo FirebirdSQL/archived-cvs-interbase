@@ -1191,7 +1191,7 @@ TEXT		*p, temp[35];
 struct tm	times;
 SLONG		date2[2];
 
-date2 [0] = date;
+date2 [0] = date [0];
 date2 [1] = 0;
 isc_decode_date (date2, &times);
 sprintf (temp, "%2d-%.3s-%04d", times.tm_mday,
@@ -1229,7 +1229,7 @@ struct tm	times;
 SLONG		date2[2];
 
 date2 [0] = 0;
-date2 [1] = date;
+date2 [1] = date [0];
 
 isc_decode_date (date2, &times);
 

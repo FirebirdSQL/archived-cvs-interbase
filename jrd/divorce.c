@@ -60,6 +60,8 @@
 #else
 #include <sys/ioctl.h>
 #include <signal.h>
+#include <unistd.h>
+#include <fcntl.h>
 #endif
 #endif
 

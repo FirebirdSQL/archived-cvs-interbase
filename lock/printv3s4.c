@@ -238,7 +238,7 @@ if (LOCK_header->lhb_secondary != LHB_PATTERN)
 return SUCCESS;
 }
 
-static prt_history (history_header, title)
+static void prt_history (history_header, title)
     PTR		history_header;
     char	*title;
 {
@@ -269,7 +269,7 @@ for (history = (HIS) ABS_PTR (history_header); TRUE;
     }
 }
 
-static prt_lock (lock)
+static void prt_lock (lock)
     LBL		lock;
 {
 /**************************************
@@ -323,7 +323,7 @@ QUE_LOOP (lock->lbl_requests, que)
 ib_printf ("\n");
 }
 
-static prt_process (process)
+static void prt_process (process)
     PRB		process;
 {
 /**************************************
@@ -351,7 +351,7 @@ if (sw_requests)
 	prt_request ((UCHAR*) que - OFFSET (LRQ, lrq_prb_requests));
 }
 
-static prt_request (request)
+static void prt_request (request)
     LRQ		request;
 {
 /**************************************
@@ -374,7 +374,7 @@ ib_printf ("\tAST: %x, argument: %x\n", request->lrq_ast_routine,
 ib_printf ("\n");
 }
 
-static prt_que (string, que)
+static void prt_que (string, que)
     UCHAR	*string;
     SRQ		que;
 {

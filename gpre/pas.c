@@ -389,7 +389,7 @@ else
     END;
 }
 
-static align (
+static void align (
     int	column)
 {
 /**************************************
@@ -416,7 +416,7 @@ for (i = column % 8; i; --i)
     ib_putc (' ', out_file);
 }
 
-static asgn_from (
+static void asgn_from (
     ACT		action,
     REF		reference,
     int		column)
@@ -474,7 +474,7 @@ for (; reference; reference = reference->ref_next)
     }
 }
 
-static asgn_sqlda_from (
+static void asgn_sqlda_from (
     REF		reference,
     int		number,
     TEXT	*string,
@@ -505,7 +505,7 @@ for (; reference; reference = reference->ref_next)
     }
 }
 
-static asgn_to (
+static void asgn_to (
     ACT		action,
     REF		reference,
     int		column)
@@ -550,7 +550,7 @@ if (reference = reference->ref_null)
     ib_fprintf (out_file, "%s := %s;", reference->ref_value, gen_name (s, reference, TRUE));
 }
 
-static asgn_to_proc (
+static void asgn_to_proc (
     REF	reference,
     int column)
 {
@@ -588,7 +588,7 @@ for (; reference; reference = reference->ref_next)
     }
 }
 
-static gen_at_end (
+static void gen_at_end (
     ACT		action,
     int		column)
 {
@@ -609,7 +609,7 @@ request = action->act_request;
 printa (column, "if %s = 0 then begin", gen_name (s, request->req_eof, TRUE));
 }
 
-static gen_based (
+static void gen_based (
     ACT		action,
     int		column)
 {

@@ -77,7 +77,7 @@ std_$call	pfm_$trace_fault ();
 #endif
 
 #ifndef AST_TYPE
-#define AST_TYPE
+#define AST_TYPE	void
 #endif
 
 #ifndef MUTEX

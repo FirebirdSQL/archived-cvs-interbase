@@ -71,7 +71,7 @@ new:
 	gbak -r -z /usr/interbase/examples/v3/slides.gbak slides.gdb
 		
 $(FILTERLIB): 	$(FILTOBJ) 
-	ld -G $(FILTOBJ) -o $(FILTERLIB)
+	$(LD) -G $(FILTOBJ) -o $(FILTERLIB)
 
 slides_find: slides.gdb
 	/usr/interbase/bin/qli < slides.qli > /dev/null

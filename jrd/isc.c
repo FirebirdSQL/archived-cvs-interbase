@@ -145,6 +145,8 @@ static LKSB     wake_lock;
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <pwd.h>
+#include <signal.h>
+#include <ctype.h>
 
 #ifndef NeXT
 #ifndef APOLLO

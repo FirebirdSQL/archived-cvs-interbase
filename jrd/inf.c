@@ -1101,8 +1101,8 @@ while (items < end_items && *items != gds__info_end)
 	case gds__info_message_number:
 	case gds__info_message_size:
 	    if (!(request->req_flags & req_active) ||
-		request->req_operation != req_receive &&
-		request->req_operation != req_send)
+		(request->req_operation != req_receive &&
+		request->req_operation != req_send))
 		{
 		buffer_ptr [0] = item;
 		item = gds__info_error;

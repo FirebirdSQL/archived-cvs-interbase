@@ -284,6 +284,7 @@ if (memory = (SCHAR*) gds__alloc (size))
     }
 
 IBERROR (5);	/* Msg5 "memory gonzo" */
+return 0;
 }
 
 PLB ALLQ_pool (void)

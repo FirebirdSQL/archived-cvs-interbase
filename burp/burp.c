@@ -74,6 +74,7 @@
 
 
 #ifdef UNIX
+#include <ctype.h>
 #include <unistd.h>
 #endif
 
@@ -1759,7 +1760,7 @@ if (sw_replace == IN_SW_BURP_B)
 #ifndef WIN_NT
 	    signal (SIGPIPE, SIG_IGN);
 #endif
-	    fil->fil_fd = (void *)(GBAK_STDOUT_DESC);
+	    fil->fil_fd = (DESC)(GBAK_STDOUT_DESC);
 	    break;
 	    }
 	else
