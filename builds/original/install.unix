@@ -16,6 +16,11 @@
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
 #
+# 07-Nov-2000  nmcc@users.sourceforge.net - Firebird 0.9
+#              Remove creation of license file and Interclient install.
+#              Overwrite real services and inetd.conf files rather than
+#              break the links on Solaris.
+#                            
 # /usr/interbase/install	-- Install InterBase
 #
 # The install script looks for the server
@@ -146,8 +151,8 @@ fi
 #
 chmod uog=rw isc4.gdb
 chmod uog=rw help/help.gdb
-chmod uog=rw examples/employee.gdb
-chmod uog=rw examples/intlemp.gdb
+#chmod uog=rw examples/employee.gdb
+#chmod uog=rw examples/intlemp.gdb
 if [ "$SUPERSERVER" = "SUPERSERVER" ]; then
     chmod 4755 $INTERBASE/bin/gstat
 fi
@@ -158,10 +163,15 @@ HUPNEEDED='n'	# Relevant to Classic only
 if [ -f /etc/services ]; then
     grep -s gds_db /etc/services  > /dev/null 2>&1
     if test $? != 0 ; then
-	HUPNEEDED='y'
+		HUPNEEDED='y'
         cat /etc/services services.isc > services
-	mv services /etc/services
-    fi
+		if [ -f /etc/inet/services ]; then
+			# /etc/services will be a link on Solaris
+			mv services /etc/inet/services
+		else 
+			mv services /etc/services
+    	fi
+	fi
 fi
 if [ -f /etc/inetd.conf ]; then
     if [ "$SUPERSERVER" = "SUPERSERVER" ]; then
@@ -173,7 +183,12 @@ if [ -f /etc/inetd.conf ]; then
 	if test $? != 0 ; then
 	    HUPNEEDED='y'
 	    cat /etc/inetd.conf inetd.conf.isc > inetd.conf
-	    mv inetd.conf /etc/inetd.conf
+		if [ -f /etc/inet/inetd.conf ]; then 
+			# /etc/inetd.conf a link
+	    	mv inetd.conf /etc/inet/inetd.conf
+		else	
+	    	mv inetd.conf /etc/inetd.conf
+		fi
 	fi
     fi
 fi
@@ -193,9 +208,10 @@ if [ -f /usr/etc/inetd.conf ]; then
 fi
 
 # Currently SCO is the only classic for 5.5, add other platforms 
-# later as required
+# later as required 
+# 07-Nov-2000 Solaris as well
 OSNAME=`uname -s`
-if [ "$OSNAME" = "SCO_SV" ] 
+if [ "$OSNAME" = "SCO_SV" -o "$OSNAME" = "SunOS" ] 
 then
 	if [ "$HUPNEEDED" = 'y' ]
 	then
@@ -220,95 +236,5 @@ EOF
 chmod +x $INTERBASE/bin/ibmgr
 fi
 
-#
-# Create the license file
-#
-print -n "Please enter the license certificate id: "
-read
-case "$REPLY" in
-  "eval" | "" )
-      print Creating a 90-day evaluation license.
-      $INTERBASE/bin/iblicense -eval
-      chmod uog=r $INTERBASE/ib_license.dat
-      ;;
-  * )
-      id=$REPLY
-      print -n "Please enter the license certificate key: "
-      read
-      if [ "$REPLY" = "" ] ; then
-	print "We need the license key which matches your license id."
-	print -n "Please enter the license certificate key: "
-	read
-      fi
-      if [ "$REPLY" != "" ] ; then
-	print Creating the license.
-	$INTERBASE/bin/iblicense -add -id $id -key $REPLY
-        chmod uog=r $INTERBASE/ib_license.dat
-      else
-	print \
-"No license created.  Please see the release notes to create a license file."
-      fi
-      ;;
-esac
+echo "done."
 
-#
-# Install InterClient if the user chooses to do so.
-#
-
-# Skip Interclient install altogether for SCO since Interclient
-# is a separate package to be installed through custom on SCO 
-if [ "$OSNAME" != "SCO_SV" ]
-then
-
-	ic="InterClient*.tar"
-	ic_install=NO
-	if [ `uname -s` = "HP-UX" ]; then
-		ic_path="/SD_CDROM"
-	else
-		ic_path="/cdrom"
-	fi
-	ic_done=NO
-	while [ $ic_install != YES ] ; do
-		print -n "Do you wish to install InterClient[yn]? "
-		read
-		case $REPLY in
-		  y|Y|yes|Yes|YES )
-		  while [ $ic_done != YES ] ; do
-			  if [ -f $ic_path/$ic ]; then
-			  cd /tmp;
-			  tar xpf $ic_path/$ic;
-			  cd interclient_install_temp_dir;
-			  ./install.sh;
-			  ic_done=YES;
-			  else
-			  echo "\nWARNING: $ic_path/$ic not found\n"
-			  ic_select=NO
-			  while [ $ic_select != YES ] ; do
-				  echo "Select \"Q\" to quit, or"
-				  echo "       \"S\" to specify the new path."
-				  echo "Enter selection : \c"
-				  read selection
-				  case $selection in
-				  Q|q )
-					  echo "We did NOT install InterClient."
-					  ic_done=YES;
-					  ic_select=YES;;
-				  S|s )
-					  echo "Please specify the path : \c"
-					  read ic_path
-					  ic_select=YES;;
-				  * )
-					  echo "\nWARNING: Selection \"$selection\" not understood\n";;
-				  esac
-			  done
-			  fi
-		  done
-			  ic_install=YES;;
-		  n|N|no|No|NO )
-		  echo "We did NOT install InterClient."
-		  ic_install=YES;;
-		  * )
-		  echo "Please reply y or n (in upper or lower case)"
-		esac
-	done
-fi
