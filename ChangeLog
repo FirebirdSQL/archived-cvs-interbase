@@ -1,3 +1,17 @@
+2001-06-28 18:58  fsg
+
+	* interbase/: builds/original/sfx.intl, intl/depends.mak,
+	intl/lc_latin1.c, intl/ld.c, jrd/dfw.e, jrd/evl.c, jrd/gdsold.h,
+	jrd/intlnames.h, jrd/shrinit.c, misc/msg.gbak:
+	
+	Cleaned up to get the stuff compiled on Linux again
+	
+	Integrated the new case insensitive hungarian collation order
+	(PXW_HUN) that was created and tested by "Sandor Szollosi"
+	<ssani@freemail.hu>
+	
+	fsg
+
 2001-06-26 09:54  robocop
 
 	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/dsql.h, dsql/gen.c,
