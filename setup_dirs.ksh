@@ -15,6 +15,7 @@
 # All Rights Reserved.
 # Contributor(s):
 #	Reed Mideke <rfm@cruzers.com>
+# $Log$
 #	______________________________________.
 
 #set -x
@@ -63,6 +64,9 @@ mkdir interbase/examples
 mkdir interbase/examples/v4
 mkdir interbase/examples/v5
 mkdir interbase/help
+
+echo "Creating jrd/build_no.h"
+./builds_win32/original/build_no.ksh
 
 ./setup_build.ksh $1
 

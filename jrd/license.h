@@ -19,6 +19,21 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.5  2000/12/08 16:18:21  fsg
+ * Preliminary changes to get IB_BUILD_NO automatically
+ * increased on commits.
+ *
+ * setup_dirs will create 'jrd/build_no.h' by a call to
+ * a slightly modified 'builds_win32/original/build_no.ksh'
+ * that gets IB_BUILD_NO from 'this_build', that hopefully
+ * will be increased automatically in the near future :-)
+ *
+ * I have changed 'jrd/iblicense.h' to use IB_BUILD_TYPE
+ * from 'jrd/build_no.h'.
+ * So all changes to version numbers, build types etc. can
+ * now be done in 'builds_win32/original/build_no.ksh'.
+ *
  */
 
 #ifndef _JRD_LICENSE_H_
@@ -29,81 +44,81 @@
 #ifdef hpux
 #ifdef hp9000s300
 #ifdef HP300
-#define IB_PLATFORM	"H3-V"
+#define IB_PLATFORM	"H3"
 #endif
 #ifdef HM300
-#define IB_PLATFORM	"HM-V"
+#define IB_PLATFORM	"HM"
 #endif
 #else
 #ifdef HP700
-#define IB_PLATFORM	"HP-V"
+#define IB_PLATFORM	"HP"
 #endif
 #ifdef HP800
-#define IB_PLATFORM	"HO-V"
+#define IB_PLATFORM	"HO"
 #endif
 #ifdef HP10
-#define IB_PLATFORM	"HU-V"
+#define IB_PLATFORM	"HU"
 #endif /* HP10 */
 #endif
 #endif
 
 #ifdef mpexl
-#define IB_PLATFORM	"HX-V"		/* HP MPE/XL */
+#define IB_PLATFORM	"HX"		/* HP MPE/XL */
 #endif
 
 #ifdef apollo
 #if _ISP__A88K
-#define IB_PLATFORM	"AP-V"
+#define IB_PLATFORM	"AP"
 #else
-#define IB_PLATFORM	"AX-V"
+#define IB_PLATFORM	"AX"
 #endif
 #endif
 
 #ifdef sun
 #ifdef sparc
 #ifdef SOLARIS
-#define IB_PLATFORM	"SO-V"
+#define IB_PLATFORM	"SO"
 #else
-#define IB_PLATFORM	"S4-V"
+#define IB_PLATFORM	"S4"
 #endif
 #endif
 #ifdef i386
-#define IB_PLATFORM     "SI-V"
+#define IB_PLATFORM     "SI"
 #endif
 #ifdef SUN3_3
-#define IB_PLATFORM	"SU-V"
+#define IB_PLATFORM	"SU"
 #endif
 #ifndef IB_PLATFORM
-#define IB_PLATFORM	"S3-V"
+#define IB_PLATFORM	"S3"
 #endif
 #endif
 
 #ifdef ultrix
 #ifdef mips
-#define IB_PLATFORM	"MU-V"
+#define IB_PLATFORM	"MU"
 #else
-#define IB_PLATFORM	"UL-V"
+#define IB_PLATFORM	"UL"
 #endif
 #endif
 
 #ifdef VMS
 #ifdef __ALPHA
-#define IB_PLATFORM     "AV-V"
+#define IB_PLATFORM     "AV"
 #else
-#define IB_PLATFORM	"VM-V"
+#define IB_PLATFORM	"VM"
 #endif
 #endif
 
 #ifdef MAC
-#define IB_PLATFORM	"MA-V"
+#define IB_PLATFORM	"MA"
 #endif
 
 #ifdef PC_PLATFORM
 #ifdef WINDOWS_ONLY
-#define IB_PLATFORM     "WS-V"
+#define IB_PLATFORM     "WS"
 #else
 #ifdef DOS_ONLY
-#define IB_PLATFORM     "DS-V"
+#define IB_PLATFORM     "DS"
 #endif
 #endif
 #undef NODE_CHECK
@@ -111,46 +126,46 @@
 #endif
 
 #ifdef NETWARE_386
-#define IB_PLATFORM     "NW-V"
+#define IB_PLATFORM     "NW"
 #endif
 
 #ifdef OS2_ONLY
-#define IB_PLATFORM     "O2-V"
+#define IB_PLATFORM     "O2"
 #endif
 
 #ifdef AIX
-#define IB_PLATFORM	"IA-V"
+#define IB_PLATFORM	"IA"
 #endif
 
 #ifdef AIX_PPC
-#define IB_PLATFORM	"PA-V"
+#define IB_PLATFORM	"PA"
 #endif
 
 #ifdef IMP
-#define IB_PLATFORM	"IM-V"
+#define IB_PLATFORM	"IM"
 #endif
 
 #ifdef DELTA
-#define IB_PLATFORM	"DL-V"
+#define IB_PLATFORM	"DL"
 #endif
 
 #ifdef XENIX
 #ifdef SCO_UNIX
-#define IB_PLATFORM	"SI-V"	/* 5.5 SCO Port */
+#define IB_PLATFORM	"SI"	/* 5.5 SCO Port */
 #else
-#define IB_PLATFORM	"XN-V"
+#define IB_PLATFORM	"XN"
 #endif
 #endif
 
 #ifdef sgi
-#define IB_PLATFORM	"SG-V"
+#define IB_PLATFORM	"SG"
 #endif
 
 #ifdef DGUX
 #ifdef DG_X86
-#define IB_PLATFORM     "DI-V"          /* DG INTEL */
+#define IB_PLATFORM     "DI"          /* DG INTEL */
 #else
-#define IB_PLATFORM	"DA-V"		/* DG AViiON */
+#define IB_PLATFORM	"DA"		/* DG AViiON */
 #define M88K_DEFINED
 #endif /* DG_X86 */
 #endif /* DGUX */
@@ -159,21 +174,21 @@
 #ifdef i386
 #if (defined SUPERCLIENT || defined SUPERSERVER)
 #if (defined WIN95)
-#define IB_PLATFORM	"WI-V"
+#define IB_PLATFORM	"WI"
 #else
-#define IB_PLATFORM	"NIS-V"
+#define IB_PLATFORM	"NIS"
 #endif /* WIN95 */
 #else
-#define IB_PLATFORM	"NI-V"
+#define IB_PLATFORM	"NI"
 #endif
 #else
 #ifdef alpha
-#define IB_PLATFORM	"NA-V"
+#define IB_PLATFORM	"NA"
 #else
 #ifdef mips
-#define IB_PLATFORM	"NM-V"
+#define IB_PLATFORM	"NM"
 #else /* PowerPC */
-#define IB_PLATFORM	"NP-V"
+#define IB_PLATFORM	"NP"
 #endif
 #endif
 #endif
@@ -181,54 +196,54 @@
 
 #ifdef NeXT
 #ifdef	i386
-#define IB_PLATFORM	"XI-V"
+#define IB_PLATFORM	"XI"
 #else	/* m68040 */
-#define IB_PLATFORM	"XM-V"
+#define IB_PLATFORM	"XM"
 #endif
 #endif
 
 #ifdef EPSON
-#define IB_PLATFORM	"EP-V"		/* epson */
+#define IB_PLATFORM	"EP"		/* epson */
 #endif
 
 #ifdef _CRAY
-#define IB_PLATFORM	"CR-V"		/* Cray */
+#define IB_PLATFORM	"CR"		/* Cray */
 #endif
 
 #ifdef ALPHA_NT
-#define	IB_PLATFORM	"AN-V"		/* Alpha NT */
+#define	IB_PLATFORM	"AN"		/* Alpha NT */
 #endif
 
 #ifdef DECOSF
-#define	IB_PLATFORM	"AO-V"		/* Alpha OSF-1 */
+#define	IB_PLATFORM	"AO"		/* Alpha OSF-1 */
 #endif
 
 #ifdef M88K
-#define	IB_PLATFORM	"M8-V"		/* Motorola 88k */
+#define	IB_PLATFORM	"M8"		/* Motorola 88k */
 #endif
 
 #ifdef UNIXWARE
-#define	IB_PLATFORM	"UW-V"		/* Unixware */
+#define	IB_PLATFORM	"UW"		/* Unixware */
 #endif
 
 #ifdef NCR3000
-#define	IB_PLATFORM	"NC-V"		/* NCR3000 */
+#define	IB_PLATFORM	"NC"		/* NCR3000 */
 #endif
 
 #ifdef LINUX
-#define IB_PLATFORM     "LI-T"         /* Linux on Intel */
+#define IB_PLATFORM     "LI"         /* Linux on Intel */
 #endif
 
 #ifdef FREEBSD
-#define IB_PLATFORM     "FB-B"         /* FreeBSD/i386 */
+#define IB_PLATFORM     "FB"         /* FreeBSD/i386 */
 #endif
 
 #ifdef NETBSD
-#define IB_PLATFORM     "NB-B"         /* NetBSD */
+#define IB_PLATFORM     "NB"         /* NetBSD */
 #endif
 
 #ifndef GDS_VERSION
-#define GDS_VERSION	IB_PLATFORM IB_MAJOR_VER "." IB_MINOR_VER "." IB_REV_NO "." IB_BUILD_NO
+#define GDS_VERSION	IB_PLATFORM "-" IB_BUILD_TYPE IB_MAJOR_VER "." IB_MINOR_VER "." IB_REV_NO "." IB_BUILD_NO
 #endif
 
 #endif /* _JRD_LICENSE_H_ */

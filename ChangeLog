@@ -1,3 +1,18 @@
+2000-12-04 03:30  patrickgriffin
+
+	* interbase/firebird/patrickgriffin/tcs_tests/: bug_112177_01,
+	bug_112177_02, bug_112177_03, bug_112177_04, bug_112177_05,
+	bug_112177_06, bug_112177_07, bug_112177_08, bug_112177_09,
+	bug_112177_10, bug_112177_11, bug_112177_12, bug_116579_01, readme:
+	
+	moving files from tree to ftp area.
+
+2000-12-01 12:20  fsg
+
+	* interbase/builds/original/prefix.linux:
+	
+	Added SHRLIB_EXT to  prefix.linux
+
 2000-11-30 15:27  patrickgriffin
 
 	* interbase/jrd/: dpm.e, ods.h, pag.c, pag.h:
@@ -37,7 +52,7 @@
 
 2000-11-28 16:09  fsg
 
-	* interbase/: pyxis/fred.e, ChangeLog:
+	* interbase/pyxis/fred.e:
 	
 	Changed fred.e to go through 6.0 gpre
 
@@ -47,12 +62,6 @@
 	
 	Changed declaration of ascii_char in ib_udf.sql to get correct
 	result as proposed by Claudio Valderrama
-
-2000-11-27 12:38  fsg
-
-	* interbase/ChangeLog:
-	
-	Updated ChangeLog
 
 2000-11-27 10:26  fsg
 
@@ -66,12 +75,6 @@
 	
 	removed some compiler warnings too
 
-2000-11-24 18:33  fsg
-
-	* interbase/ChangeLog:
-	
-	Updated ChangeLog
-
 2000-11-24 18:23  fsg
 
 	* interbase/pyxis/debug.c:
@@ -79,17 +82,9 @@
 	Another little fix in pyxis/debug.c that nobody ever will notice
 	:-) Will print correct names for this forms stuff now.
 
-2000-11-22 18:24  patrickgriffin
-
-	* interbase/ChangeLog:
-	
-	Correct the name of the modified file in change log.
-	
-	...pat
-
 2000-11-22 18:07  patrickgriffin
 
-	* interbase/: ChangeLog, isql/extract.e:
+	* interbase/isql/extract.e:
 	
 	In get_procedure_args change comment style from // to /*
 	
@@ -102,12 +97,6 @@
 	Changes to get edit.e through gpre 6.0 Still have to find out why
 	gpre isn't processing PYXYS FORM FIELDS correctly.  Probably no one
 	ever will need this.  But who cares :-)
-
-2000-11-19 08:43  fsg
-
-	* interbase/ChangeLog:
-	
-	Updated ChangeLog
 
 2000-11-19 08:02  fsg
 
@@ -123,12 +112,6 @@
 	Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans Fixed
 	Bug #122563 in extract.e get_procedure_args Apparently this has to
 	be done in show.e also, but that is for another day :-)
-
-2000-11-18 15:14  fsg
-
-	* interbase/ChangeLog:
-	
-	added  ChangeLog
 
 2000-11-18 07:50  fsg
 

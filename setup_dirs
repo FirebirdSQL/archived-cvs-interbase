@@ -18,7 +18,7 @@
 #	Reed Mideke <rfm@cruzers.com>
 #	______________________________________.
 #
-# $Id$
+# $Log$
 #
 # Shell script to set up the InterBase directory structure
 # And now the super server directory structure  
@@ -233,6 +233,9 @@ if [ $SYS_TYPE = 'SUNOS4' -o $1 = 'DG' -o $1 = 'SOLARIS' ]; then
     LOCK_HEADER=lock_header_mmap
 fi
 #
+
+echo "Creating jrd/build_no.h"
+sh builds_win32/original/build_no.ksh
 echo "- Setting up the superserver directory structure"
 echo ""
 
@@ -277,7 +280,7 @@ then
             echo "*** Warning *** "
             echo "    The installation target directory:"
             echo "       `pwd`/interbase"
-            echo "    Already exits press return to delete this directory or ^C to abort."
+            echo "    already exists, press return to delete this directory or ^C to abort."
             echo "*** Warning *** "
             echo "" 
             AskQuestion "Press return to continue or ^C to abort"
