@@ -36,7 +36,7 @@ JRD_MISC=	$(ROOT)\jrd\$(.path.obj)\isc.obj
 
 alice.rsp:	$(GFIX_OBJS)
 	-$(RM) $(.path.obj)\alice.rsp
-	&echo $(ROOT)\alice\$** $(RSP_CONTINUE) >> $(.path.obj)\alice.rsp
+	&$(ECHO) $(ROOT)\alice\$** $(RSP_CONTINUE) >> $(.path.obj)\alice.rsp
 
 gfix.exe:	$(.path.obj)\gfix.exe
 

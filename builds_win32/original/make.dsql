@@ -49,7 +49,7 @@ dsql.rsp:	$(.path.obj)\dsql.rsp
 
 $(.path.obj)\dsql.rsp:      $(DSQL_OBJS)
 	$(RM) $(.path.obj)\dsql.rsp
-	&echo $(ROOT)\dsql\$** >> $(.path.obj)\dsql.rsp
+	&$(ECHO) $(ROOT)\dsql\$** >> $(.path.obj)\dsql.rsp
 
 !if $d(INCLUDE_DEPENDS_MAK)
 !include depends.mak

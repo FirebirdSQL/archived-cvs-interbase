@@ -53,7 +53,7 @@ register.rsp:	$(.path.obj)\register.rsp
 
 $(.path.obj)\register.rsp:      $(IBLICEN_DLL_OBJS)
 	$(RM) $(.path.obj)\register.rsp
-		&echo $(ROOT)\register\$** >> $(.path.obj)\register.rsp
+		&$(ECHO) $(ROOT)\register\$** >> $(.path.obj)\register.rsp
 
 gen_license.exe:       $(GEN_LICS_OBJS) $(NODE_LINK)
 	-$(RM) $(.path.obj)\gen_license.exe

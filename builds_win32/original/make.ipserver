@@ -40,7 +40,7 @@ ipserver.rsp:	$(.path.obj)\ipserver.rsp
 
 $(.path.obj)\ipserver.rsp:      $(IPSERVER_OBJS)
 	$(RM) $(.path.obj)\ipserver.rsp
-	&echo $(ROOT)\ipserver\$** >> $(.path.obj)\ipserver.rsp
+	&$(ECHO) $(ROOT)\ipserver\$** >> $(.path.obj)\ipserver.rsp
 
 ipcevent.obj:	ipcevent.c
 	$(CC) $(VERSION_CFLAGS) -c $(O_OBJ_SWITCH)$(.path.obj)\ -DWIN32_LEAN_AND_MEAN ipcevent.c

@@ -843,7 +843,7 @@ int PIO_write (
  **************************************
  *
  * Functional description
- *	Read a data page.  Oh wow.
+ *	Write a data page.  Oh wow.
  *
  **************************************/
 DBB		dbb;

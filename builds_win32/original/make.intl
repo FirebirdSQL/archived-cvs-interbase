@@ -47,7 +47,7 @@ intl.rsp:	$(.path.obj)\intl.rsp
 $(.path.obj)\intl.rsp:	$(INTL_OBJS1) $(INTL_OBJS2) 
 
 	$(RM) $(.path.obj)\intl.rsp
-	&echo $(ROOT)\intl\$** >> $(.path.obj)\intl.rsp
+	&$(ECHO) $(ROOT)\intl\$** >> $(.path.obj)\intl.rsp
 
 gdsintl.dll:	gdsintl_$(COMPILER).dll
 	$(TOUCH) gdsintl.dll

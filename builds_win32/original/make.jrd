@@ -127,7 +127,7 @@ $(.path.obj)\$(GDS_TARGET).rsp: $(GDS_OTHER)
 
 $(.path.obj)\gds.rsp:      $(GDS_OBJS)
 	$(RM) $(.path.obj)\gds.rsp
-	&echo $(ROOT)\jrd\$** $(RSP_CONTINUE) >> $(.path.obj)\gds.rsp
+	&$(ECHO) $(ROOT)\jrd\$** $(RSP_CONTINUE) >> $(.path.obj)\gds.rsp
 
 blf.c:          blf.e
 	$(CP) blf.e blf_tmp.e
@@ -149,7 +149,7 @@ codes.c:        codes.e
 	$(RM) codes_tmp.e
 
 install_server:
-	echo "Installing InterBase Server DLLs"
+	$(ECHO) "Installing InterBase Server DLLs"
 #	$(CP) ..\jrd\$(.path.obj)\ibeng32.dll $(INSTALL_ROOT)\bin
 	$(CP) ..\intl\$(.path.obj)\gdsintl.dll $(INSTALL_ROOT)\intl
 	$(CP) ..\remote\$(.path.obj)\nt_server.exe $(INSTALL_ROOT)\bin\ibserver.exe
@@ -168,9 +168,9 @@ install_server:
 
 
 install_client:
-	echo "Installing InterBase Client DLL"
+	$(ECHO) "Installing InterBase Client DLL"
 	$(CP) ..\jrd\$(.path.obj)\gds32.dll $(INSTALL_ROOT)\bin
-	echo "Installing InterBase EXEs"
+	$(ECHO) "Installing InterBase EXEs"
 	$(CP) ..\alice\$(.path.obj)\gfix.exe $(INSTALL_ROOT)\bin\gfix.exe
 	$(CP) ..\gpre\$(.path.obj)\gpre.exe $(INSTALL_ROOT)\bin\gpre.exe
 	$(CP) ..\dudley\$(.path.obj)\dudley.exe $(INSTALL_ROOT)\bin\gdef.exe
@@ -183,7 +183,7 @@ install_client:
 	$(CP) ..\utilities\$(.path.obj)\dba.exe $(INSTALL_ROOT)\bin\gstat.exe
 	$(CP) ..\lock\$(.path.obj)\iblockpr.exe $(INSTALL_ROOT)\bin\iblockpr.exe
 	$(CP) ..\iscguard\$(.path.obj)\iscguard.exe $(INSTALL_ROOT)\bin\ibguard.exe
-	echo "Installing Link Libraries"
+	$(ECHO) "Installing Link Libraries"
 	$(CP) ..\jrd\$(.path.obj)\gds32.lib $(INSTALL_ROOT)\lib
 	$(CP) ..\jrd\$(.path.obj)\gds32_ms.lib $(INSTALL_ROOT)\lib
 !if "$(VERSION)"=="DEV"
@@ -205,7 +205,7 @@ install_client:
 
 
 isc4.gdb:
-	echo "Making ISC4.GDB"
+	$(ECHO) "Making ISC4.GDB"
 	$(ISQL) -z -i ..\utilities\isc4.sql -user sysdba -pass $(LOCAL_DBA_PASSWORD)
 	$(GSEC) -user sysdba -password $(LOCAL_DBA_PASSWORD) -da isc4.gdb -add sysdba -pw masterkey
 	$(GBAK) -user sysdba -password $(LOCAL_DBA_PASSWORD) isc4.gdb isc4.gbk
@@ -230,7 +230,7 @@ install_config:
 	$(CP) $(ROOT)\builds_win32\original\ibconfig $(INSTALL_ROOT)\ibconfig
 
 include:
-	echo "Getting InterBase header files"
+	$(ECHO) "Getting InterBase header files"
 	$(CP) ibase.h $(INSTALL_ROOT)\include\ibase.h
 	$(CP) perf.h $(INSTALL_ROOT)\include\perf.h
 	$(CP) ibase.h ..\ibase.h

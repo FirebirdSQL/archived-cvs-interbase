@@ -40,7 +40,7 @@ wal.rsp:	$(.path.obj)\wal.rsp
 
 $(.path.obj)\wal.rsp:	$(WAL_OBJS)
 	$(RM) $(.path.obj)\wal.rsp
-	&echo $(ROOT)\wal\$** >> $(.path.obj)\wal.rsp
+	&$(ECHO) $(ROOT)\wal\$** >> $(.path.obj)\wal.rsp
 
 !if $d(INCLUDE_DEPENDS_MAK)
 !include depends.mak

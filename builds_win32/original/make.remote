@@ -61,7 +61,7 @@ remote.rsp:	$(.path.obj)\remote.rsp
 
 $(.path.obj)\remote.rsp:      $(REMOTE_OBJS) interface.obj
 	$(RM) $(.path.obj)\remote.rsp
-	&echo $(ROOT)\remote\$** $(RSP_CONTINUE) >> $(.path.obj)\remote.rsp
+	&$(ECHO) $(ROOT)\remote\$** $(RSP_CONTINUE) >> $(.path.obj)\remote.rsp
 
 nt_server.exe: $(.path.obj)\nt_server.rsp window.res 
 	$(ECHO) $(VERSION_CFLAGS) $(O_EXE_SWITCH)$(.path.obj)\nt_server.exe > tmp.rsp

@@ -56,7 +56,7 @@ lock.rsp:      $(.path.obj)\lock.rsp
 
 $(.path.obj)\lock.rsp:  $(LOCK_OBJS)
 	$(RM) $(.path.obj)\lock.rsp
-	&echo $(ROOT)\lock\$** >> $(.path.obj)\lock.rsp
+	&$(ECHO) $(ROOT)\lock\$** >> $(.path.obj)\lock.rsp
 
 !if $d(INCLUDE_DEPENDS_MAK)
 !include depends.mak

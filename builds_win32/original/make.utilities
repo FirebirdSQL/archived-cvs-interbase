@@ -42,7 +42,7 @@ utilities.rsp:	$(.path.obj)\utilities.rsp
 
 $(.path.obj)\utilities.rsp:      $(UTILITY_OBJS) $(DBA_OBJS)
 	$(RM) $(.path.obj)\utilities.rsp
-	&echo $(ROOT)\utilities\$** >> $(.path.obj)\utilities.rsp
+	&$(ECHO) $(ROOT)\utilities\$** >> $(.path.obj)\utilities.rsp
 
 gsec.exe:       gsec.obj security.obj $(ENC_LINK) $(ISC_LINK)
 	-$(RM) gsec.exe

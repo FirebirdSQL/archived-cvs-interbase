@@ -41,7 +41,7 @@ SPIT_OBJS=	$(SPIT_FILES:.c=.obj)
 
 burp.rsp:	$(BURP_OBJS)
 	-$(RM) $(.path.obj)\burp.rsp
-	&echo $(ROOT)\burp\$** $(RSP_CONTINUE) >> $(.path.obj)\burp.rsp
+	&$(ECHO) $(ROOT)\burp\$** $(RSP_CONTINUE) >> $(.path.obj)\burp.rsp
 
 burp.exe:       $(BURP_OBJS) $(JRD_MISC) $(REMOTE_MISC)
 	-$(RM) burp.exe
