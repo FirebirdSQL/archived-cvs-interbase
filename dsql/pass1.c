@@ -31,7 +31,9 @@
  * 2001.6.30: Claudio Valderrama: Enhanced again to provide (line, col), see node.h.
  * 2001.7.28: John Bellardo: added code to handle nod_limit and associated fields.
  * 2001.08.14 Claudio Valderrama: fixed crash with trigger and CURRENT OF <cursor> syntax.
- * 2001.09.10 John Bellardo: fixed gen_rse to attribute skip/first nodes to the parent_rse if present instead of the child rse.  BUG #451798
+ * 2001.09.10 John Bellardo: fixed gen_rse to attribute skip/first nodes to the parent_rse
+ *   if present instead of the child rse.  BUG #451798
+ * 2001.09.26 Claudio Valderrama: ambiguous field names are rejected from now.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -111,9 +113,9 @@ STR	temp_collation_name = NULL;
 					 * Bug 10061, bsriram - 19-Apr-1999
 					 */
 
-/*
+
 #define FIREBIRD_REJECT_AMBIGUITY
-*/
+
 
 
 CTX PASS1_make_context (
@@ -338,7 +340,8 @@ NOD PASS1_node (
  *  CVC: This function now is a wrapper around pass1_node().
  *
  **************************************/
-	return pass1_node (request, input, proc_flag, 0);
+	USHORT	fcount;
+	return pass1_node (request, input, proc_flag, &fcount);
 }
 
 NOD PASS1_rse (
@@ -1850,6 +1853,7 @@ NOD	field, list;
 BLB	blob;
 PAR	parameter;
 TSQL	tdsql;
+USHORT	fcount;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -1858,7 +1862,7 @@ tdsql = GET_THREAD_DATA;
 
 
 (void) PASS1_make_context (request, input->nod_arg [e_blb_relation]);
-field = pass1_field (request, input->nod_arg [e_blb_field], 0, 0);
+field = pass1_field (request, input->nod_arg [e_blb_field], 0, &fcount);
 if (field->nod_desc.dsc_dtype != dtype_blob)
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
 	gds_arg_gds, gds__dsql_blob_err, 
@@ -2427,10 +2431,10 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 					if (node)
 						ALL_release (node);
 					ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-						gds_arg_warning, isc_dsql_ambiguous_field_name,
+						gds_arg_gds, isc_dsql_ambiguous_field_name,
 #else
 					ERRD_post_warning (isc_sqlwarn, gds_arg_number, (SLONG) +204,
-						gds_arg_gds, isc_dsql_ambiguous_field_name,
+						gds_arg_warning, isc_dsql_ambiguous_field_name,
 #endif
 						gds_arg_string, ERR_cstring (names [0]),
 						gds_arg_string, ERR_cstring (names [1]),
@@ -2755,7 +2759,7 @@ switch (input->nod_type)
 		gds_arg_gds, gds__dsql_invalid_array, 
 		0);
 	else
-	    return pass1_field (request, input, 0, 0);
+	    return pass1_field (request, input, 0, fcount);
 
     case nod_variable:
 	return node;
@@ -3582,6 +3586,7 @@ static NOD pass1_sel_list (
 NOD	node, *ptr, *end, frnode;
 CTX	context;
 LLS	stack;
+USHORT	fcount;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -3601,7 +3606,7 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
 
 	/* check for field or relation node */
 
-	frnode = pass1_field( request, *ptr, 1, 0);
+	frnode = pass1_field( request, *ptr, 1, &fcount);
 	if ( frnode->nod_type == nod_field)
 	    LLS_PUSH( frnode, &stack);
 	else
@@ -4044,6 +4049,7 @@ NOD	procedure_node, var_nodes, var_node, *ptr, *end;
 STR	var_name = 0;
 VAR	var;
 SSHORT	position;
+USHORT	fcount;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -4053,7 +4059,7 @@ if (input->nod_type == nod_field_name)
     if (input->nod_arg[e_fln_context])
 	{
 	if (request->req_flags & REQ_trigger)
-	    return pass1_field (request, input, 0, 0);
+	    return pass1_field (request, input, 0, &fcount);
 	else
 	    field_error (NULL_PTR, NULL_PTR, input);
 	}
