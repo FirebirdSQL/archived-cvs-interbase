@@ -63,7 +63,7 @@ checkInstallUser() {
 
     if [ "`whoami`" != "root" ];
       then
-        ehco ""
+        echo ""
         echo "--- Warning ----------------------------------------------"
         echo ""
         echo "    You need to be 'root' user to install"
