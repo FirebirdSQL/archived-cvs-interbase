@@ -537,6 +537,7 @@ while (--argc > 0)
 	else
 	    ALICE_error (110,0,0,0,0,0); /* msg 110: "read_only" or "read_write" required */
 	}
+    }
 
 /* put this here since to put it above overly complicates the parsing */
 /* can't use tbl_requires since it only looks backwards on command line */

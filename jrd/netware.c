@@ -411,6 +411,7 @@ if (desc == -1)
 	if (!dbb->dbb_file)
 	    dbb->dbb_flags |= DBB_being_opened_read_only;
 	}
+    }
 
 return dfs_setup_file (dbb, string, length, desc);
 }

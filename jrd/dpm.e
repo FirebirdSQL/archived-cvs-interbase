@@ -1159,8 +1159,7 @@ if (dbb->dbb_flags & DBB_read_only)
     page = (GPG) CCH_FETCH (tdbb, &window, LCK_read, pag_ids);
 else
     page = (GPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
-#else
-page = (GPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
+
 
 /*  If we are in ODS >= 10, then we have a pointer to an int64 value in the
  *  generator page: if earlier than 10, it's a pointer to a long value.

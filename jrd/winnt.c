@@ -598,6 +598,7 @@ else
 	 */
 	if (!dbb->dbb_file)
 	    dbb->dbb_flags |= DBB_being_opened_read_only;
+	}
     }
 
 return setup_file (dbb, string, length, desc);
