@@ -2569,13 +2569,28 @@ join_type	: INNER
 		;
 
 /* other clauses in the select expression */
+first_clause	: FIRST long_integer
+			{ $$ = MAKE_constant ((STR) $2, CONSTANT_SLONG); }
+		| FIRST '(' value ')'
+			{ $$ = $3; }
+		| FIRST parameter
+			{ $$ = $2; }
+		|
+			{ $$ = 0; }
+		;
 
-limit_clause	: FIRST value
-			{ $$ = make_node (nod_limit, e_limit_count, NULL, $2); }
-		| FIRST value SKIP value
-			{ $$ = make_node (nod_limit, e_limit_count, $4, $2); }
-		| SKIP value
-			{ $$ = make_node (nod_limit, e_limit_count, $2, NULL); }
+skip_clause	: SKIP long_integer
+			{ $$ = MAKE_constant ((STR) $2, CONSTANT_SLONG); }
+		| SKIP '(' value ')'
+			{ $$ = $3; }
+		| SKIP parameter
+			{ $$ = $2; }
+		|
+			{ $$ = 0; }
+		;
+
+limit_clause	: first_clause skip_clause
+			{ $$ = make_node (nod_limit, e_limit_count, $2, $1); }
 		|
 			{ $$ = 0; }
 		;
