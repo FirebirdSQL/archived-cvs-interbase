@@ -458,7 +458,7 @@ else
 resolved_charset = NULL;
 if (charset_name)
     {
-    resolved_charset = METD_get_charset (request, strlen (charset_name), charset_name);
+    resolved_charset = METD_get_charset (request, (USHORT)strlen (charset_name), charset_name);
 
     /* Error code -204 (IBM's DB2 manual) is close enough */
     if (!resolved_charset)
@@ -805,9 +805,11 @@ save_desc.dsc_dtype  = 0;
 
 if (field && field->fld_dtype)
     {
-    save_desc.dsc_dtype  = field->fld_dtype;
+    assert(field->fld_dtype <= MAX_UCHAR);
+    save_desc.dsc_dtype  = (UCHAR)field->fld_dtype;
     save_desc.dsc_length = field->fld_length;
-    save_desc.dsc_scale  = field->fld_scale;
+    assert(field->fld_scale <= MAX_SCHAR);
+    save_desc.dsc_scale  = (SCHAR)field->fld_scale;
 
     field->fld_dtype  = 0;
     field->fld_length = 0;
@@ -861,8 +863,9 @@ reset_context_stack (request);
 /* generate the source text */
 
 source = (STR) node->nod_arg [e_cmp_text];
+assert(source->str_length <= MAX_USHORT);
 put_string (request, gds__dyn_fld_computed_source, source->str_data, 
-	    source->str_length);
+	    (USHORT)source->str_length);
 }
 
 static void define_constraint_trigger (
@@ -893,22 +896,27 @@ trigger_name = (STR) node->nod_arg [e_cnstr_name];
 
 if (node->nod_type == nod_def_constraint)
     {
+    assert(trigger_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
-			trigger_name->str_length);
+			(USHORT)trigger_name->str_length);
     relation_node = node->nod_arg [e_cnstr_table];
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
+    assert(trigger_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_rel_name, relation_name->str_data, 
-			relation_name->str_length);
+			(USHORT)relation_name->str_length);
     }
 else
     return;
 
 if ((source = (STR) node->nod_arg [e_cnstr_source]) != NULL)
-    put_string (request, gds__dyn_trg_source, source->str_data, source->str_length);
+    {
+    assert(source->str_length <= MAX_USHORT);
+    put_string (request, gds__dyn_trg_source, source->str_data, (USHORT)source->str_length);
+    }
 
 if ((constant = node->nod_arg [e_cnstr_position]) != NULL)
-    put_number (request, gds__dyn_trg_sequence, constant ? 
-				(SSHORT) constant->nod_arg [0] : 0);
+    put_number (request, gds__dyn_trg_sequence,
+				(SSHORT)(constant ? constant->nod_arg [0] : 0));
 
 if ((constant = node->nod_arg [e_cnstr_type]) != NULL)
     {
@@ -921,7 +929,8 @@ STUFF (gds__dyn_sql_object);
 if ((message = (STR) node->nod_arg [e_cnstr_message]) != NULL)
     {
     put_number (request, gds__dyn_def_trigger_msg, 0);
-    put_string (request, gds__dyn_trg_msg, message->str_data, message->str_length);
+    assert(message->str_length <= MAX_USHORT);
+    put_string (request, gds__dyn_trg_msg, message->str_data, (USHORT)message->str_length);
     STUFF (gds__dyn_end);
     }
 
@@ -1232,7 +1241,7 @@ if (element->nod_type != nod_foreign)
 put_string (request, gds__dyn_def_trigger, "", (USHORT)0);
 
 put_number (request, gds__dyn_trg_type,
-    on_upd_trg ? (SSHORT)POST_MODIFY_TRIGGER : (SSHORT)POST_ERASE_TRIGGER);
+    (SSHORT)(on_upd_trg ? POST_MODIFY_TRIGGER : POST_ERASE_TRIGGER));
 
 STUFF(gds__dyn_sql_object);
 put_number (request, gds__dyn_trg_sequence, (SSHORT)1);
@@ -1466,8 +1475,11 @@ if ((node = element->nod_arg [e_dom_default]) != NULL)
     GEN_expr (request, node);
     end_blr (request);
     if ((string = (STR) element->nod_arg [e_dom_default_source]) != NULL)
+	{
+	assert(string->str_length <= MAX_USHORT);
 	put_string (request, gds__dyn_fld_default_source, string->str_data, 
-						string->str_length);	
+						(USHORT)string->str_length);
+	}
     }
 
 if (field->fld_ranges)
@@ -1504,8 +1516,11 @@ if (node = element->nod_arg [e_dom_constraint])
                         0);
                 check_flag = TRUE;
                 if ((string = (STR) node1->nod_arg [e_cnstr_source]) != NULL)
+                    {
+                    assert(string->str_length <= MAX_USHORT);
                     put_string (request, gds__dyn_fld_validation_source,
-                                string->str_data, string->str_length);
+                                string->str_data, (USHORT)string->str_length);
+                    }
                 begin_blr (request, gds__dyn_fld_validation_blr);
                 
 		/* Set any VALUE nodes to the type of the domain being defined. */
@@ -1567,7 +1582,8 @@ else
 
 if (op != nod_del_exception)
     {
-    put_string (request, gds__dyn_xcp_msg, text->str_data, text->str_length);
+    assert(text->str_length <= MAX_USHORT);
+    put_string (request, gds__dyn_xcp_msg, text->str_data, (USHORT)text->str_length);
     STUFF (gds__dyn_end);
     }
 }
@@ -1659,8 +1675,11 @@ if ((node = element->nod_arg [e_dfl_default]) != NULL)
     GEN_expr (request, node);
     end_blr (request);
     if ((string = (STR) element->nod_arg [e_dfl_default_source]) != NULL)
+	{
+	assert(string->str_length <= MAX_USHORT);
 	put_string (request, gds__dyn_fld_default_source, string->str_data, 
-						string->str_length);	
+						(USHORT)string->str_length);
+	}
     }
 
 if (field->fld_ranges)
@@ -1998,8 +2017,11 @@ else
 	}
     }
 if ((source = (STR) procedure_node->nod_arg [e_prc_source]) != NULL)
+    {
+    assert(source->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_prc_source, source->str_data,
-		source->str_length);
+		(USHORT)source->str_length);
+    }
 
 /* Fill req_procedure to allow procedure to self reference */
 procedure = (PRC) ALLOCDV (type_prc, strlen (procedure_name->str_data) + 1);
@@ -2030,7 +2052,7 @@ if (parameters = procedure_node->nod_arg [e_prc_inputs])
 	put_field (request, field, FALSE);
 
 	*ptr = MAKE_variable (field, field->fld_name,
-	    VAR_input, 0, 2 * position, locals);
+	    VAR_input, 0, (USHORT)(2 * position), locals);
 	/* Put the field in a field list which will be stored to allow
 	   procedure self referencing */
 	*field_ptr = field;
@@ -2065,7 +2087,7 @@ if (parameters = procedure_node->nod_arg [e_prc_outputs])
 	put_field (request, field, FALSE);
 
 	*ptr = MAKE_variable (field, field->fld_name,
-	    VAR_output, 1, 2 * position, locals);
+	    VAR_output, 1, (USHORT)(2 * position), locals);
 	*field_ptr = field;
 	field_ptr = &field->fld_next;
 	position++;
@@ -2297,7 +2319,7 @@ assert (prim_columns->nod_count != 0);
 put_string (request, gds__dyn_def_trigger, "", (USHORT)0);
 
 put_number (request, gds__dyn_trg_type, 
-    on_upd_trg ? (SSHORT)POST_MODIFY_TRIGGER : (SSHORT)POST_ERASE_TRIGGER);
+    (SSHORT)(on_upd_trg ? POST_MODIFY_TRIGGER : POST_ERASE_TRIGGER));
 
 STUFF(gds__dyn_sql_object);
 put_number (request, gds__dyn_trg_sequence, (SSHORT)1);
@@ -2472,19 +2494,22 @@ trigger_name = (STR) node->nod_arg [e_trg_name];
 
 if (node->nod_type == nod_def_trigger)
     {
+    assert(trigger_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
-			trigger_name->str_length);
+			(USHORT)trigger_name->str_length);
     relation_node = node->nod_arg [e_trg_table];
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
+    assert(relation_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_rel_name, relation_name->str_data, 
-			relation_name->str_length);
+			(USHORT)relation_name->str_length);
     STUFF (gds__dyn_sql_object);
     }
 else /* if (node->nod_type == nod_mod_trigger) */
     {
     assert (node->nod_type == nod_mod_trigger);
+    assert(trigger_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_mod_trigger, trigger_name->str_data, 
-			trigger_name->str_length);
+			(USHORT)trigger_name->str_length);
     if (node->nod_arg [e_trg_actions])
 	{
 	/* Since we will be updating the body of the trigger, we need
@@ -2509,7 +2534,10 @@ actions = (node->nod_arg [e_trg_actions]) ?
     node->nod_arg [e_trg_actions]->nod_arg [1] : NULL;
 
 if (source && actions)
-    put_string (request, gds__dyn_trg_source, source->str_data, source->str_length);
+    {
+    assert(source->str_length <= MAX_USHORT);
+    put_string (request, gds__dyn_trg_source, source->str_data, (USHORT)source->str_length);
+    }
 				    
 if (constant = node->nod_arg [e_trg_active])
     put_number (request, gds__dyn_trg_inactive, (SSHORT) constant->nod_arg [0]);
@@ -2594,8 +2622,9 @@ if (temp = node->nod_arg [e_trg_messages])
 		put_number (request, gds__dyn_def_trigger_msg, number);
 	    else
 		put_number (request, gds__dyn_mod_trigger_msg, number);
+	    assert(message_text->str_length <= MAX_USHORT);
 	    put_string (request, gds__dyn_trg_msg, message_text->str_data,
-			message_text->str_length);
+			(USHORT)message_text->str_length);
 	    STUFF (gds__dyn_end);
 	    }
 	}
@@ -2639,7 +2668,7 @@ if (field = (FLD) ret_val_ptr [0])
 
     /* Some data types can not be returned as value */
        
-    if ((ret_val_ptr[1]->nod_arg [0] == FUN_value) &&
+    if (( (int)(ret_val_ptr[1]->nod_arg [0]) == FUN_value) &&
 	   (field->fld_dtype == dtype_text ||
             field->fld_dtype == dtype_varying ||
             field->fld_dtype == dtype_cstring ||
@@ -3039,7 +3068,8 @@ end_blr (request);
    Source will be for documentation purposes. */
 
 source = (STR) node->nod_arg [e_view_source];
-put_string (request, gds__dyn_view_source, source->str_data, source->str_length);
+assert(source->str_length <= MAX_USHORT);
+put_string (request, gds__dyn_view_source, source->str_data, (USHORT)source->str_length);
 
 /* define the view source relations from the request contexts */
 
@@ -3261,19 +3291,21 @@ trigger_name = (STR) node->nod_arg [e_cnstr_name];
 
 if (node->nod_type == nod_def_constraint)
     {
+    assert(trigger_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
-			trigger_name->str_length);
+			(USHORT)trigger_name->str_length);
     relation_node = node->nod_arg [e_cnstr_table];
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
+    assert(relation_name->str_length <= MAX_USHORT);
     put_string (request, gds__dyn_rel_name, relation_name->str_data, 
-			relation_name->str_length);
+			(USHORT)relation_name->str_length);
     }
 else
     return;
 
 if ((constant = node->nod_arg [e_cnstr_position]) != NULL)
     put_number (request, gds__dyn_trg_sequence,
-				constant ? (SSHORT) constant->nod_arg [0] : 0);
+				(SSHORT)(constant ? constant->nod_arg [0] : 0));
 
 if ((constant = node->nod_arg [e_cnstr_type]) != NULL)
     {
@@ -3293,7 +3325,8 @@ STUFF (gds__dyn_sql_object);
 if ((message = (STR) node->nod_arg [e_cnstr_message]) != NULL)
     {
     put_number (request, gds__dyn_def_trigger_msg, 0);
-    put_string (request, gds__dyn_trg_msg, message->str_data, message->str_length);
+    assert(message->str_length <= MAX_USHORT);
+    put_string (request, gds__dyn_trg_msg, message->str_data, (USHORT)message->str_length);
     STUFF (gds__dyn_end);
     }
 
@@ -3429,8 +3462,8 @@ STUFF (blr_eoc);
 
 blr_base = request->req_blr_string->str_data + request->req_base_offset;
 length = (SSHORT) (request->req_blr - blr_base) - 2;
-*blr_base++ = length;
-*blr_base = length >> 8;
+*blr_base++ = (UCHAR)length;
+*blr_base = (UCHAR)(length >> 8);
 }
 
 static void foreign_key (
@@ -4099,8 +4132,11 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
             GEN_expr (request, element->nod_arg[e_dft_default]);
             end_blr (request);
             if ((string = (STR) element->nod_arg [e_dft_default_source]) != NULL)
-            put_string (request, gds__dyn_fld_default_source, string->str_data,
-                                                string->str_length);
+                {
+                assert(string->str_length <= MAX_USHORT);
+                put_string (request, gds__dyn_fld_default_source, string->str_data,
+                              (USHORT)string->str_length);
+                }
 	    break;
 
 	case nod_def_constraint:
@@ -4137,8 +4173,11 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	    
             end_blr (request);
             if ((string = (STR) element->nod_arg [e_cnstr_source]) != NULL)
+                 {
+                 assert(string->str_length <= MAX_USHORT);
                  put_string (request, gds__dyn_fld_validation_source,
-                             string->str_data, string->str_length);
+                             string->str_data, (USHORT)string->str_length);
+                 }
 	    break;
 
 	case nod_mod_domain_type:
@@ -4149,7 +4188,6 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 
 	case nod_field_name:
            {
-	    NOD nod_new_domain;
 	    STR new_dom_name;
 
 	    new_dom_name =  (STR) element->nod_arg [e_fln_name];
@@ -4243,8 +4281,8 @@ dynsave = request->req_blr;
 for (i = priv_count + 2; i; i--)
     --dynsave;
 
-*dynsave++ = priv_count;
-*dynsave = priv_count >> 8;
+*dynsave++ = (UCHAR)priv_count;
+*dynsave = (UCHAR)(priv_count >> 8);
     
 name = (STR) table->nod_arg [0];
 if (table->nod_type == nod_procedure_name)
@@ -4367,7 +4405,6 @@ static void modify_relation (
  **************************************/
 NOD	ddl_node, ops, element, *ptr, *end, relation_node, field_node;
 STR	relation_name, field_name;
-FLD	field;
 JMP_BUF	*old_env, env;
 TSQL	tdsql;
 
@@ -4549,7 +4586,7 @@ static void put_descriptor (
 
 put_number (request, gds__dyn_fld_type, blr_dtypes [desc->dsc_dtype]);
 if (desc->dsc_dtype == dtype_varying)
-    put_number (request, gds__dyn_fld_length, desc->dsc_length - sizeof (USHORT));
+    put_number (request, gds__dyn_fld_length, (SSHORT)(desc->dsc_length - sizeof (USHORT)));
 else
     put_number (request, gds__dyn_fld_length, desc->dsc_length);
 put_number (request, gds__dyn_fld_scale, desc->dsc_scale);
@@ -4664,7 +4701,10 @@ else if (field->fld_dtype <= dtype_any_text)
         put_number (request, gds__dyn_fld_sub_type, field->fld_sub_type);
     put_number (request, gds__dyn_fld_scale, 0);
     if (field->fld_dtype == dtype_varying)
-	put_number (request, gds__dyn_fld_length, field->fld_length - sizeof (USHORT));
+	{
+	assert((field->fld_length - sizeof (USHORT)) <= MAX_SSHORT);
+	put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length - sizeof (USHORT)));
+	}
     else
         put_number (request, gds__dyn_fld_length, field->fld_length);
     if (!(request->req_dbb->dbb_flags & DBB_v3))
@@ -5309,9 +5349,11 @@ static void set_nod_value_attributes (
 	{
 	  if ( nod_dom_value == child->nod_type )
 	    {
-	      child->nod_desc.dsc_dtype  = field->fld_dtype;
+	      assert(field->fld_dtype <= MAX_UCHAR);
+	      child->nod_desc.dsc_dtype  = (UCHAR)field->fld_dtype;
 	      child->nod_desc.dsc_length = field->fld_length;
-	      child->nod_desc.dsc_scale  = field->fld_scale;
+	      assert(field->fld_scale <= MAX_SCHAR);
+	      child->nod_desc.dsc_scale  = (SCHAR)field->fld_scale;
 	    }
 	  else if ( (nod_constant     != child->nod_type) &&
 		    (child->nod_count >  0              ) )
