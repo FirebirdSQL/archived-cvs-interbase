@@ -412,10 +412,10 @@ define index RDB$INDEX_35 for RDB$TRIGGER_MESSAGES
 
 
 /*
-define index RDB$INDEX_36 for RDB$FIELD_DIMENSIONS unique
+define index RDB$INDEX_36 for RDB$FIELD_DIMENSIONS
 	RDB$FIELD_NAME;
 */
-    INDEX (36, ODS_8_1, rel_dims, idx_unique, 1)
+    INDEX (36, ODS_8_1, rel_dims, 0, 1)
 	SEGMENT (f_dims_fname, idx_metadata)	/* array name */
     }},
 
