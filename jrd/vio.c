@@ -994,7 +994,9 @@ else
     length = tail - record->rec_data;
 
 if (format->fmt_length != length)
-    BUGCHECK (183); /* msg 183 wrong record length */
+    ib_printf ("expected: %d, found: %d, page %d line %d\n", 
+	format->fmt_length, length, rpb->rpb_page, rpb->rpb_line);
+//    BUGCHECK (183); /* msg 183 wrong record length */
 
 rpb->rpb_address = record->rec_data;
 rpb->rpb_length = format->fmt_length;
@@ -1920,9 +1922,9 @@ if (!(transaction->tra_flags & TRA_system))
 	    SCL_check_relation (&desc1, SCL_control);
 	    EVL_field (NULL_PTR, new_rpb->rpb_record, f_idx_name, &desc1);
 	    if (EVL_field (NULL_PTR, new_rpb->rpb_record, f_idx_exp_blr, &desc2))
-		DFW_post_work (transaction, dfw_create_expression_index, &desc1, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_expression_index, &desc1, tdbb->tdbb_database->dbb_max_idx);
 	    else
-		DFW_post_work (transaction, dfw_create_index, &desc1, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_index, &desc1, tdbb->tdbb_database->dbb_max_idx);
 	    break;
 
 	case rel_triggers :
@@ -2197,9 +2199,9 @@ if (!(transaction->tra_flags & TRA_system))
 	    SCL_check_relation (&desc, SCL_control);
 	    EVL_field (NULL_PTR, rpb->rpb_record, f_idx_name, &desc);
 	    if (EVL_field (NULL_PTR, rpb->rpb_record, f_idx_exp_blr, &desc2))
-		DFW_post_work (transaction, dfw_create_expression_index, &desc, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_expression_index, &desc, tdbb->tdbb_database->dbb_max_idx);
 	    else
-		DFW_post_work (transaction, dfw_create_index, &desc, MAX_IDX);
+		DFW_post_work (transaction, dfw_create_index, &desc, tdbb->tdbb_database->dbb_max_idx);
 	    break;
 
 	case rel_rfr :

@@ -149,6 +149,7 @@ typedef struct dbb {
     USHORT      dbb_page_size;          /* page size */
     USHORT      dbb_dp_per_pp;          /* data pages per pointer page */
     USHORT      dbb_max_records;        /* max record per data page */
+    USHORT      dbb_max_idx;            /* maximum number of indexes per root page */
     USHORT      dbb_use_count;          /* active count of threads */
     USHORT      dbb_shutdown_delay;     /* seconds until forced shutdown */
     USHORT      dbb_refresh_ranges;     /* active count of refresh ranges */

@@ -1359,14 +1359,14 @@ switch (phase)
 	       delete the index. It will also clean the index slot. */
 	    if (relation->rel_index_root)
 	        {
-		if (work->dfw_id != MAX_IDX)
+		if (work->dfw_id != dbb->dbb_max_idx)
 		    {
 	            window.win_page = relation->rel_index_root;
 		    window.win_flags = 0;
 	            CCH_FETCH (tdbb, &window, LCK_write, pag_root);
 	            CCH_MARK_MUST_WRITE (tdbb, &window);
 	            BTR_delete_index (tdbb, &window, work->dfw_id);
-		    work->dfw_id = MAX_IDX;
+		    work->dfw_id = dbb->dbb_max_idx;
 		    }
 		if (!IDXN.RDB$INDEX_ID.NULL)
 		    {
@@ -1569,19 +1569,19 @@ switch (phase)
 	For testing purposes, I'm calling SCL_check_index, although most of the DFW ops are
 	carried using internal metadata structures that are refreshed from system tables. */
 
-		if (partner_relation)
-		{
-			/* Don't bother if the master's owner is the same than the detail's owner.
-			If both tables aren't defined in the same session, partner_relation->rel_owner_name
-			won't be loaded hence, we need to be careful about null pointers. */
+	if (partner_relation)
+	{
+	    /* Don't bother if the master's owner is the same than the detail's owner.
+	    If both tables aren't defined in the same session, partner_relation->rel_owner_name
+	    won't be loaded hence, we need to be careful about null pointers. */
 
-			if (!relation->rel_owner_name || !partner_relation->rel_owner_name
-				|| strcmp(relation->rel_owner_name, partner_relation->rel_owner_name))
-				SCL_check_index (tdbb, partner_relation->rel_name, idx.idx_id + 1, SCL_sql_references);
-		}
+	    if (!relation->rel_owner_name || !partner_relation->rel_owner_name
+		    || strcmp(relation->rel_owner_name, partner_relation->rel_owner_name))
+		    SCL_check_index (tdbb, partner_relation->rel_name, idx.idx_id + 1, SCL_sql_references);
+	}
     }
 		    
-	assert (work->dfw_id == MAX_IDX);
+	assert (work->dfw_id == dbb->dbb_max_idx);
 	IDX_create_index (tdbb, relation, &idx,
 			  work->dfw_name, &work->dfw_id, transaction, &selectivity);
 	assert (work->dfw_id == idx.idx_id);
@@ -4105,16 +4105,15 @@ request_fmtx = (BLK) CMP_find_request (tdbb, irq_format6, IRQ_REQUESTS);
 FOR (REQUEST_HANDLE request_fmtx)
     TRG IN RDB$TRIGGERS
     WITH TRG.RDB$RELATION_NAME = relation->rel_name 
-	AND (TRG.RDB$SYSTEM_FLAG BT 3 AND 5	  
-	    OR ((TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-	        AND ANY 
+	AND TRG.RDB$SYSTEM_FLAG BT 3 AND 5	  
+	OR ((TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+	    AND ANY 
 		CHK IN RDB$CHECK_CONSTRAINTS CROSS
 		RCN IN RDB$RELATION_CONSTRAINTS
 		    WITH TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
 			AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
 			AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
 			    OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
-	    	)
 	    )
     SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 

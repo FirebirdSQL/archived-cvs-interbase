@@ -30,7 +30,7 @@
 
 extern void		IDX_check_access (TDBB, struct csb *, struct rel *, struct rel *, struct fld *);
 extern void		IDX_create_index (TDBB, struct rel *, struct idx *, UCHAR *, USHORT *, struct tra *, float *);
-extern struct idb	*IDX_create_index_block (TDBB, struct rel *, UCHAR);
+extern struct idb	*IDX_create_index_block (TDBB, struct rel *, USHORT);
 extern void		IDX_delete_index (TDBB, struct rel *, USHORT);
 extern void		IDX_delete_indices (TDBB, struct rel *);
 extern enum idx_e	IDX_erase (TDBB, struct rpb *, struct tra *, struct rel **, USHORT *);

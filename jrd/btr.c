@@ -210,7 +210,7 @@ if (!(root = fetch_root (tdbb, &window, relation)))
 
 if ((SLONG)(root->irt_count * sizeof (IDX)) > *idx_size)
     {
-    size = (sizeof (IDX) * MAX_IDX) + ALIGNMENT;
+    size = (sizeof (IDX) * dbb->dbb_max_idx) + ALIGNMENT;
     *csb_idx_allocation = new_buffer = (STR) ALLOCPV (type_str, size);
     buffer = *start_buffer = (IDX*) FB_ALIGN((U_IPTR) new_buffer->str_data, ALIGNMENT);
     *idx_size = size - ALIGNMENT;
@@ -362,8 +362,8 @@ irt_desc = &root->irt_rpt [id];
 if (irt_desc->irt_root == 0)
     return FALSE;
 
-assert(id <= MAX_UCHAR);
-idx->idx_id = (UCHAR)id;
+assert(id <= MAX_USHORT);
+idx->idx_id = (USHORT)id;
 idx->idx_root = irt_desc->irt_root;
 idx->idx_selectivity = irt_desc->irt_stuff.irt_selectivity;
 idx->idx_count = irt_desc->irt_keys;
@@ -1411,7 +1411,7 @@ struct	irt_repeat	*irt_desc;
 
 SET_TDBB (tdbb);
 
-if ((UCHAR) idx->idx_id == (UCHAR) -1)
+if ((USHORT) idx->idx_id == (USHORT) -1)
     {
     id = 0;
     window->win_bdb = NULL;
@@ -1648,11 +1648,11 @@ CCH_MARK (tdbb, &window);
 
 /* check that we don't create an infinite number of indexes */
 
-if (root->irt_count > MAX_IDX)
+if (root->irt_count > dbb->dbb_max_idx)
     {
     CCH_RELEASE (tdbb, &window); 
     ERR_post (gds__no_meta_update, gds_arg_gds, gds__max_idx,
-	gds_arg_number, (SLONG) MAX_IDX, 0);
+	gds_arg_number, (SLONG) dbb->dbb_max_idx, 0);
     }    
 
 /* Scan the index page looking for the high water mark of the descriptions and,
@@ -2555,7 +2555,7 @@ while (next)
        are true we have a damaged pointer, so just stop deleting */
 
     if (page->btr_header.pag_type != pag_index ||
-	page->btr_id != idx_id ||
+	page->btr_id != (UCHAR) (idx_id % 256) ||
 	page->btr_relation != rel_id)
 	{
 	CCH_RELEASE (tdbb, &window);
@@ -2685,7 +2685,7 @@ keys [0].key_length = 0;
 bucket = buckets [0] = (BTR) DPM_allocate (tdbb, &windows [0]);
 bucket->btr_header.pag_type = pag_index;
 bucket->btr_relation = relation->rel_id;
-bucket->btr_id = idx->idx_id;
+bucket->btr_id = (UCHAR) (idx->idx_id % 256);
 bucket->btr_level = 0;
 bucket->btr_length = OFFSETA (BTR, btr_nodes);
 if (idx->idx_flags & idx_descending)
@@ -2874,7 +2874,7 @@ while (!error)
 	    buckets [level] = bucket = (BTR) DPM_allocate (tdbb, window);
 	    bucket->btr_header.pag_type = pag_index;
 	    bucket->btr_relation = relation->rel_id;
-	    bucket->btr_id = idx->idx_id;
+	    bucket->btr_id = (UCHAR) (idx->idx_id % 256);
 	    assert(level <= MAX_UCHAR)
 	    bucket->btr_level = (UCHAR)level;
 	    if (idx->idx_flags & idx_descending)
@@ -3283,7 +3283,7 @@ parent_window.win_flags = 0;
 parent_page = (BTR) CCH_FETCH (tdbb, &parent_window, LCK_write, pag_undefined);
 if ((parent_page->btr_header.pag_type != pag_index) ||
     (parent_page->btr_relation != relation_number) ||
-    (parent_page->btr_id != index_id) || 
+    (parent_page->btr_id != (UCHAR) (index_id % 256)) || 
     (parent_page->btr_level != index_level + 1))
     {
     CCH_RELEASE (tdbb, &parent_window);
@@ -3610,7 +3610,7 @@ if (result != contents_above_threshold)
 
     if ((parent_page->btr_header.pag_type != pag_index) ||
         (parent_page->btr_relation != relation_number) ||
-	(parent_page->btr_id != index_id) || 
+	(parent_page->btr_id != (UCHAR) (index_id % 256)) || 
 	(parent_page->btr_level != index_level + 1))
 	{
 	CCH_RELEASE (tdbb, window);
