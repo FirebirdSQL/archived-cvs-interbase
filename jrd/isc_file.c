@@ -2176,6 +2176,13 @@ while (*from)
     {
     segment = to;
 
+    /* skip dual // (will collapse /// to / as well) */
+	if (*from == '/' && from[1] == '/')
+	{
+		++from;
+		continue;
+	}
+
     /* Copy the leading slash, if any */
 
     if (*from == '/')
