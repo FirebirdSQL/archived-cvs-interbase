@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 26-Sept-2001 Paul Beach - External File Directory Config. Parameter
  */
 
 #ifndef _JRD_FIL_H_
@@ -86,4 +87,10 @@ typedef struct fdls {
     TEXT         fdls_directory[1];
 } FDLS;
 
+/* external file directory list */
+
+typedef struct edls {
+    struct edls *edls_next;
+    TEXT         edls_directory[1];
+} EDLS;
 #endif /* _JRD_FIL_H_ */

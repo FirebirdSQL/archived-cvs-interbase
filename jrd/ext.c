@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 26-Sept-2001 Paul Beach - Windows External File Directory Config. Parameter 
  */
 
 #include "../jrd/ib_stdio.h"
@@ -44,7 +45,13 @@
 #include "../jrd/thd_proto.h"
 #include "../jrd/vio_proto.h"
 
+#include "../jrd/dls_proto.h"
+#include "../jrd/gds_proto.h"
+
 #ifdef WIN_NT
+#include <windows.h>
+#include <stdlib.h>
+#include <io.h>
 #define FOPEN_TYPE	"a+b"
 #define FOPEN_READ_ONLY	"rb"
 #define	SYS_ERR		gds_arg_win32
@@ -120,6 +127,17 @@ EXT EXT_file (
  *	Create a file block for external file access.
  *
  **************************************/
+#ifdef WIN_NT
+TEXT ib_file_path[MAXPATHLEN];
+TEXT absolute_file[MAXPATHLEN];
+TEXT drive_buf[_MAX_DRIVE];
+TEXT dir_buf[_MAX_DIR];
+TEXT file_buf[_MAX_FNAME];
+TEXT ext_buf[_MAX_EXT];
+EDLS *dir_list;
+BOOLEAN found_dir;
+#endif
+
 DBB	dbb;
 EXT	file;
 
@@ -132,23 +150,92 @@ if (relation->rel_file)
 {
     EXT_fini(relation);
 }
-relation->rel_file = file = (EXT) ALLOCPV (type_ext, strlen (file_name) + 1);
-strcpy (file->ext_filename, file_name);
 
-#ifdef WIN32
+#ifdef WIN_NT
 /* Default number of file handles stdio.h on Windows is 512, use this 
  * call to increase and set to the maximum */
 _setmaxstdio(2048);
 #endif
 
+#ifdef WIN_NT
+
+		found_dir = FALSE;	
+		dir_list = DLS_get_file_dirs();
+		
+		while (dir_list && !found_dir)
+		{
+		strcpy (ib_file_path, dir_list->edls_directory);
+		strcat(ib_file_path, "\\");
+		_splitpath(file_name, drive_buf, dir_buf, file_buf, ext_buf);
+		strcpy (absolute_file, file_buf);
+		strcat (absolute_file, ext_buf);
+		strncat (ib_file_path, absolute_file, MAXPATHLEN - strlen (ib_file_path) - 1);
+			
+		if (!_access (ib_file_path, 4))
+			{
+		relation->rel_file = file = (EXT) ALLOCPV (type_ext, strlen (ib_file_path) + 1);
+		strcpy (file->ext_filename, absolute_file);
+		found_dir = TRUE;
+			}
+		dir_list = dir_list->edls_next;
+		}
+
+		if (!found_dir)
+			{
+			relation->rel_file = file = (EXT) ALLOCPV (type_ext, strlen (file_name) + 1);
+			strcpy (file->ext_filename, file_name);
+			}
+
+#else
+relation->rel_file = file = (EXT) ALLOCPV (type_ext, strlen (file_name) + 1);
+strcpy (file->ext_filename, file_name);
+#endif
+
 #ifndef mpexl
 file->ext_flags = 0;
-
 file->ext_ifi = (int*)NULL;
+#endif
+
 /* If the database is updateable, then try opening the external files in
  * RW mode. If the DB is ReadOnly, then open the external files only in
  * ReadOnly mode, thus being consistent.
  */
+
+#ifdef WIN_NT
+if (found_dir)
+	{if (!(file->ext_ifi = (int*) ib_fopen (ib_file_path, FOPEN_TYPE)))
+	
+	{
+    /* could not open the file as read write attempt as read only */
+    
+if (!(file->ext_ifi = (int*) ib_fopen (ib_file_path, FOPEN_READ_ONLY)))
+        ERR_post (isc_io_error, 
+    	    gds_arg_string, "ib_fopen", 
+    	    gds_arg_string, ERR_cstring (file->ext_filename),
+            isc_arg_gds, isc_io_open_err,
+    	    SYS_ERR, errno, 0);
+    else 
+	file->ext_flags |= EXT_readonly;
+    }
+	}
+	
+if (!found_dir)
+	{if (!(file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_TYPE)))
+	
+	{
+    /* could not open the file as read write attempt as read only */
+    
+if (!(file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_READ_ONLY)))
+        ERR_post (isc_io_error, 
+    	    gds_arg_string, "ib_fopen", 
+    	    gds_arg_string, ERR_cstring (file->ext_filename),
+            isc_arg_gds, isc_io_open_err,
+    	    SYS_ERR, errno, 0);
+    else 
+	file->ext_flags |= EXT_readonly;
+    }
+	}
+#else
 if (!(dbb->dbb_flags & DBB_read_only))
     file->ext_ifi = (int*) ib_fopen (file_name, FOPEN_TYPE);
 if (!(file->ext_ifi))
@@ -163,8 +250,9 @@ if (!(file->ext_ifi))
     else 
 	file->ext_flags |= EXT_readonly;
     }
+#endif
     
-#else
+#ifdef mpexl
 file->ext_ifi = (int*)NULL;
 open_mpexl (file);
 #endif

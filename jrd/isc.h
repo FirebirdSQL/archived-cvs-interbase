@@ -21,6 +21,7 @@
  * Contributor(s): ______________________________________.
  * Added TCP_NO_DELAY option for superserver on Linux
  * FSG 16.03.2001 
+ * 26-Sept-2001 Paul Beach - External File Directory Config. Parameter
  */
 /*
 $Id$
@@ -103,6 +104,7 @@ $Id$
 #define ISCCFG_TMPDIR		"TMP_DIRECTORY"
 
 #define ISCCFG_EXT_FUNC_DIR	"EXTERNAL_FUNCTION_DIRECTORY"
+#define ISCCFG_EXT_FILE_DIR	"EXTERNAL_FILE_DIRECTORY"
 
 #define ISCCFG_TRACE_POOLS	"TRACE_MEMORY_POOLS" /* Internal Use only */
 #define ISCCFG_TRACE_POOLS_DEF	0	/* Off -  Internal Use only */

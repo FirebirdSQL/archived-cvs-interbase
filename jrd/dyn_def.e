@@ -29,7 +29,7 @@
  *    2001.10.08 Ann Harrison: Changed dyn_create_index so it doesn't consider
  *	simple unique indexes when finding a "referred index", but only
  * 	indexes that support unique constraints or primary keys.
- *                                      
+ *  26-Sep-2001 Paul Beach - External File Directory Config. Parameter                                    
  */
 
 #include <stdio.h>
@@ -3001,6 +3001,8 @@ void DYN_define_relation (
  *	Execute a dynamic ddl statement.
  *
  **************************************/
+EDLS	*dir_list; /* external file directory list */
+BOOLEAN	found_dir;
 TDBB		  tdbb;
 DBB		  dbb;
 VOLATILE BLK	  request;
@@ -3129,9 +3131,28 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		GET_STRING (ptr, REL.RDB$EXTERNAL_FILE);
 		if (ISC_check_if_remote (REL.RDB$EXTERNAL_FILE, FALSE))
 		    DYN_error_punt (TRUE, 163, NULL, NULL, NULL, NULL, NULL);
+		
+		/*	If external file directory exists, do not expand the
+			external file name */
+
+		found_dir = FALSE;
+		dir_list = DLS_get_file_dirs();
+		while (dir_list && !found_dir)
+		{
+		dir_list->edls_directory;
+		if (dir_list)
+			{
+			found_dir = TRUE;
+			REL.RDB$EXTERNAL_FILE.NULL = FALSE;
+			}
+		dir_list = dir_list->edls_next;
+		}
+		if (!dir_list)
+			{
 	        ISC_expand_filename (REL.RDB$EXTERNAL_FILE, 
 			strlen(REL.RDB$EXTERNAL_FILE), REL.RDB$EXTERNAL_FILE);
-		REL.RDB$EXTERNAL_FILE.NULL = FALSE;
+			REL.RDB$EXTERNAL_FILE.NULL = FALSE;
+			}
 		break;
 
 	    case gds__dyn_rel_sql_protection:
