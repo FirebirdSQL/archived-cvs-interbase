@@ -31,12 +31,13 @@
 #include "../jrd/isc.h"
 #include "../jrd/license.h"
 #include "../jrd/time.h"
-#include "../remote/merge_proto.h" 
-#include "../remote/parse_proto.h" 
-#include "../remote/remot_proto.h" 
-#include "../remote/serve_proto.h" 
+#include "../remote/merge_proto.h"
+#include "../remote/parse_proto.h"
+#include "../remote/remot_proto.h"
+#include "../remote/serve_proto.h"
 #ifdef WIN_NT
-#include "../remote/cntl_proto.h" 
+#include "../remote/cntl_proto.h"
+#include <stdlib.h>
 #endif
 #include "../jrd/gds_proto.h"
 #include "../jrd/isc_proto.h"
@@ -648,7 +649,7 @@ else
     statement = (RSR) ALLOC (type_rsr);
     statement->rsr_rdb = rdb;
     statement->rsr_handle = handle;
-    if (statement->rsr_id = get_id (port, statement))
+    if (statement->rsr_id = get_id (port, &statement->rsr_header))
 	{
 	object = statement->rsr_id;
     	statement->rsr_next = rdb->rdb_sql_requests;
@@ -1125,7 +1126,7 @@ ib_printf ("compile(server)           allocate request %x\n", request);
 request->rrq_handle = handle;
 request->rrq_rdb = rdb;
 request->rrq_max_msg = max_msg;
-if (request->rrq_id = get_id (port, request))
+if (request->rrq_id = get_id (port, &request->rrq_header))
     {
     object = request->rrq_id;
     request->rrq_next = rdb->rdb_requests;
@@ -2703,7 +2704,7 @@ RTR	transaction;
 transaction = (RTR) ALLOC (type_rtr);
 transaction->rtr_rdb = rdb;
 transaction->rtr_handle = handle;
-if (transaction->rtr_id = get_id (rdb->rdb_port, transaction))
+if (transaction->rtr_id = get_id (rdb->rdb_port, &transaction->rtr_header))
     {
     transaction->rtr_next = rdb->rdb_transactions;
     rdb->rdb_transactions = transaction;
@@ -2787,7 +2788,7 @@ else
     blob->rbl_buffer = blob->rbl_data;
     blob->rbl_handle = handle;
     blob->rbl_rdb = rdb;
-    if (blob->rbl_id = get_id (port, blob))
+    if (blob->rbl_id = get_id (port, &blob->rbl_header))
 	{
 	object = blob->rbl_id;
     	blob->rbl_rtr = transaction;

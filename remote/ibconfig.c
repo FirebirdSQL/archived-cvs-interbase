@@ -405,8 +405,9 @@ SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)"4096");
 SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0,(LPARAM)"8192");
 
 // Select the right Map Size, inserting it if necessary
+wsprintf(pchTmp, "%d", lMapSize);
 if (SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_SELECTSTRING, -1,
-		(LPARAM)itoa(lMapSize, pchTmp, 10)) == CB_ERR)
+		(LPARAM)pchTmp) == CB_ERR)
     {
     SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_ADDSTRING, 0, (LPARAM)pchTmp);
     SendDlgItemMessage(hDlg, IDC_MAPSIZE, CB_SELECTSTRING, 0, (LPARAM)pchTmp);
@@ -511,7 +512,7 @@ pchPtr = szService + strlen(szService);
 strcat(szService, "query_server");
 
 // Attach to "query_server" service
-isc_service_attach(pdwStatus, 0, szService, &hService, strlen(szSpb), szSpb);
+isc_service_attach(pdwStatus, 0, szService, &hService, (USHORT)strlen(szSpb), szSpb);
 
 *pchPtr = '\0';
 
@@ -532,26 +533,26 @@ if (pdwStatus[1])
 // Fill in the Send buffer's header
 pchPtr = pchSendBuf;
 *pchPtr++ = isc_info_svc_set_config;
-psLen = pchPtr;
+psLen = (short*)pchPtr;
 pchPtr += sizeof(USHORT);
 
 // Fill in all the records
 *pchPtr++ = ISCCFG_IPCMAP_KEY;
 *pchPtr++ = sizeof(long);
-*(ULONG *) pchPtr = isc_vax_integer(&lMapSize, sizeof(long));
+*(ULONG *) pchPtr = isc_vax_integer((SCHAR*)&lMapSize, sizeof(long));
 pchPtr += sizeof(long);
 
 *pchPtr++ = ISCCFG_DBCACHE_KEY;
 *pchPtr++ = sizeof(long);
-*(ULONG *) pchPtr = isc_vax_integer(&lCachePages, sizeof(long));
+*(ULONG *) pchPtr = isc_vax_integer((SCHAR*)&lCachePages, sizeof(long));
 pchPtr += sizeof(long);
 
 *psLen = pchPtr - pchSendBuf - sizeof(short) - sizeof(char);
-*psLen = isc_vax_integer(psLen, sizeof(short));
+*psLen = (short)isc_vax_integer((SCHAR*)psLen, sizeof(short));
 // Query service with set_config
 
-isc_service_query(pdwStatus, &hService, NULL, 0, NULL, pchPtr - pchSendBuf,
-	pchSendBuf, sizeof(szResBuf), szResBuf);
+isc_service_query(pdwStatus, &hService, NULL, 0, NULL, (USHORT)(pchPtr - pchSendBuf),
+	pchSendBuf, (USHORT)sizeof(szResBuf), szResBuf);
 if (pdwStatus[1] || szResBuf[1])
     {
     PrintCfgStatus(pdwStatus[1] ? pdwStatus : NULL, IDS_CFGWRITE_FAILED, hDlg);
@@ -647,8 +648,7 @@ switch (unMsg)
 	    char                szPassword[PASSWORD_LEN];
 	    long                pdwStatus[STATUS_BUFLEN];
 	    isc_svc_handle      hService = NULL;
-	    char                *pchPtr,
-				szSpb[SPB_BUFLEN];
+	    char                szSpb[SPB_BUFLEN];
 	    HCURSOR             hOldCursor = NULL;
 
 	    szPassword[0] = '\0';
@@ -661,7 +661,7 @@ switch (unMsg)
 	    // Attach service to check for password validity
 	    hOldCursor = SetCursor(LoadCursor(NULL, IDC_WAIT));
 	    isc_service_attach(pdwStatus, 0, "query_server",
-			       &hService, strlen(szSpb), szSpb);
+			       &hService, (USHORT)strlen(szSpb), szSpb);
 	    SetCursor(hOldCursor);
 
 	    if (pdwStatus[1])
