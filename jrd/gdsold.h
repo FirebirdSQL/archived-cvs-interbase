@@ -1,6 +1,6 @@
 /*
  *	PROGRAM:	C preprocessor
- *	MODULE:		gds.h
+ *	MODULE:		gdsold.h
  *	DESCRIPTION:	BLR constants
  *
  * The contents of this file are subject to the Interbase Public

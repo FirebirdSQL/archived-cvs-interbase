@@ -1901,6 +1901,10 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define isc_info_db_sql_dialect           62
 #define isc_info_db_read_only             63
 #define isc_info_db_size_in_pages	  64
+#define isc_info_oldest_transaction	  65
+#define isc_info_oldest_active     	  66
+#define isc_info_oldest_snapshot   	  67
+#define isc_info_next_transaction  	  68
 #define frb_info_att_charset		 101
 
 /**************************************/

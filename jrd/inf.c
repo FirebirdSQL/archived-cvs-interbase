@@ -22,6 +22,10 @@
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ * 2001.08.09 Claudio Valderrama - Added new isc_info_* tokens to INF_database_info():
+ *	oldest_transaction, oldest_active, oldest_snapshot and next_transaction.
+ *      Make INF_put_item() to reserve 4 bytes: item + length as short + info_end;
+ *	otherwise to signal output buffer truncation.
  */
 
 #include <string.h>
@@ -176,7 +180,7 @@ p += 3;
 
 return 4;
 }
-
+
 #ifndef GATEWAY
 int INF_database_info (
     SCHAR	*items,
@@ -711,12 +715,31 @@ while (items < end_items && *items != gds__info_end)
 	case isc_info_db_read_only:
 	    *p++ = (dbb->dbb_flags & DBB_read_only) ? 1 : 0;
 	    length = p - buffer;
-
 	    break;
 
 	case isc_info_db_size_in_pages:
 	    CCH_flush (tdbb, (USHORT) FLUSH_ALL, 0L);
 	    length = INF_convert (PIO_act_alloc (dbb), buffer);
+	    break;
+
+/* CVC: Time will say if we need this artifact for the 4 cases below:
+	    if (!transaction)
+		transaction = TRA_start (tdbb, 0, NULL);
+*/
+	case isc_info_oldest_transaction:
+	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
+	    break;
+
+	case isc_info_oldest_active:
+	    length = INF_convert (dbb->dbb_oldest_active, buffer);
+	    break;
+
+	case isc_info_oldest_snapshot:
+	    length = INF_convert (dbb->dbb_oldest_snapshot, buffer);
+	    break;
+
+	case isc_info_next_transaction:
+	    length = INF_convert (dbb->dbb_next_transaction, buffer);
 	    break;
 
 	case frb_info_att_charset:
@@ -745,7 +768,7 @@ if (transaction)
 return TRUE;
 }
 #else
-
+
 int INF_database_info (
     SCHAR	*items,
     SSHORT	item_length,
@@ -904,7 +927,7 @@ SCHAR *INF_put_item (
  *
  **************************************/
 
-if (ptr + length + 3 >= end)
+if (ptr + length + 4 >= end)
     {
     *ptr = gds__info_truncated;
     return NULL;
