@@ -99,7 +99,12 @@ static CONST SCHAR	*Object_types[] = {
 	"Exception",
 	"User",
 	"Domain",
-	"Index"
+	"Index",
+    "Count [error if used]",
+    "User group",
+    "SQL role",
+    "Generator",
+    "User Defined Function"
 };
 
 CONST SQLTYPES	Column_types[] = {
