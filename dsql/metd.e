@@ -1001,9 +1001,6 @@ else	/* V4 or greater dbb */
 	X.RDB$FUNCTION_NAME EQ name->str_data
 	SORTED BY X.RDB$ARGUMENT_POSITION
 
-	/* AND
-	X.RDB$ARGUMENT_POSITION EQ return_arg */
-
 	THREAD_ENTER;
 
 	if (X.RDB$ARGUMENT_POSITION == return_arg)
@@ -1015,7 +1012,12 @@ else	/* V4 or greater dbb */
 			udf->udf_sub_type = X.RDB$FIELD_SUB_TYPE;
 		else
 			udf->udf_sub_type = 0;
-		udf->udf_length = X.RDB$FIELD_LENGTH;
+		/* CVC: We are overcoming a bug in ddl.c:put_field()
+		when any field is defined: the length is not given for blobs. */
+		if (X.RDB$FIELD_TYPE == blr_blob)
+			udf->udf_length = sizeof (ISC_QUAD);
+		else
+			udf->udf_length = X.RDB$FIELD_LENGTH;
 
 		if (!X.RDB$CHARACTER_SET_ID.NULL)
 			udf->udf_character_set_id = X.RDB$CHARACTER_SET_ID;
