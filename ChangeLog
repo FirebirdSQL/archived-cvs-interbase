@@ -1,3 +1,19 @@
+2001-09-24 07:47  robocop
+
+	* interbase/remote/server.ico:
+	
+	Changed the icon (the traditional tower with the half lemon) to a
+	black bird over yellow background.
+
+2001-09-24 07:44  robocop
+
+	* interbase/jrd/: dfw.e, dyn_def.e, scl.e, scl_proto.h:
+	
+	REFERENCES right again.  Check really the partner PK index and not
+	own the FK index (wrong first attempt).  Cater for some null
+	pointers that appear.  Do not check if both tables have the same
+	owner (if the owner name has been loaded in metadata structures).
+
 2001-09-23 11:28  robocop
 
 	* interbase/jrd/: cmp.c, dfw.e:
