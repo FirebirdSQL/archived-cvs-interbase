@@ -1,3 +1,9 @@
+2004-02-12 07:19  stryqx
+
+	* interbase/jrd/val.c:
+	
+	Make this build with gcc 3.3
+
 2004-02-06 09:28  eku
 
 	* interbase/jrd/all.c:
