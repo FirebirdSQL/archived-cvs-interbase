@@ -1,3 +1,32 @@
+2001-10-27 03:42  nmcc
+
+	* interbase/dsql/parse.c:
+	
+	Version generated with 'standard' version of yacc so it can be
+	compiled on multiple platforms.
+
+2001-10-27 01:33  nmcc
+
+	* interbase/dsql/pass1.c:
+	
+	Fix problem where validation of udf's in group by was affecting
+	validation of select elements using udf and aggregates.
+
+2001-10-27 00:52  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	
+	External tables pass a 0 as their version number.
+
+2001-10-27 00:17  awharrison
+
+	* interbase/dsql/alld.c:
+	
+	
+	Remove an unwanted and very undesirable semi-colon at the end of an
+	if.
+
 2001-10-26 04:44  bellardo
 
 	* interbase/: msgs/msg.gbak, jrd/codes.h, jrd/codetext.h,
