@@ -73,16 +73,19 @@ VA_START (ptr, buffer);
    pop the arguments off the call stack and put
    them into the passed buffer */
 
-while (arg_type = va_arg (ptr, SCHAR))
+/* while (arg_type = va_arg (ptr, SCHAR)) */
+while (arg_type = (SCHAR) va_arg (ptr, int))
     switch (arg_type)
 	{
 	case dtype_byte: /* byte */
-	    ch = va_arg (ptr, SCHAR);
+	    /* ch = va_arg (ptr, SCHAR); */
+	    ch = (SCHAR) va_arg (ptr, int);
 	    STUFF (p, ch);
 	    break;
 
 	case dtype_short: /* short value */
-	    sh = va_arg (ptr, USHORT);
+	    /* sh = va_arg (ptr, USHORT); */
+	    sh = (USHORT) va_arg (ptr, int);
 	    STUFF_SHORT (p, sh);
 	    break;
 
@@ -97,7 +100,8 @@ while (arg_type = va_arg (ptr, SCHAR))
 	    break;
 
 	case dtype_varying: /* short value followed by a value with that many bytes */
-	    sh = va_arg (ptr, USHORT);
+	    /* sh = va_arg (ptr, USHORT); */
+	    sh = (USHORT) va_arg (ptr, int);
 	    STUFF_SHORT (p, sh);
 	    q = va_arg (ptr, UCHAR*);
 	    STUFF_BYTES (p, q, sh);
