@@ -1818,6 +1818,9 @@ if (node->nod_type == nod_field)
 	    field == (FLD) reference->nod_arg[e_fld_field] &&
 	    context == (CTX) reference->nod_arg[e_fld_context])
 	    return FALSE;
+	else
+		if (reference->nod_type == nod_udf ) 
+			return FALSE;
 	}
     return TRUE; 
     }

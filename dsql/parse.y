@@ -2481,8 +2481,10 @@ grp_column_list	: grp_column_elem
 		;
 
 grp_column_elem : column_name
+		| udf
 		| column_name COLLATE symbol_collation_name
 			{ $$ = make_node (nod_collate, e_coll_count, (NOD) $3, $1); }
+		
 		;
 
 having_clause	: HAVING search_condition
