@@ -1,3 +1,106 @@
+2002-03-05 09:02  robocop
+
+	* interbase/: jrd/msgs.h (1.10), msgs/msg.gbak (1.14),
+	remote/nt_server.c (1.2), remote/window.h (1.3):
+	
+	We are Firebird, not the other...  but we are compatible.  :-)
+
+2002-03-05 09:02  robocop
+
+	* interbase/: this_build (1.782), this_build (1.784), this_build
+	(1.783):
+	
+	inc_build_no
+
+2002-03-05 08:53  robocop
+
+	* interbase/jrd/codes.e (1.2):
+	
+	Fixed trashed generation of sql_codes.h for whatever purpose this
+	header may be required.
+
+2002-03-05 08:53  robocop
+
+	* interbase/this_build (1.781):
+	
+	inc_build_no
+
+2002-03-04 10:06  robocop
+
+	* interbase/: this_build (1.778), this_build (1.777), this_build
+	(1.779), this_build (1.780):
+	
+	inc_build_no
+
+2002-03-04 10:06  robocop
+
+	* interbase/: iscguard/iscguard.rc (1.5), isql/isql.rc (1.2),
+	jrd/isc_sync.c (1.6), jrd/version.rc (1.2), remote/cntl.c (1.5),
+	remote/ibconfig.c (1.4), remote/ibconfig.rc (1.3), remote/netwcon.c
+	(1.2), remote/property.c (1.4), remote/property.rc (1.3),
+	remote/window.h (1.2), remote/window.rc (1.4),
+	utilities/install_nt.h (1.3):
+	
+	Bulk update: We are Firebird, we fly high, we do not accept bug
+	inheritance.  We should identify ourselves properly.
+
+2002-03-01 14:16  pcisar
+
+	* interbase/: builds/original/prefix.linux (1.10),
+	builds/original/sfx.client (1.4), jrd/gds.c (1.13), jrd/thd.h
+	(1.4):
+	
+	T
+
+2002-03-01 14:16  pcisar
+
+	* interbase/: this_build (1.776), this_build (1.775):
+	
+	inc_build_no
+
+2002-03-01 13:07  paul_reeves
+
+	* interbase/burp/backup.e (1.17):
+	
+	fix invalid txn handle error when ignore_limbo_txn switch is set
+	during backup.
+
+2002-03-01 13:07  paul_reeves
+
+	* interbase/this_build (1.774):
+	
+	inc_build_no
+
+2002-03-01 03:13  nmcc
+
+	* interbase/jrd/sort.c (1.18):
+	
+	Move #include to inside existing #ifdef
+
+2002-03-01 03:13  nmcc
+
+	* interbase/this_build (1.773):
+	
+	inc_build_no
+
+2002-03-01 03:10  nmcc
+
+	* interbase/jrd/sort.c (1.15.2.4):
+	
+	Fix compile on non Windows platforms.
+
+2002-03-01 03:10  nmcc
+
+	* interbase/this_build (1.772):
+	
+	inc_build_no
+
+2002-02-28 16:47  fsg
+
+	* interbase/this_build (1.771):
+	
+	inc_build_no
+
 2002-02-27 08:32  robocop
 
 	* interbase/this_build (1.770):
