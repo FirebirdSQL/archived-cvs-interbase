@@ -21,6 +21,7 @@
  * Contributor(s): ______________________________________.
  * 2001.07.28: John Bellardo: Implemented rse_skip and made rse_first work with
  *                              seekable streams.
+ * 2002.02.22 Claudio Valderrama: Fix SF Bugs #225283, #518279, #514186 & #221925.
  */
 /*
 $Id$
@@ -3006,6 +3007,7 @@ for (; stack; stack = stack->lls_next)
 	}
 
 #ifndef GATEWAY
+    record->rec_fmt_bk = record->rec_format;
     record->rec_format = NULL;
 #else
     /* A null format pointer in the record block is used to indicate
@@ -3081,10 +3083,12 @@ for (item = map->smb_rpt; item < end_item; item++)
 	continue;
 	}
     record = rpb->rpb_record;
+    if (record && !flag && !record->rec_format && record->rec_fmt_bk)
+	record->rec_format = record->rec_fmt_bk; /* restore the format */
     EVL_field (NULL_PTR, record, id, &to);
     if (flag)
 	SET_NULL (record, id);
-    else
+    else 
 	{
 	MOV_move (&from, &to);
 	CLEAR_NULL (record, id);

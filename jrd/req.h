@@ -102,6 +102,7 @@ typedef struct rpb {
 typedef struct rec {
     struct blk	rec_header;
     struct fmt	*rec_format;		/* what the data looks like */
+    struct fmt	*rec_fmt_bk;
     struct lls	*rec_precedence;	/* stack of higher precedence pages */
     USHORT	rec_length;		/* how much there is */
     UCHAR	rec_flags;		/* misc record flags */
