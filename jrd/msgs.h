@@ -173,7 +173,7 @@
 "transaction marked invalid by I/O error",		/*149, trans_invalid                   */
 "cache buffer for page %ld invalid",		/*150, buf_invalid                     */
 "there is no index in table %s with id %d",		/*151, indexnotdefined                 */
-"Your user name and password are not defined. Ask your database administrator to set up an InterBase login.",		/*152, login                           */
+"Your user name and password are not defined. Ask your database administrator to set up a Firebird login.",		/*152, login                           */
 "invalid bookmark handle",		/*153, invalid_bookmark                */
 "invalid lock level %d",		/*154, bad_lock_level                  */
 "lock on table %s conflicts with existing lock",		/*155, relation_lock                   */
@@ -223,11 +223,11 @@
 "restart shared cache manager",		/*198, cache_restart                   */
 "invalid lock handle",		/*199, bad_lock_handle                 */
 "long-term journaling already enabled",		/*200, jrn_present                     */
-"Unable to roll over; please see InterBase log.",		/*201, wal_err_rollover2               */
-"WAL I/O error.  Please see InterBase log.",		/*202, wal_err_logwrite                */
-"WAL writer - Journal server communication error.  Please see InterBase log.",		/*203, wal_err_jrn_comm                */
-"WAL buffers cannot be increased.  Please see InterBase log.",		/*204, wal_err_expansion               */
-"WAL setup error.  Please see InterBase log.",		/*205, wal_err_setup                   */
+"Unable to roll over please see Firebird log.",		/*201, wal_err_rollover2               */
+"WAL I/O error.  Please see Firebird log.",		/*202, wal_err_logwrite                */
+"WAL writer - Journal server communication error.  Please see Firebird log.",		/*203, wal_err_jrn_comm                */
+"WAL buffers cannot be increased.  Please see Firebird log.",		/*204, wal_err_expansion               */
+"WAL setup error.  Please see Firebird log.",		/*205, wal_err_setup                   */
 "WAL writer synchronization error for the database %s",		/*206, wal_err_ww_sync                 */
 "Cannot start WAL writer for the database %s",		/*207, wal_err_ww_start                */
 "database %s shutdown",		/*208, shutdown                        */
@@ -391,7 +391,7 @@
 "journal file wrong format",		/*366, jrn_format_err                  */
 "intermediate journal file full",		/*367, jrn_file_full                   */
 "The prepare statement identifies a prepare statement with an open cursor",		/*368, dsql_open_cursor_request        */
-"InterBase error",		/*369, ib_error                        */
+"Firebird error",		/*369, ib_error                        */
 "Cache redefined",		/*370, cache_redef                     */
 "Insufficient memory to allocate page buffer cache",		/*371, cache_too_small                 */
 "Log redefined",		/*372, log_redef                       */
@@ -447,7 +447,7 @@
 "User cannot write to RDB$USER_PRIVILEGES",		/*422, no_write_user_priv              */
 "token size exceeds limit",		/*423, token_too_long                  */
 "Maximum user count exceeded.  Contact your database administrator.",		/*424, max_att_exceeded                */
-"Your login %s is same as one of the SQL role name. Ask your database administrator to set up a valid InterBase login.",		/*425, login_same_as_role_name         */
+"Your login %s is same as one of the SQL role name. Ask your database administrator to set up a valid Firebird login.",		/*425, login_same_as_role_name         */
 "\"REFERENCES table\" without \"(column)\" requires PRIMARY KEY on referenced table",		/*426, reftable_requires_pk            */
 "The username entered is too long.  Maximum length is 31 bytes.",		/*427, usrname_too_long                */
 "The password specified is too long.  Maximum length is 8 bytes.",		/*428, password_too_long               */
@@ -521,7 +521,7 @@
 "UDF %s",		/*496, udf_name                        */
 "Invalid parameter to FIRST.  Only positive values are allowed.",		/*497, bad_limit_param                 */
 "Invalid parameter to SKIP.  Only integers >= 0 are allowed.",		/*498, bad_skip_param                  */
-"file exceeded maximum size of 2GB.  add another database file or use a 64 bit io version of Firebird.",		/*499, io_32bit_exceeded_err           */
+"File exceeded maximum size of 2GB.  Add another database file or use a 64 bit I/O version of Firebird.",		/*499, io_32bit_exceeded_err           */
 "data base file name (%s) already given",		/*500, gfix_db_name                    */
 "invalid switch %s",		/*501, gfix_invalid_sw                 */
 "incompatible switch combination",		/*502, gfix_incmp_sw                   */

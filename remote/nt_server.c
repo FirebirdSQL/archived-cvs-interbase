@@ -128,7 +128,7 @@ while (--argc)
 		    break;
 
 		case 'Z':
-		    ib_printf ("Interbase remote server version %s\n", GDS_VERSION);
+		    ib_printf ("Firebird remote server version %s\n", GDS_VERSION);
 		    exit (FINI_OK);
 		}
     }
