@@ -75,7 +75,7 @@ FUNCSHR=		source/interbase/lib/gdsf.so
 GDS_LINK=		$(GDSSHR_LINK)
 GDS_PYXIS=		gds_pyxis.a
 GDSLIB_BACKEND=		source/interbase/lib/gds_b.a
-GDSLIB_LINK=		-Lsource/jrd -lgds_b -lcc
+GDSLIB_LINK=		-Lsource/jrd -lgds_b
 LINK_OPTS=		-Fsource/interbase -framework Firebird
 GPRE_BOOT_LINK_OPTS=	
 
@@ -104,7 +104,7 @@ JRD_P_MISC_OBJECTS=	source/jrd/sun_ftn.bin source/jrd/nodebug.bin
 LANG_OBJECTS=		ada.o ftn.o cob.o
 LANGUAGES=		cc cxx ada microfocus_cob make16 gdl1
 LD_LIBS=		-lcc_dynamic
-LD_LIBS_J=		-lcc
+LD_LIBS_J=		
 LD_OPTS=		-dylib
 LOCK_JRD_MISC=		
 LOCK_MANAGER=		manager
@@ -129,13 +129,13 @@ SERVER_LINK=		$(GDSSHR_LINK)
 SETUP_ISC=              ISC_USER=sysdba; ISC_PASSWORD=masterkey; export ISC_USER ISC_PASSWORD;
 SPECIAL_OPT=		source/special_opt
 NETWORK_LIB=		
-SOCKET_LIB=		-lcc
+SOCKET_LIB=		
 THREAD_LIB=		-lpthread
 SUN_FUNCSHR=		$(FUNCSHR)
 LX_SUPER_GDSSHR=		source/interbase/lib/gds.so.1
 SUPER_CLIENT_GDSSHR=    $(LX_SUPER_GDSSHR)
 SUPER_BACKEND=		source/jrd/gds_ss.a
-SUPER_LINK=		-Lsource/jrd -lgds_ss -lcc -lpthread
+SUPER_LINK=		-Lsource/jrd -lgds_ss -lpthread
 SUPER_SERVER=	
 UTILITIES=		
 WAL_P_OBJS=		wal_p_objects
@@ -173,5 +173,6 @@ EXEC_EXT=
 V3PRINTER=		source/lock/printv3.o
 
 MSG_INSTALL_CMD=	$(CP) source/interbase/interbase.msg source/interbase/Firebird.framework/Resources/English.lproj
+CARBONCORE_DIR_FLAG=	-F/System/Library/Frameworks/CoreServices.framework/Frameworks
 
 #   End of file prefix.macos:	$(VERSION)	$(PLATFORM)
