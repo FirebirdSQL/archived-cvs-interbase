@@ -26,7 +26,7 @@
 
 #define APP_HSIZE			220
 #define APP_VSIZE			150
-#define APP_NAME			"InterBase Server"
+#define APP_NAME			"Firebird Server"
 
 #define ON_NOTIFYICON		WM_USER + 2
 

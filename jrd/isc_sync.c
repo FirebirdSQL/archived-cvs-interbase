@@ -2605,13 +2605,13 @@ switch (sig_num)
 	sprintf (log_msg,"%s Segmentation Fault.\n"
 			"\t\tThe code attempted to access memory\n"
 			"\t\twithout privilege to do so.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case SIGBUS:
 	sprintf (log_msg,"%s Bus Error.\n"
 			"\t\tThe code caused a system bus error.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case SIGILL:
@@ -2619,7 +2619,7 @@ switch (sig_num)
 	sprintf (log_msg,"%s Illegal Instruction.\n"
 			"\t\tThe code attempted to perfrom an\n"
 			"\t\tillegal operation."
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
 
@@ -2627,13 +2627,13 @@ switch (sig_num)
 	sprintf (log_msg,"%s Floating Point Error.\n"
 			"\t\tThe code caused an arithmetic exception\n"
 			"\t\tor floating point exception."
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     default :
 	sprintf (log_msg,"%s Unknown Exception.\n"
 			"\t\tException number %d."
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg, sig_num);
 	break; 
     }
@@ -2681,21 +2681,21 @@ switch (except_code)
 	sprintf (log_msg,"%s Access violation.\n"
 			"\t\tThe code attempted to access a virtual\n"
 			"\t\taddress without privilege to do so.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_DATATYPE_MISALIGNMENT:
 	sprintf (log_msg,"%s Datatype misalignment.\n"
 			"\t\tThe attempted to read or write a value\n"
 			"\t\tthat was not stored on a memory boundary.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_ARRAY_BOUNDS_EXCEEDED:
 	sprintf (log_msg,"%s Array bounds exceeded.\n"
 			"\t\tThe code attempted to access an array\n"
 			"\t\telement that is out of bounds.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_DENORMAL_OPERAND:
@@ -2703,63 +2703,63 @@ switch (except_code)
 			"\t\tOne of the floating-point operands is too\n"
 			"\t\tsmall to represent as a standard floating-point\n"
 			"\t\tvalue.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_DIVIDE_BY_ZERO:
 	sprintf (log_msg,"%s Floating-point divide by zero.\n"
 			"\t\tThe code attempted to divide a floating-point\n"
 			"\t\tvalue by a floating-point divisor of zero.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_INEXACT_RESULT:
 	sprintf (log_msg,"%s Floating-point inexact result.\n"
 			"\t\tThe result of a floating-point operation cannot\n"
 			"\t\tbe represented exactly as a decimal fraction.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_INVALID_OPERATION:
 	sprintf (log_msg,"%s Floating-point invalid operand.\n"
 			"\t\tAn indeterminant error occurred during a\n"
 			"\t\tfloating-point operation.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_OVERFLOW:
 	sprintf (log_msg,"%s Floating-point overflow.\n"
 			"\t\tThe exponent of a floating-point operation\n"
 			"\t\tis greater than the magnitude allowed.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_STACK_CHECK:
 	sprintf (log_msg,"%s Floating-point stack check.\n"
 			"\t\tThe stack overflowed or underflowed as the\n"
 			"result of a floating-point operation.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_FLT_UNDERFLOW:
 	sprintf (log_msg,"%s Floating-point underflow.\n"
 			"\t\tThe exponent of a floating-point operation\n"
 			"\t\tis less than the magnitude allowed.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_INT_DIVIDE_BY_ZERO:
 	sprintf (log_msg,"%s Integer divide by zero.\n"
 			"\t\tThe code attempted to divide an integer value\n"
 			"\t\tby an integer divisor of zero.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_INT_OVERFLOW:
 	sprintf (log_msg,"%s Interger overflow.\n"
 			"\t\tThe result of an integer operation caused the\n"
 			"\t\tmost significant bit of the result to carry.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.", err_msg);
 	break;
     case EXCEPTION_STACK_OVERFLOW:
@@ -2783,7 +2783,7 @@ switch (except_code)
     default:
 	sprintf (log_msg,"%s An exception occurred that does\n"
 			"\t\tnot have a description.  Exception number %X.\n"
-			"\tThis exception will cause the InterBase server\n"
+			"\tThis exception will cause the Firebird server\n"
 			"\tto terminate abnormally.",err_msg,except_code);
 	break; 
     }

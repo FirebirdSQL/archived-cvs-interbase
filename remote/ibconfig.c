@@ -144,7 +144,7 @@ IBPage.DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(CONFIG_DLG);
 #else
 IBPage.pszTemplate = MAKEINTRESOURCE(CONFIG_DLG);
 #endif
-IBPage.pszTitle = "IB Settings";
+IBPage.pszTitle = "FB Settings";
 IBPage.pfnDlgProc = (DLGPROC) InterbasePage;
 IBPage.pfnCallback = NULL;
 

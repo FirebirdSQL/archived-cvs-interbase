@@ -15,6 +15,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2002.02.04 Claudio Valderrama: remember to update references to InterBase
+ *   where it makes sense and is legal if we come up with Novell support.
  */
 #include <nwsnut.h>
 #include <time.h>

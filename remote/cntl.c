@@ -342,7 +342,7 @@ if (attach_count > 0)
     USHORT num_databases, database_name_length;
 
     sprintf (print_buffer, 
-	    "Shutting down the InterBase service with %d active connection(s) to %d database(s)", 
+	    "Shutting down the Firebird service with %d active connection(s) to %d database(s)", 
 	    attach_count, database_count);
     gds__log(print_buffer);
 

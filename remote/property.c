@@ -63,7 +63,7 @@
 
 #define WIN_TEXTLEN                     128
 #define MSG_STRINGLEN           64
-#define APP_NAME "InterBase Server"
+#define APP_NAME "Firebird Server"
 
 static HINSTANCE hInstance = NULL;      // Handle to the current app. instance
 static HWND hPSDlg = NULL;              // Handle to the parent prop. sheet window
