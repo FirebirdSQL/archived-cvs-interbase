@@ -1223,10 +1223,6 @@ typedef unsigned char   UCHAR;
 #define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
 
 
-#ifdef UNIX_64_BIT_IO
-#define _FILE_OFFSET_BITS       64  /* Enable 64 bit IO functions */
-#endif
-
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      1024
 #endif
@@ -1336,7 +1332,12 @@ typedef unsigned char   UCHAR;
 #define SUCCESS         0
 #define FAILURE         1
 
-
+
+/* Enable 64 bit io for unix platforms if UNIX_64_BIT_IO macro is set. */
+#ifdef UNIX_64_BIT_IO
+#define _FILE_OFFSET_BITS       64  /* Enable 64 bit IO functions */
+#endif
+
 /* data type definitions */
 
 #ifndef CHAR_DEFINED			/* 8 bit */
