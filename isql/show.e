@@ -23,6 +23,9 @@
  * Revision 1.2  2000/11/19 07:02:49  fsg
  * Change in show.e to use CHARACTER_LENGTH instead of FIELD_LENGTH in
  * SHOW PROCEDURE
+ * 19-May-2001 Claudio Valderrama.
+ * Change to be in sync with extract.e: BLOB is not returned
+ * by value but by descriptor.
  *
  */
 
@@ -2671,16 +2674,16 @@ FOR FUN IN RDB$FUNCTIONS CROSS
 	    ISQL_printf (Out, Print_buffer);
 	    sprintf (Print_buffer, "Entry point is %s%s", 
 		     FUN.RDB$ENTRYPOINT,
-		     NEWLINE);
-	    ISQL_printf (Out, Print_buffer);
-	    }
+			  NEWLINE);
+		 ISQL_printf (Out, Print_buffer);
+		 }
 	first = FALSE;
 	if (FUN.RDB$RETURN_ARGUMENT == FNA.RDB$ARGUMENT_POSITION)
-	    {
-	    sprintf (Print_buffer, "Returns %s %s ", 
-                 ((SSHORT) abs(FNA.RDB$MECHANISM) == FUN_reference ? 
-                      "BY REFERENCE " : "BY VALUE "), 
-                 (FNA.RDB$MECHANISM < 0 ? "FREE_IT " : ""));
+		 {
+		 sprintf (Print_buffer, "Returns %s %s ",
+			  ((SSHORT) abs(FNA.RDB$MECHANISM) == FUN_reference ? "BY REFERENCE "
+					: (FNA.RDB$FIELD_TYPE == BLOB ? "BY DESCRIPTOR " : "BY VALUE ")),
+					(FNA.RDB$MECHANISM < 0 ? "FREE_IT " : ""));
 	    ISQL_printf (Out, Print_buffer);
 	    }
 	else
