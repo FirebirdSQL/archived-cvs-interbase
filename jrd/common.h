@@ -33,6 +33,10 @@ $Id$
 #ifndef _JRD_COMMON_H_
 #define _JRD_COMMON_H_
 
+#ifndef _64_BIT_IO_H
+#include "../jrd/64bitio.h"
+#endif
+
 /*
   do not use links in source code to maintain platform neutraility
 */
@@ -99,7 +103,9 @@ $Id$
 
 /* Darwin Platforms */
 #ifdef DARWIN
+#ifndef UNIX_64_BIT_IO
 #define UNIX_64_BIT_IO
+#endif
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))

@@ -273,6 +273,30 @@ getDefaultSystemType() {
        ;;
     esac
 }
+
+#------------------------------------------------------------------------
+# workout the unix 64 bit io stuff
+
+setUnix64BitIo() {
+
+    case "$SYS_TYPE" in 
+    LINUX|FREEBSD|NETBSD|SGI|SOLARIS) 
+    AskYNQuestion "Build a 64 bit IO version of the engine"
+       if [ "$?" -eq 0 ]
+         then
+           echo "#define UNIX_64_BIT_IO" > jrd/64bitio.h
+         else
+           echo "" > jrd/64bitio.h
+       fi
+       ;;
+    DARWIN)
+        echo "#define UNIX_64_BIT_IO" > jrd/64bitio.h
+        ;;
+    *)
+           echo "" > jrd/64bitio.h
+       ;;
+    esac
+}
 #------------------------------------------------------------------------
 # set the INTERBASE environment value correctly for DARWIN systems
 
@@ -511,6 +535,7 @@ if [ "$SYS_TYPE" = "" ]
     exit
 fi
 
+setUnix64BitIo
 checkVariables
 
 #build reference Databases
