@@ -1,3 +1,6 @@
+This file is now fairly old, see README.linux for more recent info
+MOD Dec-2001
+
 -General overview of unix build process for the *****Base server- 
 ibbuild-unix-overview.txt version 1.0.3 last revised Dec 27, 2000
 

@@ -14,7 +14,8 @@ Mark O'Donohue 17-Apr-2001
 
 For Linux, I remember that I needed the ncurses package for RedHat6.2 It was
 ncurses-4 something, when I loaded my Mandrake-Linux system ncurses-5.1 was 
-loaded in the options I chose.
+loaded in the options I chose. [ This is no longer a requrement - the curses 
+module has been removed MOD - Dec 2001]
 
 
 1. GETING THE SOURCE CODE
@@ -60,6 +61,8 @@ The boot build kit should be available from our ftp site,
 ftp://ftp.firebird.sourceforge.net:/pub/firebird/bootbuild or from our web site
 http://sourceforge.net/projects/firebird.
 
+[ The boot build process has been a bit patchy, so it's best to try the other
+  way first, mainly it's patchy because it's a bit behind MOD Dec 2001 ]
 
 
 3. EXTRACTING THE SOURCE FILES
@@ -100,10 +103,15 @@ $make super_firebird      -- for super version.
 
 # Install the built system into /opt/interbase.
 
-$make runClassicInstall
+$make classicpackages
 # OR 
-$make runSuperInstall
+$make superpackages
 
+This will build both a .rpm and a .tar.gz install package.
+
+then install the package
+
+rpm -Uvh FirebirdXX.Y.Y.Z-BB.rpm
 
 
 6. TEST YOUR INSTALLATION
