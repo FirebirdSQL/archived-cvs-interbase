@@ -28,7 +28,6 @@
  *                         with IB 6.0 to OFF and has introduced many reported database
  *                         corruptions.
  *
-*/
  */
 
 #ifdef SHLIB_DEFS
@@ -1840,7 +1839,7 @@ if (options.dpb_set_db_readonly)
      {
      if (!CCH_exclusive (tdbb, LCK_EX, WAIT_PERIOD))
          ERR_post (gds__lock_timeout, gds_arg_gds, gds__obj_in_use,
-             gds_arg_string, ERR_string (file_name, fl), 0);
+             gds_arg_string, ERR_string (file_name, (file_length) ? file_length : strlen (file_name)), 0);
 
      PAG_set_db_readonly (dbb, options.dpb_db_readonly);
      }
