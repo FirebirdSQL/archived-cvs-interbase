@@ -1,3 +1,46 @@
+2000-11-30 15:27  patrickgriffin
+
+	* interbase/jrd/: dpm.e, ods.h, pag.c, pag.h:
+	
+	Bug #116733 Too Many Generators Corrupt Database.
+	
+	Change written to the spec.s attached to the bug report.
+	
+	Summary: Added	 pgc_pgp Generators Per Page and used this new
+	field when calculating page and offset for each generator.
+	
+	...pat
+
+2000-11-30 15:23  patrickgriffin
+
+	* interbase/jrd/evl.c:
+	
+	  * Modified by: Patrick J. P. Griffin
+	  * Date: 11/24/2000
+	  * Problem:   select count(0)+1 from rdb$relations where 0=1;
+	returns 0
+	  *	       In the EVL_group processing, the internal assigment
+	for
+	  *	       the literal in the computation is being done on
+	every
+	  *	       statement fetch, so if there are no statements
+	fetched
+	  *	       then the internal field never gets set.
+	  * Change:    Added an assignment process for the literal
+	  *	       before the first fetch.
+
+2000-11-29 12:11  fsg
+
+	* interbase/gpre/form_trn.c:
+	
+	Added some more PYXIS datatypes to form_trn.c
+
+2000-11-28 16:09  fsg
+
+	* interbase/: pyxis/fred.e, ChangeLog:
+	
+	Changed fred.e to go through 6.0 gpre
+
 2000-11-28 07:47  fsg
 
 	* interbase/extlib/ib_udf.sql:
