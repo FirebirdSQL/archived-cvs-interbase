@@ -160,7 +160,7 @@ FOR X IN TOPICS WITH X.PARENT EQ parent SORTED BY X.TOPIC
     if (!(l = p - X.TOPIC))
 	continue;
     if (++topics == 1 && banner)
-	ib_printf ("%s\n", banner, string, parent);
+	ib_printf ("%s%s%s\n", banner, string, parent);
     p = line + ((ptr - line + COLUMN_WIDTH - 1) / COLUMN_WIDTH) * COLUMN_WIDTH;
     if (p + l > line + RIGHT_MARGIN)
 	{
