@@ -1150,35 +1150,8 @@ node->nod_count = count;
 
 return node;
 }
-
-STR MAKE_numeric (
-    CONST UCHAR	*str,
-    int		length)
-{
-/**************************************
- *
- *	M A K E _ n u m e r i c
- *
- **************************************
- *
- * Functional description
- *	routine for to make a numeric block
- *	(really just a string block with all
- *	digits in the string)
- *
- **************************************/
-UCHAR	*p;
-STR	string;
-TSQL    tdsql;
 
-tdsql = GET_THREAD_DATA;
 
-string = (STR) ALLOCDV (type_str, length);
-string->str_length = length;
-MOVE_FAST (str, p, length);
-
-return string;
-}
 
 PAR MAKE_parameter (
     MSG		message,

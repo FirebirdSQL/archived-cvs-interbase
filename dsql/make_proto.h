@@ -34,7 +34,6 @@ extern void		MAKE_desc_from_field (struct dsc *, struct fld *);
 extern struct nod	*MAKE_field (struct ctx *, struct fld *, struct nod *);
 extern struct nod	*MAKE_list (struct lls *);
 extern struct nod	*MAKE_node (ENUM nod_t, int);
-extern struct str	*MAKE_numeric (CONST UCHAR *, int);
 extern struct par	*MAKE_parameter (struct msg *, USHORT, USHORT);
 extern struct str	*MAKE_string (CONST UCHAR *, int);
 extern struct sym	*MAKE_symbol (struct dbb *, CONST TEXT *, USHORT, ENUM sym_type, struct req *);

@@ -344,9 +344,10 @@ typedef ENUM nod_t {
     nod_udf_param, /* there should be a way to signal a param by descriptor! */
 
     /* limit support */
-	 nod_limit,
-	 nod_redef_procedure /* allows silent creation/overwriting of a procedure. */
+    nod_limit,
 
+    nod_redef_procedure, /* allows silent creation/overwriting of a procedure. */
+    
 } NOD_TYPE;
 
 

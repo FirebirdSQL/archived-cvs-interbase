@@ -38,6 +38,7 @@ extern STATUS	DLL_EXPORT dsql8_prepare (STATUS *, void **, struct req **, USHORT
 extern STATUS	DLL_EXPORT dsql8_set_cursor (STATUS *, struct req **, TEXT *, USHORT);
 extern STATUS	DLL_EXPORT dsql8_sql_info (STATUS *, struct req **, USHORT, SCHAR *, USHORT, SCHAR *);
 extern void	DSQL_pretty (struct nod *, int);
+
 #ifdef  WINDOWS_ONLY
 extern void     DSQL_wep (void);
 #endif

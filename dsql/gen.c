@@ -105,7 +105,7 @@ TSQL		tdsql;
 tdsql = GET_THREAD_DATA;
 
 length = request->req_blr_string->str_length + 2048L;
-pool = (request->req_blr_string->str_header.blk_pool_id == 
+pool = (request->req_blr_string->str_header.blk_pool_id_mod == 
 		DSQL_permanent_pool->plb_pool_id) ? 
 			DSQL_permanent_pool : tdsql->tsql_default;
 new_buffer = (STR) ALLOCV (type_str, pool, length);
@@ -986,7 +986,7 @@ switch (node->nod_type)
 	STUFF (blr_leave);
 	STUFF ((int) node->nod_arg [e_break_number]);
 	return;
-
+	
     case nod_store:
 	if ((temp = node->nod_arg [e_sto_rse]) != NULL)
 	    {

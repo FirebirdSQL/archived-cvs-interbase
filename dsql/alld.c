@@ -177,7 +177,9 @@ ULONG		l;
 SLONG		best_tail, tail;
 ULONG		needed_blocks;
 
-assert (pool != NULL);
+if (!pool)
+    BUGCHECK ("Bad pool, ALLD_alloc");
+
 DEV_BLKCHK (pool, type_plb);
 
 if (type <= (SCHAR) type_MIN || type >= (SCHAR) type_MAX)
@@ -191,14 +193,15 @@ if ((tail = block_sizes[type].typ_tail_length) &&
     count >= 1)
     size += (count - 1) * tail;
 
-#ifdef DEV_BUILD
+
 if (size <= sizeof (struct blk) || size >= MAX_BLOCK)
     BUGCHECK ("bad block size");
-#endif
+
 
 needed_blocks = SIZE_TO_BLOCKS (BLOCK_ROUNDUP (size));
 
-assert (BLOCKS_TO_SIZE (needed_blocks) >= size);
+if (BLOCKS_TO_SIZE (needed_blocks) < size)
+    BUGCHECK ("ALLD_alloc rounded up when it should round down");
 
 /* Find best fit.  Best fit is defined to be the free block of shortest
    tail.  If there isn't a fit, extend the pool and try, try again. */
@@ -241,7 +244,8 @@ if (best_tail > SIZE_TO_BLOCKS ( BLOCK_ROUNDUP (sizeof (struct frb))))
     block = (BLK) ((UCHAR*) free + BLOCKS_TO_SIZE(l));
 
     /* Reset the length of the free block */
-    assert(l <= MAX_USHORT);
+    if (needed_blocks < 0)
+	BUGCHECK ("ALLD_alloc: asking for less than nothing");
     free->frb_header.blk_length = (USHORT)l;
     }
 else
@@ -260,11 +264,16 @@ else
 /* Zero the whole allocated structure */
 memset (block, 0, BLOCKS_TO_SIZE (needed_blocks));
 
-/* Now set the block header (yeah, we just zero'ed it, sue me) */
+/* Note that only the last 8 bits of the pool id are
+   stored in the block header.  find_pool does the
+   necessary expansion  */
+
 block->blk_type = type;
-assert(pool->plb_pool_id <= MAX_UCHAR);
-block->blk_pool_id = (UCHAR)pool->plb_pool_id;
-assert(needed_blocks <= MAX_USHORT);
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
+
+if (needed_blocks > MAX_USHORT);
+    BUGCHECK ("ALLD_alloc: too greedy");
+
 block->blk_length = (USHORT)needed_blocks;
 
 #ifdef SUPERSERVER
@@ -298,8 +307,8 @@ register ULONG	length, l;
 register SLONG	*p1, *p2;
 register SCHAR	*c1, *c2;
 
-assert (pointer != NULL);
-assert (*pointer != NULL);
+if (!pointer || !(*pointer))
+    BUGCHECK ("bad pointer in ALLD_extend");
 
 block = *pointer;
 pool = find_pool (block);
@@ -349,7 +358,8 @@ void ALLD_fini (void)
 BLK	*vector, *until;
 PLB	pool;
 
-assert (init_flag);		/* Must _init before _fini */
+if (!init_flag)		/* Must _init before _fini */
+    BUGCHECK ("ALLD_fini - finishing before starting");
 
 /* if there are no pools, we've already finished. */
 
@@ -765,11 +775,15 @@ DEV_BLKCHK (pool, type_plb);
 
 size = (size + sizeof (struct hnk) + MIN_ALLOCATION - 1) & ~((ULONG)MIN_ALLOCATION - 1);
 block = (BLK) ALLD_malloc (size);
-assert(SIZE_TO_BLOCKS (size) <= MAX_USHORT);
+
+if (SIZE_TO_BLOCKS (size) > MAX_USHORT)
+    BUGCHECK ("too greedy in extend pool of alld.c")
+    ;
 block->blk_length = (USHORT)SIZE_TO_BLOCKS (size);
 block->blk_type = (SCHAR) type_frb;
-assert(pool->plb_pool_id <= MAX_UCHAR);
-block->blk_pool_id = (UCHAR)pool->plb_pool_id;
+
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
+
 #ifdef SUPERSERVER
 if (trace_pools)
     {
@@ -777,6 +791,7 @@ if (trace_pools)
     ++pool->plb_blk_type_count[block->blk_type];
     }
 #endif
+
 release (block, pool);
 
 hunk = (HNK) ALLD_alloc (pool, type_hnk, 0);
@@ -804,13 +819,13 @@ HNK	hunk;
 USHORT	pool_id;
 
 if (pools->vec_count < 256)
-    if ((pool_id = block->blk_pool_id) < pools->vec_count &&
+    if ((pool_id = block->blk_pool_id_mod) < pools->vec_count &&
 	(pool = (PLB) pools->vec_object [pool_id]))
 	return pool;
     else
 	BUGCHECK ("bad pool id");
 
-for (pool_id = block->blk_pool_id; pool_id < pools->vec_count; pool_id += 256)
+for (pool_id = block->blk_pool_id_mod; pool_id < pools->vec_count; pool_id += 256)
     if (pool = (PLB) pools->vec_object [pool_id])
 	{
 	hunk = pool->plb_hunks;
@@ -870,7 +885,9 @@ for (ptr = &pool->plb_free; (free = *ptr) != NULL; prior = free, ptr = &free->fr
 {
 ULONG	size;
 size = BLOCKS_TO_SIZE (block->frb_header.blk_length);
-assert (size >= sizeof (struct blk));
+
+if (size < sizeof (struct blk))
+    BUGCHECK ("Releasing less that 4 bytes: alld.c/release");
 size -= sizeof (struct blk);
 if (size)
     memset ((SCHAR*) block + sizeof (struct blk), ALLD_RELEASED_PATTERN, size);

@@ -72,7 +72,7 @@ ENUM blk_t {
 
 typedef struct blk {
     UCHAR	blk_type;
-    UCHAR	blk_pool_id;
+    UCHAR	blk_pool_id_mod;
     USHORT	blk_length;
 } *BLK;
 

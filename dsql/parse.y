@@ -115,7 +115,7 @@ static FIL	file;
 static NOD	field_name;
 static TEXT	*beginning;
 static SSHORT	log_defined, cache_defined;
-
+static void	yyerror (TEXT *);
 
 %}
 
@@ -1375,7 +1375,7 @@ exec_procedure	: EXECUTE PROCEDURE symbol_procedure_name proc_inputs proc_output
 			{ $$ = make_node (nod_exec_procedure, e_exe_count, $3,
 					  $4, $5); }
 		;
-
+		
 for_select	: FOR select INTO variable_list cursor_def DO proc_block
 			{ $$ = make_node (nod_for_select, e_flp_count, $2,
 					  make_list ($4), $5, $7, NULL); }
@@ -3467,7 +3467,6 @@ static BOOLEAN	short_int (NOD, SLONG *, SSHORT);
 static void	stack_nodes (NOD, LLS *);
 static int 	swallow_single_line_comment (void);
 static int	yylex (USHORT, USHORT, USHORT, BOOLEAN *);
-static void	yyerror (TEXT *);
 static void	yyabandon (SSHORT, STATUS);
 #ifndef WINDOWS_ONLY
 static void	check_log_file_attrs (void);

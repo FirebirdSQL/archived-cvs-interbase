@@ -201,6 +201,8 @@ static	USHORT	mutex_inited = 0;
 #define GDS_DSQL_SET_CURSOR	dsql8_set_cursor
 #define GDS_DSQL_SQL_INFO	dsql8_sql_info
 
+
+
 STATUS DLL_EXPORT GDS_DSQL_ALLOCATE (
     STATUS	*user_status,
     int		**db_handle,
@@ -1233,7 +1235,9 @@ while (items < end_items && *items != gds__info_end)
 
 RETURN_SUCCESS;
 }
-
+
+
+
 #ifdef DEV_BUILD
 void DSQL_pretty (
     NOD		node,
@@ -1353,18 +1357,19 @@ switch (node->nod_type)
 	/* CVC: New node redef_relation. */
 	case nod_redef_relation:    verb = "redefine relation";     break;
 
-	 case nod_def_view:		verb = "define view"; 		break;
-	 case nod_delete:		verb = "delete";		break;
-	 case nod_del_field:		verb = "delete field";		break;
-	 case nod_del_filter:        verb = "delete filter";         break;
-	 case nod_del_generator:     verb = "delete generator";      break;
-	 case nod_del_index:		verb = "delete index";		break;
-	 case nod_del_relation:	verb = "delete relation";	break;
+    case nod_def_view:		verb = "define view"; 		break;
+    case nod_delete:		verb = "delete";		break;
+    case nod_del_field:		verb = "delete field";		break;
+    case nod_del_filter:        verb = "delete filter";         break;
+    case nod_del_generator:     verb = "delete generator";      break;
+    case nod_del_index:		verb = "delete index";		break;
+    case nod_del_relation:	verb = "delete relation";	break;
 
-	 /* CVC: New node del_view. */
-	 case nod_del_view:		verb = "delete view";		break;
+    /* CVC: New node del_view. */
+    case nod_del_view:		verb = "delete view";		break;
 
-	 case nod_def_procedure:	verb = "define procedure";	break;
+    case nod_def_procedure:	verb = "define procedure";	break;
+
 	 /* CVC: New node redef_procedure. */
 	 case nod_redef_procedure:	verb = "redefine procedure"; break;
     case nod_del_procedure:	verb = "delete porcedure";	break;
