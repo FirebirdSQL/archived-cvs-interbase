@@ -26,11 +26,12 @@
 .c.bin:
 	$(CC) -c $(PIC_FLAGS) $(VERSION_FLAG) -o $*.bin $<
 
+LIBDIRFLAGS= -L/usr/interbase/lib -R/usr/interbase/lib -R/usr/firebird/lib
 
 PROD_DEBUG_OBJECTS=	nodebug.o
 PROD_SHRLIB_DIR=	
 PROD_VERSION_FLAG=	-DPROD_BUILD
-PROD_CFLAGS=            -O3 -m486 -fpic -DFLINTSTONE
+PROD_CFLAGS=            -O -m486 -fpic -DFLINTSTONE
 
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
@@ -46,10 +47,9 @@ CFLAGS=			$(CFLAGS_COMMON) $(SUPER_FLAG)
 PIC_J_CFLAGS=		$(CFLAGS_COMMON) -DPIPE_IS_SHRLIB -fPIC
 SPECIAL_OBJECTS=	j
 UDF_LINK_CMD=		gcc
-UDF_CFLAGS=         	-fPIC -mieee-fp
+UDF_CFLAGS=         	-fPIC
 UDF_LFLAGS=         	-shared
-UDF_SHRLIBS=        	-L/usr/local/lib -R/usr/interbase/lib -lgds -lm -lc -mieee-fp -lcrypt
-#UDF_SHRLIBS=        	-lgds -lm -lc -mieee-fp -ldl -lcrypt
+UDF_SHRLIBS=        	$(LIBDIRFLAGS) -lgds -lm -lc -lcrypt
 
 #NOTE: PIC_J_CFLAGS is special CFLAGS used to build PIPD_IS_SHRLIB modules
 #      to workaround the Solaris threading problems with signals
@@ -78,9 +78,9 @@ GDSLIB_LINK=		-Lsource/jrd -lgds_b -lc -lcrypt
 
 GDSSHR=			source/interbase/lib/gds.so
 LINUX_GDSSHR=		$(GDSSHR)
-GDSSHR_LINK=		$(SHRLIB_DIR) -L/usr/local/lib -R/usr/interbase/lib -lgds -lgds_pyxis -lcrypt
+GDSSHR_LINK=		$(SHRLIB_DIR) $(LIBDIRFLAGS) -lgds -lgds_pyxis -lcrypt
 #PIPE_GDSSHR=		source/interbase/lib/gds.so.0
-PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) -L/usr/local/lib -R/usr/interbase/lib -lgds -lgds_pyxis
+PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) $(LIBDIRFLAGS) -lgds -lgds_pyxis
 HLPDIR=			source/qli/
 HOSTNAME=		`hostname | cut -d'.' -f1`
 INCLUDES=		include_so include_so_ada	
@@ -134,7 +134,7 @@ SUN_FUNCSHR=		$(FUNCSHR)
 LX_SUPER_GDSSHR=		source/interbase/lib/gds.so.1
 SUPER_CLIENT_GDSSHR=    $(LX_SUPER_GDSSHR)
 SUPER_BACKEND=		source/jrd/gds_ss.a
-SUPER_LINK=		-Lsource/jrd -lgds_ss -lc -lcrypt -L/usr/local/lib -llthread
+SUPER_LINK=		-Lsource/jrd -lgds_ss -lc -lcrypt -L/usr/interbase/lib -llthread
 SUPER_SERVER=	
 UTILITIES=		
 WAL_P_OBJS=		wal_p_objects
