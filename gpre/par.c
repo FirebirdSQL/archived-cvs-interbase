@@ -19,6 +19,17 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/27 09:26:13  fsg
+ * Fixed bugs in gpre to handle PYXIS forms
+ * and allow edit.e and fred.e to go through
+ * gpre without errors (and correct result).
+ *
+ * This is a partial fix until all
+ * PYXIS datatypes are adjusted in frm_trn.c
+ *
+ * removed some compiler warnings too
+ *
  */
 
 #include <setjmp.h>
@@ -284,6 +295,7 @@ if ((USHORT) token.tok_keyword >= (USHORT) KW_start_actions &&
 	    action = SQL_action();
 	    sw_sql = FALSE;
 	    return action;
+        default: break;
 	}
 
     cur_statement = NULL;
@@ -335,6 +347,7 @@ for (; symbol; symbol = symbol->sym_homonym)
 	    PAR_jmp_buf = (jmp_buf*) env;
 	    cur_statement = NULL;
 	    return par_menu_entree_att();
+        default: break;
 	}
     }
 
@@ -690,7 +703,7 @@ ptr = event_list->nod_arg + count;
 while (stack)
     *--ptr = (NOD) POP (&stack);
 
-PUSH (action, &events);
+PUSH  ( action, &events);
 	 
 if (!sql)
     PAR_end();
@@ -813,7 +826,7 @@ bas_extern_flag = FALSE;
 
 cur_routine = MAKE_ACTION (NULL_PTR, ACT_routine);
 cur_routine->act_flags |= ACT_main; 
-PUSH (cur_routine, &routine_stack);
+PUSH ( (NOD) cur_routine, &routine_stack);
 routine_decl = TRUE;
 
 flag_field = NULL;
@@ -1155,7 +1168,7 @@ SYM	symbol;
 
 while (TRUE)
     {
-    if (symbol = MSC_find_symbol (token.tok_symbol, SYM_database))
+    if ((symbol = MSC_find_symbol (token.tok_symbol, SYM_database)))
 	{
 	db = (DBB) symbol->sym_object;
 	db->dbb_flags |= DBB_in_trans;
@@ -1490,7 +1503,7 @@ switch (sw_language)
     case lan_c:
     case lan_cxx:
 	do {
-	    PUSH (PAR_native_value (FALSE, FALSE), &based_on->bas_variables);
+	    PUSH ( (NOD) PAR_native_value (FALSE, FALSE), &based_on->bas_variables);
 	} while (MATCH (KW_COMMA));
 	/* 
 	** bug_4031.  based_on->bas_variables are now in reverse order.
@@ -1535,6 +1548,7 @@ switch (sw_language)
 		if (hold)
 			based_on->bas_variables = hold;
 	}
+    default: break; 
     }
 
 if(notSegment)
@@ -2016,7 +2030,7 @@ for (reference = request->req_references; reference;
 	item = MAKE_NODE (nod_assignment, 2);
 	item->nod_arg [0] = MSC_unary (nod_value, change);
 	item->nod_arg [1] = MSC_unary (nod_field, change);
-	PUSH (item, &stack);
+	PUSH ( (NOD) item, &stack);
 	count++;
 
 	if (reference->ref_null)
@@ -2031,7 +2045,7 @@ for (reference = request->req_references; reference;
 	    item = MAKE_NODE (nod_assignment, 2);
 	    item->nod_arg [0] = MSC_unary (nod_value, flag);
 	    item->nod_arg [1] = MSC_unary (nod_field, flag);
-	    PUSH (item, &stack);
+	    PUSH ( (NOD) item, &stack);
 	    count++;
 	    }
 	}
@@ -2168,7 +2182,7 @@ else
 	    item = MAKE_NODE (nod_assignment, 2);
 	    item->nod_arg [0] = MSC_unary (nod_field, change);
 	    item->nod_arg [1] = MSC_unary (nod_value, change);
-	    PUSH (item, &stack);
+	    PUSH ( (NOD) item, &stack);
 	    count++;
 	    }
 
@@ -2180,7 +2194,7 @@ else
     while (stack)
 	*--ptr = (NOD) POP (&stack);
     }
-if (context = request->req_contexts)
+if ((context = request->req_contexts))
     HSH_remove (context->ctx_symbol);
 
 action = MAKE_ACTION (request, ACT_endstore);
@@ -2306,7 +2320,7 @@ ADVANCE_TOKEN;
 PAR_end();
 
 action = MAKE_ACTION (request, ACT_s_fetch);
-PUSH (action, &cur_fetch);
+PUSH ( (NOD) action, &cur_fetch);
 
 return action;
 }
@@ -2418,7 +2432,7 @@ if (!par_options (request, TRUE) ||
     }
 
 action = MAKE_ACTION (request, ACT_for);
-PUSH (action, &cur_for);
+PUSH ( (NOD) action, &cur_for);
 
 request->req_rse = rec_expr;
 context = rec_expr->rse_context[0];
@@ -2454,7 +2468,7 @@ PAR_error ("FORMs not supported");
 #else
 SYM	symbol;
 
-if (symbol = MSC_find_symbol (token.tok_symbol, type))
+if ((symbol = MSC_find_symbol (token.tok_symbol, type)))
     {
     ADVANCE_TOKEN;
     return symbol->sym_object;
@@ -2485,11 +2499,12 @@ CTX	context;
 FINT	fint;
 
 if (!(context = par_form_menu(SYM_form_map)))
+{
     if (!(context = par_form_menu (SYM_menu)))
 	return NULL;
     else
 	return par_menu_display (context);
-
+}
 request = context->ctx_request;
 action = MAKE_ACTION (NULL_PTR, ACT_form_display);
 fint = (FINT) ALLOC (sizeof (struct fint));
@@ -2614,7 +2629,7 @@ for (;;)
 	}
     reference = EXP_post_field (field, request->req_contexts, FALSE);
     reference->ref_friend = parent;
-    PUSH (reference, stack);
+    PUSH ( (NOD) reference, stack);
     if (!MATCH (KW_COMMA))
 	break;
     }
@@ -2675,6 +2690,7 @@ if (!MATCH (KW_IN))
 if (!isc_databases)
    PAR_error ("no database for operation");
 
+
 if ((dbb_symbol = token.tok_symbol) &&
     dbb_symbol->sym_type == SYM_database)
     {
@@ -2685,7 +2701,7 @@ if ((dbb_symbol = token.tok_symbol) &&
     form = FORM_lookup_form (dbb, token.tok_string);
     }
 else for (dbb = isc_databases; dbb; dbb = dbb->dbb_next)
-    if (form = FORM_lookup_form (dbb, token.tok_string))
+    if ((form = FORM_lookup_form (dbb, token.tok_string)))
 	break;
     
 /* Pick up form */
@@ -2693,13 +2709,19 @@ else for (dbb = isc_databases; dbb; dbb = dbb->dbb_next)
 if (!form)
     SYNTAX_ERROR ("form name");
 
+/* If we do it here, we will miss
+   the next identifier
+   FSG 26.Nov.2000 
+  
 ADVANCE_TOKEN;
+
+*/
 
 /* Set up various data structures */
 
 request->req_form = form;
 
-if (request->req_form_handle = form_handle)
+if ((request->req_form_handle = form_handle))
     request->req_flags |= REQ_exp_form_handle;
 
 request->req_database = dbb;
@@ -2708,7 +2730,13 @@ context = MSC_context (request);
 context->ctx_symbol = symbol;
 symbol->sym_object = context;
 HSH_insert (symbol);
-PUSH (request, &cur_form);
+PUSH ( (NOD) request, &cur_form);
+
+/* Do it here to get the next one right
+   FSG 26.Nov.2000 
+*/
+
+ADVANCE_TOKEN;
 
 return MAKE_ACTION (request, ACT_form_for);
 #endif
@@ -2806,11 +2834,12 @@ if (!MATCH (KW_IN))
 /* Pick up parent form or menu context */
 
 if (!(context = par_form_menu (SYM_form_map)))
+{
     if (!(context = par_form_menu (SYM_menu)))
 	SYNTAX_ERROR ("form context or menu context");
     else
 	return par_menu_item_for (symbol, context, type);
-
+}
 symbol->sym_type = SYM_form_map;
 
 parent = context->ctx_request;
@@ -2844,7 +2873,7 @@ context->ctx_symbol = symbol;
 symbol->sym_object = context;
 HSH_insert (symbol);
 action = MAKE_ACTION (request, type);
-PUSH (action, &cur_item);
+PUSH ( (NOD) action, &cur_item);
 
 /* If this is a FOR_ITEM, generate an index variable */
 
@@ -2960,7 +2989,7 @@ ACT	action;
 
 sw_pyxis = TRUE;
 request = MAKE_REQUEST (REQ_menu);
-PUSH (request, &cur_menu);
+PUSH ( (NOD) request, &cur_menu);
 action = MAKE_ACTION (request, ACT_menu);
 
 if (MATCH (KW_LEFT_PAREN))
@@ -3135,7 +3164,7 @@ context = MSC_context (request);
 context->ctx_symbol = symbol;
 symbol->sym_object = context;
 HSH_insert (symbol);
-PUSH (request, &cur_menu);
+PUSH ( (NOD) request, &cur_menu);
 
 action = MAKE_ACTION (request, ACT_menu_for);
 menu = (MENU) ALLOC (sizeof (struct menu));
@@ -3178,7 +3207,7 @@ context->ctx_symbol = symbol;
 symbol->sym_object = context;
 HSH_insert (symbol);
 action = MAKE_ACTION (request, type);
-PUSH (action, &cur_item);
+PUSH ( (NOD) action, &cur_item);
 
 entree = (ENTREE) ALLOC (sizeof (struct entree));
 action->act_object = (REF) entree;
@@ -3210,7 +3239,7 @@ SCHAR		s[50];
    structure in place to cleanly handle END_MODIFY under error conditions. */
 
 modify = (UPD) ALLOC (UPD_LEN);
-PUSH (modify, &cur_modify);
+PUSH ( (NOD) modify, &cur_modify);
 
 /* If the next token isn't a context variable, we can't continue */
 
@@ -3294,7 +3323,7 @@ PAR_end();
 cur_statement->act_error = action = MAKE_ACTION (NULL_PTR, ACT_on_error);
 action->act_object = (REF) cur_statement;
 
-PUSH (action, &cur_error);
+PUSH ( (NOD) action, &cur_error);
 
 if (cur_statement->act_pair)
     cur_statement->act_pair->act_error = action;
@@ -3422,7 +3451,7 @@ action = MAKE_ACTION (request, act_op);
 action->act_object = (REF) blob;
 
 if (act_op == ACT_blob_for)
-    PUSH (action, &cur_for);
+    PUSH ( (NOD) action, &cur_for);
 
 /*  Need to eat the semicolon if present  */
 
@@ -3513,7 +3542,7 @@ else if (sw_language == lan_pascal)
     action = scan_routine_header();
     if (!(action->act_flags & ACT_decl))
 	{
-	PUSH (cur_routine, &routine_stack);
+	PUSH ( (NOD) cur_routine, &routine_stack);
 	cur_routine = action;
 	}
     }
@@ -3538,11 +3567,14 @@ TEXT	*string;
 
 if (!SINGLE_QUOTED(token.tok_type))
     SYNTAX_ERROR ("quoted string");
-
 string = (TEXT*) ALLOC (token.tok_length + 1);
 COPY (token.tok_string , token.tok_length , string);
-ADVANCE_TOKEN;
 
+/* Adjust size to include quotes 
+   FSG 26.Nov.2000
+*/
+token.tok_length=token.tok_length+2;
+ADVANCE_TOKEN;
 return string;
 }
 
@@ -3810,8 +3842,8 @@ new_values->upd_level = ++request->req_level;
 
 /* both actions go on the cur_store stack, the store topmost */
 
-PUSH (action, &cur_store);
-PUSH (begin_action, &cur_store);
+PUSH ( (NOD) action, &cur_store);
+PUSH ( (NOD) begin_action, &cur_store);
 return action;
 }
 
@@ -3957,7 +3989,7 @@ REL		relation;
 request = MAKE_REQUEST (REQ_store);
 par_options (request, FALSE);
 action = MAKE_ACTION (request, ACT_store);
-PUSH (action, &cur_store);
+PUSH ( (NOD) action, &cur_store);
 
 context = EXP_context (request, NULL_PTR);
 relation = context->ctx_relation;

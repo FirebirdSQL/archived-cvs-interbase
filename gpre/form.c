@@ -19,6 +19,17 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/27 09:26:13  fsg
+ * Fixed bugs in gpre to handle PYXIS forms
+ * and allow edit.e and fred.e to go through
+ * gpre without errors (and correct result).
+ *
+ * This is a partial fix until all
+ * PYXIS datatypes are adjusted in frm_trn.c
+ *
+ * removed some compiler warnings too
+ *
  */
 
 #include "../gpre/gpre.h"
@@ -58,7 +69,7 @@ UCHAR	name [32], *p;
 HANDLE	handle;
 USHORT	l;
 
-for (p = name; *p = UPPER (*string); string++, p++)
+for (p = name; (*p = UPPER (*string)); string++, p++)
     ;
 
 /* See if we already know about field */
@@ -74,7 +85,6 @@ for (field = form->form_fields; field; field = field->fld_next)
 
 if (!(handle = PYXIS_find_field (object, name)))
     return NULL;
-
 /* Make field block and decrypt data type */
 
 field = (FLD) ALLOC (sizeof (struct fld));
@@ -133,7 +143,7 @@ UCHAR	name [32], *p;
 if (!dbb)
     return NULL;
 
-for (p = name; *p = UPPER (*string); string++, p++)
+for (p = name; (*p = UPPER (*string)); string++, p++)
     ;
 
 /* See if we already know about form */
@@ -155,14 +165,14 @@ pyxis__load_form (status,
 
 if (!form->form_object)
     return NULL;
-
+/*PYXIS_print(form->form_object,0);*/
 form->form_dbb = dbb;
 form->form_next = dbb->dbb_forms;
 dbb->dbb_forms = form;
 
 /* Make up form block, etc */
 
-form->form_name = symbol = MSC_symbol (SYM_form, name, l, form);
+form->form_name = symbol = MSC_symbol (SYM_form, name, l,(CTX) form);
 HSH_insert (symbol);
 
 return form;

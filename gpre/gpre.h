@@ -20,6 +20,16 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Log$
+ * Revision 1.3  2000/11/27 09:26:13  fsg
+ * Fixed bugs in gpre to handle PYXIS forms
+ * and allow edit.e and fred.e to go through
+ * gpre without errors (and correct result).
+ *
+ * This is a partial fix until all
+ * PYXIS datatypes are adjusted in frm_trn.c
+ *
+ * removed some compiler warnings too
+ *
  * Revision 1.2  2000/11/16 15:54:29  fsg
  * Added new switch -verbose to gpre that will dump
  * parsed lines to stderr
@@ -929,7 +939,7 @@ typedef struct prv {
 #define PRV_execute	16	/* execute privilege being granted or revoked */
 #define PRV_references	32	/* reference privilege */
 #define PRV_grant_option 64	/* privilege to grant privileges being granted */
-#define PRV_all		128	/* all privileges being granted/revoked
+#define PRV_all		128	/* all privileges being granted/revoked */
 
 /* Ready block */
 
