@@ -26,6 +26,7 @@ $Id$
 
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
+#include <stdlib.h>	/* abort */
 #include "../jrd/common.h"
 #include "../jrd/gds.h"
 #include "../jrd/jrd.h"
@@ -65,6 +66,7 @@ $Id$
 #include "../jrd/thd_proto.h"
 #include "../jrd/met_proto.h"
 #include "../jrd/dsc_proto.h"
+#include "../jrd/dbg_proto.h"	/* DBG_supervisor */
 
 /* Pick up relation ids */
 
@@ -276,7 +278,7 @@ vector = ALL_vector (request->req_pool, &request->req_sub_requests, level);
 
 /* Clone the request */
 
-n = (request->req_impure_size - REQ_SIZE + REQ_TAIL - 1) / REQ_TAIL;
+n = (USHORT)((request->req_impure_size - REQ_SIZE + REQ_TAIL - 1) / REQ_TAIL);
 clone = (REQ) ALL_alloc (request->req_pool, type_req, n, ERR_jmp);
 vector->vec_object [level] = (BLK) clone;
 clone->req_attachment = tdbb->tdbb_attachment;
@@ -2085,7 +2087,7 @@ JRD_print_procedure_info (tdbb, buffer);
 */
 if ((procedure->prc_use_count == 0) &&
     (tdbb->tdbb_database->dbb_procedures->vec_object[procedure->prc_id] 
-	!= procedure))
+	!= &procedure->prc_header))
     {
     CMP_release (tdbb, procedure->prc_request);
     procedure->prc_flags &= ~PRC_being_altered;
@@ -2107,14 +2109,14 @@ void DLL_EXPORT CMP_release (
  *	Release an unneeded and unloved request.
  *
  **************************************/
-REQ	*next, *sub_req, *end;
+REQ	*next;
 IDL	index;
 REL	relation;
 RSC	resource;
 #ifdef GATEWAY
 VEC	vector;
+REQ	*sub_req, *end;
 #endif
-PRC 	procedure;
 ATT	attachment;
 
 SET_TDBB (tdbb);
@@ -2281,7 +2283,9 @@ SET_TDBB (tdbb);
 string = (STR) ALLOCDV (type_str, MAP_LENGTH);
 string->str_length = MAP_LENGTH;
 (*csb)->csb_rpt [stream].csb_map = (UCHAR*) string->str_data;
-string->str_data [0] = stream; 
+/* TMN: Here we should really have the following assert */
+/* assert(stream <= MAX_UCHAR); */
+string->str_data [0] = (UCHAR)stream;
 
 return (UCHAR*) string->str_data;
 }
@@ -2567,7 +2571,9 @@ switch (input->nod_type)
 	relative_stream = (stream) ? remap [stream-1] : stream;
 	new_stream = (*csb)->csb_n_stream++;
 	node->nod_arg [e_rel_stream] = (NOD) (SLONG) new_stream;
-	remap [stream] = new_stream;
+	/* TMN: Here we should really have the following assert */
+	/* assert(new_stream <= MAX_UCHAR); */
+	remap [stream] = (UCHAR)new_stream;
 
 	node->nod_arg [e_rel_context] = input->nod_arg [e_rel_context];
 	node->nod_arg [e_rel_relation] = input->nod_arg [e_rel_relation];
@@ -2631,7 +2637,9 @@ switch (input->nod_type)
 	stream = (USHORT) input->nod_arg [e_prc_stream];
 	new_stream = (*csb)->csb_n_stream++;
 	node->nod_arg [e_prc_stream] = (NOD) (SLONG) new_stream;
-	remap [stream] = new_stream;
+	/* TMN: Here we should really have the following assert */
+	/* assert(new_stream <= MAX_UCHAR); */
+	remap [stream] = (UCHAR)new_stream;
 	node->nod_arg [e_prc_procedure] = input->nod_arg [e_prc_procedure];
 	element = CMP_csb_element (csb, new_stream);
 	element->csb_procedure = (PRC) node->nod_arg [e_prc_procedure];
@@ -2648,7 +2656,9 @@ switch (input->nod_type)
 	stream = (USHORT) input->nod_arg [e_agg_stream];
 	new_stream = (*csb)->csb_n_stream++;
 	node->nod_arg [e_agg_stream] = (NOD) (SLONG) new_stream;
-	remap [stream] = new_stream;
+	/* TMN: Here we should really have the following assert */
+	/* assert(new_stream <= MAX_UCHAR); */
+	remap [stream] = (UCHAR)new_stream;
 	CMP_csb_element (csb, new_stream);
 	(*csb)->csb_rpt [new_stream].csb_flags |= (*csb)->csb_rpt [stream].csb_flags & csb_no_dbkey;
 	node->nod_arg [e_agg_rse] = copy (tdbb, csb, input->nod_arg [e_agg_rse], remap, field_id, remap_fld);
@@ -2665,7 +2675,9 @@ switch (input->nod_type)
 	stream = (USHORT) input->nod_arg [e_uni_stream];
 	new_stream = (*csb)->csb_n_stream++;
 	node->nod_arg [e_uni_stream] = (NOD) (SLONG) new_stream;
-	remap [stream] = new_stream;
+	/* TMN: Here we should really have the following assert */
+	/* assert(new_stream <= MAX_UCHAR); */
+	remap [stream] = (UCHAR)new_stream;
 	CMP_csb_element (csb, new_stream);
 	(*csb)->csb_rpt [new_stream].csb_flags |= (*csb)->csb_rpt [stream].csb_flags & csb_no_dbkey;
 	node->nod_arg [e_uni_clauses] = 
@@ -2854,7 +2866,9 @@ if (!(vector = relation->rel_fields))
 if (!(map = (*csb)->csb_rpt [stream].csb_map))
     {
     map = local_map;
-    map [0] = stream;
+	/* TMN: Here we should really have the following assert */
+	/* assert(stream <= MAX_UCHAR); */
+    map [0] = (UCHAR)stream;
     map [1] = 1;
     map [2] = 2;
     }
@@ -2867,7 +2881,7 @@ for (ptr1 = (FLD*) vector->vec_object, end = ptr1 + vector->vec_count, field_id 
 	{
 	node = PAR_make_node (tdbb, e_asgn_length);
 	node->nod_type = nod_assignment;
-	node->nod_arg [e_asgn_from] = copy (tdbb, csb, value, map, field_id + 1, FALSE);
+	node->nod_arg [e_asgn_from] = copy (tdbb, csb, value, map, (USHORT)(field_id + 1), FALSE);
 	node->nod_arg [e_asgn_to] = PAR_gen_field (tdbb, stream, field_id);
 	LLS_PUSH (node, &stack);
 	}
@@ -2923,7 +2937,9 @@ if (!(vector = relation->rel_fields))
 if (!(map = (*csb)->csb_rpt [stream].csb_map))
     {
     map = local_map;
-    map [0] = stream;
+	/* TMN: Here we should really have the following assert */
+	/* assert(stream <= MAX_UCHAR); */
+    map [0] = (UCHAR)stream;
     }
 
 stack = NULL;
@@ -2935,7 +2951,7 @@ for (ptr1 = (FLD*) vector->vec_object, end = ptr1 + vector->vec_count, field_id 
 	{
 	node = PAR_make_node (tdbb, e_val_length);
 	node->nod_type = nod_validate;
-	node->nod_arg [e_val_boolean] = copy (tdbb, csb, validation, map, field_id + 1, FALSE);
+	node->nod_arg [e_val_boolean] = copy (tdbb, csb, validation, map, (USHORT)(field_id + 1), FALSE);
 	node->nod_arg [e_val_value] = PAR_gen_field (tdbb, stream, field_id);
 	LLS_PUSH (node, &stack);
 	}
@@ -2944,8 +2960,7 @@ for (ptr1 = (FLD*) vector->vec_object, end = ptr1 + vector->vec_count, field_id 
 	{
 	node = PAR_make_node (tdbb, e_val_length);
 	node->nod_type = nod_validate;
-	node->nod_arg [e_val_boolean] = copy (tdbb, csb, validation, map, field_id + 1
-, FALSE);
+	node->nod_arg [e_val_boolean] = copy (tdbb, csb, validation, map, (USHORT)(field_id + 1), FALSE);
 	node->nod_arg [e_val_value] = PAR_gen_field (tdbb, stream, field_id);
 	LLS_PUSH (node, &stack);
 	}
@@ -3127,7 +3142,9 @@ switch (node->nod_type)
 	if (!(map = tail->csb_map))
 	    {
 	    map = local_map;
-	    local_map [0] = stream;
+	    /* TMN: Here we should really have the following assert */
+	    /* assert(stream + 2 <= MAX_UCHAR); */
+	    local_map [0] = (UCHAR)stream;
 	    map [1] = stream + 1;
 	    map [2] = stream + 2;
 	    }
@@ -3177,7 +3194,9 @@ switch (node->nod_type)
 	tail = (*csb)->csb_rpt + stream;
 	tail->csb_flags |= csb_modify;
 	pass1_modify (tdbb, csb, node);
-	if (node->nod_arg [e_mod_validate] = make_validation (tdbb, csb, (int) node->nod_arg [e_mod_new_stream]))
+	/* TMN: Here we should really have the following assert */
+	/* assert(node->nod_arg [e_mod_new_stream] <= MAX_USHORT); */
+	if (node->nod_arg [e_mod_validate] = make_validation (tdbb, csb, (USHORT) node->nod_arg [e_mod_new_stream]))
 	    node->nod_count = MAX (node->nod_count, (USHORT) e_mod_validate + 1);
 	break;
 
@@ -3570,7 +3589,9 @@ for (;;)
 
 	map = alloc_map (tdbb, csb, (SSHORT) node->nod_arg [e_mod_new_stream]);
 	source = copy (tdbb, csb, source, map, 0, FALSE);
-	map [new_stream] = (USHORT) source->nod_arg [e_rel_stream];
+	/* TMN: Here we should really have the following assert */
+	/* assert(source->nod_arg [e_rel_stream] <= MAX_UCHAR); */
+	map [new_stream] = (UCHAR) source->nod_arg [e_rel_stream];
 	view_node = copy (tdbb, csb, node, map, 0, TRUE);
 	view_node->nod_arg [e_mod_org_stream] = (NOD) (SLONG) stream;
 	view_node->nod_arg [e_mod_new_stream] = source->nod_arg [e_rel_stream];
@@ -3857,7 +3878,9 @@ source->nod_arg [e_rel_view] = (NOD) parent_view;
 stream = (USHORT) source->nod_arg [e_rel_stream];
 element = CMP_csb_element (csb, stream);
 element->csb_view = parent_view;
-element->csb_view_stream = view_stream;
+/* TMN: Here we should really have the following assert */
+/* assert(view_stream <= MAX_UCHAR); */
+element->csb_view_stream = (UCHAR)view_stream;
 
 /* in the case where there is a parent view, find the context name */
 
@@ -4110,9 +4133,13 @@ CMP_post_access (tdbb, *csb, relation->rel_security_name, view,
    so that access to views can be checked at the field level */
 
 CMP_csb_element (csb, stream)->csb_view = view;
-CMP_csb_element (csb, stream)->csb_view_stream = view_stream;
+/* TMN: Here we should really have the following assert */
+/* assert(view_stream <= MAX_UCHAR); */
+CMP_csb_element (csb, stream)->csb_view_stream = (UCHAR)view_stream;
 CMP_csb_element (csb, update_stream)->csb_view = view;
-CMP_csb_element (csb, update_stream)->csb_view_stream = view_stream;
+/* TMN: Here we should really have the following assert */
+/* assert(view_stream <= MAX_UCHAR); */
+CMP_csb_element (csb, update_stream)->csb_view_stream = (UCHAR)view_stream;
 
 #ifdef GATEWAY
 /* If relation doesn't have a dbkey, it can't be updated */
@@ -5356,7 +5383,9 @@ for (end = ptr + map->nod_count; ptr < end; ptr++)
 
 /* Flesh out the format of the record */
 
-format->fmt_length = FLAG_BYTES (format->fmt_count);
+/* TMN: Here we should really have the following assert */
+/* assert(FLAG_BYTES (format->fmt_count) <= MAX_USHORT); */
+format->fmt_length = (USHORT)FLAG_BYTES (format->fmt_count);
 
 for (desc = format->fmt_desc, end_desc = desc + format->fmt_count;
      desc < end_desc; desc++)
