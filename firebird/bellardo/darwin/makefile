@@ -46,10 +46,18 @@ install_package: files/addServEnt
 	rm -rf firebird_install
 	mkdir firebird_install
 	-rm -f Firebird.framework/Resources/English.lproj/var/isc_lock* Firebird.framework/Resources/English.lproj/var/isc_init* Firebird.framework/Resources/English.lproj/var/isc_event*
+	-mv Firebird.framework/Resources/bin/ibmgr.bin \
+		Firebird.framework/Resources/bin/ibmgr
+	mv Firebird.framework/Resources/.installer_name installer_name
+	cp files/install files/inetd.conf.isc firebird_install
+	cp -r files/FirebirdStartupItem firebird_install/Firebird.startup
+	#-cp -r source/../FBConsole/build/FBConsole.app firebird_install
+	-rm Firebird.framework/Resources/English.lproj/var/bin
+	-rm Firebird.framework/Versions/Current
+	-rm Firebird.framework/Firebird Firebird.framework/Resources Firebird.framework/Headers
 	mv Firebird.framework firebird_install
-	cp files/install files/inetd.conf.isc files/addServEnt firebird_install
-	tar -zcf DarwinCS.tar.gz firebird_install
-	mv DarwinCS.tar.gz ..
+	tar -zcf `cat installer_name` firebird_install
+	mv `cat installer_name` ..
 	mv firebird_install/Firebird.framework .
 	rm -rf firebird_install
 
