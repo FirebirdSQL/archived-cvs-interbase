@@ -14,7 +14,11 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
-
+#  
+#             
+# Tom Coleman TMC Systems <tcoleman@autowares.com>
+#
+# $Id$
 
 
 #== WARNING ==============================================================
@@ -23,6 +27,13 @@
 # sfx.interbase and boot.sfx.interbase files
 #
 #=========================================================================
+
+REFDBPATH=source/refDatabases
+
+METADATA=$(REFDBPATH)/jrd/metadata.gdb
+MESSAGES=$(REFDBPATH)/msgs/msg.gdb
+HELP=$(REFDBPATH)/qli/help.gdb
+ISC=$(REFDBPATH)/jrd/isc.gdb
 
 EXTERNAL_OBJECTS=	$(CSI_OBJS) dsql_objects lock.o $(PYXIS_OBJECTS) rem_objects $(INTL) wal_objects
 EXTERNAL_P_OBJECTS=	$(CSI_P_OBJS) dsql_p_objects lock.bin $(PYXIS_P_OBJS) rem_p_objects $(INTL_P_OBJS) wal_p_objects
@@ -36,14 +47,20 @@ GPRE=		source/interbase/bin/gpre
 GBAK=		source/interbase/bin/gbak
 GDEF=		source/interbase/bin/gdef
 GFIX=		source/interbase/bin/gfix
+ISQL=       source/interbase/bin/isql
 HELP_GDB=	source/interbase/help/help.gdb
 HELP_GBAK=	source/interbase/help/help.gbak
 ISC_GDB=	source/interbase/isc4.gdb
 ISC_GBAK=	source/interbase/bin/isc4.gbak
 JRN_GBAK=	source/interbase/bin/journal.gbak
 CMP=		cmp
+SED=		sed
+
+FBNewBuild      = $(FBBuildRoot)/interbase
+FBNewBuildBin   = $(FBNewBuild)/bin
 
 CODES=source/jrd/codes
+SCODES=super/source/jrd/codes
 
 # removed examples 03-Aug-00 TMC
 #interbase:	run_codes gds.h includes executables examples help msgs msgs_intl extlib
@@ -51,40 +68,107 @@ CODES=source/jrd/codes
 #added completed according to inprise tree
 #FSG  093000
 
-# The only difference between firebird and super_firebird is the executables
-# target and in there super just had one more target "super_targets".  The 
-# difference used to be done via a parameter passed into this makefile, but 
-# I've put the change here to reduce the complexity of the build script files. 
-# MOD 07-Apr-2001.
+firebird:	gds.h includes fireboot run_codes executables help msgs msgs_intl extlib examples completed
 
-firebird:	run_codes gds.h includes executables help msgs msgs_intl extlib completed
+#  burp wanted to build gpre	
+#  we break this dependency
+#  1) build burp (gbak)
+#  2) use gbak to create the message databases
+#  3) build the message files
+#  4) build gpre
 
-super_firebird:	run_codes gds.h includes super_executables help msgs msgs_intl extlib completed
+fireboot:	burp boot_dbs msgs gpre
 
-executables:	alice burp dudley gpre miscFiles $(INTL) isql locks \
-	pyxis qli remote spit utilities \
-	$(SHARED_AM) $(LINKABLE_LIBS)
+boot_dbs:	$(GBAK) $(METADATA) $(MESSAGES) $(HELP) $(ISC)
 
-super_executables:	alice burp dudley gpre superMiscFiles $(INTL) isql locks \
-	super_targets pyxis qli remote spit utilities \
-	$(SHARED_AM) $(LINKABLE_LIBS)
-	
-super_targets: 	s_run_codes s_alice s_burp s_dba s_security_c super_client super_server super_utils 
+$(METADATA):	misc/metadata.gbak 
+	$(GBAK) -c misc/metadata.gbak $(METADATA)
 
+$(ISC):	misc/isc4.gbak 
+	$(GBAK) -c misc/isc4.gbak $(ISC)
 
+$(MESSAGES):	misc/msg.gbak
+	$(GBAK) -c misc/msg.gbak $(MESSAGES)
+
+$(HELP):	misc/help.gbak
+	$(GBAK) -c misc/help.gbak $(HELP)
+
+all_example_dbs:	example_dbs v4_dbs v5_dbs
+ 
+example_dbs:
+	$(ECHO) "- building example dbs"
+	$(CD) $(REFDBPATH)/examples; \
+	$(RM) *.gdb; \
+	echo "$(FBNewBuildBin)"; \
+	$(FBNewBuildBin)/gdef $(FBBuildRoot)/examples/atlas.gdl; \
+	$(FBNewBuildBin)/gdef $(FBBuildRoot)/examples/emp.gdl; \
+	$(FBNewBuildBin)/gdef $(FBBuildRoot)/examples/slides.gdl; \
+	$(FBNewBuildBin)/gdef $(FBBuildRoot)/examples/nc_guide.gdl; \
+	$(FBNewBuildBin)/gdef $(FBBuildRoot)/examples/c_guide.gdl; \
+	$(FBNewBuildBin)/gdef $(FBBuildRoot)/examples/stocks.gdl
+	touch example_dbs
+ 
+v4_dbs:
+	$(ECHO) "- copying example files"
+	$(CP) example4/*.sql $(REFDBPATH)/example4
+	$(CP) example4/empbuild.e $(REFDBPATH)/example4
+	$(CP) example4/intlbld.e $(REFDBPATH)/example4
+	$(ECHO) "- building examples4"
+	$(CD) $(REFDBPATH)/example4; \
+	$(RM)  *.gdb; \
+	$(SED) -e s/employee.gdb/empbuild.gdb/g $(FBBuildRoot)/example4/empbld.sql >empbuild.sql; \
+	$(SED) -e s/' year'/' proj_year'/g -e s/\(year/\(proj_year/g -e s/\(YEAR/\(PROJ_YEAR/g -e s/' DATE'/' TIMESTAMP'/g $(FBBuildRoot)/example4/empddl.sql >empddl.sql; \
+	$(FBNewBuildBin)/isql -i empbuild.sql; \
+	$(SED) -e s/' year'/' proj_year'/g -e s/\(year/\(proj_year/g -e s/\(YEAR/\(PROJ_YEAR/g -e s/' DATE'/' TIMESTAMP'/g $(FBBuildRoot)/example4/intlddl.sql >intlddl.sql; \
+	$(FBNewBuildBin)/isql -i intlbld.sql
+	touch v4_dbs
+ 
+#	The following were not used but the source files exist
+#	(cd examples; $IBBin/gdef $IBSrc/examples/cs_load.gdl)
+#	(cd examples; $IBBin/gdef $IBSrc/examples/sources.gdl)
+#	(cd examples; $IBBin/gdef $IBSrc/examples/udf_trig.gdl)
+ 
+v5_dbs:
+	echo "- building examples5"
+	$(CP) example5/*.sql $(REFDBPATH)/example5
+	$(CD) $(REFDBPATH)/example5; \
+	$(RM) *.gdb; \
+	$(SED) -e s/employee.gdb/empbuild.gdb/g $(FBBuildRoot)/example5/empbld.sql >empbuild.sql; \
+	$(SED) -e s/' year'/' proj_year'/g -e s/' YEAR'/' PROJ_YEAR'/g -e s/' DATE'/' TIMESTAMP'/g $(FBBuildRoot)/example5/empddl.sql >empddl.sql; \
+	$(FBNewBuildBin)/isql -i empbuild.sql; \
+	$(SED) -e s/' year'/' proj_year'/g -e s/' YEAR'/' PROJ_YEAR'/g -e s/' DATE'/' TIMESTAMP'/g $(FBBuildRoot)/example5/intlddl.sql >intlddl.sql; \
+	$(FBNewBuildBin)/isql -i intlbld.sql
+	touch v5_dbs
+ 
 
 # Run the codes program, thus generating codes.h, iberror.h, etc
 # compare and copy the file only if the files are different
-run_codes:	
+# the extra bit copies iberror.h if the file doesn't already exist. MOD 13-Apr-2001.
+
+run_codes:	$(CODES)
 #	force $(CODES)
-#	$(SH) '$(CD) source/jrd; $(CODES)'
+	$(SH) '$(CD) source/jrd; $(CODES)'
+	$(SH) 'if [ ! -f $(INCLUDE_DEST)iberror.h ] ; then $(CP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; fi'
 	$(SH) '$(CMP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; if [ $$? != 0 ]; then $(CP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; fi'
+
+$(CODES) : source/jrd/codes.e 
+	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" codes'
 
 # NOTE: "journals" removed from "executables" as it currently doesn't
 #	build and isn't used for V4 anyway.
 # 1995-June-7 David Schnepper 
+# removed pyxis 3-Aug-00 TMC
+#executables:	alice burp dudley gpre miscFiles $(INTL) isql locks \
+	$(SUPER_SERVER) pyxis qli remote spit utilities \
+	$(SHARED_AM) $(LINKABLE_LIBS)
+	
+executables:    alice dudley miscFiles $(INTL) isql locks \
+	$(SUPER_SERVER) pyxis qli remote spit utilities \
+	$(SHARED_AM) $(LINKABLE_LIBS)
 
+super_firebird: gds.h includes fireboot super_targets dudley superMiscFiles $(INTL) isql locks qli remote spit help msgs msgs_intl dba gfix gsec security_db extlib examples completed
 
+super_targets: 	s_run_codes s_alice s_burp s_dba s_security_c super_client super_server super_utils 
 
 
 #added completed according to inprise tree
@@ -96,7 +180,8 @@ alice gfix:	gpre force
 	$(QUIET_ECHO) "Building GFIX..."
 	$(SH) '$(CD) source/alice; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" alice'
 
-burp gbak:	gpre msgs force
+#burp gbak:	gpre msgs force
+burp gbak $(GBAK):      pyxis
 	$(QUIET_ECHO) "Building GBAK..."
 	$(SH) '$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" burp'
 
@@ -151,7 +236,9 @@ extlib:	force
 	$(SH) '$(CD) source/extlib; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" ib_util'
 	$(SH) '$(CD) source/extlib; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" ib_udf'
 
-examples:	v5_examples gbak gpre force
+#examples:	v5_examples gbak gpre force
+#examples:       all_example_dbs v5_examples v4_examples force
+examples:       all_example_dbs v5_examples force
 	$(QUIET_ECHO) "Building examples directory..."
 	$(SH) '$(CD) source/examples; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" examples'
 
@@ -260,10 +347,15 @@ security_c: force
 
 # Run the codes program (for SUPERSERVER hierarchy), 
 # thus generating codes.h, iberror.h, etc
-s_run_codes:	
-#	force $(CODES)
+# Note the troubling, use of SCODES macro, and source/jrd/codes in the target
+# it's a hack to get around the directory structure stuff.
+s_run_codes:	$(SCODES)
 	$(QUIET_ECHO) "Running codes in super ..."
-#	$(SH) '$(CD) source/super/jrd; $(CODES)'
+	$(SH) '$(CD) source/super/jrd; source/jrd/codes'
+
+$(SCODES) : super/source/jrd/codes.e 
+	$(SH) '$(CD) super/source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" codes'
+
 
 s_security_c: force
 	$(QUIET_ECHO) "Building security.c ..."
@@ -288,7 +380,12 @@ gsec:	gpre force
 
 $(GPRE):
 	$(QUIET_ECHO) "Building bootstrap version of GPRE..."
-	$(SH) '$(CD) source/gpre; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" gpre_boot'
+#
+# gpre_boot needs more work than I've got time for, so we'll build the big one
+#
+#       $(SH) '$(CD) source/gpre; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="builds" gpre_boot'
+	$(SH) '$(CD) source/gpre; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="builds" gpre'
+
 
 help:		gbak force
 	$(QUIET_ECHO) "Building the QLI help database..."
@@ -304,7 +401,8 @@ include_generic:	force
 	$(CP) source/jrd/gds.hxx $(INCLUDE_DEST)gds.hxx
 	$(CP) source/jrd/perf.h $(INCLUDE_DEST)perf.h
 	$(CP) source/jrd/ibase.h $(INCLUDE_DEST)ibase.h
-	$(SH) '$(CMP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; if [ $$? != 0 ]; then $(CP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; fi'
+	$(CP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h
+#	$(SH) '$(CMP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; if [ $$? != 0 ]; then $(CP) source/jrd/iberror.h $(INCLUDE_DEST)iberror.h; fi'
 
 include_apollo:	include_generic
 	$(CP) $(INCLUDE_DEST)gds.h $(INCLUDE_DEST)gds.ins.c
@@ -405,7 +503,7 @@ manager gds_lock_manager:	$(ACCESS_METHOD) drop force
 msgs:		$(ACCESS_METHOD) $(LOCK_MANAGER) force
 	$(QUIET_ECHO) "Building message file(s)..."
 	$(SH) '$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" check_messages'
-	$(SH) '$(CD) source/msgs; ./check_messages -d $(MSGSDIR)master_msg_db -l'
+	$(SH) '$(CD) source/msgs; check_messages -d $(MSGSDIR)master_msg_db -l'
 	$(SH) '$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" interbase.msg'
 	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" includes.msg'
 
@@ -449,7 +547,10 @@ super_utils:		force
 	$(QUIET_ECHO) "Building super server utlities... "
 	$(SH) '$(CD) source/utilities; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" super_server_targets'
 
-utilities:	dba relay gsec $(UTILITIES)
+utilities:	dba relay gsec security_db $(UTILITIES)
+
+
+security_db: 	force
 	$(QUIET_ECHO) "Building the ISC security database..."
 	-$(RM) $(ISC_GBAK) isc4.gdb
 	$(SETUP_ISC_LOCAL) \
@@ -462,13 +563,34 @@ utilities:	dba relay gsec $(UTILITIES)
 	$(CHMOD_6) $(ISC_GBAK) $(ISC_GDB)
 	-$(RM) isc4.gdb
 
-v4_examples:	gbak force
-	$(QUIET_ECHO) "Building V4 examples directory..."
-	$(SH) '$(CD) source/example4; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" v4_examples'
+#
+# The V4 intlbld crashes attempting to create a Dialect 3 database
+# The sed hack creates it using DIALECT 1
+#
 
-v5_examples:	gbak force
+v4_examples:    v4_dbs
+	$(QUIET_ECHO) "Building V4 examples directory..."
+	$(CD) source/example4; \
+	$(SED) -e s/' year'/' proj_year'/g $(REFDBPATH)/example4/empbuild.e >empbuild.e; \
+	$(SED) -e s/' year'/' proj_year'/g $(REFDBPATH)/example4/intlbld.e >tmpbld.e; \
+	$(ECHO) '/EXEC SQL SET SQL DIALECT 1;/d' > sedf; \
+	$(ECHO) '/EXEC SQL INCLUDE SQLCA;/a\' >> sedf; \
+	$(ECHO) 'EXEC SQL SET SQL DIALECT 1;' >> sedf; \
+	$(SED) -f sedf tmpbld.e > intlbld.e; \
+	$(CP) $(REFDBPATH)/example4/empddl.sql .; \
+	$(SED) -e s/\(year/\(proj_year/g $(REFDBPATH)/example4/empdml.sql >empdml.sql; \
+	$(CP) $(REFDBPATH)/example4/intlddl.sql .; \
+	$(SED) -e s/\(year/\(proj_year/g $(REFDBPATH)/example4/intldml.sql >intldml.sql; \
+	$(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="builds" v4_examples
+
+
+v5_examples:    v5_dbs
 	$(QUIET_ECHO) "Building V5 examples directory..."
-	$(SH) '$(CD) source/example5; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" v5_examples'
+	$(CP) $(REFDBPATH)/example5/empddl.sql example5
+	$(CP) $(REFDBPATH)/example5/intlddl.sql example5
+	$(CD) source/example5; \
+	$(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="builds" v5_examples
+
 
 wal_print:	$(ACCESS_METHOD) force
 	$(QUIET_ECHO) "Building GDS_WAL_PRINT..."
@@ -629,7 +751,6 @@ clean_build_gdb:
 	msgs/msg.gdb
 
 
-
 # The installations need to find a better and possibly linux
 # specific home.  The tar installs should probably work with 
 # other unix type of systems.
@@ -637,14 +758,16 @@ clean_build_gdb:
 # I have seperated super and classic out since I needed different
 # files in each case.
 
+
 miscFiles:	force
 	$(QUIET_ECHO) "Building miscellaneous install files..."
-	mkdir -p source/interbase/misc
 	$(CP) source/$(SYSTEM)/install source/interbase
 	-$(CP) source/$(SYSTEM)/servers.isc source/interbase
 	$(CP) source/$(SYSTEM)/inetd.conf.isc source/interbase
 	$(CP) source/$(SYSTEM)/original/services.isc source/interbase
 	-$(CP) source/$(SYSTEM)/sys.conf.isc source/interbase
+	mkdir -p source/interbase/misc
+	$(CP) firebird/skywalker/install/misc/README source/interbase
 	$(CP) firebird/skywalker/install/misc/firebird.xinetd source/interbase/misc
 
 superMiscFiles:	force
@@ -655,10 +778,12 @@ superMiscFiles:	force
 	$(CP) source/$(SYSTEM)/original/services.isc source/interbase
 	-$(CP) source/$(SYSTEM)/sys.conf.isc source/interbase
 	mkdir -p source/interbase/misc
+	$(CP) firebird/skywalker/install/misc/README source/interbase
 	$(CP) firebird/skywalker/install/misc/firebird.init.d.* source/interbase/misc
 
 install: force
 	make -f firebird/skywalker/install/Makefile install
+
 
 runclassicinstall: force
 	make -f firebird/skywalker/install/Makefile runclassicinstall

@@ -1,15 +1,17 @@
 #!/bin/sh
 
+# This file builds the reference databases for both the boot build
+# and the normal builds.
 
 printUsage() {
-   echo "usage is : 'buildRefDatabases'"
-   echo "      or : 'buildRefDatabases <destDir>'"
-   echo "      or : 'buildRefDatabases <srcDir> <destDir>'"
+   echo "usage is : 'buildRefDatabases [boot]'"
+   echo "      or : 'buildRefDatabases [boot] <destDir>'"
+   echo "      or : 'buildRefDatabases [boot] <srcDir> <destDir>'"
    echo ""
    echo "usually as:"
    echo "sh builds/original/buildRefDatabases"
    echo "from the main interbase source directory"
-   echo "where defaults are srcDir=. and destDir=../refDatabases"
+   echo "where defaults are srcDir=. and destDir=./refDatabases"
    echo ""
 }
 
@@ -29,30 +31,31 @@ checkVariables() {
 
      export IBBin=$INTERBASE/bin
 
+# This has become a more core activity of the build process and prompting
+# or confirmation is not required since it is always done.
 
-     echo ""
-     echo ""
-     echo ""
-     echo "- Firebird - Reference database build ------------------------"
-     echo ""
-     echo "Parameters :"
-     echo ""
-     echo "INTERBASE    (installed database root) : $INTERBASE "
-     echo "Source code dir root                   : $IBSrc"
-     echo "Dest root dir where to build ref db's  : $IBRefDir"
-     echo ""
-     echo "ISC_USER     (admin user)              : $ISC_USER"
-     echo "ISC_PASSWORD (admin password)          : $ISC_PASSWORD"
-     echo ""
-     echo "If you wish to have different values please set them before running"
-     echo "this script"
-     echo "usage is : 'buildRefDatabases'"
-     echo "      or : 'buildRefDatabases <destDir>'"
-     echo "      or : 'buildRefDatabases <srcDir> <destDir>'"
-     echo ""
-     echo "--------------------------------------------------------------"
-     echo ""
-     AskQuestion "Press return to continue"
+#     echo ""
+#     echo ""
+#     echo ""
+#     echo "- Firebird - Reference database build ------------------------"
+#     echo ""
+#     echo "Parameters :"
+#     echo ""
+#     echo "BootBuildFlg (build using boot kit   ) : $BootBuildFlg "
+#     echo "INTERBASE    (installed database root) : $INTERBASE "
+#     echo "Source code dir root                   : $IBSrc"
+#     echo "Dest root dir where to build ref db's  : $IBRefDir"
+#     echo ""
+#     echo "ISC_USER     (admin user)              : $ISC_USER"
+#     echo "ISC_PASSWORD (admin password)          : $ISC_PASSWORD"
+#     echo ""
+#     echo "If you wish to have different values please set them before running"
+#     echo "this script"
+#     echo "usage is : 'buildRefDatabases [boot]'"
+#     echo "      or : 'buildRefDatabases [boot] <destDir>'"
+#     echo "      or : 'buildRefDatabases [boot] <srcDir> <destDir>'"
+#     echo ""
+#     AskQuestion "Press return to continue"
 
 
 }
@@ -104,6 +107,26 @@ buildStdDatabases() {
 
     (cd utilities; $IBBin/gdef $IBSrc/utilities/rebuild.gdl)
 
+}
+
+#--------------------------------------------------------------------
+# Build the databases needed for a Firebird boot build 
+
+buildBootStdDatabases() {
+    echo "- building boot std databases"
+
+# boot make will create this if it does not exist
+#   (cd jrd; touch metadata.gdb)
+
+# boot make will create this if it does not exist
+#   touch msgs/msg.gdb
+
+# boot make will create this if it does not exist
+#   touch qli/help.gdb
+
+    touch pyxis/forms.gdb
+
+    touch utilities/rebuild.gdb
 }
 
 
@@ -181,9 +204,6 @@ e_o_f
 createRefDir() {
     if [ -d $IBRefDir ] 
       then
-         echo "** Warning ** - The reference directory $IBRefDir already exists"
-         AskQuestion "Press return to delete it and continue or ^C to abort"
-
          rm -rf $IBRefDir
     fi
  
@@ -196,29 +216,31 @@ createRefDir() {
 
 # Check parameters 
 
-if [ $# = 0 ] 
-  then
-     export IBSrc=`pwd`
-     export IBRefDir=../refDatabases
 
-elif [ $# = 1 ]
-  then
-     export IBSrc=`pwd`
-     export IBRefDir=$1
+# Check for boot build.
 
-elif [ $# = 2 ]
-  then
-     export IBSrc=$1
-     export IBRefDir=$2
+BootBuildFlg="No"
 
-else
-  printUsage
-  exit
+if [ $# > 0 ]
+  then 
+    if [ "$1" = "boot" ]
+      then
+        BootBuildFlg="Yes"
+        shift
+    fi
+    if [ "$1" = "noprompt" ]
+      then
+        doNotPromptUser="Yes"
+    fi
 fi
 
 
-checkVariables
+# Now check the rest of the parameters
 
+export IBSrc=`pwd`
+export IBRefDir=refDatabases
+
+checkVariables
 
 createRefDir
 
@@ -226,7 +248,14 @@ cd $IBRefDir
 
 mkdir -p msgs qli jrd utilities example4 example5 examples pyxis
 
-buildStdDatabases
-buildExampleDatabases
-#buildExample4Databases
-buildExample5Databases
+if [ $BootBuildFlg = "Yes" ]
+  then
+    buildBootStdDatabases
+else
+    buildStdDatabases
+    buildExampleDatabases
+    #buildExample4Databases
+    buildExample5Databases
+fi
+
+cd $IBSrc

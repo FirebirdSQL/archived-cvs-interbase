@@ -48,6 +48,11 @@
 #       rebuild.gdb
 
 
+# To run this script without it prompting for conformation of the setup:
+# $NOPROMPT_SETUP="Anything"; 
+# $export NOPROMPT_SETUP
+# before running this script file.
+
 
 #------------------------------------------------------------------------
 # Prompt for response, store result in Answer
@@ -59,7 +64,11 @@ AskQuestion() {
     DefaultAns=$2
     echo -n "${1}"
     Answer="$DefaultAns"
-    read Answer 
+
+    if [ -z "$NOPROMPT_SETUP" ]
+      then
+        read Answer 
+    fi
 }
 
 
@@ -189,14 +198,17 @@ rmIfExists() {
 # print usage for calling this script
 
 printUsage() {
-    echo "usage is : ./setup_dirs [boot] [system] [DEV|PROD] [refDatabaseDir]"
     echo ""
-    echo "where system = AIX|AP|AX|DELTA|DG|EPSON|HP700|HP800|HP9.0|"
+    echo "usage is : ./Configure.sh DEV|PROD [system]"
+    echo ""
+    echo "Where system defaults to : `uname -s` "
+    echo "or you can manually specify one of the following:"
+    echo "               AIX|AP|AX|DELTA|DG|EPSON|HP700|HP800|HP9.0|"
     echo "               HP10|IMP|MU|SCO|SGI|SOLARIS|SUN4|UNIXWARE|"
     echo "               AIX_PPC|LINUX|FREEBSD|NETBSD"
     echo ""
-    echo "default values are: noboot, uname -s, DEV, ./refDatabases"
     echo ""
+
 
 }
 
@@ -227,16 +239,19 @@ checkVariables() {
        then
          if [ $SYS_TYPE = 'FREEBSD' -o $SYS_TYPE = 'NETBSD' ]
            then
-             export INTERBASE="/usr/interbase"
+             INTERBASE="/usr/interbase"
+             export INTERBASE
            else
-             export INTERBASE="/opt/interbase"
-	 fi
+            INTERBASE="/opt/interbase"
+            export INTERBASE
+	     fi
      fi
 
      if [ "$ISC_PASSWORD" = "" ]
        then
-         export ISC_USER="sysdba"
-         export ISC_PASSWORD="masterkey"
+         ISC_USER="sysdba"
+         ISC_PASSWORD="masterkey"
+         export ISC_USER ISC_PASSWORD
      fi
 
 
@@ -248,20 +263,15 @@ checkVariables() {
      echo "From command line :"
      echo "Host  OS Type                          : $BuildHostType"
      echo "Build Type                             : $BuildBuildType"
-     echo "Build Master Source Dir                : $MasterSourceDir"
+     echo "Boot Type Build                        : $BuildBootFlg"
      echo ""
      echo "From env. variables:"
-
-     if [ "$BuildBootFlg" = "Yes" ]
+     if [ "$BuildBootFlg" = "No" ]
        then
-         echo "Boot build - Interbase not installed"
-         echo "INTERBASE    (target database root)    : $INTERBASE "
-     else
-         echo "INTERBASE    (installed database root) : $INTERBASE "
+         echo "INTERBASE    (previous firebird install)   : $INTERBASE "
      fi
-
-     echo "ISC_USER     (admin user)              : $ISC_USER"
-     echo "ISC_PASSWORD (admin password)          : $ISC_PASSWORD"
+     echo "ISC_USER     (admin user)                  : $ISC_USER"
+     echo "ISC_PASSWORD (admin password)              : $ISC_PASSWORD"
      echo "" 
      echo "If you wish to have different values please set them before running" 
      echo "this script"
@@ -350,6 +360,21 @@ buildTargetInterbaseDirs() {
 
 }
 
+#------------------------------------------------------------------------
+# Check if the system is setup to build from the boot files.
+# (we check to see if the porting subdirectory exists).
+
+checkIfBootBuild() {
+
+    if [ -d porting ]
+      then
+        echo "- Found 'porting' subdirectory - assuming boot type build"
+        echo ""
+
+        BuildBootFlg="Yes"
+    fi
+}
+
 
 #== Main Program ========================================================
 
@@ -360,53 +385,42 @@ buildTargetInterbaseDirs() {
 PATH=.:$PATH
 
 
-
-# Check for boot arg or help arg
-
-BuildBootFlg="No"
-
-if [ $# > 1 ]
+if [ $# -eq 0 ]
   then
-    if [ "$1" = "boot" ]
-      then
-        BuildBootFlg="Yes"
-        shift
-    fi
-    if [ "$1" = "help" ]
-      then
-        printUsage
-        exit
-    fi
+    printUsage
+    exit
 fi
 
 
-
-# Work out the default build parameters
+BuildBootFlg="No"
 BuildHostType=""
-getDefaultSystemType
-
-BuildBuildType="DEV"
-MasterSourceDir="source/refDatabases"
+BuildBuildType="PROD"
+MasterSourceDir="`pwd`/refDatabases"
 
 export BuildHostType
-export BuildBuildType
+export BuildBuidType
 export MasterSourceDir
+
+
+# Check for boot arg or help arg
+checkIfBootBuild
+
+# Work out the default build parameters
+getDefaultSystemType
 
 
 # Check the command line arguments
 
 if [ $# -ge 1 ]
   then
-    BuildHostType=$1
+    BuildBuildType=$1
 fi
+
 if [ $# -ge 2 ]
   then
-    BuildBuildType=$2
+    BuildHostType=$2
 fi
-if [ $# -ge 3 ]
-  then
-    MasterSourceDir=$3
-fi
+
 
 SYS_TYPE=$BuildHostType
 
@@ -422,9 +436,21 @@ fi
 
 checkVariables
 
+#build reference Databases
+echo "- Setting build version strings in file jrd/build_no.h"
+echo ""
+
+if [ "$BuildBootFlg" = "Yes" ]
+  then
+    ./builds/original/buildRefDatabases boot
+  else
+    ./builds/original/buildRefDatabases
+fi
+
+
 
 # Some checking for old systems, 
-
+# Buggered if I know if these are needed but I've copied them across.
 if [ "$BuildHostType" = 'SUN4' -o "$BuildHostType" = 'SUN3_4' -o "$BuildHostType" = 'SUN386I' ]; then
     SYS_TYPE=SUNOS4
 fi
@@ -474,7 +500,7 @@ buildSuperDirs
 
 refreshLink . source
 
-refreshLink builds/make.interbase make_kit
+refreshLink builds/make.interbase Makefile
 
 refreshLink builds/original/build_kit build_kit
 refreshLink builds/original/set_prot set_prot
@@ -694,10 +720,6 @@ if [ $BuildHostType = 'DG' ]
     refreshLink source/interbase/lib/gdsf.so jrd/libgdsf.so
     refreshLink source/interbase/lib/gds_pyxis.a jrd/libgds_pyxis.a
 fi
-if [ $BuildHostType = 'EPSON' -o $BuildHostType = 'DECOSF' -o $BuildHostType = 'UNIXWARE' -o $BuildHostType = 'M88K' ]; then
-    refreshLink source/interbase/lib/gds.so.0 jrd/libgds.so.0
-    refreshLink source/jrd/libgds.so.0 jrd/libgds.so
-fi
 if [ $BuildHostType = 'HP700' -o $BuildHostType = 'HP9.0' -o $BuildHostType = 'HP10' ]; then
     if [ -d super ]; then
        refreshLink source/builds/original/bind_gds.hp super/remote/gds.bind
@@ -830,17 +852,21 @@ echo ""
 cd builds/original
 
 
-# sfx.interbase.boot has the modes required for a boot build so
+# boot.sfx.interbase has the modes required for a boot build so
 # we need to replace the original one there.
+# The noboot/boot is applied as a prefix, since when I did it as
+# a suffix the builds/original/plaform still works on sfx.* and
+# it fails.
 
 if [ $BuildBootFlg = "Yes" ]
   then
     if [ ! -f noboot.sfx.interbase ]
       then
-        cp sfx.interbase sfx.interbase.noboot
+        cp sfx.interbase noboot.sfx.interbase
     fi
     cp boot.sfx.interbase sfx.interbase
 fi
+
 
 chmod +x setup_prots
 ./setup_prots
@@ -848,7 +874,7 @@ chmod +x setup_prots
 # Save the production/development flag
 
 echo "$BuildHostType" > .platform_type    
-echo "$BuildBuildType" > .version_flg
+echo "$BuildBuildType" > .version_flag
 
 ./platform $BuildHostType
 
@@ -864,11 +890,16 @@ fi
 
 cd ../..
 
+
 echo "- Directory setup is now complete!"
 echo ""
 echo "--------------------------------------------------------------"
 echo ""
-echo "The next step in building the Firebird database, is to run"
-echo "the command:"
-echo " \$build_kit builds SUPER|CLASSIC"
+echo "The next step in building the Firebird database, is to setup"
+echo "environment variables required for compilation"
+echo "Then compile either the classic firebird or super firebird"
+echo "(If unsure try classic - which is target firebird)"
+echo ""
+echo " \$source Configure_SetupEnv.sh"
+echo " \$make (firebird|super_firebird) > make.log 2>&1"
 echo ""

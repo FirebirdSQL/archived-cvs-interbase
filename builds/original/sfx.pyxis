@@ -25,6 +25,9 @@ GPRE=		source/interbase/bin/gpre
 GPRE_FLAGS=	-r -m -z -n
 LIBPYXIS=	source/interbase/lib/gds_pyxis.a
 
+# Forces library build for boot  TMC 082100
+PYXIS_LIBRARY= libpyxis.a
+
 JRD_LINK=
 
 PYXIS_HEADERS=		pyxis.h all.h scr.h blk.h

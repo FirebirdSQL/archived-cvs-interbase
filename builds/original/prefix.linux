@@ -31,27 +31,27 @@
 
 
 PROD_DEBUG_OBJECTS=	nodebug.o
-PROD_SHRLIB_DIR=	
+PROD_SHRLIB_DIR=	-Lsource/jrd -Lsource/interbase/lib
 PROD_VERSION_FLAG=	-DPROD_BUILD
 PROD_CFLAGS=            -O3 -m486 -fpic -DFLINTSTONE
 
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
-DEV_SHRLIB_DIR=		-Lsource/jrd
+DEV_SHRLIB_DIR=		-Lsource/jrd -Lsource/interbase/lib
 DEV_VERSION_FLAG=	-DDEV_BUILD
 DEV_CFLAGS=		-ggdb
 
 DEBUG_OBJECTS=		$($(VERSION)_DEBUG_OBJECTS)
 SHRLIB_DIR=		$($(VERSION)_SHRLIB_DIR)
 VERSION_FLAG=		$($(VERSION)_VERSION_FLAG)
-CFLAGS_COMMON=		$($(VERSION)_CFLAGS) -DLINUX -Wall -fwritable-strings
+CFLAGS_COMMON=		$($(VERSION)_CFLAGS) -DLINUX -Wall -fwritable-strings -I$(INTERBASE)/include
 CFLAGS=			$(CFLAGS_COMMON) $(SUPER_FLAG)
 PIC_J_CFLAGS=		$(CFLAGS_COMMON) -DPIPE_IS_SHRLIB -fPIC
 SPECIAL_OBJECTS=	j
 UDF_LINK_CMD=		gcc
 UDF_CFLAGS=         	-fPIC -mieee-fp
 UDF_LFLAGS=         	-shared
-UDF_SHRLIBS=        	-lgds -lm -lc -mieee-fp -ldl -lcrypt
+UDF_SHRLIBS=        	-L$(INTERBASE)/lib  -lgds -lm -lc -mieee-fp -ldl -lcrypt
 
 
 #NOTE: PIC_J_CFLAGS is special CFLAGS used to build PIPD_IS_SHRLIB modules
@@ -102,7 +102,7 @@ JRD_MISC_OBJECTS=	source/jrd/sun_ftn.o
 JRD_J_MISC_OBJECTS=	source/jrd/sun_ftn.j 
 JRD_P_MISC_OBJECTS=	source/jrd/sun_ftn.bin source/jrd/nodebug.bin
 LANG_OBJECTS=		ada.o ftn.o cob.o
-LANGUAGES=		cc cxx ada sun_ada microfocus_cob make16 gdl1 sun_ftn
+LANGUAGES=		cc cxx ada microfocus_cob make16 gdl1 sun_ftn
 LD_LIBS=		-lc
 LD_LIBS_J=		-lc
 LD_OPTS=		-shared
@@ -171,5 +171,9 @@ SHRLIB_EXT=             .so
 
 
 V3PRINTER=		source/lock/printv3.o
+
+# Forces library build for linux  TMC 082100
+PYXIS_LIBRARY= libpyxis.a
+
 
 #   End of file prefix.linux:	$(VERSION)	$(PLATFORM)

@@ -79,15 +79,21 @@ export PATH
 
 #Build superserver if directory source/super exists
 if [ $2 = SUPER ]; then
-    GDS_SUPER="super_targets"
-    export GDS_SUPER
-fi
-if [ $# = 2 ]; then
-    $MAKE -f ./make_kit interbase SYSTEM=$1 SUPER_SERVER="$GDS_SUPER"
+    make super_firebird 
 else
-    $MAKE -f ./make_kit interbase CFLAGS="$3" SYSTEM=$1 SUPER_SERVER="$GDS_SUPER"
+    make firebird  
 fi
-#
+
+#if [ $2 = SUPER ]; then
+#    GDS_SUPER="super_targets"
+#    export GDS_SUPER
+#fi
+#if [ $# = 2 ]; then
+#    $MAKE -f ./make_kit interbase SYSTEM=$1 SUPER_SERVER="$GDS_SUPER"
+#else
+#    $MAKE -f ./make_kit interbase CFLAGS="$3" SYSTEM=$1 SUPER_SERVER="$GDS_SUPER"
+#fi
+
 STATUS=$?
 
 #removed rasu ./unset_prot  builder according to inprise tree
