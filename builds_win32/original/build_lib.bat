@@ -168,8 +168,10 @@ make %FLAGS% -fmakefile.lib ib_udf.dll
 if errorlevel 1 goto fail
 
 ::Add in command-line build of fbudf
+::nmake doesn't care much for the -DDEV in %FLAGS% so we do the test for it.
 cd fbudf
-nmake %FLAGS% /f "fbudf.mak" CFG="fbudf - Win32 Release"
+if "%BUILDTYPE%"=="DEV" (nmake /f "fbudf.mak" CFG="fbudf - Win32 Debug"
+) else (nmake /f "fbudf.mak" CFG="fbudf - Win32 Release")
 if errorlevel 1 ((cd ..) & (goto fail) )
 cd ..\..
 
