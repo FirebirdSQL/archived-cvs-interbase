@@ -27,6 +27,7 @@
 #include <errno.h>
 #include <string.h>
 #if ( defined FREEBSD || defined NETBSD || defined LINUX || defined DARWIN )
+#include <sys/types.h>
 #include <unistd.h>
 #endif
 #include "../jrd/common.h"
@@ -44,7 +45,7 @@
 #include "../jrd/all_proto.h"
 #include "../jrd/sch_proto.h"
 
-#if (defined SOLARIS || defined LINUX )
+#ifdef SOLARIS
 #include "../jrd/ib_stdio.h"
 #endif
 
