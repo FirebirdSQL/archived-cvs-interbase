@@ -1,0 +1,2173 @@
+2000-11-18 07:50  fsg
+
+	* build_docs/: ibbuild_linux_cvs_build.hmtl,
+	ibbuild_linux_cvs_build.html:
+	
+	finally did it :-)
+
+2000-11-17 13:53  fsg
+
+	* firebird/fsg/TCS/export/global/: INIT.csv, META_SERIES.csv,
+	NOTES.csv, SERIES.csv, SERIES_COMMENT.csv, TESTS.csv:
+	
+	removed some files from private tree
+
+2000-11-16 16:54  fsg
+
+	* gpre/: gpre.c, gpre.h, gpreswi.h, sqe.c:
+	
+	Added new switch -verbose to gpre that will dump parsed lines to
+	stderr
+	
+	Fixed gpre bug in handling row names in WHERE clauses that are
+	reserved words now (DATE etc) (this caused gpre to dump core when
+	parsing tan.e)
+	
+	Fixed gpre bug in handling lower case table aliases in WHERE
+	clauses for sql dialect 2 and 3.  (cause a core dump in a test case
+	from C.R. Zamana)
+
+2000-11-10 15:43  fsg
+
+	* firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, howto.txt,
+	import_all, import_gtcs.pl:
+	
+	Changes to handle <null> values correctly
+
+2000-11-10 15:08  fsg
+
+	* utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h, srvrmgr.c:
+	
+	Added -s switch to guardian to ignore startup errors and related
+	changes to ibmgr and svrmgr
+
+2000-11-08 12:21  skywalker
+
+	* firebird/skywalker/install/super/SSTarInstall.sh:
+	
+	[no log message]
+
+2000-11-08 10:01  fsg
+
+	* firebird/fsg/TCS/export/global/: INIT.csv, META_SERIES.csv,
+	NOTES.csv, SERIES.csv, SERIES_COMMENT.csv, TESTS.csv:
+	
+	Added the original test scripts
+
+2000-11-07 17:04  fsg
+
+	* firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, gtcs.gdl, howto.txt,
+	import_all, import_gtcs.pl:
+	
+	Added some scripts to import and export test data
+
+2000-11-06 16:14  fsg
+
+	* firebird/fsg/TCS/dump_gtcs.pl:
+	
+	tried it again
+
+2000-11-06 16:04  fsg
+
+	* firebird/fsg/TCS/dump_gtcs.pl:
+	
+	perl script to dump tests from gtcs.gdb (needs IBperl)
+
+2000-11-06 03:48  patrickgriffin
+
+	* jrd/common.h:
+	
+	Eliminate the following interbase.log error message in the AIX and
+	AIX PPC builds:
+	
+	'Pipe Server read pipe error 82'
+	
+	In AIX /usr/include/errno.h:
+	
+	/* ERESTART is used to determine if the system call is restartable
+	*/ #define ERESTART	   82	   /* restart the system call */
+	
+	This same change may also apply to LINUX and the other builds that
+	define SIGACTION_SUPPORTED.
+	
+	...pat…pat
+
+2000-11-06 03:37  patrickgriffin
+
+	* firebird/patrickgriffin/tcs_tests/bug_112177_12:
+	
+	Correct header in bug_112177_12.
+	
+	...pat
+
+2000-11-06 03:25  patrickgriffin
+
+	* firebird/patrickgriffin/tcs_tests/: bug_112177_01, bug_112177_02,
+	bug_112177_03, bug_112177_04, bug_112177_05, bug_112177_06,
+	bug_112177_07, bug_112177_08, bug_112177_09, bug_112177_10,
+	bug_112177_11, bug_112177_12:
+	
+	Additional tests useful in exercising the different aspects of the
+	112177, GBAK fails with non-english defaults, change proposal.
+	
+	..pat
+
+2000-11-02 08:12  patrickgriffin
+
+	* firebird/patrickgriffin/tcs_tests/: bug_112177_01, bug_112177_02,
+	bug_112177_03, bug_112177_04, bug_116579_01:
+	
+	Test scripts, in TCS format.
+	
+	Usefull in testing for:
+	
+	bug 112177 error with non-english column defaults bug 116579
+	generators in computed by columns will return wrong results
+	
+	...pat
+
+2000-10-22 12:47  skywalker
+
+	* firebird/skywalker/install/: SSrpmscript,
+	super/SSchangePasswd.sh, super/SSpostinstall.sh:
+	
+	Small script for autoupdating SYSDBA password in
+	/etc/rc.d/init.d/firebird
+
+2000-10-22 12:32  skywalker
+
+	* firebird/skywalker/install/: CSrpmscript, Makefile, SSrpmscript,
+	classic/CSTarInstall.sh, classic/CSTarKullFiles.sh,
+	classic/CSinstall.sh, classic/CSpostinstall.sh,
+	classic/CSpostuninstall.sh, classic/CSpreinstall.sh,
+	classic/CSpreuninstall.sh, classic/CSrpmfiles.txt,
+	classic/CSrpmheader.txt, misc/README, misc/firebird,
+	super/SSTarInstall.sh, super/SSchangePasswd.sh, super/SSinstall.sh,
+	super/SSpostinstall.sh, super/SSpostuninstall.sh,
+	super/SSpreinstall.sh, super/SSpreuninstall.sh,
+	super/SSrpmfiles.txt, super/SSrpmheader.txt:
+	
+	New files related to the firebird install for linux/unix
+
+2000-10-19 12:57  patrickgriffin
+
+	* jrd/cmp.c:
+	
+	Please consider this contrived example:
+	
+	create table t0 (  a integer,  genid_field1 computed by
+	(gen_id(gen1, 1)),  genid_field2 computed by (gen_id(gen2,
+	genid_field1)),  genid_field3 computed by (gen_id(gen3,
+	genid_field2));
+	
+	While I don't consider this to be an example of real-word SQL
+	coding, it does show that the second argument of the gen_id
+	function can be something other than a simple constant.
+	
+	As jrd/cmp.c is coded now this statement will get processed
+	properly, but there is a serious problem:  The routine 'pass1' will
+	attempt to parse the internal generator ID as if it was a pointer
+	to an execution node.
+	
+	This change corrects 'pass1' processing to only pass the second
+	argument on for further processing.
+	
+	…pat
+
+2000-10-17 07:43  patrickgriffin
+
+	* dsql/gen.c:
+	
+	The build in functions AVG(x) and SUM(x) when used on integer
+	fields can produce result columns with no title.
+	
+	For example:
+	
+	SQL> show table p; PNO				   VARCHAR(6)
+	Nullable PNAME				 VARCHAR(20) Nullable COLOR
+				  VARCHAR(6) Nullable WEIGHT		   
+		  INTEGER Nullable CITY 			  
+	VARCHAR(15) Nullable SQL> select avg(weight) from p;
+	
+	=====================
+	
+			   15
+	
+	SQL>
+	
+	The coding for the titles of these two fields was conditionally
+	compiled according to the EXACT_NUMERIC definition, which was never
+	set.  The #ifdef has been removed so that this coding is always
+	compiled.
+	
+	(A very similar EXACT_NUMERICS is defined for HP10 and solaris
+	builds, but this coding seems to be independent of this problem.)
+	
+	…pat
+
+2000-10-16 18:09  skywalker
+
+	* utilities/: guard.c, ibmgr.c, ibmgr.h:
+	
+	Now allows the user firebird to run the server
+
+2000-10-16 16:33  tamlin
+
+	* jrd/llio.c:
+	
+	Compiler warnings removed
+
+2000-10-16 16:22  tamlin
+
+	* jrd/sdl.c:
+	
+	Compiler warnings removed
+
+2000-10-15 15:26  fsg
+
+	* jrd/: misc.h, utl.c:
+	
+	changes to get BLOB_edit to work again and to use mkstemp instead
+	of mktemp on Linux platforms
+
+2000-10-14 17:40  tsarna
+
+	* setup_dirs:
+	
+	SYS_TYPE should be set before we use it in checkVariables
+
+2000-10-14 17:39  tsarna
+
+	* builds/original/prefix.netbsd:
+	
+	Factor out library path flags, and fix -L
+
+2000-10-13 08:03  patrickgriffin
+
+	* jrd/entry.h:
+	
+	10/13/2000
+	
+	Correct external reference when linking to a PIPE library compiled
+	with -DPIPE_CLIENT
+	
+	…pat ...pat
+
+2000-10-13 08:02  patrickgriffin
+
+	* gpre/cob.c:
+	
+	10/13/2000
+	
+	GPRE can create incorrect COBOL programs if EXEC SQL is enclosed in
+	an IF statement terminated with '.'.
+	
+	...pat
+
+2000-10-13 08:00  patrickgriffin
+
+	* dsql/dsql.c:
+	
+	10/13/2000 Fix for bug #113708.
+	
+	COBOL programs, as well as some other non-c languages, do not use
+	null terminated strings and will encounter random -502 CURSOR
+	ALREADY DEFINED messages.
+	
+	With the introduction of dialect 3, the cursor name parsing routine
+	was modified to accept cursor names that include spaces.  COBOL
+	programs, using dialect 1, which pass a space-terminated cursor
+	name may have adjacent binary data included as a part of the cursor
+	name.
+	
+	This fix changes the parse routine for dialect 1 processing to stop
+	on either the first space or the first null character.
+	
+	…pat ...pat
+
+2000-10-13 07:15  patrickgriffin
+
+	* jrd/cmp.c:
+	
+	Modified Files: 	interbase/jrd/cmp.c
+	
+	10/13/2000
+	
+	Fix for bug #116579; Generators in computed by columns will return
+	wrong results.
+	
+	If, in an ODS 10 or greater database, the gen_id function is
+	included as a part of a computed field and another field references
+	it or it is referenced in a select statement, the database will
+	become corrupted.  This problem was introduced with the change to
+	64 bit generator values.
+	
+	The COMPUTED BY clause is being parsed correctly, correct BLR is
+	stored in the database, and this BLR is correctly converted into
+	execution nodes by jrd/evl.c
+	
+	During jrd/cmp.c  'copy'  processing, called as a part of the pass1
+	routine, this execution node is modified replacing the correct
+	generator number with incorrect values.
+	
+	These changes fix that problem by causing the correct node-copying
+	routine to be invoked.
+	
+	…pat
+
+2000-10-13 04:18  gspeicher
+
+	* pyxis/cdm.c:
+	
+	- a couple of defines were missing the leading '#'
+
+2000-10-12 04:52  tsarna
+
+	* setup_dirs, builds/original/prefix.netbsd,
+	builds/original/sfx.interbase, gpre/cob.c, gpre/ftn.c,
+	jrd/common.h, jrd/file_params.h, jrd/flu.c, jrd/gds.c,
+	jrd/isc_file.c, jrd/isc_ipc.c, jrd/isc_sync.c, jrd/license.h,
+	jrd/pag.c, jrd/pwd.c, jrd/pwd.h, jrd/sort.c, jrd/svc.c, jrd/utl.c,
+	jrd/why.c, lock/fparamv3.h, lock/lock.c, lock/lockv3.h,
+	pyxis/cdm.c, remote/inet_server.c, remote/protocol.h,
+	remote/remote_def.h, utilities/dba.e, utilities/drop.c:
+	
+	NetBSD support. Thanks to Geoffrey C. Speicher for the FreeBSD
+	port, which made this much easier.
+
+2000-10-08 17:36  gspeicher
+
+	* builds/original/prefix.freebsd:
+	
+	- Use -O instead of -O3 for production build (-O3 is asking for
+	trouble) - Link against libdescrypt instead of libcrypt.  This
+	should fix inter-   operability problems for people who have crypto
+	distribution installed.
+
+2000-10-03 23:48  rfm
+
+	* build_docs/ibbuild-win32.txt:
+	
+	Add suggestion of just renaming echo instead of making your own.
+
+2000-10-03 05:47  rfm
+
+	* jrd/flu.c:
+	
+	fix typo
+
+2000-10-02 23:25  tmcsys
+
+	* utilities/util.c:
+	
+	AIX_PPC
+
+2000-09-30 14:03  fsg
+
+	* builds/original/add_template, builds/original/build_kit,
+	builds/original/mpm_template, builds/original/mpp_template,
+	builds/original/put_template, builds/original/sfx.interbase,
+	jrd/license.h, remote/inet.c:
+	
+	Added some changes from the inprise tree
+
+2000-09-29 19:47  tmcsys
+
+	* jrd/why.c:
+	
+	fix conditional syntax
+
+2000-09-29 16:49  tmcsys
+
+	* jrd/why.c, utilities/drop.c:
+	
+	AIX_PPC port
+
+2000-09-28 19:43  tmcsys
+
+	* builds/original/bind_gds.aix_ppc:
+	
+	update export list
+
+2000-09-28 18:21  tmcsys
+
+	* builds/original/bind_gdsintl.aix_ppc:
+	
+	AIX intl shared library
+
+2000-09-28 17:06  tmcsys
+
+	* dsql/: ddl.c, gen.c:
+	
+	C for AIX requires stmt after default switch case
+
+2000-09-28 02:05  tmcsys
+
+	* jrd/flu.c:
+	
+	AIX_PPC fix ifdef
+
+2000-09-28 01:53  tmcsys
+
+	* jrd/flu.c:
+	
+	AIX_PPC
+
+2000-09-23 06:39  rfm
+
+	* jrd/gds.c:
+	
+	define V4_THREADING for all superserver platfroms, as recommended
+	by Charlie Caro. See my message '[Firebird-devel] Re: IB Super
+	Server on Linux Crash (borland bug #114840)' on firebird-devel for
+	some thoughts on V4_THREADING in general.
+
+2000-09-23 05:54  rfm
+
+	* setup_build.ksh:
+	
+	exit if no argument is given.
+
+2000-09-15 09:19  fsg
+
+	* setup_dirs, builds/original/prefix.linux:
+	
+	Added a link to super/jrd/isc.gdb and removed -lbsd from
+	prefix.linux
+
+2000-09-08 23:27  tmcsys
+
+	* jrd/: pwd.c, pwd.h:
+	
+	security db path for AIX_PPC
+
+2000-09-07 21:50  tmcsys
+
+	* example5/build_make:
+	
+	oops! - it was fine the way it was
+
+2000-09-07 20:58  tmcsys
+
+	* example5/build_make:
+	
+	fix path for prefix
+
+2000-09-07 20:24  tmcsys
+
+	* lock/lock.c:
+	
+	Avoid lock manager error for AIX_PPC
+
+2000-09-04 18:04  skywalker
+
+	* burp/backup.e, burp/burp.c, dsql/ddl.c, dsql/gen.c,
+	dudley/parse.c:
+	
+	Some suggested syntax changes to previous fixes. Add while loops
+	etc.
+
+2000-09-04 16:43  skywalker
+
+	* isql/isql.e:
+	
+	Changed #define  indent
+
+2000-09-02 09:55  tamlin
+
+	* dsql/alld.c:
+	
+	Compiler warnings and removal of an extra printf argument
+
+2000-09-02 09:53  tamlin
+
+	* iscguard/iscguard.c, remote/property.c:
+	
+	Make it compile using free-bcc
+
+2000-08-31 11:35  tamlin
+
+	* utilities/gsec.h:
+	
+	Compiler warnings
+
+2000-08-31 11:27  tamlin
+
+	* jrd/btr.c:
+	
+	Compiler warnings
+
+2000-08-31 08:03  tamlin
+
+	* ipserver/ipserver.c:
+	
+	Compiler warnings
+
+2000-08-31 06:57  tamlin
+
+	* remote/: ibconfig.c, server.c:
+	
+	Compiler warnings
+
+2000-08-30 12:21  tamlin
+
+	* iscguard/iscguard.c:
+	
+	Handle leak removed
+
+2000-08-30 11:03  tamlin
+
+	* alice/alice.c:
+	
+	Compiler warnings removed
+
+2000-08-30 06:55  tamlin
+
+	* dsql/ddl.c:
+	
+	Compiler warnings removed
+
+2000-08-30 06:21  tamlin
+
+	* burp/spit.c:
+	
+	Compiler warnings removed
+
+2000-08-30 05:58  tamlin
+
+	* burp/mvol.c:
+	
+	Compiler warnings removed
+
+2000-08-30 05:45  tamlin
+
+	* burp/canonical.c:
+	
+	Compiler warnings removed
+
+2000-08-30 05:01  tamlin
+
+	* alice/tdr.c:
+	
+	Compiler warnings removed
+
+2000-08-30 04:44  tamlin
+
+	* alice/exe.c:
+	
+	Compiler warnings removed
+
+2000-08-30 04:33  tamlin
+
+	* alice/all.c:
+	
+	Compiler warnings removed
+
+2000-08-30 03:51  tamlin
+
+	* jrd/all.c:
+	
+	Compiler warnings removed
+
+2000-08-30 03:24  tamlin
+
+	* jrd/cvt.c:
+	
+	Compiler warnings removed
+
+2000-08-30 02:53  tamlin
+
+	* jrd/cmp.c:
+	
+	Compiler warnings removed
+
+2000-08-29 23:38  rfm
+
+	* jrd/cmp.c:
+	
+	Fix bug 112899 by returning = to ==
+
+2000-08-28 22:14  skywalker
+
+	* alice/all.c:
+	
+	Fixed coding bug, best_tail<< SHIFT to best_tail <<= SHIFT
+
+2000-08-26 10:17  skywalker
+
+	* jrd/ib_stdio.h:
+	
+	Changed some comments to that they were no longer nested.
+
+2000-08-26 10:06  skywalker
+
+	* burp/backup.e, burp/burp.c, dudley/parse.c, gpre/sqe.c,
+	isql/isql.e, qli/meta.e:
+	
+	Fix a fair few "statement with no effect" warnings/errors.  That
+	became visible when warnings were turned on again.
+
+2000-08-26 07:04  skywalker
+
+	* jrd/sort.c:
+	
+	Changed a for loop condition from (count) to (run && count) - its,
+	a better fix.
+
+2000-08-26 06:52  skywalker
+
+	* dsql/make.c, jrd/cmp.c, jrd/sort.c, jrd/unix.c, jrd/why.c:
+	
+	Changed to remove "stmt has no effect" warnings.  Some of these
+	were errors in code of the form a == b; which should have been a
+	=b;
+
+2000-08-26 03:44  skywalker
+
+	* builds/original/prefix.linux:
+	
+	Turned warnings to all
+
+2000-08-26 03:34  skywalker
+
+	* jrd/cmp.c:
+	
+	Changed a few a == b; stmts to a=b; - a pretty obvious error
+
+2000-08-23 23:21  tmcsys
+
+	* builds/original/bind_gds.aix_ppc:
+	
+	AIX ld expects bind file comments to begin with *
+
+2000-08-23 23:16  tmcsys
+
+	* jrd/flu.c:
+	
+	
+	disable ISC_lookup_entrypoint for AIX_PPC
+
+2000-08-23 23:09  tmcsys
+
+	* jrd/isc.c:
+	
+	
+	#define _UNIX95 when reading <grp.h> for AIX_PPC
+
+2000-08-23 23:01  tmcsys
+
+	* jrd/common.h:
+	
+	Add the following defines for AIX_PPC:
+	
+	#define VA_START(list,parmN)	va_start (list, parmN) #define
+	QUADFORMAT "ll" #define QUADCONST(n) (n##LL)
+
+2000-08-22 00:40  rfm
+
+	* build_docs/ibbuild-win32.txt:
+	
+	Make it match the improved firebird process.
+
+2000-08-21 23:12  rfm
+
+	* builds/original/buildRefDatabases:
+	
+	Copy databases using gbak, rather than CP.  Restore forms.gdb from
+	gbak rather than making a slink to metadata.gdb.  Put isc.gdb and
+	metadata.gdb in jrd, rather than refdatabases root
+
+2000-08-21 23:10  rfm
+
+	* pyxis/forms.gbk:
+	
+	Add forms.gbk so we can build pyxis (if edit.e can be preprocessed)
+	This is restored to forms.gdb by builds/original/buildRefDatabases
+
+2000-08-21 23:08  rfm
+
+	* jrd/isc.gdb:
+	
+	Remove binary database file. The correct file is now created by
+	builds/original/buildRefDatabases and links are created by
+	setup_dirs
+
+2000-08-21 23:06  rfm
+
+	* builds_win32/original/metadata.sql:
+	
+	Create in current directory, rather than parent.
+
+2000-08-21 23:06  rfm
+
+	* builds_win32/original/include.mak:
+	
+	use $(DB_DIR) token instead of hard-coded database names. This is
+	replaced by setup_build.ksh
+
+2000-08-21 23:04  rfm
+
+	* setup_dirs.ksh:
+	
+	Accept DB_PATH argument, and pass it on to setup_build.ksh Don't do
+	anything for 'register' Create interbase tree for the final
+	binaries.
+
+2000-08-21 23:02  rfm
+
+	* setup_dirs:
+	
+	Do not create metadata.gdb (it is now created by
+	builds/original/buildRefDatabases) create the 'intl' install target
+	dir.  Link yachts.gdb and isc.gdb to the jrd/metadata.gdb and
+	jrd/isc.gdb in the ref database dir.  Link msgs/msg.gdb to ref
+	database dir, rather than creating from gbak.  Link jrd/libgds.so
+	and jrd/libgds_pyxis.a to source/interbase/lib, instead of copying
+	the binary files.  Don't create isc.gdb link in root source dir. 
+	Link utilities/isc.gdb to jrd/isc.gdb
+
+2000-08-21 22:57  rfm
+
+	* setup_build.ksh:
+	
+	Accept database directory as an argument.  Don't try to setup
+	non-existant register component.  Adjust metadata.gdb creation
+	because the sql script now creates it in the current directory. 
+	Process include.mak with sed to set database directory, so manual
+	edits are not required.
+
+2000-08-21 20:31  tmcsys
+
+	* misc/metadata.gbak:
+	
+	add metadata.gbak
+
+2000-08-21 20:30  tmcsys
+
+	* misc/help.gbak:
+	
+	add help.gbak
+
+2000-08-21 07:17  rfm
+
+	* jrd/sort.c:
+	
+	Fix SEEK_SET for linux, and the right change for NT
+
+2000-08-21 05:28  rfm
+
+	* jrd/sort.c:
+	
+	Include stdio.h on NT, so we have SEEK_SET for both debug and
+	production builds.
+
+2000-08-20 04:02  rfm
+
+	* jrd/utl.c:
+	
+	Fix missing comma in version string table.
+
+2000-08-20 01:34  rfm
+
+	* jrd/: codes.h, codetext.h, iberror.h, msg_facs.h, msgs.h,
+	rdb_codes.h, sql_code.h:
+	
+	Remove redundant ^M characters
+
+2000-08-19 02:06  rfm
+
+	* setup_dirs:
+	
+	Fix accidental commenting out of stuff in previous checkin
+
+2000-08-19 02:02  rfm
+
+	* setup_dirs:
+	
+	Change use of $3 to $MasterSourceDir
+
+2000-08-18 06:28  skywalker
+
+	* build_docs/ibbuild_linux_cvs_build.hmtl:
+	
+	Instructions for building linux/unix version of firebird from the
+	CVS tree.
+
+2000-08-17 17:19  tmcsys
+
+	* setup_dirs:
+	
+	change links to help.db
+
+2000-08-17 01:30  gspeicher
+
+	* setup_dirs, builds/original/buildRefDatabases,
+	builds/original/prefix.freebsd, builds/original/sfx.interbase,
+	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h, jrd/flu.c,
+	jrd/gds.c, jrd/ids.h, jrd/isc.gdb, jrd/isc_file.c, jrd/isc_sync.c,
+	jrd/license.h, jrd/pag.c, jrd/pwd.c, jrd/pwd.h, jrd/sort.c,
+	jrd/svc.c, jrd/utl.c, jrd/why.c, lock/fparamv3.h, lock/lock.c,
+	lock/lockv3.h, remote/protocol.h, remote/remote_def.h,
+	utilities/dba.e, utilities/drop.c:
+	
+	- Main purpose of commit is to incorporate FreeBSD-specific changes
+	  to the tree.	As such, most modifications are patches that make  
+	everything work on FreeBSD.
+	
+	  However, a few non-specific fixes are included, mostly in the
+	  build and setup scripts, to ensure that the build goes smoothly
+	  for everybody regardless of platform.
+
+2000-08-16 10:53  tamlin
+
+	* iscguard/: cntl_guard.c, iscguard.c, iscguard.rc:
+	
+	Dat time format fixed. Compiler warnings.
+
+2000-08-15 23:52  rfm
+
+	* builds/original/000_readme:
+	
+	Just add a note that this file is out of date and point to other
+	sources of build information.
+
+2000-08-15 20:41  tmcsys
+
+	* gpre/msc.c, lock/lock.c, pyxis/allp.c, pyxis/phase3.c, qli/all.c,
+	qli/gener.c, remote/parser.c, isql/isql.e:
+	
+	change ALIGN macro to FB_ALIGN
+
+2000-08-15 20:38  tmcsys
+
+	* jrd/align.c, jrd/blb.c, jrd/btr.c, jrd/btr.h, jrd/cmp.c,
+	jrd/common.h, jrd/exe.c, jrd/fun.e, jrd/ib_stdio.c, jrd/met.e,
+	jrd/msg.h, jrd/opt.c, jrd/par.c, jrd/rse.c, jrd/thd.h,
+	burp/backup.e, burp/canonical.c, burp/restore.e, csv/csu.c,
+	csv/csv.c, dsql/dsql.c, dsql/gen.c, dsql/utld.c:
+	
+	change ALIGN macro to FB_ALIGN
+
+2000-08-15 18:43  tmcsys
+
+	* example5/: align.h, apifull.c, dynfull.e:
+	
+	change ALIGN macro to FB_ALIGN
+
+2000-08-15 18:36  tmcsys
+
+	* example4/: align.h, apifull.c, dynfull.e:
+	
+	change ALIGN macro to FB_ALIGN
+
+2000-08-15 18:25  tmcsys
+
+	* examples/: full_dsql.e, gdump.e:
+	
+	change ALIGN macro to FB_ALIGN
+
+2000-08-14 16:44  skywalker
+
+	* builds/original/buildRefDatabases:
+	
+	Added a script to build the reference databases
+
+2000-08-13 00:13  rfm
+
+	* remote/server.c:
+	
+	Use *trdb->trdb_setjump in LONGJMP, since it is a *jmp_buf not just
+	a jmp_buf
+
+2000-08-13 00:01  rfm
+
+	* build_docs/: ibbuild-unix-overview.txt, ibbuild-win32.txt,
+	metadata_gdb.txt, msgs-overview.txt:
+	
+	Remove my copyright notice. Minor updates to ibbuild-win32.txt to
+	reflect new downloads available from www.interbase.com and note the
+	existance of the firebird cvs.
+
+2000-08-12 22:40  rfm
+
+	* remote/caution.ico:
+	
+	Re-Commit icons after setting keyword expansion mode to -kb (no
+	linefeed translation or keyword expansion)
+
+2000-08-12 01:14  skywalker
+
+	* setup_dirs:
+	
+	Added toms fixes, to refresh two more database links.
+
+2000-08-11 17:46  skywalker
+
+	* builds/original/sfx.interbase:
+	
+	Added some of the changes back in, currently removed build of
+	examples and build of codes in jrd.
+
+2000-08-11 16:41  skywalker
+
+	* setup_dirs:
+	
+	Changes to make script able to redo setup and put up some
+	descriptions
+
+2000-08-11 16:35  skywalker
+
+	* jrd/yachts.gdb:
+	
+	Deleted database it is generated as part of the build
+
+2000-08-11 16:33  skywalker
+
+	* builds/original/: .version_flag, build_kit, sfx.pyxis:
+	
+	Changed to build pyxis module, makefile changed to allow to compile
+	build_ket changed to set default env. variables, and .version_flag
+	deleted as it is a generated file
+
+2000-08-11 16:30  skywalker
+
+	* msgs/: msg.gbak, msg.gdb:
+	
+	Removed the gdb database and replaced it with a transportable gbak
+	version of the database
+
+2000-08-11 05:18  skywalker
+
+	* pyxis/edit.c:
+	
+	This file has been committed, and make part of the build since the
+	gpre process currently (IB6.0) doesn't parse edit.e correctly.	It
+	is expected that gpre will be fixed in the near future.
+
+2000-08-11 05:15  skywalker
+
+	* builds/original/: prefix.linux, sfx.interbase, sfx.pyxis:
+	
+	Placed the pyxis modules back into the build and modified pyxis to
+	rely on the edit.c file rather than edit.e file.  Waiting on fix to
+	gpre for it to process edit.e correctly.
+
+2000-08-10 19:11  skywalker
+
+	* jrd/ids.m:
+	
+	Changed divert() to divert(0) - saves giving a warning message
+
+2000-08-07 06:11  tamlin
+
+	* jrd/cch.c:
+	
+	Merge with Interbase's tree. Compiler warnings.
+
+2000-08-07 05:54  tamlin
+
+	* dsql/pass1.c:
+	
+	Merge with Interbase's tree
+
+2000-08-07 03:40  tamlin
+
+	* jrd/: ail.c, alt.c, jrd.c, sch.c, sdl.c:
+	
+	Compiler warnings.
+
+2000-08-07 03:37  tamlin
+
+	* iscguard/: salrt23i.ico, sgard23i.ico:
+	
+	Added missing icons
+
+2000-08-07 03:36  tamlin
+
+	* iscguard/iscguard.c:
+	
+	Some cleanup, closing previously leaked handle.
+
+2000-08-07 01:15  tamlin
+
+	* intl/: cs_big5.h, cs_gb2312.h, cs_jis_0208_1990.h, cs_ksc5601.h:
+	
+	Stripped excessive bloat.
+
+2000-08-06 19:51  skywalker
+
+	* setup_dirs, builds/original/prefix.linux,
+	builds/original/sfx.interbase:
+	
+	Tom Colemans changes script changes for easy linux install.
+
+2000-08-05 18:26  tamlin
+
+	* jrd/gds.c:
+	
+	Win32 path search *real* "Program Files" before falling back to
+	hardcoded.
+
+2000-08-05 18:13  tamlin
+
+	* remote/cntl.c:
+	
+	Handle leak fixed
+
+2000-08-05 15:27  tamlin
+
+	* remote/remote.c:
+	
+	Compiler warnings
+
+2000-08-05 15:07  tamlin
+
+	* remote/server.c:
+	
+	Bugfix (JMP_BUFs), and some basic cleanup.
+
+2000-08-05 03:03  tamlin
+
+	* remote/: server.ico, spxnet32.c, srvr_w32.c, window.c, window.rc,
+	wnet.c, xdr.c:
+	
+	Bugfix (wrong size alloc -> mem overwrite) and compiler warnings.
+
+2000-08-05 02:59  tamlin
+
+	* utilities/: cmd_util.c, dba.e:
+	
+	Bugfix (wrong size alloc -> mem overwrite) and compiler warnings.
+
+2000-08-05 02:56  tamlin
+
+	* wal/walw.c:
+	
+	Fixed a compiler warning
+
+2000-08-03 22:52  skywalker
+
+	* lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
+	lock/ulimit.c, misc/codetext.h, misc/codes.h, misc/gds_codes.ftn,
+	misc/gds_codes.pas, misc/iberror.h, misc/msg.gbak, misc/msg_facs.h,
+	misc/msgs.h, misc/rdb_codes.h, misc/sql_code.h, msgs/build.def,
+	msgs/build_file.e, msgs/change_msgs.e, msgs/check_msgs.e,
+	msgs/depends.mak, msgs/enter_msgs.e, msgs/include.e, msgs/load.e,
+	msgs/makefile.mak, msgs/modify_msgs.e, msgs/msg.gdb, msgs/msg.gdl,
+	pipe/allp.c, pipe/allp_proto.h, pipe/blk.h, pipe/head_proto.h,
+	pipe/foot.c, pipe/head.c, pipe/pipe.h, pyxis/attributes.h,
+	pyxis/adm.c, pyxis/all.h, pyxis/allp.c, pyxis/altp.c, pyxis/blk.c,
+	pyxis/blk.h, pyxis/cdm.c, pyxis/curses_play.c, pyxis/debug.c,
+	pyxis/everything.h, pyxis/edit.e, pyxis/enumerations.h,
+	pyxis/field_edit.h, pyxis/field_name.h, pyxis/file_name.h,
+	pyxis/form_ddl.h, pyxis/form_name.h, pyxis/fred.e, pyxis/keys.h,
+	pyxis/menu.c, pyxis/phase1.h, pyxis/phase2.c, pyxis/phase2.h,
+	pyxis/phase3.c, pyxis/pyxis.c, pyxis/pyxis.h, pyxis/save.e,
+	pyxis/scr.c, pyxis/scr.h, pyxis/size_form.h, pyxis/sun_ftn_pyxis.c,
+	pyxis/vdm.c, pyxis/vt100.c, qli/all.c, qli/all_proto.h, qli/blk.h,
+	qli/comma_proto.h, qli/command.c, qli/compi_proto.h, qli/compile.c,
+	qli/compile.h, qli/depends.mak, qli/dtr.c, qli/dtr.h, qli/err.c,
+	qli/err_proto.h, qli/eval.c, qli/eval_proto.h, qli/everything.h,
+	qli/exe.c, qli/exe.h, qli/exe_proto.h, qli/expan_proto.h,
+	qli/expand.c, qli/form.c, qli/form.h, qli/form_proto.h,
+	qli/forma_proto.h, qli/format.c, qli/format.h, qli/gener.c,
+	qli/gener_proto.h, qli/help.e, qli/help_proto.h, qli/hsh.c,
+	qli/hsh_proto.h, qli/lex.c, qli/lex_proto.h, qli/meta.e,
+	qli/meta_proto.h, qli/mov.c, qli/mov_proto.h, qli/noform.c,
+	qli/nounix.c, qli/parse.c, qli/parse.h, qli/parse_proto.h,
+	qli/picst_proto.h, qli/picstr.c, qli/proc.e, qli/proc_ddl.h,
+	qli/proc_proto.h, qli/procddl1.h, qli/procddl2.h, qli/procddl3.h,
+	qli/procddl4.h, qli/repor_proto.h, qli/report.c, qli/report.h,
+	qli/reqs.h, qli/show.e, qli/show_proto.h, qli/symbols.h,
+	qli/words.h, remote/allr.c, remote/allr_proto.h, remote/ambx.c,
+	remote/ambx_proto.h, remote/ambx_server.c, remote/blk.h,
+	remote/caution.ico, remote/chop.c, remote/chop_proto.h,
+	remote/chuser.c, remote/cntl.c, remote/cntl_proto.h,
+	remote/decne_proto.h, remote/decnet.c, remote/decnet_server.c,
+	remote/depends.mak, remote/divorce.c, remote/dllshell.c,
+	remote/dnet.c, remote/dnet_proto.h, remote/dnet_server.c,
+	remote/faux.c, remote/faux.h, remote/ibconfig.c, remote/ibconfig.h,
+	remote/ibconfig.rc, remote/ibsvrhlp.h, remote/in.h, remote/inet.c,
+	remote/inet_proto.h, remote/inet_server.c, remote/inetiodef.h,
+	remote/inter_proto.h, remote/interface.c, remote/ipc.c,
+	remote/ipc.h, remote/ipc_proto.h, remote/ipc_server.c,
+	remote/isc_tcpent.mar, remote/jibdef.mar, remote/lanentry.h,
+	remote/lanman.h, remote/makefile.mak, remote/mapper.c,
+	remote/merge.c, remote/merge_proto.h, remote/mgr.c, remote/mslan.c,
+	remote/mslan_proto.h, remote/mslansrv.c, remote/multivx.c,
+	remote/neterr.h, remote/netwcon.c, remote/nlmtst.def,
+	remote/nt_server.c, remote/ntoh.c, remote/ntoh_proto.h,
+	remote/nwserv.c, remote/parse_proto.h, remote/parser.c,
+	remote/pcbdefv4.mar, remote/pcbdefv5.mar, remote/property.c,
+	remote/property.rc, remote/property.rh, remote/propty_proto.h,
+	remote/proto_proto.h, remote/protocol.c, remote/protocol.h,
+	remote/remot_proto.h, remote/remote.c, remote/remote.def,
+	remote/remote.h, remote/remote_def.h, remote/serve_proto.h,
+	remote/server.c, remote/server.ico, remote/spxesr.c,
+	remote/spxne_proto.h, remote/spxnet.c, remote/spxnet32.c,
+	remote/spxnet32_proto.h, remote/spxwi_proto.h, remote/spxwin.c,
+	remote/spxwin.h, remote/srvr_w32.c, remote/tcptypes.h,
+	remote/types.h, remote/ucx.c, remote/wfwnp.c, remote/wfwnp.h,
+	remote/wfwnp_proto.h, remote/window.c, remote/window.h,
+	remote/window.rc, remote/window.rh, remote/window_proto.h,
+	remote/winerr.h, remote/winmain.c, remote/winvx.c, remote/wnet.c,
+	remote/wnet_proto.h, remote/xdr.c, remote/xdr.h,
+	remote/xdr_proto.h, remote/xnet.c, remote/xnet.h,
+	remote/xnet_proto.h, remote/zap.mar, utilities/analyse.c,
+	utilities/cache.c, utilities/cmd_util.c,
+	utilities/cmd_util_proto.h, utilities/dba.e, utilities/dba_full.e,
+	utilities/dbaswi.h, utilities/depends.mak, utilities/drop.c,
+	utilities/dropv3.c, utilities/drpv3_proto.h, utilities/gsec.c,
+	utilities/gsec.h, utilities/gsecswi.h, utilities/guard.c,
+	utilities/ibmgr.c, utilities/ibmgr.h, utilities/ibmgrswi.h,
+	utilities/install_nt.h, utilities/install_reg.c,
+	utilities/install_svc.c, utilities/isc.gdl, utilities/isc4.gdl,
+	utilities/isc4.sql, utilities/ppg.c, utilities/ppg_proto.h,
+	utilities/print_pool.c, utilities/rebui_proto.h,
+	utilities/rebuild.c, utilities/rebuild.gdl, utilities/rebuild.h,
+	utilities/regis_proto.h, utilities/registry.c, utilities/relay.c,
+	utilities/relay_mpexl.c, utilities/rmet.e, utilities/rmet_proto.h,
+	utilities/rstor_proto.h, utilities/rstore.e,
+	utilities/run_service.c, utilities/sbc_print.c,
+	utilities/scrty_apollo.gdl, utilities/scrty_unix.gdl,
+	utilities/scrty_vms.gdl, utilities/scrty_xl.gdl,
+	utilities/secur_proto.h, utilities/security.e,
+	utilities/servi_proto.h, utilities/services.c, utilities/srvrmgr.c,
+	utilities/srvrmgr_proto.h, utilities/util.c,
+	utilities/util_proto.h, utilities/v2_dmp.c, wal/depends.mak,
+	wal/driver.c, wal/wal.c, wal/wal.h, wal/wal_prnt.c,
+	wal/wal_proto.h, wal/walc.c, wal/walc_proto.h, wal/walf.c,
+	wal/walf_proto.h, wal/walr.c, wal/walr_proto.h, wal/walw.c,
+	wal/walw_proto.h, wal/wstat_proto.h, wal/wstatus.c:
+	
+	Initial revision
+
+2000-08-03 22:52  skywalker
+
+	* lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
+	lock/ulimit.c, misc/codetext.h, misc/codes.h, misc/gds_codes.ftn,
+	misc/gds_codes.pas, misc/iberror.h, misc/msg.gbak, misc/msg_facs.h,
+	misc/msgs.h, misc/rdb_codes.h, misc/sql_code.h, msgs/build.def,
+	msgs/build_file.e, msgs/change_msgs.e, msgs/check_msgs.e,
+	msgs/depends.mak, msgs/enter_msgs.e, msgs/include.e, msgs/load.e,
+	msgs/makefile.mak, msgs/modify_msgs.e, msgs/msg.gdb, msgs/msg.gdl,
+	pipe/allp.c, pipe/allp_proto.h, pipe/blk.h, pipe/head_proto.h,
+	pipe/foot.c, pipe/head.c, pipe/pipe.h, pyxis/attributes.h,
+	pyxis/adm.c, pyxis/all.h, pyxis/allp.c, pyxis/altp.c, pyxis/blk.c,
+	pyxis/blk.h, pyxis/cdm.c, pyxis/curses_play.c, pyxis/debug.c,
+	pyxis/everything.h, pyxis/edit.e, pyxis/enumerations.h,
+	pyxis/field_edit.h, pyxis/field_name.h, pyxis/file_name.h,
+	pyxis/form_ddl.h, pyxis/form_name.h, pyxis/fred.e, pyxis/keys.h,
+	pyxis/menu.c, pyxis/phase1.h, pyxis/phase2.c, pyxis/phase2.h,
+	pyxis/phase3.c, pyxis/pyxis.c, pyxis/pyxis.h, pyxis/save.e,
+	pyxis/scr.c, pyxis/scr.h, pyxis/size_form.h, pyxis/sun_ftn_pyxis.c,
+	pyxis/vdm.c, pyxis/vt100.c, qli/all.c, qli/all_proto.h, qli/blk.h,
+	qli/comma_proto.h, qli/command.c, qli/compi_proto.h, qli/compile.c,
+	qli/compile.h, qli/depends.mak, qli/dtr.c, qli/dtr.h, qli/err.c,
+	qli/err_proto.h, qli/eval.c, qli/eval_proto.h, qli/everything.h,
+	qli/exe.c, qli/exe.h, qli/exe_proto.h, qli/expan_proto.h,
+	qli/expand.c, qli/form.c, qli/form.h, qli/form_proto.h,
+	qli/forma_proto.h, qli/format.c, qli/format.h, qli/gener.c,
+	qli/gener_proto.h, qli/help.e, qli/help_proto.h, qli/hsh.c,
+	qli/hsh_proto.h, qli/lex.c, qli/lex_proto.h, qli/meta.e,
+	qli/meta_proto.h, qli/mov.c, qli/mov_proto.h, qli/noform.c,
+	qli/nounix.c, qli/parse.c, qli/parse.h, qli/parse_proto.h,
+	qli/picst_proto.h, qli/picstr.c, qli/proc.e, qli/proc_ddl.h,
+	qli/proc_proto.h, qli/procddl1.h, qli/procddl2.h, qli/procddl3.h,
+	qli/procddl4.h, qli/repor_proto.h, qli/report.c, qli/report.h,
+	qli/reqs.h, qli/show.e, qli/show_proto.h, qli/symbols.h,
+	qli/words.h, remote/allr.c, remote/allr_proto.h, remote/ambx.c,
+	remote/ambx_proto.h, remote/ambx_server.c, remote/blk.h,
+	remote/caution.ico, remote/chop.c, remote/chop_proto.h,
+	remote/chuser.c, remote/cntl.c, remote/cntl_proto.h,
+	remote/decne_proto.h, remote/decnet.c, remote/decnet_server.c,
+	remote/depends.mak, remote/divorce.c, remote/dllshell.c,
+	remote/dnet.c, remote/dnet_proto.h, remote/dnet_server.c,
+	remote/faux.c, remote/faux.h, remote/ibconfig.c, remote/ibconfig.h,
+	remote/ibconfig.rc, remote/ibsvrhlp.h, remote/in.h, remote/inet.c,
+	remote/inet_proto.h, remote/inet_server.c, remote/inetiodef.h,
+	remote/inter_proto.h, remote/interface.c, remote/ipc.c,
+	remote/ipc.h, remote/ipc_proto.h, remote/ipc_server.c,
+	remote/isc_tcpent.mar, remote/jibdef.mar, remote/lanentry.h,
+	remote/lanman.h, remote/makefile.mak, remote/mapper.c,
+	remote/merge.c, remote/merge_proto.h, remote/mgr.c, remote/mslan.c,
+	remote/mslan_proto.h, remote/mslansrv.c, remote/multivx.c,
+	remote/neterr.h, remote/netwcon.c, remote/nlmtst.def,
+	remote/nt_server.c, remote/ntoh.c, remote/ntoh_proto.h,
+	remote/nwserv.c, remote/parse_proto.h, remote/parser.c,
+	remote/pcbdefv4.mar, remote/pcbdefv5.mar, remote/property.c,
+	remote/property.rc, remote/property.rh, remote/propty_proto.h,
+	remote/proto_proto.h, remote/protocol.c, remote/protocol.h,
+	remote/remot_proto.h, remote/remote.c, remote/remote.def,
+	remote/remote.h, remote/remote_def.h, remote/serve_proto.h,
+	remote/server.c, remote/server.ico, remote/spxesr.c,
+	remote/spxne_proto.h, remote/spxnet.c, remote/spxnet32.c,
+	remote/spxnet32_proto.h, remote/spxwi_proto.h, remote/spxwin.c,
+	remote/spxwin.h, remote/srvr_w32.c, remote/tcptypes.h,
+	remote/types.h, remote/ucx.c, remote/wfwnp.c, remote/wfwnp.h,
+	remote/wfwnp_proto.h, remote/window.c, remote/window.h,
+	remote/window.rc, remote/window.rh, remote/window_proto.h,
+	remote/winerr.h, remote/winmain.c, remote/winvx.c, remote/wnet.c,
+	remote/wnet_proto.h, remote/xdr.c, remote/xdr.h,
+	remote/xdr_proto.h, remote/xnet.c, remote/xnet.h,
+	remote/xnet_proto.h, remote/zap.mar, utilities/analyse.c,
+	utilities/cache.c, utilities/cmd_util.c,
+	utilities/cmd_util_proto.h, utilities/dba.e, utilities/dba_full.e,
+	utilities/dbaswi.h, utilities/depends.mak, utilities/drop.c,
+	utilities/dropv3.c, utilities/drpv3_proto.h, utilities/gsec.c,
+	utilities/gsec.h, utilities/gsecswi.h, utilities/guard.c,
+	utilities/ibmgr.c, utilities/ibmgr.h, utilities/ibmgrswi.h,
+	utilities/install_nt.h, utilities/install_reg.c,
+	utilities/install_svc.c, utilities/isc.gdl, utilities/isc4.gdl,
+	utilities/isc4.sql, utilities/ppg.c, utilities/ppg_proto.h,
+	utilities/print_pool.c, utilities/rebui_proto.h,
+	utilities/rebuild.c, utilities/rebuild.gdl, utilities/rebuild.h,
+	utilities/regis_proto.h, utilities/registry.c, utilities/relay.c,
+	utilities/relay_mpexl.c, utilities/rmet.e, utilities/rmet_proto.h,
+	utilities/rstor_proto.h, utilities/rstore.e,
+	utilities/run_service.c, utilities/sbc_print.c,
+	utilities/scrty_apollo.gdl, utilities/scrty_unix.gdl,
+	utilities/scrty_vms.gdl, utilities/scrty_xl.gdl,
+	utilities/secur_proto.h, utilities/security.e,
+	utilities/servi_proto.h, utilities/services.c, utilities/srvrmgr.c,
+	utilities/srvrmgr_proto.h, utilities/util.c,
+	utilities/util_proto.h, utilities/v2_dmp.c, wal/depends.mak,
+	wal/driver.c, wal/wal.c, wal/wal.h, wal/wal_prnt.c,
+	wal/wal_proto.h, wal/walc.c, wal/walc_proto.h, wal/walf.c,
+	wal/walf_proto.h, wal/walr.c, wal/walr_proto.h, wal/walw.c,
+	wal/walw_proto.h, wal/wstat_proto.h, wal/wstatus.c:
+	
+	Save the whale, feed the poor, and set the sources free.
+
+2000-08-03 22:49  skywalker
+
+	* intl/intl.h, intl/intlwep.c, intl/langdrv.h, intl/lc_ascii.c,
+	intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c, intl/lc_jis.c,
+	intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
+	intl/lc_unicode.c, intl/ld.h, intl/ld2.c, intl/ld_proto.h,
+	intl/ldcommon.h, intl/mac_437.h, intl/mac_865.h, intl/mac_lat1.h,
+	intl/make.maps, intl/makefile.mak, intl/mapcompare.cpp,
+	intl/mapdump.c, intl/mapgen4.c, intl/maptest.c, intl/maptest2.cpp,
+	intl/nordan40.h, intl/polish.h, intl/slovene.h, intl/swedfin.h,
+	intl/turk.h, intl/tx437_865.h, intl/tx437_lat1.h,
+	intl/tx865_lat1.h, intl/undef.h, ipserver/alli.c,
+	ipserver/alli_proto.h, ipserver/blk.h, ipserver/ipc.h,
+	ipserver/ipcevent.c, ipserver/ipapi_proto.h,
+	ipserver/ipcli_proto.h, ipserver/ipclient.c,
+	ipserver/ipevt_proto.h, ipserver/ips.h, ipserver/ipserver.c,
+	ipserver/ipsrv_proto.h, iscguard/cntl_guard.c,
+	iscguard/cntlg_proto.h, iscguard/iscguard.c, iscguard/iscguard.h,
+	iscguard/iscguard.rc, iscguard/iscguard.rh,
+	iscguard/iscguard_utils.c, iscguard/salrt23i.ico,
+	iscguard/sgard23i.ico, isql/depends.mak, isql/extra_proto.h,
+	isql/extract.e, isql/isql.def, isql/isql.e, isql/isql.h,
+	isql/isql.rc, isql/isql_proto.h, isql/isql_res.h, isql/isql_win.c,
+	isql/isql_win.h, isql/isqlw_proto.h, isql/show.e,
+	isql/show_proto.h, journal/archive.c, journal/conso_proto.h,
+	journal/console.c, journal/depends.mak, journal/gjrn.c,
+	journal/gjrn_proto.h, journal/journal.gdl, journal/journal.h,
+	journal/journal_vms.e, journal/journal_vms.gdl, journal/misc.c,
+	journal/misc_proto.h, journal/oldr.c, journal/oldr_proto.h,
+	journal/rebui_proto.h, journal/rebuild.e, journal/serve_proto.h,
+	journal/server.e, jrd/acl.h, jrd/aif.c, jrd/aif_proto.h,
+	jrd/ail_proto.h, jrd/ail.c, jrd/align.c, jrd/align.h,
+	jrd/all_proto.h, jrd/all.c, jrd/all.h, jrd/alt.c, jrd/apollo.c,
+	jrd/ansi.h, jrd/apollo.h, jrd/arg.h, jrd/atom.h, jrd/bkm.c,
+	jrd/bkm_proto.h, jrd/blb.c, jrd/blb.h, jrd/blb_proto.h, jrd/blf.e,
+	jrd/blf.h, jrd/blf_proto.h, jrd/blk.h, jrd/blp.h, jrd/blr.h,
+	jrd/blrtable.c, jrd/blrtable.h, jrd/btr.c, jrd/btr.h,
+	jrd/btr_proto.h, jrd/build_no.h, jrd/builtin.c, jrd/cch.c,
+	jrd/cch.h, jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c,
+	jrd/cmp_proto.h, jrd/codes.e, jrd/codes.h, jrd/codetext.h,
+	jrd/common.h, jrd/constants.h, jrd/cvt.c, jrd/cvt2.c,
+	jrd/cvt2_proto.h, jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h,
+	jrd/dbg_proto.h, jrd/dbt.c, jrd/depends.mak, jrd/dfloat_stub.c,
+	jrd/dflt.gdl, jrd/dflt.h, jrd/dfw.e, jrd/dfw_proto.h,
+	jrd/divor_proto.h, jrd/divorce.c, jrd/dllshell.c, jrd/dls.c,
+	jrd/dls_proto.h, jrd/dmp.c, jrd/dmp_proto.h, jrd/doserr.h,
+	jrd/dpm.e, jrd/dpm_proto.h, jrd/drq.h, jrd/dsc.c, jrd/dsc.h,
+	jrd/dsc_proto.h, jrd/dyn.e, jrd/dyn.h, jrd/dyn_def.e,
+	jrd/dyn_def.sed, jrd/dyn_del.e, jrd/dyn_df_proto.h,
+	jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h, jrd/dyn_mod.e,
+	jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e, jrd/enc.c,
+	jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
+	jrd/err_proto.h, jrd/event.c, jrd/event.h, jrd/event_proto.h,
+	jrd/everything.h, jrd/evl.c, jrd/evl_like.c, jrd/evl_proto.h,
+	jrd/exe.c, jrd/exe.h, jrd/exe_proto.h, jrd/ext.c, jrd/ext.h,
+	jrd/ext_proto.h, jrd/extvms.c, jrd/fields.h, jrd/fil.h,
+	jrd/file_params.h, jrd/filte_proto.h, jrd/filters.c, jrd/flags.h,
+	jrd/flu.c, jrd/flu.h, jrd/flu_proto.h, jrd/fun.e, jrd/fun_proto.h,
+	jrd/functions.c, jrd/gds.bas, jrd/gds.c, jrd/gds.def, jrd/gds.hxx,
+	jrd/gds.pas, jrd/gds.pli, jrd/gds.vpas, jrd/gds5entry.mar,
+	jrd/gds_aix.f, jrd/gds_apollo.f, jrd/gds_h3.f, jrd/gds_hp.f,
+	jrd/gds_proto.h, jrd/gds_sun.f, jrd/gds_vms.f, jrd/gdsassert.h,
+	jrd/gdsentry.mar, jrd/gdsold.h, jrd/gdswep.c, jrd/grammar.c,
+	jrd/grammar.y, jrd/grant.e, jrd/grant.gdl, jrd/grant_proto.h,
+	jrd/ib_stdio.c, jrd/ib_stdio.h, jrd/ibase.h, jrd/iberr.c,
+	jrd/iberr.h, jrd/iberr_proto.h, jrd/iberror.h, jrd/ibinitdll.c,
+	jrd/ibsetjmp.h, jrd/ids.h, jrd/ids.m, jrd/idx.c, jrd/idx.h,
+	jrd/idx_proto.h, jrd/inf.c, jrd/inf.h, jrd/inf_proto.h, jrd/ini.e,
+	jrd/ini.h, jrd/ini_proto.h, jrd/intl.c, jrd/intl.h,
+	jrd/intl_proto.h, jrd/intlnames.h, jrd/intlobj.h, jrd/inuse.c,
+	jrd/inuse_proto.h, jrd/irq.h, jrd/isc.c, jrd/isc.gdb, jrd/isc.h,
+	jrd/isc_cray.c, jrd/isc_f_proto.h, jrd/isc_file.c,
+	jrd/isc_i_proto.h, jrd/isc_ipc.c, jrd/isc_proto.h,
+	jrd/isc_s_proto.h, jrd/isc_signal.h, jrd/isc_sync.c,
+	jrd/iscmsgs.msg, jrd/iutls.def, jrd/iutlswep.c, jrd/jio.c,
+	jrd/jlx.c, jrd/jrd.c, jrd/jrd.def, jrd/jrd.h, jrd/jrd_proto.h,
+	jrd/jrd_ver.h, jrd/jrd_ver.rc, jrd/jrdwep.c, jrd/jrn.c, jrd/jrn.h,
+	jrd/jrn_proto.h, jrd/kanji.c, jrd/kanji.h, jrd/kanji_proto.h,
+	jrd/lan.c, jrd/lck.c, jrd/lck.h, jrd/lck_dummy.c, jrd/lck_proto.h,
+	jrd/license.h, jrd/llio.c, jrd/llio.h, jrd/llio_proto.h, jrd/lls.h,
+	jrd/lnmdef.h, jrd/log.c, jrd/log.h, jrd/log_proto.h, jrd/loiter.c,
+	jrd/loiter.h, jrd/makefile.mak, jrd/map.c, jrd/map_proto.h,
+	jrd/math.c, jrd/math.h, jrd/mblr.c, jrd/mblr.h, jrd/mblr_proto.h,
+	jrd/mem.c, jrd/memtest.c, jrd/met.e, jrd/met.h, jrd/met_proto.h,
+	jrd/misc.c, jrd/misc.h, jrd/misc_proto.h, jrd/mmov.mar, jrd/mov.c,
+	jrd/mov_proto.h, jrd/mpexl.c, jrd/mpexl.h, jrd/msg.h,
+	jrd/msg_encode.h, jrd/msg_facs.h, jrd/msgs.h, jrd/names.h,
+	jrd/nav.c, jrd/nav_proto.h, jrd/netware.c, jrd/nlm_thd.h,
+	jrd/nod.h, jrd/nodebug.c, jrd/obj.h, jrd/ods.h, jrd/ods10.gdl,
+	jrd/ods72.gdl, jrd/ods80.gdl, jrd/ods80dif.gdl, jrd/ods81.gdl,
+	jrd/ods91.gdl, jrd/old.c, jrd/old.h, jrd/old_proto.h, jrd/opt.c,
+	jrd/opt_proto.h, jrd/os2.c, jrd/pag.c, jrd/pag.h, jrd/pag_proto.h,
+	jrd/par.c, jrd/par_proto.h, jrd/pcmet.e, jrd/pcmet_proto.h,
+	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
+	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
+	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
+	jrd/pwd.h, jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
+	jrd/quad_proto.h, jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h,
+	jrd/rdbcodes.h, jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c,
+	jrd/rdbint.c, jrd/rec.c, jrd/rec_proto.h, jrd/relations.h,
+	jrd/req.h, jrd/rlck.c, jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h,
+	jrd/rng_proto.h, jrd/rse.c, jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c,
+	jrd/sbm.h, jrd/sbm_proto.h, jrd/sch.c, jrd/sch_proto.h, jrd/scl.e,
+	jrd/scl.h, jrd/scl_proto.h, jrd/scroll_cursors.h, jrd/sdl.c,
+	jrd/sdl.h, jrd/sdl_proto.h, jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h,
+	jrd/seg.c, jrd/seg_proto.h, jrd/shdef.h, jrd/shrfinit.c,
+	jrd/shrinit.c, jrd/shut.c, jrd/shut_proto.h, jrd/sort.c,
+	jrd/sort.h, jrd/sort_proto.h, jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h,
+	jrd/sqz_proto.h, jrd/stats.e, jrd/stored_proc.gdl, jrd/stubs.c,
+	jrd/sun_ftn.c, jrd/svc.c, jrd/svc.h, jrd/svc_proto.h,
+	jrd/svc_undoc.h, jrd/syidef.h, jrd/sym.c, jrd/sym_proto.h,
+	jrd/termtype.h, jrd/thd.c, jrd/thd.h, jrd/thd_proto.h,
+	jrd/thin.asm, jrd/thread.mar, jrd/time.h, jrd/tpc.c, jrd/tpc.h,
+	jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h, jrd/tra_proto.h, jrd/trig.h,
+	jrd/types.h, jrd/unix.c, jrd/utl.c, jrd/utl_proto.h, jrd/utls.def,
+	jrd/utlswep.c, jrd/v2_triggers.gdl, jrd/val.c, jrd/val.h,
+	jrd/val_proto.h, jrd/version.rc, jrd/version_95.rc, jrd/vio.c,
+	jrd/vio_debug.h, jrd/vio_proto.h, jrd/vms.c, jrd/vms.h,
+	jrd/vms_command.c, jrd/vmsevent.c, jrd/vmslo_proto.h,
+	jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c, jrd/why_proto.h,
+	jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c, jrd/yachts.gdb,
+	lock/config_params, lock/depends.mak, lock/driver.c,
+	lock/fparamv3.h, lock/lock.c, lock/lock.h, lock/lock_header_mmap,
+	lock/lock_header_shmem, lock/lock_proto.h, lock/lockv3.h,
+	lock/lockv3s4.h, lock/manager.c, lock/pls.c, lock/plserver.c,
+	lock/plserver.h, lock/print.c, lock/printv3.c:
+	
+	Initial revision
+
+2000-08-03 22:49  skywalker
+
+	* intl/intl.h, intl/intlwep.c, intl/langdrv.h, intl/lc_ascii.c,
+	intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c, intl/lc_jis.c,
+	intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
+	intl/lc_unicode.c, intl/ld.h, intl/ld2.c, intl/ld_proto.h,
+	intl/ldcommon.h, intl/mac_437.h, intl/mac_865.h, intl/mac_lat1.h,
+	intl/make.maps, intl/makefile.mak, intl/mapcompare.cpp,
+	intl/mapdump.c, intl/mapgen4.c, intl/maptest.c, intl/maptest2.cpp,
+	intl/nordan40.h, intl/polish.h, intl/slovene.h, intl/swedfin.h,
+	intl/turk.h, intl/tx437_865.h, intl/tx437_lat1.h,
+	intl/tx865_lat1.h, intl/undef.h, ipserver/alli.c,
+	ipserver/alli_proto.h, ipserver/blk.h, ipserver/ipc.h,
+	ipserver/ipcevent.c, ipserver/ipapi_proto.h,
+	ipserver/ipcli_proto.h, ipserver/ipclient.c,
+	ipserver/ipevt_proto.h, ipserver/ips.h, ipserver/ipserver.c,
+	ipserver/ipsrv_proto.h, iscguard/cntl_guard.c,
+	iscguard/cntlg_proto.h, iscguard/iscguard.c, iscguard/iscguard.h,
+	iscguard/iscguard.rc, iscguard/iscguard.rh,
+	iscguard/iscguard_utils.c, iscguard/salrt23i.ico,
+	iscguard/sgard23i.ico, isql/depends.mak, isql/extra_proto.h,
+	isql/extract.e, isql/isql.def, isql/isql.e, isql/isql.h,
+	isql/isql.rc, isql/isql_proto.h, isql/isql_res.h, isql/isql_win.c,
+	isql/isql_win.h, isql/isqlw_proto.h, isql/show.e,
+	isql/show_proto.h, journal/archive.c, journal/conso_proto.h,
+	journal/console.c, journal/depends.mak, journal/gjrn.c,
+	journal/gjrn_proto.h, journal/journal.gdl, journal/journal.h,
+	journal/journal_vms.e, journal/journal_vms.gdl, journal/misc.c,
+	journal/misc_proto.h, journal/oldr.c, journal/oldr_proto.h,
+	journal/rebui_proto.h, journal/rebuild.e, journal/serve_proto.h,
+	journal/server.e, jrd/acl.h, jrd/aif.c, jrd/aif_proto.h,
+	jrd/ail_proto.h, jrd/ail.c, jrd/align.c, jrd/align.h,
+	jrd/all_proto.h, jrd/all.c, jrd/all.h, jrd/alt.c, jrd/apollo.c,
+	jrd/ansi.h, jrd/apollo.h, jrd/arg.h, jrd/atom.h, jrd/bkm.c,
+	jrd/bkm_proto.h, jrd/blb.c, jrd/blb.h, jrd/blb_proto.h, jrd/blf.e,
+	jrd/blf.h, jrd/blf_proto.h, jrd/blk.h, jrd/blp.h, jrd/blr.h,
+	jrd/blrtable.c, jrd/blrtable.h, jrd/btr.c, jrd/btr.h,
+	jrd/btr_proto.h, jrd/build_no.h, jrd/builtin.c, jrd/cch.c,
+	jrd/cch.h, jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c,
+	jrd/cmp_proto.h, jrd/codes.e, jrd/codes.h, jrd/codetext.h,
+	jrd/common.h, jrd/constants.h, jrd/cvt.c, jrd/cvt2.c,
+	jrd/cvt2_proto.h, jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h,
+	jrd/dbg_proto.h, jrd/dbt.c, jrd/depends.mak, jrd/dfloat_stub.c,
+	jrd/dflt.gdl, jrd/dflt.h, jrd/dfw.e, jrd/dfw_proto.h,
+	jrd/divor_proto.h, jrd/divorce.c, jrd/dllshell.c, jrd/dls.c,
+	jrd/dls_proto.h, jrd/dmp.c, jrd/dmp_proto.h, jrd/doserr.h,
+	jrd/dpm.e, jrd/dpm_proto.h, jrd/drq.h, jrd/dsc.c, jrd/dsc.h,
+	jrd/dsc_proto.h, jrd/dyn.e, jrd/dyn.h, jrd/dyn_def.e,
+	jrd/dyn_def.sed, jrd/dyn_del.e, jrd/dyn_df_proto.h,
+	jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h, jrd/dyn_mod.e,
+	jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e, jrd/enc.c,
+	jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
+	jrd/err_proto.h, jrd/event.c, jrd/event.h, jrd/event_proto.h,
+	jrd/everything.h, jrd/evl.c, jrd/evl_like.c, jrd/evl_proto.h,
+	jrd/exe.c, jrd/exe.h, jrd/exe_proto.h, jrd/ext.c, jrd/ext.h,
+	jrd/ext_proto.h, jrd/extvms.c, jrd/fields.h, jrd/fil.h,
+	jrd/file_params.h, jrd/filte_proto.h, jrd/filters.c, jrd/flags.h,
+	jrd/flu.c, jrd/flu.h, jrd/flu_proto.h, jrd/fun.e, jrd/fun_proto.h,
+	jrd/functions.c, jrd/gds.bas, jrd/gds.c, jrd/gds.def, jrd/gds.hxx,
+	jrd/gds.pas, jrd/gds.pli, jrd/gds.vpas, jrd/gds5entry.mar,
+	jrd/gds_aix.f, jrd/gds_apollo.f, jrd/gds_h3.f, jrd/gds_hp.f,
+	jrd/gds_proto.h, jrd/gds_sun.f, jrd/gds_vms.f, jrd/gdsassert.h,
+	jrd/gdsentry.mar, jrd/gdsold.h, jrd/gdswep.c, jrd/grammar.c,
+	jrd/grammar.y, jrd/grant.e, jrd/grant.gdl, jrd/grant_proto.h,
+	jrd/ib_stdio.c, jrd/ib_stdio.h, jrd/ibase.h, jrd/iberr.c,
+	jrd/iberr.h, jrd/iberr_proto.h, jrd/iberror.h, jrd/ibinitdll.c,
+	jrd/ibsetjmp.h, jrd/ids.h, jrd/ids.m, jrd/idx.c, jrd/idx.h,
+	jrd/idx_proto.h, jrd/inf.c, jrd/inf.h, jrd/inf_proto.h, jrd/ini.e,
+	jrd/ini.h, jrd/ini_proto.h, jrd/intl.c, jrd/intl.h,
+	jrd/intl_proto.h, jrd/intlnames.h, jrd/intlobj.h, jrd/inuse.c,
+	jrd/inuse_proto.h, jrd/irq.h, jrd/isc.c, jrd/isc.gdb, jrd/isc.h,
+	jrd/isc_cray.c, jrd/isc_f_proto.h, jrd/isc_file.c,
+	jrd/isc_i_proto.h, jrd/isc_ipc.c, jrd/isc_proto.h,
+	jrd/isc_s_proto.h, jrd/isc_signal.h, jrd/isc_sync.c,
+	jrd/iscmsgs.msg, jrd/iutls.def, jrd/iutlswep.c, jrd/jio.c,
+	jrd/jlx.c, jrd/jrd.c, jrd/jrd.def, jrd/jrd.h, jrd/jrd_proto.h,
+	jrd/jrd_ver.h, jrd/jrd_ver.rc, jrd/jrdwep.c, jrd/jrn.c, jrd/jrn.h,
+	jrd/jrn_proto.h, jrd/kanji.c, jrd/kanji.h, jrd/kanji_proto.h,
+	jrd/lan.c, jrd/lck.c, jrd/lck.h, jrd/lck_dummy.c, jrd/lck_proto.h,
+	jrd/license.h, jrd/llio.c, jrd/llio.h, jrd/llio_proto.h, jrd/lls.h,
+	jrd/lnmdef.h, jrd/log.c, jrd/log.h, jrd/log_proto.h, jrd/loiter.c,
+	jrd/loiter.h, jrd/makefile.mak, jrd/map.c, jrd/map_proto.h,
+	jrd/math.c, jrd/math.h, jrd/mblr.c, jrd/mblr.h, jrd/mblr_proto.h,
+	jrd/mem.c, jrd/memtest.c, jrd/met.e, jrd/met.h, jrd/met_proto.h,
+	jrd/misc.c, jrd/misc.h, jrd/misc_proto.h, jrd/mmov.mar, jrd/mov.c,
+	jrd/mov_proto.h, jrd/mpexl.c, jrd/mpexl.h, jrd/msg.h,
+	jrd/msg_encode.h, jrd/msg_facs.h, jrd/msgs.h, jrd/names.h,
+	jrd/nav.c, jrd/nav_proto.h, jrd/netware.c, jrd/nlm_thd.h,
+	jrd/nod.h, jrd/nodebug.c, jrd/obj.h, jrd/ods.h, jrd/ods10.gdl,
+	jrd/ods72.gdl, jrd/ods80.gdl, jrd/ods80dif.gdl, jrd/ods81.gdl,
+	jrd/ods91.gdl, jrd/old.c, jrd/old.h, jrd/old_proto.h, jrd/opt.c,
+	jrd/opt_proto.h, jrd/os2.c, jrd/pag.c, jrd/pag.h, jrd/pag_proto.h,
+	jrd/par.c, jrd/par_proto.h, jrd/pcmet.e, jrd/pcmet_proto.h,
+	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
+	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
+	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
+	jrd/pwd.h, jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
+	jrd/quad_proto.h, jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h,
+	jrd/rdbcodes.h, jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c,
+	jrd/rdbint.c, jrd/rec.c, jrd/rec_proto.h, jrd/relations.h,
+	jrd/req.h, jrd/rlck.c, jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h,
+	jrd/rng_proto.h, jrd/rse.c, jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c,
+	jrd/sbm.h, jrd/sbm_proto.h, jrd/sch.c, jrd/sch_proto.h, jrd/scl.e,
+	jrd/scl.h, jrd/scl_proto.h, jrd/scroll_cursors.h, jrd/sdl.c,
+	jrd/sdl.h, jrd/sdl_proto.h, jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h,
+	jrd/seg.c, jrd/seg_proto.h, jrd/shdef.h, jrd/shrfinit.c,
+	jrd/shrinit.c, jrd/shut.c, jrd/shut_proto.h, jrd/sort.c,
+	jrd/sort.h, jrd/sort_proto.h, jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h,
+	jrd/sqz_proto.h, jrd/stats.e, jrd/stored_proc.gdl, jrd/stubs.c,
+	jrd/sun_ftn.c, jrd/svc.c, jrd/svc.h, jrd/svc_proto.h,
+	jrd/svc_undoc.h, jrd/syidef.h, jrd/sym.c, jrd/sym_proto.h,
+	jrd/termtype.h, jrd/thd.c, jrd/thd.h, jrd/thd_proto.h,
+	jrd/thin.asm, jrd/thread.mar, jrd/time.h, jrd/tpc.c, jrd/tpc.h,
+	jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h, jrd/tra_proto.h, jrd/trig.h,
+	jrd/types.h, jrd/unix.c, jrd/utl.c, jrd/utl_proto.h, jrd/utls.def,
+	jrd/utlswep.c, jrd/v2_triggers.gdl, jrd/val.c, jrd/val.h,
+	jrd/val_proto.h, jrd/version.rc, jrd/version_95.rc, jrd/vio.c,
+	jrd/vio_debug.h, jrd/vio_proto.h, jrd/vms.c, jrd/vms.h,
+	jrd/vms_command.c, jrd/vmsevent.c, jrd/vmslo_proto.h,
+	jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c, jrd/why_proto.h,
+	jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c, jrd/yachts.gdb,
+	lock/config_params, lock/depends.mak, lock/driver.c,
+	lock/fparamv3.h, lock/lock.c, lock/lock.h, lock/lock_header_mmap,
+	lock/lock_header_shmem, lock/lock_proto.h, lock/lockv3.h,
+	lock/lockv3s4.h, lock/manager.c, lock/pls.c, lock/plserver.c,
+	lock/plserver.h, lock/print.c, lock/printv3.c:
+	
+	Save the whale, feed the poor, and set the sources free.
+
+2000-08-03 22:46  skywalker
+
+	* intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
+	cs_jis_20208_1990.c, cs_ksc.c, cs_ksc5601.h, cs_latin1.h,
+	cs_narrow.c, cs_next.h, cs_sjis.h, cs_unicode.c, cs_utffss.c,
+	cs_w1250.h, cs_w1251.h, cs_w1252.h, cs_w1253.h, cs_w1254.h,
+	csjis2_p.h, cv_big5.c, cv_gb2312.c, cv_jis.c, cv_ksc.c,
+	cv_narrow.c, cyrr.h, czech.h, db437de0.h, db437es1.h, db437fi0.h,
+	db437fr0.h, db437it0.h, db437nl0.h, db437sv0.h, db437uk0.h,
+	db437us0.h, db850cf0.h, db850de0.h, db850es0.h, db850fr0.h,
+	db850it1.h, db850nl0.h, db850pt0.h, db850sv1.h, db850uk0.h,
+	db850us0.h, db852cz0.h, db852hdc.h, db852po0.h, db852sl0.h,
+	db857tr0.h, db860pt0.h, db863cf1.h, db865da0.h, db865no0.h,
+	db866ru0.h, depends.mak, dtest.c, dtest2.c, hun852dc.h, iceland.h,
+	intl.def:
+	
+	Initial revision
+
+2000-08-03 22:46  skywalker
+
+	* intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
+	cs_jis_20208_1990.c, cs_ksc.c, cs_ksc5601.h, cs_latin1.h,
+	cs_narrow.c, cs_next.h, cs_sjis.h, cs_unicode.c, cs_utffss.c,
+	cs_w1250.h, cs_w1251.h, cs_w1252.h, cs_w1253.h, cs_w1254.h,
+	csjis2_p.h, cv_big5.c, cv_gb2312.c, cv_jis.c, cv_ksc.c,
+	cv_narrow.c, cyrr.h, czech.h, db437de0.h, db437es1.h, db437fi0.h,
+	db437fr0.h, db437it0.h, db437nl0.h, db437sv0.h, db437uk0.h,
+	db437us0.h, db850cf0.h, db850de0.h, db850es0.h, db850fr0.h,
+	db850it1.h, db850nl0.h, db850pt0.h, db850sv1.h, db850uk0.h,
+	db850us0.h, db852cz0.h, db852hdc.h, db852po0.h, db852sl0.h,
+	db857tr0.h, db860pt0.h, db863cf1.h, db865da0.h, db865no0.h,
+	db866ru0.h, depends.mak, dtest.c, dtest2.c, hun852dc.h, iceland.h,
+	intl.def:
+	
+	Save the whale, feed the poor, and set the sources free.
+
+2000-08-03 22:42  skywalker
+
+	* setup_build, setup_build.ksh, setup_dirs, setup_dirs.ksh,
+	alice/alice.c, alice/alice.h, alice/alice_proto.h,
+	alice/aliceswi.h, alice/all.c, alice/all.h, alice/all_proto.h,
+	alice/alloc.h, alice/blk.h, alice/depends.mak, alice/exe.c,
+	alice/exe_proto.h, alice/info.h, alice/lls.h, alice/met.e,
+	alice/met_proto.h, alice/tdr.c, alice/tdr_proto.h,
+	build_docs/ibbuild-unix-overview.txt, build_docs/ibbuild-win32.txt,
+	build_docs/linux.txt, build_docs/metadata_gdb.txt,
+	build_docs/msgs-overview.txt, builds/original/.version_flag,
+	builds/original/000_readme, builds/original/000_readme_porting,
+	builds/original/add_template, builds/original/bind_csilib.apollo,
+	builds/original/bind_dsql.apollo, builds/original/bind_gds.generic,
+	builds/original/bind_gds.hp, builds/original/bind_gds.win_nt,
+	builds/original/bind_gds5.apollo,
+	builds/original/bind_gds5.generic, builds/original/bind_gds5.hp,
+	builds/original/bind_gds_rsp.os2,
+	builds/original/bind_gds_rsp.win_nt, builds/original/bind_gds_s.im,
+	builds/original/bind_gds_s.sco, builds/original/bind_gdsf_s.im,
+	builds/original/bind_gdsf_s.sco,
+	builds/original/bind_gdsintl.win_nt,
+	builds/original/bind_gdslib.apollo,
+	builds/original/bind_pyxis.apollo,
+	builds/original/bind_remotelib.apollo, builds/original/build_kit,
+	builds/original/build_kit.bat, builds/original/build_kit.cmd,
+	builds/original/ccs.sco, builds/original/cdmt.config.sco,
+	builds/original/compress.sed, builds/original/compress_dbs,
+	builds/original/compress_dbs.bat, builds/original/copy_makes,
+	builds/original/copy_set_prot, builds/original/copyright.cl,
+	builds/original/copyright.clsr, builds/original/debug_entry.bind,
+	builds/original/depend.cl, builds/original/depend.clnd,
+	builds/original/depend.clsr, builds/original/depend.clsrnd,
+	builds/original/edit_make, builds/original/edit_makes,
+	builds/original/expand.sed, builds/original/expand_dbs,
+	builds/original/expand_dbs.bat, builds/original/fetch_comp,
+	builds/original/fetch_comp.bat, builds/original/gdsalias.asm,
+	builds/original/gsplit.h, builds/original/ibase.cmpnt.sco,
+	builds/original/ibase.pkg.sco, builds/original/ibase.prd.sco,
+	builds/original/iclient.cmpnt.sco, builds/original/iclient.pkg.sco,
+	builds/original/iclient.prd.sco, builds/original/inetd.conf.apollo,
+	builds/original/inetd.conf.psx, builds/original/inetd.conf.ultrix,
+	builds/original/inetd.conf.unx, builds/original/init.intrbase,
+	builds/original/install.apollo, builds/original/install.ksh,
+	builds/original/install.nolink, builds/original/install.sun4,
+	builds/original/install.unix, builds/original/intrbase.rmv,
+	builds/original/make.pipe, builds/original/makemtar,
+	builds/original/makepkg, builds/original/makesspkg,
+	builds/original/makesstar, builds/original/maketar,
+	builds/original/mpm_template, builds/original/mpp_template,
+	builds/original/pkginfo, builds/original/pkginfo.cl,
+	builds/original/pkginfo.clnd, builds/original/pkginfo.clsr,
+	builds/original/pkginfo.clsrnd, builds/original/platform,
+	builds/original/postinstall, builds/original/postinstall.cl,
+	builds/original/postinstall.clsr, builds/original/prefix.aix,
+	builds/original/prefix.aix_ppc, builds/original/prefix.ap,
+	builds/original/prefix.ax, builds/original/prefix.cray,
+	builds/original/prefix.decosf, builds/original/prefix.delta,
+	builds/original/prefix.dg, builds/original/refresh,
+	builds/original/prefix.dg_x86, builds/original/prefix.epson,
+	builds/original/prefix.hm300, builds/original/prefix.hp10,
+	builds/original/prefix.hp700, builds/original/prefix.hp9.0,
+	builds/original/prefix.imp, builds/original/prefix.linux,
+	builds/original/prefix.m88k, builds/original/prefix.mu,
+	builds/original/prefix.ncr3000, builds/original/prefix.nxt,
+	builds/original/prefix.os2, builds/original/prefix.sco,
+	builds/original/prefix.sco_ev, builds/original/prefix.sgi,
+	builds/original/prefix.solaris, builds/original/prefix.solaris_mt,
+	builds/original/prefix.sun4, builds/original/prefix.sun4_acc,
+	builds/original/prefix.ul, builds/original/prefix.unixware,
+	builds/original/prefix.win_nt, builds/original/prefix.win_nts,
+	builds/original/prep.intrbase, builds/original/preremove,
+	builds/original/preremove.cl, builds/original/preremove.clsr,
+	builds/original/put_template, builds/original/readme.sco,
+	builds/original/refresh.all, builds/original/refresh.bat,
+	builds/original/request, builds/original/request.cl,
+	builds/original/request.clsr, builds/original/run_edit,
+	builds/original/sco_ship, builds/original/servers.isc,
+	builds/original/services.isc, builds/original/set_prot,
+	builds/original/setup.ksh, builds/original/setup_gdbs,
+	builds/original/setup_prots, builds/original/sfx.alice,
+	builds/original/sfx.burp, builds/original/sfx.client,
+	builds/original/sfx.csv, builds/original/sfx.dsql,
+	builds/original/sfx.dudley, builds/original/sfx.example4,
+	builds/original/sfx.example5, builds/original/sfx.examples,
+	builds/original/sfx.extlib, builds/original/sfx.gpre,
+	builds/original/sfx.interbase, builds/original/sfx.intl,
+	builds/original/sfx.isql, builds/original/sfx.journal,
+	builds/original/sfx.jrd, builds/original/sfx.lock,
+	builds/original/sfx.msgs, builds/original/sfx.pyxis,
+	builds/original/sfx.qli, builds/original/sfx.remote,
+	builds/original/sfx.utilities, builds/original/sfx.wal,
+	builds/original/site_variables, builds/original/special_opt,
+	builds/original/special_opt.c, builds/original/sys.conf.isc.apollo,
+	builds/original/unset_prot, builds/original/v3compat,
+	builds_win32/original/add_template.bat,
+	builds_win32/original/build_lib.bat,
+	builds_win32/original/build_no.ksh,
+	builds_win32/original/compress.sed,
+	builds_win32/original/compress_dbs.bat,
+	builds_win32/original/compress_local.sed,
+	builds_win32/original/debug_entry.bind,
+	builds_win32/original/depends.sed,
+	builds_win32/original/depends_mak.bat,
+	builds_win32/original/expand.sed,
+	builds_win32/original/expand_cfile.bat,
+	builds_win32/original/expand_dbs.bat,
+	builds_win32/original/expand_local.sed,
+	builds_win32/original/gds32.bind,
+	builds_win32/original/gdsalias.asm,
+	builds_win32/original/gdsintl.bind,
+	builds_win32/original/ib_udf.bind,
+	builds_win32/original/ib_util.bind, builds_win32/original/ibconfig,
+	builds_win32/original/iblicen.bind,
+	builds_win32/original/include.mak,
+	builds_win32/original/jrd32.bind, builds_win32/original/make.alice,
+	builds_win32/original/make.burp, builds_win32/original/make.dsql,
+	builds_win32/original/make.dudley,
+	builds_win32/original/make.example4,
+	builds_win32/original/make.example5,
+	builds_win32/original/make.extlib,
+	builds_win32/original/make.gen_lics,
+	builds_win32/original/make.gpre, builds_win32/original/make.intl,
+	builds_win32/original/make.ipserver,
+	builds_win32/original/make.iscguard,
+	builds_win32/original/make.isql, builds_win32/original/make.jrd,
+	builds_win32/original/make.licenmgr,
+	builds_win32/original/make.lock, builds_win32/original/make.msgs,
+	builds_win32/original/make.qli,
+	builds_win32/original/make.register,
+	builds_win32/original/make.remote,
+	builds_win32/original/make.utilities,
+	builds_win32/original/make.wal, builds_win32/original/metadata.sql,
+	builds_win32/original/mpm_template.bat,
+	builds_win32/original/mpp_template.bat,
+	builds_win32/original/put_template.bat,
+	builds_win32/original/refresh.ksh, builds_win32/original/std.mk,
+	burp/backu_proto.h, burp/backup.e, burp/burp.c, burp/burp.def,
+	burp/burp.h, burp/burp32.def, burp/burp_proto.h, burp/burpswi.h,
+	burp/burpwep.c, burp/canon_proto.h, burp/canonical.c,
+	burp/depends.mak, burp/makefile.mak, burp/misc.c,
+	burp/misc_proto.h, burp/mvol.c, burp/mvol_proto.h,
+	burp/resto_proto.h, burp/restore.e, burp/spit.c, burp/spit.h,
+	csv/csi_proto.h, csv/csi.c, csv/csi.h, csv/css.c, csv/css_proto.h,
+	csv/csu.c, csv/depends.mak, csv/csv.c, csv/print.c, dsql/all.h,
+	dsql/alld.c, dsql/alld_proto.h, dsql/array.e, dsql/array_proto.h,
+	dsql/blk.h, dsql/blob.e, dsql/blob_proto.h, dsql/chars.h,
+	dsql/ddl_proto.h, dsql/ddl.c, dsql/depends.mak, dsql/dsql.c,
+	dsql/dsql.def, dsql/dsql.h, dsql/dsql_proto.h, dsql/dsqlwep.c,
+	dsql/errd.c, dsql/errd_proto.h, dsql/gen.c, dsql/gen_proto.h,
+	dsql/hsh.c, dsql/hsh_proto.h, dsql/keywords.h, dsql/make.c,
+	dsql/make_proto.h, dsql/makefile.mak, dsql/metd.e,
+	dsql/metd_proto.h, dsql/movd.c, dsql/movd_proto.h, dsql/node.h,
+	dsql/parse.awk, dsql/parse.c, dsql/parse.sed, dsql/parse.y,
+	dsql/parse_proto.h, dsql/pass1.c, dsql/pass1_proto.h,
+	dsql/prepa_proto.h, dsql/preparse.c, dsql/sqlda.h, dsql/sym.h,
+	dsql/user__proto.h, dsql/user_dsql.c, dsql/utld.c,
+	dsql/utld_proto.h, dudley/ddl.c, dudley/ddl_proto.h, dudley/ddl.h,
+	dudley/depends.mak, dudley/exe.e, dudley/exe_proto.h,
+	dudley/expan_proto.h, dudley/expand.c, dudley/expr.c,
+	dudley/expr_proto.h, dudley/extra_proto.h, dudley/extract.e,
+	dudley/gener_proto.h, dudley/generate.c, dudley/hsh.c,
+	dudley/hsh_proto.h, dudley/lex.c, dudley/lex_proto.h,
+	dudley/parse.c, dudley/parse.h, dudley/parse_proto.h, dudley/trn.c,
+	dudley/trn_proto.h, example4/align.h, example4/api1.c,
+	example4/api10.c, example4/api11.c, example4/api12.c,
+	example4/api13.c, example4/api14.e, example4/api15.c,
+	example4/api16.c, example4/api16t.c, example4/api2.c,
+	example4/api3.c, example4/api4.c, example4/api5.c, example4/api6.c,
+	example4/api7.c, example4/api9f.def, example4/api8.c,
+	example4/api9.c, example4/api9f.c, example4/apifull.c,
+	example4/create2.sql, example4/dyn1.e, example4/dyn2.e,
+	example4/dyn3.e, example4/dyn4.e, example4/dyn5.e,
+	example4/dynfull.e, example4/empbld.sql, example4/empbuild.e,
+	example4/empddl.sql, example4/empdml.sql, example4/example.def,
+	example4/example.h, example4/example.mak, example4/filter.sql,
+	example4/functions.c, example4/indexoff.sql, example4/indexon.sql,
+	example4/intlbld.e, example4/intlbld.sql, example4/intlddl.sql,
+	example4/intldml.sql, example4/job.inp, example4/lang.inp,
+	example4/makefile.bor, example4/makefile.mak,
+	example4/makefile.msc, example4/proj.inp, example4/qtr.inp,
+	example4/readme, example4/stat1.e, example4/stat10.e,
+	example4/stat11.e, example4/stat12.e, example4/stat12t.e,
+	example4/stat2.e, example4/stat3.e, example4/stat4.e,
+	example4/stat5.e, example4/stat6.e, example4/stat7.e,
+	example4/stat8.e, example4/stat9.e, example4/udf.sql,
+	example4/udflib.c, example4/udflib.def, example4/winevent.c,
+	example4/winevent.def, example4/winevent.rc, example5/align.h,
+	example5/api1.c, example5/api16t.c, example5/api10.c,
+	example5/api11.c, example5/api12.c, example5/api13.c,
+	example5/api14.e, example5/api15.c, example5/api16.c,
+	example5/api2.c, example5/api3.c, example5/api4.c, example5/api5.c,
+	example5/api6.c, example5/api7.c, example5/api8.c,
+	example5/api9f.def, example5/api9.c, example5/api9f.c,
+	example5/api9f.sql, example5/apifull.c, example5/build_make,
+	example5/dyn1.e, example5/dyn2.e, example5/dyn3.e, example5/dyn4.e,
+	example5/dyn5.e, example5/dynfull.e, example5/empbld.sql,
+	example5/empbuild.c, example5/empbuild.e, example5/empddl.sql,
+	example5/empdml.sql, example5/employe2.sql, example5/example.def,
+	example5/example.h, example5/example.mak, example5/functions.c,
+	example5/indexoff.sql, example5/indexon.sql, example5/intlbld.e,
+	example5/intlbld.sql, example5/intlddl.sql, example5/intldml.sql,
+	example5/job.inp, example5/lang.inp, example5/makefile.mak,
+	example5/prefix.hp10, example5/prefix.linux,
+	example5/prefix.sco_ev, example5/prefix.solaris,
+	example5/prefix.win32_bc, example5/prefix.win32_msc,
+	example5/proj.inp, example5/qtr.inp, example5/readme,
+	example5/sfx.unix_makefile, example5/sfx.win32_makefile,
+	example5/stat1.e, example5/stat10.e, example5/stat11.e,
+	example5/stat12.e, example5/stat12t.e, example5/stat2.e,
+	example5/stat3.e, example5/stat4.e, example5/stat5.e,
+	example5/stat6.e, example5/stat7.e, example5/stat8.e,
+	example5/stat9.e, example5/udf.sql, example5/udflib.c,
+	example5/udflib.def, example5/winevent.c, example5/winevent.def,
+	example5/winevent.rc, examples/437_to_865.h,
+	examples/437_to_lat1.h, examples/865_to_lat1.h, examples/array.e,
+	examples/array.epas, examples/atlas.gdl, examples/bind_cs.imp,
+	examples/bind_cs.sgi, examples/bind_filt.imp,
+	examples/bind_filter.sco, examples/bind_filter.sgi,
+	examples/bind_udf.imp, examples/bind_udf.sco,
+	examples/bind_udf.sgi, examples/c_guide.gdl, examples/city_pops.e,
+	examples/city_pops.ea, examples/city_pops.ebas,
+	examples/city_pops.ecob, examples/city_pops.ef,
+	examples/city_pops.efor, examples/city_pops.epas,
+	examples/city_pops.epli, examples/city_pops.exx,
+	examples/city_pops.vecob, examples/city_pops.vepas,
+	examples/city_pops_apollo.ef, examples/clients.437,
+	examples/contacts.437, examples/cs.make1, examples/cs.make10,
+	examples/cs.make11, examples/cs.make12, examples/cs.make13,
+	examples/cs.make14, examples/cs.make15, examples/cs.make16,
+	examples/cs.make3, examples/cs.make4, examples/cs.make5,
+	examples/cs.make7, examples/cs.make8, examples/cs.make9,
+	examples/cs_convert.c, examples/cs_demo.com, examples/cs_demo.gdl1,
+	examples/cs_demo.gdl2, examples/cs_funct.c, examples/cs_load.gdl,
+	examples/cs_load.qli, examples/dsql.e, examples/dsql.ea,
+	examples/dsql.ebas, examples/dsql.ecob, examples/dsql.ef,
+	examples/dsql.efor, examples/dsql.epas, examples/dsql.epli,
+	examples/dsql.exx, examples/dsql.vecob, examples/dsql.vepas,
+	examples/dsql_aix.ef, examples/dsql_apollo.ef,
+	examples/dsql_blob.e, examples/dsql_blob.epas,
+	examples/dsql_blob.vepas, examples/dsql_date1.e,
+	examples/dsql_date1.epas, examples/dsql_date1.vepas,
+	examples/dsql_date2.e, examples/dsql_date2.epas,
+	examples/dsql_date2.vepas, examples/dsql_hp.ef,
+	examples/dsql_sun.ef, examples/dsql_xl.ecob, examples/emp.e,
+	examples/emp.epas, examples/emp.gdl, examples/emp.vepas,
+	examples/filter.make1, examples/filter.make10,
+	examples/filter.make11, examples/filter.make12,
+	examples/filter.make13, examples/filter.make14,
+	examples/filter.make15, examples/filter.make16,
+	examples/filter.make2, examples/filter.make3,
+	examples/filter.make4, examples/filter.make5,
+	examples/filter.make6, examples/filter.make7,
+	examples/filter.make8, examples/filter.make9,
+	examples/filter_func.c, examples/filter_func1.c,
+	examples/filter_link.com, examples/forms_ski.e,
+	examples/forms_state.e, examples/full_dsql.e,
+	examples/full_dsql.epas, examples/full_dsql.vepas,
+	examples/functions.c, examples/functions1.c, examples/gconf.e,
+	examples/gconv.e, examples/gconv.readme, examples/gdml.e,
+	examples/gdml.ea, examples/gdml.ebas, examples/gdml.ecob,
+	examples/gdml.ef, examples/gdml.efor, examples/gdml.epas,
+	examples/gdml.epli, examples/gdml.exx, examples/gdml.vecob,
+	examples/gdml.vepas, examples/gdml_aix.ef, examples/gdml_apollo.ef,
+	examples/gdml_dg.ef, examples/gdml_sun.ef, examples/gdml_xl.ecob,
+	examples/gds_blk_data.f, examples/gdump.e, examples/gdump.readme,
+	examples/gref.e, examples/gref.readme, examples/interbase_ivp.com,
+	examples/isc_tcp.dat, examples/iscmapdb.c, examples/link.com,
+	examples/multi_db1.e, examples/multi_db2.e, examples/nc_guide.gdl,
+	examples/nr_filter.c, examples/nr_filter1.c,
+	examples/products.lat1, examples/shrcs.c, examples/shrfilter.c,
+	examples/shrfilter1.c, examples/shrudf.c, examples/shrudf1.c,
+	examples/slides.e, examples/slides.gdl, examples/slides.qli,
+	examples/sources.gdl, examples/sql.e, examples/sql.ea,
+	examples/sql.ebas, examples/sql.ecob, examples/sql.ef,
+	examples/sql.efor, examples/sql.epas, examples/sql.epli,
+	examples/sql.exx, examples/sql.vecob, examples/sql.vepas,
+	examples/sql_apollo.ef, examples/sql_blob1.e, examples/sql_blob2.e,
+	examples/sql_blob3.e, examples/sql_date.e, examples/sql_trans.e,
+	examples/stocks.e, examples/stocks.gdl, examples/udf.c,
+	examples/udf.gdl1, examples/udf.gdl2, examples/udf.make1,
+	examples/udf.make10, examples/udf.make11, examples/udf.make12,
+	examples/udf.make13, examples/udf.make14, examples/udf.make15,
+	examples/udf.make16, examples/udf.make2, examples/udf.make3,
+	examples/udf.make4, examples/udf.make5, examples/udf.make6,
+	examples/udf.make7, examples/udf.make8, examples/udf.make9,
+	examples/udf1.c, examples/udf_link.com, examples/udf_trig.gdl,
+	examples/udftest.e, examples/users.lat1, extlib/ib_udf.c,
+	extlib/ib_udf.h, extlib/ib_udf.sql, extlib/ib_util.c,
+	extlib/ib_util.h, extlib/ib_util.pas, extlib/makefile.mak,
+	gpre/cdbtable.h, gpre/ada.c, gpre/c_cxx.c, gpre/cmd_proto.h,
+	gpre/cmd.c, gpre/cme_proto.h, gpre/cme.c, gpre/cmp_proto.h,
+	gpre/cmp.c, gpre/depends.mak, gpre/cob.c, gpre/dyntable.c,
+	gpre/dyntable.h, gpre/exp.c, gpre/exp_proto.h, gpre/form.c,
+	gpre/form.h, gpre/form__proto.h, gpre/form_proto.h,
+	gpre/form_trn.c, gpre/ftn.c, gpre/gpre.c, gpre/gpre.h,
+	gpre/gpre_proto.h, gpre/gpreswi.h, gpre/hsh.c, gpre/hsh.h,
+	gpre/hsh_proto.h, gpre/int.c, gpre/jrdme_proto.h, gpre/jrdmet.c,
+	gpre/lang_proto.h, gpre/met.e, gpre/met_proto.h, gpre/movg.c,
+	gpre/movg_proto.h, gpre/msc.c, gpre/msc_proto.h, gpre/noform.c,
+	gpre/par.c, gpre/par_proto.h, gpre/parse.h, gpre/pas.c, gpre/pat.c,
+	gpre/pat.h, gpre/pat_proto.h, gpre/prett_proto.h, gpre/pretty.c,
+	gpre/sdltable.h, gpre/sqe.c, gpre/sqe_proto.h, gpre/sql.c,
+	gpre/sql_proto.h, gpre/words.h, intl/ancyrr.h, intl/anczech.h,
+	intl/angreek1.h, intl/anhundc.h, intl/anpolish.h, intl/ansii850.h,
+	intl/ansiintl.h, intl/ansinor4.h, intl/ansislov.h, intl/ansispan.h,
+	intl/ansiswfn.h, intl/anturk.h, intl/ascii.h, intl/ascii2.h,
+	intl/bllt1ca0.h, intl/bllt1da0.h, intl/bllt1de0.h, intl/bllt1es0.h,
+	intl/bllt1fi0.h, intl/bllt1fr0.h, intl/bllt1is0.h, intl/bllt1it0.h,
+	intl/bllt1nl0.h, intl/bllt1no0.h, intl/bllt1pt0.h, intl/bllt1sv0.h,
+	intl/bllt1uk0.h, intl/bllt1us0.h, intl/blnxtde0.h, intl/blnxtes0.h,
+	intl/blnxtfr0.h, intl/blnxtit0.h, intl/blnxtus0.h, intl/charsets.h,
+	intl/countries.h, intl/country_codes.h, intl/cs_437.h,
+	intl/cs_850.h, intl/cs_852.h, intl/cs_857.h, intl/cs_860.h,
+	intl/cs_861.h, intl/cs_863.h, intl/cs_865.h, intl/cs_big5.c,
+	intl/cs_big5.h, intl/cs_cyrl.h, intl/cs_gb2312.c:
+	
+	Initial revision
+
+2000-08-03 22:42  skywalker
+
+	* setup_build, setup_build.ksh, setup_dirs, setup_dirs.ksh,
+	alice/alice.c, alice/alice.h, alice/alice_proto.h,
+	alice/aliceswi.h, alice/all.c, alice/all.h, alice/all_proto.h,
+	alice/alloc.h, alice/blk.h, alice/depends.mak, alice/exe.c,
+	alice/exe_proto.h, alice/info.h, alice/lls.h, alice/met.e,
+	alice/met_proto.h, alice/tdr.c, alice/tdr_proto.h,
+	build_docs/ibbuild-unix-overview.txt, build_docs/ibbuild-win32.txt,
+	build_docs/linux.txt, build_docs/metadata_gdb.txt,
+	build_docs/msgs-overview.txt, builds/original/.version_flag,
+	builds/original/000_readme, builds/original/000_readme_porting,
+	builds/original/add_template, builds/original/bind_csilib.apollo,
+	builds/original/bind_dsql.apollo, builds/original/bind_gds.generic,
+	builds/original/bind_gds.hp, builds/original/bind_gds.win_nt,
+	builds/original/bind_gds5.apollo,
+	builds/original/bind_gds5.generic, builds/original/bind_gds5.hp,
+	builds/original/bind_gds_rsp.os2,
+	builds/original/bind_gds_rsp.win_nt, builds/original/bind_gds_s.im,
+	builds/original/bind_gds_s.sco, builds/original/bind_gdsf_s.im,
+	builds/original/bind_gdsf_s.sco,
+	builds/original/bind_gdsintl.win_nt,
+	builds/original/bind_gdslib.apollo,
+	builds/original/bind_pyxis.apollo,
+	builds/original/bind_remotelib.apollo, builds/original/build_kit,
+	builds/original/build_kit.bat, builds/original/build_kit.cmd,
+	builds/original/ccs.sco, builds/original/cdmt.config.sco,
+	builds/original/compress.sed, builds/original/compress_dbs,
+	builds/original/compress_dbs.bat, builds/original/copy_makes,
+	builds/original/copy_set_prot, builds/original/copyright.cl,
+	builds/original/copyright.clsr, builds/original/debug_entry.bind,
+	builds/original/depend.cl, builds/original/depend.clnd,
+	builds/original/depend.clsr, builds/original/depend.clsrnd,
+	builds/original/edit_make, builds/original/edit_makes,
+	builds/original/expand.sed, builds/original/expand_dbs,
+	builds/original/expand_dbs.bat, builds/original/fetch_comp,
+	builds/original/fetch_comp.bat, builds/original/gdsalias.asm,
+	builds/original/gsplit.h, builds/original/ibase.cmpnt.sco,
+	builds/original/ibase.pkg.sco, builds/original/ibase.prd.sco,
+	builds/original/iclient.cmpnt.sco, builds/original/iclient.pkg.sco,
+	builds/original/iclient.prd.sco, builds/original/inetd.conf.apollo,
+	builds/original/inetd.conf.psx, builds/original/inetd.conf.ultrix,
+	builds/original/inetd.conf.unx, builds/original/init.intrbase,
+	builds/original/install.apollo, builds/original/install.ksh,
+	builds/original/install.nolink, builds/original/install.sun4,
+	builds/original/install.unix, builds/original/intrbase.rmv,
+	builds/original/make.pipe, builds/original/makemtar,
+	builds/original/makepkg, builds/original/makesspkg,
+	builds/original/makesstar, builds/original/maketar,
+	builds/original/mpm_template, builds/original/mpp_template,
+	builds/original/pkginfo, builds/original/pkginfo.cl,
+	builds/original/pkginfo.clnd, builds/original/pkginfo.clsr,
+	builds/original/pkginfo.clsrnd, builds/original/platform,
+	builds/original/postinstall, builds/original/postinstall.cl,
+	builds/original/postinstall.clsr, builds/original/prefix.aix,
+	builds/original/prefix.aix_ppc, builds/original/prefix.ap,
+	builds/original/prefix.ax, builds/original/prefix.cray,
+	builds/original/prefix.decosf, builds/original/prefix.delta,
+	builds/original/prefix.dg, builds/original/refresh,
+	builds/original/prefix.dg_x86, builds/original/prefix.epson,
+	builds/original/prefix.hm300, builds/original/prefix.hp10,
+	builds/original/prefix.hp700, builds/original/prefix.hp9.0,
+	builds/original/prefix.imp, builds/original/prefix.linux,
+	builds/original/prefix.m88k, builds/original/prefix.mu,
+	builds/original/prefix.ncr3000, builds/original/prefix.nxt,
+	builds/original/prefix.os2, builds/original/prefix.sco,
+	builds/original/prefix.sco_ev, builds/original/prefix.sgi,
+	builds/original/prefix.solaris, builds/original/prefix.solaris_mt,
+	builds/original/prefix.sun4, builds/original/prefix.sun4_acc,
+	builds/original/prefix.ul, builds/original/prefix.unixware,
+	builds/original/prefix.win_nt, builds/original/prefix.win_nts,
+	builds/original/prep.intrbase, builds/original/preremove,
+	builds/original/preremove.cl, builds/original/preremove.clsr,
+	builds/original/put_template, builds/original/readme.sco,
+	builds/original/refresh.all, builds/original/refresh.bat,
+	builds/original/request, builds/original/request.cl,
+	builds/original/request.clsr, builds/original/run_edit,
+	builds/original/sco_ship, builds/original/servers.isc,
+	builds/original/services.isc, builds/original/set_prot,
+	builds/original/setup.ksh, builds/original/setup_gdbs,
+	builds/original/setup_prots, builds/original/sfx.alice,
+	builds/original/sfx.burp, builds/original/sfx.client,
+	builds/original/sfx.csv, builds/original/sfx.dsql,
+	builds/original/sfx.dudley, builds/original/sfx.example4,
+	builds/original/sfx.example5, builds/original/sfx.examples,
+	builds/original/sfx.extlib, builds/original/sfx.gpre,
+	builds/original/sfx.interbase, builds/original/sfx.intl,
+	builds/original/sfx.isql, builds/original/sfx.journal,
+	builds/original/sfx.jrd, builds/original/sfx.lock,
+	builds/original/sfx.msgs, builds/original/sfx.pyxis,
+	builds/original/sfx.qli, builds/original/sfx.remote,
+	builds/original/sfx.utilities, builds/original/sfx.wal,
+	builds/original/site_variables, builds/original/special_opt,
+	builds/original/special_opt.c, builds/original/sys.conf.isc.apollo,
+	builds/original/unset_prot, builds/original/v3compat,
+	builds_win32/original/add_template.bat,
+	builds_win32/original/build_lib.bat,
+	builds_win32/original/build_no.ksh,
+	builds_win32/original/compress.sed,
+	builds_win32/original/compress_dbs.bat,
+	builds_win32/original/compress_local.sed,
+	builds_win32/original/debug_entry.bind,
+	builds_win32/original/depends.sed,
+	builds_win32/original/depends_mak.bat,
+	builds_win32/original/expand.sed,
+	builds_win32/original/expand_cfile.bat,
+	builds_win32/original/expand_dbs.bat,
+	builds_win32/original/expand_local.sed,
+	builds_win32/original/gds32.bind,
+	builds_win32/original/gdsalias.asm,
+	builds_win32/original/gdsintl.bind,
+	builds_win32/original/ib_udf.bind,
+	builds_win32/original/ib_util.bind, builds_win32/original/ibconfig,
+	builds_win32/original/iblicen.bind,
+	builds_win32/original/include.mak,
+	builds_win32/original/jrd32.bind, builds_win32/original/make.alice,
+	builds_win32/original/make.burp, builds_win32/original/make.dsql,
+	builds_win32/original/make.dudley,
+	builds_win32/original/make.example4,
+	builds_win32/original/make.example5,
+	builds_win32/original/make.extlib,
+	builds_win32/original/make.gen_lics,
+	builds_win32/original/make.gpre, builds_win32/original/make.intl,
+	builds_win32/original/make.ipserver,
+	builds_win32/original/make.iscguard,
+	builds_win32/original/make.isql, builds_win32/original/make.jrd,
+	builds_win32/original/make.licenmgr,
+	builds_win32/original/make.lock, builds_win32/original/make.msgs,
+	builds_win32/original/make.qli,
+	builds_win32/original/make.register,
+	builds_win32/original/make.remote,
+	builds_win32/original/make.utilities,
+	builds_win32/original/make.wal, builds_win32/original/metadata.sql,
+	builds_win32/original/mpm_template.bat,
+	builds_win32/original/mpp_template.bat,
+	builds_win32/original/put_template.bat,
+	builds_win32/original/refresh.ksh, builds_win32/original/std.mk,
+	burp/backu_proto.h, burp/backup.e, burp/burp.c, burp/burp.def,
+	burp/burp.h, burp/burp32.def, burp/burp_proto.h, burp/burpswi.h,
+	burp/burpwep.c, burp/canon_proto.h, burp/canonical.c,
+	burp/depends.mak, burp/makefile.mak, burp/misc.c,
+	burp/misc_proto.h, burp/mvol.c, burp/mvol_proto.h,
+	burp/resto_proto.h, burp/restore.e, burp/spit.c, burp/spit.h,
+	csv/csi_proto.h, csv/csi.c, csv/csi.h, csv/css.c, csv/css_proto.h,
+	csv/csu.c, csv/depends.mak, csv/csv.c, csv/print.c, dsql/all.h,
+	dsql/alld.c, dsql/alld_proto.h, dsql/array.e, dsql/array_proto.h,
+	dsql/blk.h, dsql/blob.e, dsql/blob_proto.h, dsql/chars.h,
+	dsql/ddl_proto.h, dsql/ddl.c, dsql/depends.mak, dsql/dsql.c,
+	dsql/dsql.def, dsql/dsql.h, dsql/dsql_proto.h, dsql/dsqlwep.c,
+	dsql/errd.c, dsql/errd_proto.h, dsql/gen.c, dsql/gen_proto.h,
+	dsql/hsh.c, dsql/hsh_proto.h, dsql/keywords.h, dsql/make.c,
+	dsql/make_proto.h, dsql/makefile.mak, dsql/metd.e,
+	dsql/metd_proto.h, dsql/movd.c, dsql/movd_proto.h, dsql/node.h,
+	dsql/parse.awk, dsql/parse.c, dsql/parse.sed, dsql/parse.y,
+	dsql/parse_proto.h, dsql/pass1.c, dsql/pass1_proto.h,
+	dsql/prepa_proto.h, dsql/preparse.c, dsql/sqlda.h, dsql/sym.h,
+	dsql/user__proto.h, dsql/user_dsql.c, dsql/utld.c,
+	dsql/utld_proto.h, dudley/ddl.c, dudley/ddl_proto.h, dudley/ddl.h,
+	dudley/depends.mak, dudley/exe.e, dudley/exe_proto.h,
+	dudley/expan_proto.h, dudley/expand.c, dudley/expr.c,
+	dudley/expr_proto.h, dudley/extra_proto.h, dudley/extract.e,
+	dudley/gener_proto.h, dudley/generate.c, dudley/hsh.c,
+	dudley/hsh_proto.h, dudley/lex.c, dudley/lex_proto.h,
+	dudley/parse.c, dudley/parse.h, dudley/parse_proto.h, dudley/trn.c,
+	dudley/trn_proto.h, example4/align.h, example4/api1.c,
+	example4/api10.c, example4/api11.c, example4/api12.c,
+	example4/api13.c, example4/api14.e, example4/api15.c,
+	example4/api16.c, example4/api16t.c, example4/api2.c,
+	example4/api3.c, example4/api4.c, example4/api5.c, example4/api6.c,
+	example4/api7.c, example4/api9f.def, example4/api8.c,
+	example4/api9.c, example4/api9f.c, example4/apifull.c,
+	example4/create2.sql, example4/dyn1.e, example4/dyn2.e,
+	example4/dyn3.e, example4/dyn4.e, example4/dyn5.e,
+	example4/dynfull.e, example4/empbld.sql, example4/empbuild.e,
+	example4/empddl.sql, example4/empdml.sql, example4/example.def,
+	example4/example.h, example4/example.mak, example4/filter.sql,
+	example4/functions.c, example4/indexoff.sql, example4/indexon.sql,
+	example4/intlbld.e, example4/intlbld.sql, example4/intlddl.sql,
+	example4/intldml.sql, example4/job.inp, example4/lang.inp,
+	example4/makefile.bor, example4/makefile.mak,
+	example4/makefile.msc, example4/proj.inp, example4/qtr.inp,
+	example4/readme, example4/stat1.e, example4/stat10.e,
+	example4/stat11.e, example4/stat12.e, example4/stat12t.e,
+	example4/stat2.e, example4/stat3.e, example4/stat4.e,
+	example4/stat5.e, example4/stat6.e, example4/stat7.e,
+	example4/stat8.e, example4/stat9.e, example4/udf.sql,
+	example4/udflib.c, example4/udflib.def, example4/winevent.c,
+	example4/winevent.def, example4/winevent.rc, example5/align.h,
+	example5/api1.c, example5/api16t.c, example5/api10.c,
+	example5/api11.c, example5/api12.c, example5/api13.c,
+	example5/api14.e, example5/api15.c, example5/api16.c,
+	example5/api2.c, example5/api3.c, example5/api4.c, example5/api5.c,
+	example5/api6.c, example5/api7.c, example5/api8.c,
+	example5/api9f.def, example5/api9.c, example5/api9f.c,
+	example5/api9f.sql, example5/apifull.c, example5/build_make,
+	example5/dyn1.e, example5/dyn2.e, example5/dyn3.e, example5/dyn4.e,
+	example5/dyn5.e, example5/dynfull.e, example5/empbld.sql,
+	example5/empbuild.c, example5/empbuild.e, example5/empddl.sql,
+	example5/empdml.sql, example5/employe2.sql, example5/example.def,
+	example5/example.h, example5/example.mak, example5/functions.c,
+	example5/indexoff.sql, example5/indexon.sql, example5/intlbld.e,
+	example5/intlbld.sql, example5/intlddl.sql, example5/intldml.sql,
+	example5/job.inp, example5/lang.inp, example5/makefile.mak,
+	example5/prefix.hp10, example5/prefix.linux,
+	example5/prefix.sco_ev, example5/prefix.solaris,
+	example5/prefix.win32_bc, example5/prefix.win32_msc,
+	example5/proj.inp, example5/qtr.inp, example5/readme,
+	example5/sfx.unix_makefile, example5/sfx.win32_makefile,
+	example5/stat1.e, example5/stat10.e, example5/stat11.e,
+	example5/stat12.e, example5/stat12t.e, example5/stat2.e,
+	example5/stat3.e, example5/stat4.e, example5/stat5.e,
+	example5/stat6.e, example5/stat7.e, example5/stat8.e,
+	example5/stat9.e, example5/udf.sql, example5/udflib.c,
+	example5/udflib.def, example5/winevent.c, example5/winevent.def,
+	example5/winevent.rc, examples/437_to_865.h,
+	examples/437_to_lat1.h, examples/865_to_lat1.h, examples/array.e,
+	examples/array.epas, examples/atlas.gdl, examples/bind_cs.imp,
+	examples/bind_cs.sgi, examples/bind_filt.imp,
+	examples/bind_filter.sco, examples/bind_filter.sgi,
+	examples/bind_udf.imp, examples/bind_udf.sco,
+	examples/bind_udf.sgi, examples/c_guide.gdl, examples/city_pops.e,
+	examples/city_pops.ea, examples/city_pops.ebas,
+	examples/city_pops.ecob, examples/city_pops.ef,
+	examples/city_pops.efor, examples/city_pops.epas,
+	examples/city_pops.epli, examples/city_pops.exx,
+	examples/city_pops.vecob, examples/city_pops.vepas,
+	examples/city_pops_apollo.ef, examples/clients.437,
+	examples/contacts.437, examples/cs.make1, examples/cs.make10,
+	examples/cs.make11, examples/cs.make12, examples/cs.make13,
+	examples/cs.make14, examples/cs.make15, examples/cs.make16,
+	examples/cs.make3, examples/cs.make4, examples/cs.make5,
+	examples/cs.make7, examples/cs.make8, examples/cs.make9,
+	examples/cs_convert.c, examples/cs_demo.com, examples/cs_demo.gdl1,
+	examples/cs_demo.gdl2, examples/cs_funct.c, examples/cs_load.gdl,
+	examples/cs_load.qli, examples/dsql.e, examples/dsql.ea,
+	examples/dsql.ebas, examples/dsql.ecob, examples/dsql.ef,
+	examples/dsql.efor, examples/dsql.epas, examples/dsql.epli,
+	examples/dsql.exx, examples/dsql.vecob, examples/dsql.vepas,
+	examples/dsql_aix.ef, examples/dsql_apollo.ef,
+	examples/dsql_blob.e, examples/dsql_blob.epas,
+	examples/dsql_blob.vepas, examples/dsql_date1.e,
+	examples/dsql_date1.epas, examples/dsql_date1.vepas,
+	examples/dsql_date2.e, examples/dsql_date2.epas,
+	examples/dsql_date2.vepas, examples/dsql_hp.ef,
+	examples/dsql_sun.ef, examples/dsql_xl.ecob, examples/emp.e,
+	examples/emp.epas, examples/emp.gdl, examples/emp.vepas,
+	examples/filter.make1, examples/filter.make10,
+	examples/filter.make11, examples/filter.make12,
+	examples/filter.make13, examples/filter.make14,
+	examples/filter.make15, examples/filter.make16,
+	examples/filter.make2, examples/filter.make3,
+	examples/filter.make4, examples/filter.make5,
+	examples/filter.make6, examples/filter.make7,
+	examples/filter.make8, examples/filter.make9,
+	examples/filter_func.c, examples/filter_func1.c,
+	examples/filter_link.com, examples/forms_ski.e,
+	examples/forms_state.e, examples/full_dsql.e,
+	examples/full_dsql.epas, examples/full_dsql.vepas,
+	examples/functions.c, examples/functions1.c, examples/gconf.e,
+	examples/gconv.e, examples/gconv.readme, examples/gdml.e,
+	examples/gdml.ea, examples/gdml.ebas, examples/gdml.ecob,
+	examples/gdml.ef, examples/gdml.efor, examples/gdml.epas,
+	examples/gdml.epli, examples/gdml.exx, examples/gdml.vecob,
+	examples/gdml.vepas, examples/gdml_aix.ef, examples/gdml_apollo.ef,
+	examples/gdml_dg.ef, examples/gdml_sun.ef, examples/gdml_xl.ecob,
+	examples/gds_blk_data.f, examples/gdump.e, examples/gdump.readme,
+	examples/gref.e, examples/gref.readme, examples/interbase_ivp.com,
+	examples/isc_tcp.dat, examples/iscmapdb.c, examples/link.com,
+	examples/multi_db1.e, examples/multi_db2.e, examples/nc_guide.gdl,
+	examples/nr_filter.c, examples/nr_filter1.c,
+	examples/products.lat1, examples/shrcs.c, examples/shrfilter.c,
+	examples/shrfilter1.c, examples/shrudf.c, examples/shrudf1.c,
+	examples/slides.e, examples/slides.gdl, examples/slides.qli,
+	examples/sources.gdl, examples/sql.e, examples/sql.ea,
+	examples/sql.ebas, examples/sql.ecob, examples/sql.ef,
+	examples/sql.efor, examples/sql.epas, examples/sql.epli,
+	examples/sql.exx, examples/sql.vecob, examples/sql.vepas,
+	examples/sql_apollo.ef, examples/sql_blob1.e, examples/sql_blob2.e,
+	examples/sql_blob3.e, examples/sql_date.e, examples/sql_trans.e,
+	examples/stocks.e, examples/stocks.gdl, examples/udf.c,
+	examples/udf.gdl1, examples/udf.gdl2, examples/udf.make1,
+	examples/udf.make10, examples/udf.make11, examples/udf.make12,
+	examples/udf.make13, examples/udf.make14, examples/udf.make15,
+	examples/udf.make16, examples/udf.make2, examples/udf.make3,
+	examples/udf.make4, examples/udf.make5, examples/udf.make6,
+	examples/udf.make7, examples/udf.make8, examples/udf.make9,
+	examples/udf1.c, examples/udf_link.com, examples/udf_trig.gdl,
+	examples/udftest.e, examples/users.lat1, extlib/ib_udf.c,
+	extlib/ib_udf.h, extlib/ib_udf.sql, extlib/ib_util.c,
+	extlib/ib_util.h, extlib/ib_util.pas, extlib/makefile.mak,
+	gpre/cdbtable.h, gpre/ada.c, gpre/c_cxx.c, gpre/cmd_proto.h,
+	gpre/cmd.c, gpre/cme_proto.h, gpre/cme.c, gpre/cmp_proto.h,
+	gpre/cmp.c, gpre/depends.mak, gpre/cob.c, gpre/dyntable.c,
+	gpre/dyntable.h, gpre/exp.c, gpre/exp_proto.h, gpre/form.c,
+	gpre/form.h, gpre/form__proto.h, gpre/form_proto.h,
+	gpre/form_trn.c, gpre/ftn.c, gpre/gpre.c, gpre/gpre.h,
+	gpre/gpre_proto.h, gpre/gpreswi.h, gpre/hsh.c, gpre/hsh.h,
+	gpre/hsh_proto.h, gpre/int.c, gpre/jrdme_proto.h, gpre/jrdmet.c,
+	gpre/lang_proto.h, gpre/met.e, gpre/met_proto.h, gpre/movg.c,
+	gpre/movg_proto.h, gpre/msc.c, gpre/msc_proto.h, gpre/noform.c,
+	gpre/par.c, gpre/par_proto.h, gpre/parse.h, gpre/pas.c, gpre/pat.c,
+	gpre/pat.h, gpre/pat_proto.h, gpre/prett_proto.h, gpre/pretty.c,
+	gpre/sdltable.h, gpre/sqe.c, gpre/sqe_proto.h, gpre/sql.c,
+	gpre/sql_proto.h, gpre/words.h, intl/ancyrr.h, intl/anczech.h,
+	intl/angreek1.h, intl/anhundc.h, intl/anpolish.h, intl/ansii850.h,
+	intl/ansiintl.h, intl/ansinor4.h, intl/ansislov.h, intl/ansispan.h,
+	intl/ansiswfn.h, intl/anturk.h, intl/ascii.h, intl/ascii2.h,
+	intl/bllt1ca0.h, intl/bllt1da0.h, intl/bllt1de0.h, intl/bllt1es0.h,
+	intl/bllt1fi0.h, intl/bllt1fr0.h, intl/bllt1is0.h, intl/bllt1it0.h,
+	intl/bllt1nl0.h, intl/bllt1no0.h, intl/bllt1pt0.h, intl/bllt1sv0.h,
+	intl/bllt1uk0.h, intl/bllt1us0.h, intl/blnxtde0.h, intl/blnxtes0.h,
+	intl/blnxtfr0.h, intl/blnxtit0.h, intl/blnxtus0.h, intl/charsets.h,
+	intl/countries.h, intl/country_codes.h, intl/cs_437.h,
+	intl/cs_850.h, intl/cs_852.h, intl/cs_857.h, intl/cs_860.h,
+	intl/cs_861.h, intl/cs_863.h, intl/cs_865.h, intl/cs_big5.c,
+	intl/cs_big5.h, intl/cs_cyrl.h, intl/cs_gb2312.c:
+	
+	Save the whale, feed the poor, and set the sources free.
+
