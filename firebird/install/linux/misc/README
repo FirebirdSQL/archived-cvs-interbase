@@ -1,0 +1,59 @@
+Firebird 1.0.0 for Linux
+
+
+More information can be found about the Firebird 
+database engine from: 
+
+http://www.firebirdsql.org
+
+or affiliated sites: 
+
+http://www.ibphoenix.com
+http://www.interbase2000.com
+
+
+The Firebird database engine is derived from the
+InterBase(tm) product currently owned by Borland.  
+The documentation for InterBase v 6.0 applies also to
+the current FireBird release.  InterBase documentation 
+is available in Adobe Acrobat format from 
+http://www.interbase.com.
+
+
+WHATS NEW
+============
+
+For complete list of all new features, enhancements and bugfixes
+refer to files stored in /opt/interbase/doc directory.
+
+
+Enhancements:
+- Enhanced dependency checking
+- Large database file support
+- Engine support for 64-bit file I/O
+- Support for 16-kb pages
+- Expressly define external file location(s)
+- Win32 Forced Writes defaul=ON
+- Limit raised on External Table handles (NT)
+- External files now closed when external table is droped
+- CPU_AFFINITY configuration parameter
+- Connection now defaults to port 3050
+- Connection to server listening on a specific port
+- Added -NONAGLE switch for Linux ports
+- Additions and changes to isc_info_database
+
+Language enhancements:
+- CURRENT_USER and CURRENT_ROLE
+- DROP GENERATOR
+- GROUP BY UDF
+- RECREATE PROCEDURE and RECREATE TABLE
+- SELECT [FIRST x][SKIP y]
+- SUBSTRING built-in function
+- New PLANONLY option for statements
+- Allow FK indexes to be disabled
+- Case insensitive Hungarian Collation set
+- New comment marker for scripts
+
+API Enhancements:
+- Enhancements to isc_database_info
+

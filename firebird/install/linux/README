@@ -1,0 +1,22 @@
+
+This directory and subdirectories contain the files required to package 
+the Firebird binaries for linux.
+
+To use you need to be in the root build directory interbase after having
+done a build.
+
+make -f firebird/install/linux/Makefile
+
+
+will then give you instructions but basically:
+
+make -f firebird/install/linux/Makefile classicpackages
+
+will build both .tar.gz and .rpm packages for linux.
+
+
+Cheers
+
+Mark
+
+Dec 2001
