@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "example.h"
 #include <stdlib.h>
@@ -185,10 +188,10 @@ void process_statement(ARG(XSQLDA ISC_FAR * ISC_FAR *, sqldap),
 			length += sizeof (short);
 			alignment = sizeof (short);
 		}   
-		offset = ALIGN (offset, alignment);
+		offset = FB_ALIGN(offset, alignment);
 		var->sqldata = (char*) buffer + offset;
 		offset += length;
-		offset = ALIGN (offset, sizeof (short));
+		offset = FB_ALIGN(offset, sizeof (short));
 		var->sqlind = (short*) ((char*) buffer + offset);
 		offset += sizeof  (short);
 	}

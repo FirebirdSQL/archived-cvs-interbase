@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -233,10 +236,10 @@ ARGLIST(char    *query)
         **  So the output buffer values must be placed on
         **  word boundaries where appropriate
         */
-        offset = ALIGN (offset, alignment);
+        offset = FB_ALIGN(offset, alignment);
         var->sqldata = (char ISC_FAR *) buffer + offset;
         offset += length;
-        offset = ALIGN (offset, sizeof (short));
+        offset = FB_ALIGN(offset, sizeof (short));
         var->sqlind = (short*) ((char ISC_FAR *) buffer + offset);
         offset += sizeof  (short);
     }
