@@ -1,3 +1,83 @@
+2002-04-11 03:04  bellardo
+
+	* interbase/: this_build (1.812), this_build (1.811), this_build
+	(1.810), this_build (1.816), this_build (1.815), this_build
+	(1.814), this_build (1.813):
+	
+	inc_build_no
+
+2002-04-11 03:04  bellardo
+
+	* interbase/: Configure.sh (1.11),
+	builds/original/boot.sfx.interbase (1.5),
+	builds/original/prefix.sinixz (1.1), builds/original/sfx.isql
+	(1.2), gpre/cob.c (1.9), gpre/ftn.c (1.5), jrd/common.h (1.22),
+	jrd/file_params.h (1.5), jrd/ibase.h (1.18), jrd/isc.h (1.5),
+	jrd/isc_file.c (1.8), jrd/isc_ipc.c (1.4), jrd/isc_sync.c (1.7),
+	jrd/license.h (1.14), jrd/pag.c (1.7), jrd/pwd.c (1.9), jrd/pwd.h
+	(1.8), jrd/sort.c (1.19), jrd/svc.c (1.5), jrd/utl.c (1.10),
+	jrd/why.c (1.9), lock/lock.c (1.7), lock/lock.h (1.3),
+	lock/lockv3.h (1.5), lock/lockv3s4.h (1.2), pipe/head.c (1.4),
+	remote/inet.c (1.8):
+	
+	The SINIX-Z CS port contributed by Erik Kunze
+	<Erik.Kunze@philosys.de>.
+
+2002-03-27 08:44  robocop
+
+	* interbase/this_build (1.809):
+	
+	inc_build_no
+
+2002-03-27 08:44  robocop
+
+	* interbase/dsql/: parse.c (1.27), parse.y (1.26):
+	
+	Fix an oversight with the IBO hack => should work with multiple
+	column names.
+
+2002-03-24 03:35  robocop
+
+	* interbase/dsql/metd.e (1.7):
+	
+	Fix SF Bug #534208
+
+2002-03-24 03:35  robocop
+
+	* interbase/this_build (1.808):
+	
+	inc_build_no
+
+2002-03-24 03:05  robocop
+
+	* interbase/this_build (1.807):
+	
+	inc_build_no
+
+2002-03-24 03:05  robocop
+
+	* interbase/jrd/dfw.e (1.16):
+	
+	Fix SF Bug #533915
+
+2002-03-22 09:22  robocop
+
+	* interbase/this_build (1.806):
+	
+	inc_build_no
+
+2002-03-22 09:22  robocop
+
+	* interbase/dsql/: dsql.c (1.17), parse.c (1.26), parse.y (1.25):
+	
+	Fix the table.* construct that crashed the debug console.
+
+2002-03-20 10:47  fsg
+
+	* interbase/this_build (1.805):
+	
+	inc_build_no
+
 2002-03-18 11:00  paul_reeves
 
 	* interbase/this_build (1.804):
