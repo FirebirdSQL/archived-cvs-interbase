@@ -25,17 +25,21 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
 #include "../burp/burp.h"
 #ifdef WIN_NT
 #include <windows.h>
-#undef TEXT
 #include <winnt.h>
+#ifdef TEXT
+#undef TEXT
+#endif
 #define TEXT char
 #endif
 #include "../burp/burp_proto.h"
 #include "../burp/mvol_proto.h"
 #include "../jrd/gds_proto.h"
 #include "../jrd/gdsassert.h"
+#include "../jrd/thd_proto.h"
 #ifndef VMS
 #include <fcntl.h>
 #include <sys/types.h>
@@ -258,7 +262,6 @@ void MVOL_init_write (
  *
  **************************************/
 ULONG	temp_buffer_size;
-UCHAR	*new_buffer;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -441,7 +444,7 @@ while (count)
 	count--;
 	}
 
-    n = MIN (count, tdgbl->io_cnt);
+    n = MIN (count, (ULONG)tdgbl->io_cnt);
 
 	/* Copy data from the IO buffer */
 
@@ -491,7 +494,7 @@ while (count)
 	count--;
 	}
 
-    n = MIN (count, tdgbl->io_cnt);
+    n = MIN (count, (ULONG)tdgbl->io_cnt);
 
 	/* Skip ahead in current buffer */
 
@@ -633,7 +636,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 #else
     if (!WriteFile (tdgbl->file_desc, ptr,
 		((tdgbl->action->act_action == ACT_backup_split) &&
-		 (tdgbl->action->act_file->fil_length < left) ?
+		 ((int)tdgbl->action->act_file->fil_length < left) ?
 		 tdgbl->action->act_file->fil_length : left), &cnt, NULL))
       err = GetLastError();
 #endif /* !WIN_NT */
@@ -644,7 +647,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 	file_not_empty();
 	if (tdgbl->action->act_action == ACT_backup_split)
 	    {
-	    if (tdgbl->action->act_file->fil_length < left)
+	    if ((int)tdgbl->action->act_file->fil_length < left)
 		tdgbl->action->act_file->fil_length = 0;
 	    else
 		tdgbl->action->act_file->fil_length -= left;
@@ -702,7 +705,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 		memcpy (tdgbl->mvol_io_data, ptr, left);
 		}
 	    left += tdgbl->mvol_io_data - tdgbl->mvol_io_header;
-	    if (left >= tdgbl->mvol_io_buffer_size)
+	    if (left >= (int)tdgbl->mvol_io_buffer_size)
 		full_buffer = TRUE;
 	    else
 		full_buffer = FALSE;
@@ -787,7 +790,7 @@ while (count)
 	count--;
 	}
 
-    n = MIN (count, tdgbl->io_cnt);
+    n = MIN (count, (ULONG)tdgbl->io_cnt);
 
 	/* Copy data to the IO buffer */
 
@@ -885,7 +888,6 @@ static int get_text (
  *	Move a text attribute to a string and fill.
  *
  **************************************/
-UCHAR		*p;
 unsigned int	l, l2;
 TGBL	tdgbl;
 
@@ -1315,7 +1317,9 @@ while (GET_ATTRIBUTE (attribute) != att_end)
 	    break;
 
 	default:
-	    bad_attribute (attribute, 59); /* msg 59 backup */
+	    /* TMN: Here we should really have the following assert */
+	    /* assert(attribute <= MAX_USHORT); */
+	    bad_attribute ((USHORT)attribute, 59); /* msg 59 backup */
 	}
 
 return TRUE;
@@ -1335,7 +1339,6 @@ static BOOLEAN write_header (
  * Functional description
  *
  **************************************/
-int	SCHARs_written;
 ULONG	vax_value;
 USHORT	i;
 UCHAR	*p, *q;
