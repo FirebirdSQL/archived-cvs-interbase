@@ -15,6 +15,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/28 06:47:52  fsg
+ * Changed declaration of ascii_char in ib_udf.sql
+ * to get correct result as proposed by Claudio Valderrama
+ *
  */
 /*****************************************
  *
@@ -63,7 +68,7 @@ DECLARE EXTERNAL FUNCTION acos
  *****************************************/
 DECLARE EXTERNAL FUNCTION ascii_char
 	INTEGER
-	RETURNS CHAR(1) FREE_IT
+	RETURNS CSTRING(1) FREE_IT
 	ENTRY_POINT 'IB_UDF_ascii_char' MODULE_NAME 'ib_udf';
 
 /*****************************************
