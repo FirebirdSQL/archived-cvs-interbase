@@ -23,11 +23,14 @@
  * Contributor(s): ______________________________________.
  */
 
+#include <string.h>
+#include <stdlib.h>
 #include "../jrd/common.h"
 #include "../jrd/dsc.h"
 #include "../jrd/gds.h"
 #include "../jrd/constants.h"
 #include "../jrd/intl.h"
+#include "../jrd/gds_proto.h"
 #include "../jrd/gdsassert.h"
 #include "../jrd/dsc_proto.h"
 
@@ -35,31 +38,31 @@
    for holding the text image of the value.  */
 
 static USHORT CONST _DSC_convert_to_text_length [DTYPE_TYPE_MAX] = {
-    0, 			/* dtype_null */
-    0,			/* dtype_text */
-    0,	 		/* dtype_cstring */
-    0,			/* dtype_varying */
-    0,
-    0,
-    0,			/* dtype_packed */
-    0,			/* dtype_byte */
-    6,			/* dtype_short 		-32768 */
-    11,			/* dtype_long 		-2147483648 */
-    20,			/* dtype_quad 		-9223372036854775808 */
-    15,			/* dtype_real 		-1.23456789e+12 */
-    24,			/* dtype_double 	-1.2345678901234567e+123 */
-    24,			/* dtype_d_float (believed to have this range)	-1.2345678901234567e+123 */
-    10,			/* dtype_sql_date	YYYY-MM-DD */
-    13,			/* dtype_sql_time	HH:MM:SS.MMMM */
-    25,			/* dtype_timestamp 	YYYY-MM-DD HH:MM:SS.MMMM */
+	 0, 			/* dtype_null */
+	 0,			/* dtype_text */
+	 0,	 		/* dtype_cstring */
+	 0,			/* dtype_varying */
+	 0,
+	 0,
+	 0,			/* dtype_packed */
+	 0,			/* dtype_byte */
+	 6,			/* dtype_short 		-32768 */
+	11,			/* dtype_long 		-2147483648 */
+	20,			/* dtype_quad 		-9223372036854775808 */
+	15,			/* dtype_real 		-1.23456789e+12 */
+	24,			/* dtype_double 	-1.2345678901234567e+123 */
+	24,			/* dtype_d_float (believed to have this range)	-1.2345678901234567e+123 */
+	10,			/* dtype_sql_date	YYYY-MM-DD */
+	13,			/* dtype_sql_time	HH:MM:SS.MMMM */
+	25,			/* dtype_timestamp 	YYYY-MM-DD HH:MM:SS.MMMM */
 			/*  -- in BLR_version4 	DD-Mon-YYYY HH:MM:SS.MMMM */
-    9,			/* dtype_blob 		FFFF:FFFF */
-    9,			/* dtype_array 		FFFF:FFFF */
-    20			/* dtype_int64 		-9223372036854775808 + decimal point */
+	 9,			/* dtype_blob 		FFFF:FFFF */
+	 9,			/* dtype_array 		FFFF:FFFF */
+	20			/* dtype_int64 		-9223372036854775808 + decimal point */
 };
 
 /* blr to dsc type conversions */
-static CONST USHORT DSC_blr_type_mapping [] = {
+static CONST USHORT DSC_blr_type_mapping[] = {
 	blr_null,
 	blr_text,
 	blr_cstring,
@@ -82,7 +85,7 @@ static CONST USHORT DSC_blr_type_mapping [] = {
 
 /* Unimplemented names are in lowercase & <brackets> */
 /* Datatypes that represent a range of SQL datatypes are in lowercase */
-static CONST TEXT CONST	*DSC_dtype_names [] = {
+static CONST TEXT * CONST DSC_dtype_names[] = {
 	"<dtype_null>",
 	"CHAR",
 	"CSTRING",
@@ -110,7 +113,7 @@ static CONST TEXT CONST	*DSC_dtype_names [] = {
    dtype_null as the result means that we do not yet know the type of one of
    the operands, so we cannot decide the type of the result. */
 
-CONST BYTE	DSC_add_result [DTYPE_TYPE_MAX][DTYPE_TYPE_MAX] = {
+CONST BYTE DSC_add_result[DTYPE_TYPE_MAX][DTYPE_TYPE_MAX] = {
 
 /*
 	dtype_null	dtype_text	dtype_cstring	dtype_varying
@@ -783,7 +786,7 @@ if (!been_here)
 desc->dsc_flags = 0;
 desc->dsc_address = NULL;
 desc->dsc_length = length;
-desc->dsc_scale = scale;
+desc->dsc_scale = (SCHAR)scale;
 desc->dsc_sub_type = sub_type;
 
 switch (blr_type)
@@ -857,8 +860,10 @@ switch (blr_type)
     case blr_blob:
 	desc->dsc_length = 2 * sizeof (SLONG);
 	desc->dsc_dtype = dtype_blob;
-	if (sub_type == BLOB_text)
-	    desc->dsc_scale = charset;
+	if (sub_type == BLOB_text) {
+		assert(charset <= MAX_SCHAR);
+	    desc->dsc_scale = (SCHAR)charset;
+	}
 	break;
 
     case blr_cstring:
@@ -876,23 +881,23 @@ switch (blr_type)
 int DLL_EXPORT DSC_string_length (
     DSC		*desc)
 {
-/**************************************
- *
- *	D S C _ s t r i n g _ l e n g t h
- *
- **************************************
- *
- * Functional description
- *	Estimate length of string (in bytes) based on descriptor.
- *	Estimated length assumes representing string in 
- *	narrow-char ASCII format.
- *
- *	Note that this strips off the short at the
- *	start of dtype_varying, and the NULL for dtype_cstring.
- *
- **************************************/
+    /**************************************
+     *
+     *	D S C _ s t r i n g _ l e n g t h
+     *
+     **************************************
+     *
+     * Functional description
+     *	Estimate length of string (in bytes) based on descriptor.
+     *	Estimated length assumes representing string in 
+     *	narrow-char ASCII format.
+     *
+     *	Note that this strips off the short at the
+     *	start of dtype_varying, and the NULL for dtype_cstring.
+     *
+     **************************************/
 
-switch (desc->dsc_dtype)
+    switch (desc->dsc_dtype)
     {
     case dtype_text:	return desc->dsc_length;
     case dtype_cstring:	return desc->dsc_length - 1;
@@ -910,23 +915,23 @@ switch (desc->dsc_dtype)
     }
 }
 
-TEXT	*DSC_dtype_tostring (UCHAR	dtype)
+CONST TEXT* DSC_dtype_tostring(UCHAR dtype)
 {
-/**************************************
- *
- *	D S C _ d t y p e _ t o s t r i n g
- *
- **************************************
- *
- * Functional description
- *	Convert a datatype to its textual representation	
- *	
- **************************************/
-if (dtype < (sizeof (DSC_dtype_names)/
-			sizeof (DSC_dtype_names [0])))
-    return DSC_dtype_names [dtype];
-else
-    return "<unknown>";
+    /**************************************
+     *
+     *	D S C _ d t y p e _ t o s t r i n g
+     *
+     **************************************
+     *
+     * Functional description
+     *	Convert a datatype to its textual representation	
+     *	
+     **************************************/
+    if (dtype < (sizeof (DSC_dtype_names)/
+    			sizeof (DSC_dtype_names [0])))
+        return DSC_dtype_names[dtype];
+    else
+        return "<unknown>";
 }
 
 void DLL_EXPORT DSC_get_dtype_name (
@@ -934,17 +939,17 @@ void DLL_EXPORT DSC_get_dtype_name (
 				TEXT *buffer,
 				USHORT len)
 {
-/**************************************
- *
- *	D S C _ g e t _ d t y p e _ n a m e
- *
- **************************************
- *
- * Functional description
- *	Convert a datatype to its textual representation	
- *	
- **************************************/
-strncpy (buffer, DSC_dtype_tostring (desc->dsc_dtype), len);
+    /**************************************
+     *
+     *	D S C _ g e t _ d t y p e _ n a m e
+     *
+     **************************************
+     *
+     * Functional description
+     *	Convert a datatype to its textual representation	
+     *	
+     **************************************/
+    strncpy(buffer, DSC_dtype_tostring(desc->dsc_dtype), len);
 }
 
 #ifdef DEV_BUILD
@@ -1036,4 +1041,6 @@ for (op2 = dtype_null; op2 < DTYPE_TYPE_MAX; op2++)
     }
 return TRUE;
 }
-#endif
+
+#endif	/* DEV_BUILD */
+

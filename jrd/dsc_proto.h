@@ -26,11 +26,11 @@
 
 #include "../jrd/dsc.h"
 
-extern int DLL_EXPORT	  DSC_string_length (struct dsc *);
-extern TEXT *		  DSC_dtype_tostring (UCHAR);
-extern void DLL_EXPORT	  DSC_get_dtype_name (struct dsc *, TEXT*, USHORT);
-extern void DLL_EXPORT	  DSC_make_descriptor (struct dsc *, USHORT, SSHORT, USHORT, SSHORT, SSHORT, SSHORT);
-extern USHORT DLL_EXPORT  DSC_convert_to_text_length (USHORT dsc_type);
+extern int DLL_EXPORT	  DSC_string_length(struct dsc *);
+extern CONST TEXT*	  DSC_dtype_tostring(UCHAR);
+extern void DLL_EXPORT	  DSC_get_dtype_name(struct dsc *, TEXT*, USHORT);
+extern void DLL_EXPORT	  DSC_make_descriptor(struct dsc *, USHORT, SSHORT, USHORT, SSHORT, SSHORT, SSHORT);
+extern USHORT DLL_EXPORT  DSC_convert_to_text_length(USHORT dsc_type);
 
 extern CONST BYTE DSC_add_result [DTYPE_TYPE_MAX] [DTYPE_TYPE_MAX];
 extern CONST BYTE DSC_sub_result [DTYPE_TYPE_MAX] [DTYPE_TYPE_MAX];
