@@ -1,8 +1,39 @@
-2000-11-22 08:02  PJPG
+2000-11-24 18:23  fsg
 
-	* interbase/isql/extract.e
+	* interbase/pyxis/debug.c:
 	
-	Change comment from // to /* style in get_procedure_args.
+	Another little fix in pyxis/debug.c that nobody ever will notice
+	:-) Will print correct names for this forms stuff now.
+
+2000-11-22 18:24  patrickgriffin
+
+	* interbase/ChangeLog:
+	
+	Correct the name of the modified file in change log.
+	
+	...pat
+
+2000-11-22 18:07  patrickgriffin
+
+	* interbase/: ChangeLog, isql/extract.e:
+	
+	In get_procedure_args change comment style from // to /*
+	
+	...pat
+
+2000-11-20 18:17  fsg
+
+	* interbase/pyxis/edit.e:
+	
+	Changes to get edit.e through gpre 6.0 Still have to find out why
+	gpre isn't processing PYXYS FORM FIELDS correctly.  Probably no one
+	ever will need this.  But who cares :-)
+
+2000-11-19 08:43  fsg
+
+	* interbase/ChangeLog:
+	
+	Updated ChangeLog
 
 2000-11-19 08:02  fsg
 
