@@ -20,7 +20,7 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.6.25 Claudio Valderrama: add irq_r_gen_id_num to support
- *	new 
+ *	new MET_lookup_generator_id().
  */
 
 #ifndef _JRD_IRQ_H_
@@ -106,7 +106,8 @@
 #define irq_format6     71      /* make a new format for a record */
 #define irq_r_gen_id_num	72	/* lookup generator by ID. */
 #define irq_verify_role_name	73	/* ensure role exists in roles & user_privileges. */
+#define irq_l_relation_defsec	74	/* check the default sec class name against rel. */
 
-#define irq_MAX		74
+#define irq_MAX		75
 
 #endif /* _JRD_IRQ_H_ */
