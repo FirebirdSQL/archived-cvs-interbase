@@ -66,9 +66,11 @@
 /* RITTER - replaced symbol HP10 with HPUX in the line below */
 #if !(defined(HPUX) && defined(SUPERSERVER))
 #if !(defined(LINUX) && defined(SUPERSERVER))
+#if !(defined(FREEBSD) && defined(SUPERSERVER))
 #ifndef DARWIN
 #ifndef SINIXZ
 #define MANAGER_PROCESS
+#endif
 #endif
 #endif
 #endif

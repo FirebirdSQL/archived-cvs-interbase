@@ -189,6 +189,7 @@
 /* FreeBSD for Intel platforms */
 #ifdef FREEBSD
 
+#define UNIX_64_BIT_IO
 #define FB_ALIGN(n,b) ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT     4
 #define DOUBLE_ALIGN  4

@@ -2605,7 +2605,7 @@ int		state;
 int 		detach_state=PTHREAD_CREATE_DETACHED
 #endif
 
-#if ( !defined HP10 && !defined linux )
+#if ( !defined HP10 && !defined linux && !defined FREEBSD )
 
 state = pthread_attr_init (&pattr);
 if (state)
@@ -2628,7 +2628,7 @@ pthread_attr_destroy (&pattr);
 return state;
 
 #else
-#ifdef linux
+#if ( defined linux || defined FREEBSD )
 if (state = pthread_create (&thread, NULL, routine, arg))
     return state;
 return pthread_detach (thread);
