@@ -235,7 +235,7 @@ getDefaultSystemType() {
 
 checkVariables() {
 
-     if [ "$INTERBASE" = "" ]
+     if [ "$INTERBASE" = "" -o "$INTERBASE" = "`pwd`/interbase" ]
        then
          if [ $SYS_TYPE = 'FREEBSD' -o $SYS_TYPE = 'NETBSD' ]
            then
