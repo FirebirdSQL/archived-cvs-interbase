@@ -101,7 +101,12 @@ debug.o:	debug.c pyxis.h scr.h attributes.h
 	$(CC) -c $(CFLAGS) $(VERSION_FLAG) debugfoo.c
 	$(MV) debugfoo.o debug.o
 	-$(RM) debugfoo.c
+
+# the ib6.0 gpre is not up to the task of parsing edit.c, so the one we have
+# here is parsed in ib5.6.  This can be removed at some point in the future
+# when gpre is fixed.
 edit.c:		edit.e
+	touch edit.c
 edit.o:		edit.c pyxis.h phase2.h field_edit.h size_form.h form_name.h \
 		field_name.h enumerations.h 
 fred.c:		fred.e
