@@ -1824,6 +1824,7 @@ if (node->nod_type == nod_field)
 else
     {
     if ((node->nod_type == nod_gen_id) || 
+	(node->nod_type == nod_gen_id2)    || 
 	(node->nod_type == nod_udf)    || 
 	(node->nod_type == nod_cast))
 	{
@@ -2072,6 +2073,7 @@ if (node1->nod_type == nod_map)
     }
 
 if ((node1->nod_type == nod_gen_id) ||
+    (node1->nod_type == nod_gen_id2)    || 
     (node1->nod_type == nod_udf)    ||
     (node1->nod_type == nod_cast))
     {
