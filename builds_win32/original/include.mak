@@ -13,7 +13,9 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): ______________________________________.
+# Contributor(s): 
+#	Reed Mideke <rfm@cruzers.com>
+#	______________________________________.
 #------------------------------ INCLUDE.MAK ------------------------------------#
 #	This is the common makefile that is included in the component
 #	makefiles.  This set of makefiles is designed to work with
@@ -48,7 +50,7 @@
 .autodepend
 # Change this macro to use a different unix system for some things
 # Most of this is setup at refresh or setup time, so set setup_dirs.ksh and refrsh.ksh
-UNIX_DEV_ROOT=toolsdbs:/dbs/source/v6.0
+UNIX_DEV_ROOT=$(DB_DIR)
 
 LOCAL_DBA_PASSWORD=masterke
 
@@ -249,7 +251,7 @@ EXPAND_DBNAME=          $(ROOT)\expand_dbs
 
 
 #------------------------- Directory macros ------------------------------
-MSGSDIR=		toolsdbs:/dbs/source/v6.0/msgs
+MSGSDIR=		$(DB_DIR)/msgs
 #EXAMPLES_DBS=          $(DB_DIR)\examples\
 HLPDIR=                 $(DB_DIR)\qli\
 JRNDIR=                 $(DB_DIR)\journal\
