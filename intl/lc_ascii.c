@@ -62,7 +62,7 @@ FAMILY_ASCII (parm1, DOS101_init, CS_DOS_437, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS107_init)
 {
@@ -72,7 +72,7 @@ FAMILY_ASCII (parm1, DOS107_init, CS_DOS_865, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS160_init)
 {
@@ -82,7 +82,7 @@ FAMILY_ASCII (parm1, DOS160_init, CS_DOS_850, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (LATIN1_cp_init)
 {
@@ -92,7 +92,7 @@ FAMILY_ASCII (parm1, LATIN1_cp_init, CS_LATIN1, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (LATIN2_cp_init)
 {
@@ -102,7 +102,7 @@ FAMILY_ASCII (parm1, LATIN2_cp_init, CS_LATIN2, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS852_c0_init)
 {
@@ -112,7 +112,7 @@ FAMILY_ASCII (parm1, DOS852_c0_init, CS_DOS_852, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS857_c0_init)
 {
@@ -122,7 +122,7 @@ FAMILY_ASCII (parm1, DOS857_c0_init, CS_DOS_857, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS860_c0_init)
 {
@@ -132,7 +132,7 @@ FAMILY_ASCII (parm1, DOS860_c0_init, CS_DOS_860, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS861_c0_init)
 {
@@ -142,7 +142,7 @@ FAMILY_ASCII (parm1, DOS861_c0_init, CS_DOS_861, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (DOS863_c0_init)
 {
@@ -152,7 +152,7 @@ FAMILY_ASCII (parm1, DOS863_c0_init, CS_DOS_863, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (CYRL_c0_init)
 {
@@ -162,7 +162,7 @@ FAMILY_ASCII (parm1, CYRL_c0_init, CS_CYRL, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (WIN1250_c0_init)
 {
@@ -172,7 +172,7 @@ FAMILY_ASCII (parm1, WIN1250_c0_init, CS_WIN1250, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (WIN1251_c0_init)
 {
@@ -182,7 +182,7 @@ FAMILY_ASCII (parm1, WIN1251_c0_init, CS_WIN1251, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (WIN1252_c0_init)
 {
@@ -192,7 +192,7 @@ FAMILY_ASCII (parm1, WIN1252_c0_init, CS_WIN1252, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (WIN1253_c0_init)
 {
@@ -202,7 +202,7 @@ FAMILY_ASCII (parm1, WIN1253_c0_init, CS_WIN1253, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (WIN1254_c0_init)
 {
@@ -212,7 +212,7 @@ FAMILY_ASCII (parm1, WIN1254_c0_init, CS_WIN1254, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (NEXT_c0_init)
 {
@@ -222,7 +222,7 @@ FAMILY_ASCII (parm1, NEXT_c0_init, CS_NEXT, CC_C);
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 #undef FAMILY_ASCII
 

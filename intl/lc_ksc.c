@@ -74,7 +74,7 @@ cache->texttype_fn_mbtowc = CVKSC_ksc_mbtowc;
 TEXTTYPE_RETURN;
 }
 
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (CV_ksc_5601_dict_init)
 {
@@ -320,7 +320,7 @@ BYTE		*s2;
 }
 
 
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 #undef		FAMILY_MULTIBYTE
 #undef		ASCII_SPACE
 #undef		LANGKSC_MAX_KEY

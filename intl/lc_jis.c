@@ -73,7 +73,7 @@ cache->texttype_fn_str_to_upper =	sjis_str_to_upper;
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (JIS230_init)
 {
@@ -89,7 +89,7 @@ cache->texttype_fn_str_to_upper =	famasc_str_to_upper;
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 
 #undef FAMILY_MULTIBYTE

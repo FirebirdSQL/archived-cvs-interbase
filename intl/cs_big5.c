@@ -31,7 +31,7 @@ extern void 	CV_convert_init();
 
 CHARSET_ENTRY (CS_big_5)
 {
-#include "../intl/cs_big5.h"
+#include "../intl/charsets/cs_big5.h"
 static CONST ASCII POSIX [] = "BIG_5";
 
 csptr->charset_version = 40;

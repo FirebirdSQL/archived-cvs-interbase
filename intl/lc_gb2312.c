@@ -72,7 +72,7 @@ cache->texttype_fn_mbtowc = CVGB_gb2312_mbtowc;
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 
 #undef FAMILY_MULTIBYTE

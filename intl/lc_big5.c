@@ -72,7 +72,7 @@ cache->texttype_fn_mbtowc = CVBIG5_big5_mbtowc;
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 
 #undef FAMILY_MULTIBYTE

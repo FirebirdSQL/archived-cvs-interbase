@@ -84,7 +84,7 @@ cache->texttype_fn_mbtowc = wc_mbtowc;
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 TEXTTYPE_ENTRY (UNI201_init)
 {
@@ -96,7 +96,7 @@ cache->texttype_fn_mbtowc = CS_UTFFSS_fss_mbtowc;
 
 TEXTTYPE_RETURN;
 }
-#include "../intl/undef.h"
+#include "../intl/collations/undef.h"
 
 static SSHORT	wc_mbtowc (obj, wc, p, n)
     TEXTTYPE	*obj;

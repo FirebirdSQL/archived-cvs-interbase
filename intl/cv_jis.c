@@ -22,7 +22,7 @@
  */
 
 #include "../intl/ldcommon.h"
-#include "../intl/cs_sjis.h"
+#include "../intl/charsets/cs_sjis.h"
 
 
 USHORT	CVJIS_eucj_to_unicode (obj, dest_ptr, dest_len, src_ptr, src_len, err_code, err_position)
