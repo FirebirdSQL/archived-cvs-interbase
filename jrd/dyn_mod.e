@@ -495,7 +495,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
                             /* msg 204: Cannot rename domain %s to %s.  A domain with that name already exists. */
 			    }
  			}
-			else DYN_error_punt (TRUE, isc_dyn_zero_len_id, NULL, NULL, NULL, NULL, NULL);
+			else DYN_error_punt (TRUE, 212, NULL, NULL, NULL, NULL, NULL);
 				/* msg 212: "Zero length identifiers not allowed" */
 		    break;
 		    }
@@ -1178,7 +1178,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		new_fld[0] = 0;
         GET_STRING (&new_name, new_fld);
 		if (!new_fld[0])
-			DYN_error_punt (TRUE, isc_dyn_zero_len_id, NULL, NULL, NULL, NULL, NULL);
+			DYN_error_punt (TRUE, 212, NULL, NULL, NULL, NULL, NULL);
 			/* msg 212: "Zero length identifiers not allowed" */
 
 	    check_view_dependency (tdbb, dbb, gbl, r, f);
@@ -1538,7 +1538,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			/* GET_STRING (ptr, X.RDB$TRIGGER_NAME); */
 			GET_STRING (ptr, new_trigger_name);
 			if (!new_trigger_name[0])
-			DYN_error_punt (TRUE, isc_dyn_zero_len_id, NULL, NULL, NULL, NULL, NULL);
+			DYN_error_punt (TRUE, 212, NULL, NULL, NULL, NULL, NULL);
 			/* msg 212: "Zero length identifiers not allowed" */
 
 		    strcpy (X.RDB$TRIGGER_NAME, new_trigger_name);

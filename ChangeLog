@@ -1,3 +1,9 @@
+2001-05-28 06:47  robocop
+
+	* interbase/msgs/msg.gbak:
+	
+	New msg 212: Zero length identifiers are not allowed
+
 2001-05-25 20:29  bellardo
 
 	* interbase/firebird/bellardo/nightly_build_script:
