@@ -1,3 +1,9 @@
+2001-09-18 20:42  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	make drop table release external files
+
 2001-09-17 14:50  skywalker
 
 	* interbase/jrd/: dfw.e, dyn_util.e, grant.e:
