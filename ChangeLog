@@ -1,3 +1,29 @@
+2001-05-12 03:31  rfm
+
+	* interbase/: builds_win32/original/make.alice,
+	builds_win32/original/make.burp, builds_win32/original/make.dsql,
+	builds_win32/original/make.intl,
+	builds_win32/original/make.ipserver,
+	builds_win32/original/make.jrd, builds_win32/original/make.lock,
+	builds_win32/original/make.register,
+	builds_win32/original/make.remote,
+	builds_win32/original/make.utilities,
+	builds_win32/original/make.wal, jrd/winnt.c:
+	
+	use macros for echo, fix comment in jrd/winnt.c
+
+2001-05-07 09:23  fsg
+
+	* interbase/: firebird/skywalker/install/classic/CSpostinstall.sh,
+	jrd/jrd.c, remote/inet.c:
+	
+	Added Brad Pepers fixes for select calls in inet.c and his fix for
+	an uninitialized data structure in jrd.c Changed install script for
+	classic to allow include and intl files to be read by general
+	public
+	
+	fsg
+
 2001-05-07 08:02  bellardo
 
 	* interbase/remote/interface.c:
