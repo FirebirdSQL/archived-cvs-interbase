@@ -346,7 +346,7 @@ begin
 if CurStep=csFinished then begin
   //If user has chosen to install an app and run it automatically set up the registry accordingly
   //so that the server or guardian starts evertime they login.
-  if ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes then begin
+  if (ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes) and
       ( ShouldProcessEntry('ServerComponent', 'UseApplicationTask')= srYes ) then begin
     AppStr := StartApp('')+' -a';
 
