@@ -615,7 +615,7 @@ for (d = buffer, info = info_buf; *d != isc_info_end;)
 ISQL_FREE (buffer);
 ISQL_FREE (msg);
 }
-
+
 int SHOW_grants (
     SCHAR	*object,
     SCHAR	*terminator,
@@ -628,6 +628,25 @@ int SHOW_grants (
  **************************************
  *
  * Functional description
+ *	Placeholder for SHOW_grants2 without additional message.
+ *
+ **************************************/
+return SHOW_grants2 (object, terminator, obj_type, 0);
+}
+
+int SHOW_grants2 (
+    SCHAR	*object,
+    SCHAR	*terminator,
+    USHORT	obj_type,
+    TEXT	*optional_msg)
+{
+/**************************************
+ *
+ *	S H O W _ g r a n t s 2
+ *
+ **************************************
+ *
+ * Functional description
  *	Show grants for given object name
  *	This function is also called by extract for privileges.
  *  	It must extract granted privileges on tables/views to users,
@@ -635,6 +654,9 @@ int SHOW_grants (
  *	Grant execute privilege on procedures to users
  *	Grant various privilegs to procedures.
  *	All privileges may have the with_grant option set.
+ *	The optional msg is to display a customized message. When the
+ *	new feature of all grants is used, there's no way to print the
+ *	header message after this routine, so it should be printed here.
  *
  **************************************/
 BASED_ON RDB$USER_PRIVILEGES.RDB$USER		prev_user;
@@ -699,6 +721,8 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
 	    {
 	    make_priv_string (priv_flags, priv_string);
 
+	    if (first && optional_msg)
+		ISQL_printf (Out, optional_msg);
     	    first = FALSE;
 
 	    if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
@@ -831,6 +855,9 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
     if (prev_option != -1)
         {
         make_priv_string (priv_flags, priv_string);
+
+	if (first && optional_msg)
+	    ISQL_printf (Out, optional_msg);
     	first = FALSE;
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
@@ -871,6 +898,8 @@ FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ object
 	    PRC.RDB$OWNER_NAME NE PRV.RDB$USER
 	    SORTED BY  PRV.RDB$USER, PRV.RDB$FIELD_NAME, PRV.RDB$GRANT_OPTION;
 
+	if (first && optional_msg)
+		ISQL_printf (Out, optional_msg);
     	first = FALSE;
         ISQL_blankterm (PRV.RDB$USER);
 
@@ -986,6 +1015,8 @@ FOR PRV IN RDB$USER_PRIVILEGES WITH
     sprintf (Print_buffer, "GRANT %s TO %s%s%s%s", SQL_identifier,
              user_string, with_option, terminator, NEWLINE);
 
+    if (first && optional_msg)
+	ISQL_printf (Out, optional_msg);
     first = FALSE;
     ISQL_printf (Out, Print_buffer);
 
@@ -1007,7 +1038,7 @@ if (!first)
 
 return NOT_FOUND;
 }
-
+
 void SHOW_grant_roles (
     SCHAR	*terminator,
     SSHORT	*first)
@@ -1015,6 +1046,24 @@ void SHOW_grant_roles (
 /**************************************
  *
  *	S H O W _ g r a n t _ r o l e s
+ *
+ **************************************
+ *
+ * Functional description
+ *	Placeholder for SHOW_grant_roles2 without additional message.
+ *
+ **************************************/
+SHOW_grant_roles2 (terminator, first, 0);
+}
+
+void SHOW_grant_roles2 (
+    SCHAR	*terminator,
+    SSHORT	*first,
+    TEXT	*optional_msg)
+{
+/**************************************
+ *
+ *	S H O W _ g r a n t _ r o l e s 2
  *
  **************************************
  *
@@ -1037,7 +1086,11 @@ FOR PRV IN RDB$USER_PRIVILEGES WITH
     SORTED BY  PRV.RDB$RELATION_NAME, PRV.RDB$USER
 
     if (first)
+    {
+    	if (*first && optional_msg)
+		ISQL_printf (Out, optional_msg);
 	*first = FALSE;
+    }
 
     ISQL_blankterm (PRV.RDB$USER);
     strcpy (user_string, PRV.RDB$USER);
@@ -1400,56 +1453,59 @@ else if ((!strcmp (cmd [1], "GENERATOR")) ||
     }
 else if ((!strcmp (cmd [1], "GRANT")) || 
          (!strcmp (cmd [1], "GRANTS")))
-    {
+{
     if (*cmd [2])
 	{
-	if (*cmd [2] == '"')
-	    {
-	    remove_delimited_double_quotes (lcmd [2]);
-	    strcpy (SQL_id_for_grant, lcmd [2]);
-	    }
-	else
-	    strcpy (SQL_id_for_grant, cmd [2]);
-	ret = SHOW_grants (SQL_id_for_grant, "", 255);
+		if (*cmd [2] == '"')
+		{
+			remove_delimited_double_quotes (lcmd [2]);
+			strcpy (SQL_id_for_grant, lcmd [2]);
+		}
+		else
+			strcpy (SQL_id_for_grant, cmd [2]);
+		ret = SHOW_grants (SQL_id_for_grant, "", 255);
 	}
     else
 	{
-	    strcpy (SQL_id_for_grant, cmd [2]);
-	    ret = EXTRACT_list_grants ("");
+		strcpy (SQL_id_for_grant, cmd [2]);
+		ret = EXTRACT_list_grants ("");
 	}
 
     if (ret == NOT_FOUND)
-      {
-      FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ 
-					  SQL_id_for_grant;
-	  key = NO_GRANT_ON_REL;
-      END_FOR
-	  ON_ERROR
-	  /* Ignore any error */
-	  END_ERROR;
-      if (!key)
-        {
-        FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ 
-					     SQL_id_for_grant;
-	    key = NO_GRANT_ON_PROC;
-        END_FOR
-	    ON_ERROR
-	    /* Ignore any error */
-	    END_ERROR;
-        }
-      if (!key)
-        {
-        FOR FIRST 1 R IN RDB$ROLES WITH R.RDB$ROLE_NAME EQ SQL_id_for_grant;
-	    key = NO_GRANT_ON_ROL;
-        END_FOR
-	    ON_ERROR
-	    /* Ignore any error */
-	    END_ERROR;
-        }
-      if (!key)
-            key = NO_REL_OR_PROC_OR_ROLE;
-      }
-    }
+		if (*cmd [2])
+		{
+			FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ 
+				SQL_id_for_grant;
+			key = NO_GRANT_ON_REL;
+			END_FOR
+			ON_ERROR
+			/* Ignore any error */
+			END_ERROR;
+			if (!key)
+			{
+				FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ 
+					SQL_id_for_grant;
+				key = NO_GRANT_ON_PROC;
+				END_FOR
+				ON_ERROR
+				/* Ignore any error */
+				END_ERROR;
+			}
+			if (!key)
+			{
+				FOR FIRST 1 R IN RDB$ROLES WITH R.RDB$ROLE_NAME EQ SQL_id_for_grant;
+				key = NO_GRANT_ON_ROL;
+				END_FOR
+				ON_ERROR
+				/* Ignore any error */
+				END_ERROR;
+			}
+			if (!key)
+				key = NO_REL_OR_PROC_OR_ROLE;
+		}
+		else
+			key = NO_GRANT_ON_ANY;
+}
 else if ((!strcmp (cmd [1], "PROCEDURE")) ||
          (!strcmp (cmd [1], "PROC")) || 
          (!strcmp (cmd [1], "PROCEDURES")))  

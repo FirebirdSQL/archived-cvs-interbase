@@ -32,8 +32,9 @@
   2001.09.09  Claudio Valderrama: put double quotes around identifiers
 	in dialect 3 only when needed. Solve mischievous declaration/invocation
 	of ISQL_copy_SQL_id that made no sense and caused pointer problems.
-  2001/10/03  Neil McCalden  pick up Firbird version from database server
-    and display it with client version when -z used.
+  2001/10/03  Neil McCalden  pick up Firebird version from database server
+	and display it with client version when -z used.
+  2001.10.09 Claudio Valderrama: try to disconnect gracefully in batch mode.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -148,7 +149,7 @@ static SSHORT	print_sets (void);
 static SSHORT	help (TEXT *);
 static SSHORT	input (TEXT *);
 static BOOLEAN	isyesno (TEXT *);
-static SSHORT	newdb (TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
+static SSHORT	newdb (TEXT *, TEXT *, TEXT *, TEXT *, TEXT *, BOOL);
 static SSHORT	newoutput (TEXT *);
 static SSHORT	newsize (TEXT *, TEXT *);
 static SSHORT	newtrans (TEXT *);
@@ -243,6 +244,11 @@ static UCHAR	blr_bpb [] = { isc_bpb_version1,
 static UCHAR	default_tpb [] = {isc_tpb_version1, isc_tpb_write,
 				isc_tpb_read_committed, isc_tpb_wait,
 				isc_tpb_no_rec_version};
+
+/* CVC: Just in case we need it for R/O operations in the future. */
+static UCHAR	batch_tpb [] = {isc_tpb_version3, isc_tpb_read,
+				isc_tpb_read_committed, isc_tpb_nowait,
+				isc_tpb_rec_version};
 
 /* InterBase Performance Statistic format Variables */
 
@@ -416,17 +422,18 @@ switch (ret)
 	/* This is a call to do extractions */
 	if (*Db_name)
         {
-	  #ifndef GUI_TOOLS
+		Interactive = FALSE;
+	   #ifndef GUI_TOOLS
            /* Let's use user and password if provided.
               This should solve bug #112263 FSG 28.Jan.2001 */
-           (void) newdb (Db_name, User, Password, Numbufs, Role);
-          #endif
-        
+           (void) newdb (Db_name, User, Password, Numbufs, Role, FALSE);
+           #endif
         
            Exit_value = EXTRACT_ddl (SQL_objects, tabname);
-           
+   
 	   #ifndef GUI_TOOLS
-             isc_detach_database(isc_status, &DB);
+	     ISQL_disconnect_database (TRUE);
+             /* isc_detach_database(isc_status, &DB); */
            #endif
 	}
         break;
@@ -435,14 +442,18 @@ switch (ret)
 
 	if (*Db_name)
         {
-          #ifndef GUI_TOOLS
+		Interactive = FALSE;
+           #ifndef GUI_TOOLS
            /* Let's use user and password if provided.
               This should solve bug #112263 FSG 28.Jan.2001 */
-           (void) newdb (Db_name, User, Password, Numbufs, Role);
-          #endif
-          Exit_value = EXTRACT_ddl (ALL_objects, tabname);
+           (void) newdb (Db_name, User, Password, Numbufs, Role, FALSE);
+           #endif
+
+           Exit_value = EXTRACT_ddl (ALL_objects, tabname);
+
            #ifndef GUI_TOOLS
-	     isc_detach_database(isc_status, &DB);
+	     ISQL_disconnect_database (TRUE);
+	     /* isc_detach_database(isc_status, &DB); */
            #endif  	  
 	}
         break;
@@ -2064,7 +2075,8 @@ if (Stmt)
     isc_dsql_free_statement (isc_status, &Stmt, 2);
 
 /* Detach from old database */
-isc_detach_database (isc_status, &DB);
+if (DB)
+	isc_detach_database (isc_status, &DB);
 
 /* Enable error msgs */
 Quiet = FALSE;
@@ -3460,7 +3472,7 @@ signal (SIGINT, query_abort);
  */
 
 #ifndef GUI_TOOLS
-(void) newdb (Db_name, User, Password, Numbufs, Role);
+(void) newdb (Db_name, User, Password, Numbufs, Role, TRUE);
 
 /* If that failed or no Dbname was specified */
 
@@ -4468,7 +4480,7 @@ else if (!strcmp (parms [0], "CONNECT"))
 	    i++;
         }
     if (ret != ERR)
-	ret = newdb (lparms [1], usr, psw, numbufs, sql_role_nm);
+	ret = newdb (lparms [1], usr, psw, numbufs, sql_role_nm, TRUE);
     }
 
 #ifdef SCROLLABLE_CURSORS
@@ -5106,7 +5118,7 @@ static CONST UCHAR
 	db_version_info [] = { isc_info_ods_version,
 			       isc_info_ods_minor_version,
 			       isc_info_db_sql_dialect,
-                   isc_info_firebird_version,				   
+				   isc_info_firebird_version,
 			       isc_info_end };
     /* 
     ** Each info item requested will return 
@@ -5119,13 +5131,14 @@ static CONST UCHAR
     ** some padding in the buffer.
     */
 
-	/*UCHAR	buffer [sizeof(db_version_info)*(1+2+4)];*/
-	
-	/* Now we are also getting the Firebird server version which is a 
-	   string the above calculation does not apply.     NM 03-Oct-2001
-	*/
-	
-UCHAR	buffer [256];
+/*UCHAR buffer [sizeof(db_version_info)*(1+2+4)];*/ 
+
+/* Now we are also getting the Firebird server version which is a 
+   string the above calculation does not apply.     NM 03-Oct-2001 
+*/ 
+    
+UCHAR   buffer [256]; 
+
 UCHAR	*p;
 TEXT	bad_dialect_buf [512];
 BOOLEAN	print_warning = FALSE;
@@ -5248,17 +5261,17 @@ while (*p != isc_info_end)
 		    }
 		}
 	    break;
-		
-	case isc_info_firebird_version:
-		strcpy(server_version,"Server: ");
-		strncat(server_version,p,length);
+
+	case isc_info_firebird_version: 
+		strcpy(server_version, "Server: "); 
+		strncat(server_version, p, length); 
 		if (Version_info == TRUE) 
-			{
-			strcat(server_version,NEWLINE);
-			ISQL_printf (Out, server_version);
-			}
-		break;		
-		
+		{ 
+			strcat(server_version, NEWLINE); 
+			ISQL_printf (Out, server_version); 
+		} 
+		break; 
+
 	default:
 	    {
 	    TEXT	message [100];
@@ -5655,6 +5668,7 @@ static SSHORT help_set_ids [] = {
   HLP_SETLIST,	/*    SET LIST               -- toggle column or table display format*/
   HLP_SETNAMES,	/*    SET NAMES <csname>     -- set name of runtime character set*/
   HLP_SETPLAN,	/*    SET PLAN               -- toggle display of query access plan*/
+  HLP_SETPLANONLY,	/* SET PLANONLY          -- toggle display of query plan without executing*/
   HLP_SETSQLDIALECT,	/* SET SQL DIALECT <n> -- set sql dialect to <n> */
   HLP_SETSTAT,	/*    SET STATs              -- toggle display of performance statistics*/
   HLP_SETTIME,	/*    SET TIME               -- toggle display of timestamp with DATE values*/
@@ -5808,7 +5822,8 @@ static SSHORT newdb (
     TEXT	*usr,
     TEXT	*psw,
     TEXT	*numbufs,
-    TEXT	*sql_role_nm)
+    TEXT	*sql_role_nm,
+	BOOL	start_user_trans)
 {
 /**************************************
  *
@@ -6095,38 +6110,43 @@ if (*local_sql_role)
     }
 
 #ifndef GUI_TOOLS
-if (local_usr [0] != '\0')
+/* CVC: Do not put the user and pw used to extract metadata in a script!
+Only acknowledge user connection parameters in interactive logins. */
+if (Interactive)
+{
+	if (local_usr [0] != '\0')
     {
-    if (local_sql_role [0] != '\0')
+		if (local_sql_role [0] != '\0')
         {
-        sprintf (Print_buffer, "Database:  %s, User: %s, Role: %s%s", 
-            dbname, 
-            local_usr,
-            local_sql_role,
-            NEWLINE);
+			sprintf (Print_buffer, "Database:  %s, User: %s, Role: %s%s", 
+				dbname, 
+				local_usr,
+				local_sql_role,
+				NEWLINE);
         }
-    else
+		else
         {
-        sprintf (Print_buffer, "Database:  %s, User: %s%s", 
-            dbname, 
-            local_usr,
-            NEWLINE);
+			sprintf (Print_buffer, "Database:  %s, User: %s%s", 
+				dbname, 
+				local_usr,
+				NEWLINE);
         }
-    ISQL_printf (Out, Print_buffer);
+		ISQL_printf (Out, Print_buffer);
     }
-else
+	else
     {
-    if (local_sql_role [0] != '\0')
+		if (local_sql_role [0] != '\0')
         {
-        sprintf (Print_buffer, "Database:  %s, Role:  %s%s", 
-                 dbname, local_sql_role, NEWLINE);
+			sprintf (Print_buffer, "Database:  %s, Role:  %s%s", 
+				dbname, local_sql_role, NEWLINE);
         }
-    else
+		else
         {
-        sprintf (Print_buffer, "Database:  %s%s", dbname, NEWLINE);
+			sprintf (Print_buffer, "Database:  %s%s", dbname, NEWLINE);
         }
-    ISQL_printf (Out, Print_buffer);
+		ISQL_printf (Out, Print_buffer);
     }
+}
 #endif
 
 if (!V4 && !V33)
@@ -6151,7 +6171,11 @@ if (!V4 && !V33)
     return FAIL;
     }
 
-/* Start the user transaction  and default transaction */
+/* CVC: We do not require those pesky transactions for -x or -a options.
+Metadata extraction works exclusively with default transaction gds__trans. */
+if (start_user_trans)
+{
+/* Start the user transaction and default transaction */
 
 if (!M__trans)
     {
@@ -6166,7 +6190,7 @@ if (!M__trans)
     }
 
 
-/* Allocate a new user statement for ths database */
+/* Allocate a new user statement for this database */
 
 Stmt = 0;
 if (isc_dsql_allocate_statement (isc_status, &DB, &Stmt))
@@ -6193,6 +6217,9 @@ if (isc_dsql_allocate_statement (isc_status, &DB, &Stmt))
         ISQL_FREE (errbuf);
     return FAIL;
     }
+}
+else
+	Stmt = 0;
 
 if (save_database)
     ISQL_FREE (save_database);
@@ -6613,7 +6640,7 @@ while (i < argc)
 	    Quiet = TRUE;
 	else if (c == 'Z')
 	    {
-	    Version_info = TRUE;
+		Version_info = TRUE;
 	    gds__msg_format (NULL_PTR, ISQL_MSG_FAC, VERSION, MSG_LENGTH, 
 		errbuf,	GDS_VERSION, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 

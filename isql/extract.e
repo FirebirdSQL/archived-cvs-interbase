@@ -209,7 +209,7 @@ else
     list_functions();
 	list_generators();
     list_domains(default_char_set_id);
-    list_all_tables (flag,default_char_set_id);
+    list_all_tables (flag, default_char_set_id);
     list_index ();
     list_foreign ();
     list_views ();
@@ -1037,6 +1037,7 @@ static int list_all_grants2 (
  **************************************/
 SSHORT 	first = TRUE;
 TEXT	prev_owner [44];
+int rc = 0;
 
 /******************************************************************
 **
@@ -1090,7 +1091,7 @@ if (major_ods >= ODS_VERSION9 && show_role_list)
     END_FOR
 	ON_ERROR
 	    ISQL_errmsg (gds__status);
-	    return;
+	    return NOT_FOUND;
 	END_ERROR;
     }
 
@@ -1109,20 +1110,26 @@ FOR REL IN RDB$RELATIONS WITH
 	sprintf (Print_buffer, "%s/* Grant permissions for this database */%s",
 		 NEWLINE, 
 		 NEWLINE);
-	ISQL_printf (Out, Print_buffer);
+	if (show_role_list)
+		{
+		ISQL_printf (Out, Print_buffer);
+		first = FALSE;
+		}
 	}
-    first = FALSE;
 
     /* Null terminate name string */
 
     ISQL_blankterm (REL.RDB$RELATION_NAME);
 
-    SHOW_grants (REL.RDB$RELATION_NAME, terminator, obj_relation);
+    rc = SHOW_grants2 (REL.RDB$RELATION_NAME, terminator, obj_relation, 
+	first ? Print_buffer : 0);
+    if (rc == SKIP)
+		first = FALSE;
 
 END_FOR
     ON_ERROR
 	ISQL_errmsg (gds__status);
-	return;
+	return NOT_FOUND;
     END_ERROR;
 
 if (first)
@@ -1130,11 +1137,17 @@ if (first)
     sprintf (Print_buffer, "%s/* Grant permissions for this database */%s",
 	     NEWLINE, 
 	     NEWLINE);
-    ISQL_printf (Out, Print_buffer);
-    first = FALSE;
+    if (show_role_list)
+	{
+	ISQL_printf (Out, Print_buffer);
+	first = FALSE;
+	}
     }
 
-SHOW_grant_roles (terminator, &first); 
+if (first)
+    SHOW_grant_roles2 (terminator, &first, Print_buffer);
+else
+    SHOW_grant_roles (terminator, 0);
 
 /* Again for stored procedures */
 FOR PRC IN RDB$PROCEDURES 
@@ -1145,20 +1158,26 @@ FOR PRC IN RDB$PROCEDURES
 	sprintf (Print_buffer, "%s/* Grant permissions for this database */%s",
 		 NEWLINE, 
 		 NEWLINE);
-	ISQL_printf (Out, Print_buffer);
+	if (show_role_list)
+		{
+		ISQL_printf (Out, Print_buffer);
+		first = FALSE;
+		}
 	}
-    first = FALSE;
 
     /* Null terminate name string */
 
     ISQL_blankterm (PRC.RDB$PROCEDURE_NAME);
 
-    SHOW_grants (PRC.RDB$PROCEDURE_NAME, terminator, obj_procedure);
+    rc = SHOW_grants2 (PRC.RDB$PROCEDURE_NAME, terminator, obj_procedure, 
+		first ? Print_buffer: 0);
+    if (rc == SKIP)
+		first = FALSE;
 
 END_FOR
     ON_ERROR
 	ISQL_errmsg (gds__status);
-	return;
+	return NOT_FOUND;
     END_ERROR;
 
 return first ? NOT_FOUND : SKIP;
@@ -1183,9 +1202,8 @@ static void list_all_procs ()
  *	procname -- Name of procedure to investigate
  *
  **************************************/
-SSHORT	first_time, i, header = TRUE;
+SSHORT	header = TRUE;
 TEXT	msg [MSG_LENGTH];
-SCHAR   char_sets [86];
 static CONST SCHAR	*create_procedure_str1 = 
 	"CREATE PROCEDURE %s ";
 static CONST SCHAR	*create_procedure_str2 = 
@@ -1312,7 +1330,7 @@ FOR REL IN RDB$RELATIONS WITH
 	SORTED BY REL.RDB$RELATION_NAME
 
     /* If this is not an SQL table and we aren't doing ALL objects */
-    if ((REL.RDB$FLAGS != REL_sql) && (flag != ALL_objects))
+    if ((REL.RDB$FLAGS.NULL || !(REL.RDB$FLAGS & REL_sql)) && (flag != ALL_objects))
 	continue;
     /* Null terminate name string */
 

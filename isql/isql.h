@@ -217,6 +217,8 @@
 #define USAGE3 			104 /* Usage message 3 */
 #define INCOMPLETE_STR  105 /* Incomplete string in %s */
 #define HLP_SETSQLDIALECT	106 /* \tSET SQL DIALECT <n>    -- set sql dialect to <n> */
+#define NO_GRANT_ON_ANY 107 /* There is no privilege granted in this database. */
+#define HLP_SETPLANONLY 108 /* Toggle display of query plan without executing */
 
 #ifndef DEBUG
 #define Trace		0
