@@ -1,3 +1,39 @@
+2001-10-02 09:36  robocop
+
+	* interbase/extlib/: StdAfx.cpp, StdAfx.h, fbudf.cpp, fbudf.h,
+	fbudf.sql:
+	
+	Adds licensing terms.
+
+2001-10-02 09:34  robocop
+
+	* interbase/jrd/dfw.e:
+	
+	Fixes Bug #444463 by ignoring rdb$trigger_source in the condition. 
+	A more robust solution is needed in the long-time.
+
+2001-10-02 09:32  robocop
+
+	* interbase/jrd/: dyn.e, ibase.h:
+	
+	Support for explicit ROLE keyword in grants and revokes
+
+2001-10-02 09:26  robocop
+
+	* interbase/isql/: extra_proto.h, extract.e, isql.e, show.e,
+	show_proto.h:
+	
+	Extracts rights showing grantee type: USER ROLE (in sync with the
+	engine's enhancement) GROUP Allows SHOW GRANTS; to work by listing
+	all grants in the database.
+
+2001-10-02 09:23  robocop
+
+	* interbase/dsql/: ddl.c, parse.c, parse.y, pass1.c:
+	
+	Supports explicit TO ROLE role_name syntax in GRANTs and FROM ROLE
+	role_name syntax is REVOKEs.
+
 2001-09-30 20:59  dimitr
 
 	* interbase/build_docs/README.linux:
