@@ -1,3 +1,15 @@
+2001-05-31 05:00  robocop
+
+	* interbase/firebird/robocop/: grant.gdl, trig.h:
+	
+	Changes to system triggers to allow deactivating a FK
+
+2001-05-31 05:00  robocop
+
+	* interbase/firebird/robocop/: grant.gdl, trig.h:
+	
+	Initial revision
+
 2001-05-30 05:21  bellardo
 
 	* interbase/dsql/parse.sed:
