@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
  */
 
 #include <stdio.h>
@@ -287,19 +288,19 @@ PYXIS_push_form (window, form, TRUE);
 change = FALSE;
 
 for (;;)
-    CASE_MENU (HORIZONTAL) "Edit type:"
-	MENU_ENTREE "EDIT":
+    CASE_MENU (HORIZONTAL) 'Edit type:'
+	MENU_ENTREE 'EDIT':
 	    change |= PYXIS_edit (window, form, 
 		&db, &gds__trans);
 
-	MENU_ENTREE "REFORMAT":
+	MENU_ENTREE 'REFORMAT':
 	    PYXIS_format_form (form, gds__width, gds__height);
 	    change = TRUE;
 
-	MENU_ENTREE "SIZE":
+	MENU_ENTREE 'SIZE':
 	    size_form (window, form);
 
-	MENU_ENTREE "Exit":
+	MENU_ENTREE 'Exit':
 	    save_form (window, form, form_name);
 	    pyxis__pop_window (&window);
 	    return;
@@ -594,23 +595,23 @@ OPT_T	option;
 TEXT	*p, *file_name;
 
 if (form_name)
-    CASE_MENU (HORIZONTAL) "Retention options:"
-	MENU_ENTREE "SAVE":
+    CASE_MENU (HORIZONTAL) 'Retention options:'
+	MENU_ENTREE 'SAVE':
 	    option = e_replace;
-	MENU_ENTREE "RENAME":
+	MENU_ENTREE 'RENAME':
 	    option = e_store;
-	MENU_ENTREE "DISCARD":
+	MENU_ENTREE 'DISCARD':
 	    option = e_trash;
-	MENU_ENTREE "EXTERNAL FILE":
+	MENU_ENTREE 'EXTERNAL FILE':
 	    option = e_write;
     END_MENU
 else
-    CASE_MENU (HORIZONTAL) "Retention options:"
-	MENU_ENTREE "SAVE":
+    CASE_MENU (HORIZONTAL) 'Retention options:'
+	MENU_ENTREE 'SAVE':
 	    option = e_store;
-	MENU_ENTREE "DISCARD":
+	MENU_ENTREE 'DISCARD':
 	    option = e_trash;
-	MENU_ENTREE "EXTERNAL FILE":
+	MENU_ENTREE 'EXTERNAL FILE':
 	    option = e_write;
     END_MENU;
 
@@ -697,26 +698,26 @@ static top_menu (window)
 OBJ	form;
 TEXT	name_buffer [32];
 
-CASE_MENU (VERTICAL) "Pick one, please"
-    MENU_ENTREE "EDIT FORM":
+CASE_MENU (VERTICAL) 'Pick one, please'
+    MENU_ENTREE 'EDIT FORM':
 	if (form = get_form (window, name_buffer))
 	    edit_form (window, PYXIS_clone (form), name_buffer);
     
-    MENU_ENTREE "CREATE FORM":
+    MENU_ENTREE 'CREATE FORM':
 	create_form (window);
 
-    MENU_ENTREE "DELETE FORM":
+    MENU_ENTREE 'DELETE FORM':
 	delete_form (window);
     
-    MENU_ENTREE "COMMIT":
+    MENU_ENTREE 'COMMIT':
 	COMMIT;
 	START_TRANSACTION;
 
-    MENU_ENTREE "ROLLBACK":
+    MENU_ENTREE 'ROLLBACK':
 	ROLLBACK;
 	START_TRANSACTION;
 
-    MENU_ENTREE "Exit Form Editor":
+    MENU_ENTREE 'Exit Form Editor':
 	return FALSE;
 
 END_MENU;
