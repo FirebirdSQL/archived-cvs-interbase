@@ -8,7 +8,12 @@ Contents
 --------
 
 o Before installation
+o Installing on a system with InterBase
+o Installation assumptions
+o Uninstallation
 o Other Notes
+o Installation from a batch file
+
 
 Before Installation
 -------------------
@@ -18,27 +23,89 @@ Before Installation
   This installation package will try to detect if an existing
   version of Firebird or InterBase is installed and/or running.
 
-  You must either STOP the current server and/or delete the 
+  You must either STOP the current server and/or remove the 
   currently installed version before continuing.
 
 
   Stopping the Server
 
-  o If it is running as a service stop it from the Control Panel.
+  o If it is running as a service stop it via 'Control Panel | Services'.
   o If it is an application just close it.
 
+
+  Removing an existing server
+  
+  It is recommended that you uninstall a previous version of Firebird 
+  or InterBase, but it is not a requirement. See the Uninstallation 
+  section below for more details of the Firebird uninstallation routine.
+
+
+Installing on a system with InterBase
+-------------------------------------
+
+  Firebird 1.0 cannot be run at the same time as InterBase (any version). 
+  You must uninstall InterBase before installing Firebird. This may change 
+  with future releases. 
+
+  It is recommended that you do NOT install Firebird over an existing 
+  InterBase install. Install it to a new directory and use gbak to backup
+  your old isc4.gdb. Restore it under a new name. Stop the Firebird server.
+  Rename the database to isc4.gdb and then restart the server.
+
+  If you have special settings in ibconfig you can place them in the new 
+  ibconfig. Don't forget that they wont take effect until you restart the
+  server.
+
+Installation assumptions
+------------------------
+
+  o Admin rights are needed to install Firebird as a service. This requirement 
+    does not apply to Win95, Win98 or Win ME.
+
+  o If an existing, newer version of GDS32.DLL exists you will be prompted to 
+    overwrite it. It is recommended to answer YES if you are doing a server 
+    install.
+
+  o If an existing version of MSVCRT.DLL exists it is no longer updated. The 
+    installation will install it only if it does not exist on the target
+    system.
+
+  o If certain configuration files exist in the installation directory 
+    they will preserved. The files are
+
+      isc4.gdb
+      interbase.log
+      ibconfig
+
+
+
+Uninstallation
+--------------
+
+  The Firebird uninstall routine preserves the following key files:
+
+    isc4.gdb
+    interbase.log
+    ibconfig
+
+  No attempt is made to uninstall files that were not part of the original 
+  installation.
+
+  Shared files such as gds32.dll will be deleted if the share count 
+  indicates that no other application is using it.
+
+  The registry keys that were created will be removed.
 
 Other Notes
 -----------
 
-  Admin rights are needed to install Firebird as a service.
+  Firebird requires WinSock2. All Win32 platforms should have this, except
+  for Win95. A test for the Winsock2 library is made during install. If
+  it is not found the install will fail. You can visit this link:
 
-  This install script does nothing with the guardian (ibguard.exe). 
-  There are no tools provided to run the guardian as a service. The only
-  platform where this may present a problem is under Win NT. Here a user
-  with admin rights is needed to restart ibserver as a server in the event
-  of ibserver crashing. A later install package will include the option 
-  to install the guardian as a service.
+    http://support.microsoft.com/default.aspx?scid=kb;EN-US;q177719
+
+  to find out how to go about upgrading.
 
 
 Installation from a batch file

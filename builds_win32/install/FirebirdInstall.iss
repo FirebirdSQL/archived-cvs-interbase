@@ -14,7 +14,10 @@
 ;
 ;  All Rights Reserved.
 ;
-;  Contributor(s): ________________________________.
+;  Contributor(s):
+;     Tilo Muetze, Theo ? and Michael Rimov for improved detection
+;     of an existing install directory.
+;     Simon Carter for the WinSock2 detection.
 
 ;   Usage Notes
 ;
@@ -104,6 +107,8 @@ Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: Server DevToo
 Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
+;Source: interbase\bin\*.pdb; DestDir: {app}\bin; Components: Server; CopyMode: alwaysoverwrite
+;Source: interbase\bin\*.bsc; DestDir: {app}\bin; Components: Server; CopyMode: alwaysoverwrite
 Source: interbase\doc\*.*; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite; Flags: skipifsourcedoesntexist external
 Source: interbase\help\*.*; DestDir: {app}\help; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\include\*.*; DestDir: {app}\include; Components: Server DevTools; CopyMode: alwaysoverwrite
@@ -114,6 +119,11 @@ Source: interbase\examples\v5\*.*; DestDir: {app}\examples; Components: Server D
 Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: Server; CopyMode: normal; Flags: overwritereadonly sharedfile;
 Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: DevTools Client; CopyMode: normal; Flags: overwritereadonly sharedfile;
 Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: Server DevTools Client; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall sharedfile;
+Source: extlib\fbudf\Release\fbudf.dll; DestDir: {app}\UDF; Components: Server DevTools; CopyMode: alwaysoverwrite;
+Source: extlib\fbudf\fbudf.sql; DestDir: {app}\examples; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: firebird\install\linux\doc\FB1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: firebird\install\linux\doc\Firebird*.html; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
 
 [Icons]
 Name: {group}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: group; IconIndex: 0
@@ -150,11 +160,49 @@ EnableISX=true
 [Code]
 program Setup;
 
+const
+  sWinSock2 = 'ws2_32.dll';
+  sNoWinsock2 = 'Please Install Winsock 2 Update before continuing';
+  sMSWinsock2Update = 'http://www.microsoft.com/windows95/downloads/contents/WUAdminTools/S_WUNetworkingTools/W95Sockets2/Default.asp';
+  sWinsock2Web = 'Winsock 2 is not installed.'#13#13'Would you like to Visit the Winsock 2 Update Home Page?';
+
+var
+  Winsock2Failure: Boolean;
+  
+function CheckWinsock2(): Boolean;
+begin
+  Result := True;
+  //Check if Winsock 2 is installed (win 95 only)
+  if (not UsingWinNt) and (not FileExists(AddBackslash(GetSystemDir) + sWinSock2)) then begin
+    //MsgBox(sNoWinsock2, mbError, MB_OK);
+    Winsock2Failure := True;
+    Result := False;
+    end
+  else
+  	Winsock2Failure := False;
+end;
+
+procedure DeInitializeSetup();
+var
+  ErrCode: Integer;
+begin
+  // Did the install fail because winsock 2 was not installed?
+  if Winsock2Failure then
+    // Ask user if they want to visit the Winsock2 update web page.
+  	if MsgBox(sWinsock2Web, mbInformation, MB_YESNO) = idYes then
+  	  // User wants to visit the web page
+      InstShellExec(sMSWinsock2Update, sBlank, sBlank, SW_SHOWNORMAL, ErrCode);
+end;
+
+
 function InitializeSetup(): Boolean;
 var
   i: Integer;
 begin
   result := true;
+  
+  if not CheckWinsock2 then
+    exit;
 
   //Look for a running copy of InterBase, or an old version of Firebird.
   i:=0;
