@@ -1,3 +1,50 @@
+2001-11-18 22:27  nmcc
+
+	* interbase/Configure.sh:
+	
+	Change build of super directories so new 64bitio.h file is copied
+	and super server builds work again. Display bit io size selected.
+
+2001-11-18 16:35  nmcc
+
+	* interbase/Configure.sh:
+	
+	Change new 64bit IO question to honour NOPROMPT_SETUP - defaults to
+	32bit where it is optional define FIREBIRD_64_BIT_IO to override.
+
+2001-11-18 15:37  nmcc
+
+	* interbase/builds/original/maketar:
+	
+	Copy install script in to tar file generated as part of Solaris SS
+	build.
+
+2001-11-18 14:42  nmcc
+
+	* interbase/dsql/pass1.c:
+	
+	Change udf group by checking to allow aggregate as parameter to udf
+	in select list element which does not have to be in group by
+	clause.
+
+2001-11-18 06:16  bellardo
+
+	* interbase/: Configure.sh, jrd/common.h:
+	
+	The Configure.sh script now asks about a 64 bit io build on *nix
+	platforms where 64 bit io is applicable.  Writes out the correct
+	macro definition to jrd/64bitio.h if the user wants a 64 bit io
+	build.
+
+2001-11-10 06:21  dschnepper
+
+	* interbase/jrd/intl.c:
+	
+	
+	
+	Do not add a path before looking for the supplimental international
+	object library, gdsintl.dll
+
 2001-11-07 03:49  nmcc
 
 	* interbase/Configure.sh:
