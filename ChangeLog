@@ -1,3 +1,15 @@
+2001-11-26 19:12  awharrison
+
+	* interbase/jrd/: common.h, jrd.c:
+	
+	
+	Firebird defaults to forced writes on WIN32.  In the past, the
+	default was set with SYNC_WRITE_DEFAULT.  The new code took a more
+	direct approach, operating on the database options during a create.
+	 This change removes that code and adds a definition of
+	SYNC_WRITE_DEFAULT to common.h in the section that handles windows
+	defines.
+
 2001-11-23 09:30  robocop
 
 	* interbase/isql/isql.e:
