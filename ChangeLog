@@ -1,3 +1,41 @@
+2001-11-27 19:50  awharrison
+
+	* interbase/dsql/: ddl.c, dsql.h, errd.c, pass1.c:
+	
+	
+	
+	 Modified Files:
+		interbase/dsql/ddl.c interbase/dsql/dsql.h
+		interbase/dsql/errd.c interbase/dsql/pass1.c
+	
+	   1)  removed ambiguity checking to a subroutine
+	   2)  eliminated the requirement that each routine
+	       calling pass1_field keep a counter, since
+	       pass1_field always reset the counter.
+	   3)  eliminated the counter and the arrays that
+	       held potential matches for the field in
+	       favor of a list of relations and a list of
+	       procedures.
+	
+	In the process, realized that ERRD_post_warning does nothing to
+	preserve string arguments that might be stack local.  Warnings are
+	collected until the statement is ready to execute, so stack
+	variables tend to be unavailable.  Caused ERRD_post_warning to call
+	ERR_cstring to put those values in the jrd error ring buffer.  This
+	is cross component, and causes a warning that ERR_cstring is not
+	defined.  Inclding err_proto.h introduces lots of errors because
+	JRD and DSQL use the same names for different structures.   FB2
+	should unify the error handling of DSQL and JRD.  Since
+	ERRD_post_waring and ERRD_post both copy strings, removed
+	references to ERR_cstring elsewhere.
+	-------------------------------------------------------------------
+	--- Fixed the abiguity checking to distinguish between sql dialects
+	so it returns a warning in dialect 1 and an error in dialect 3.  In
+	the process, decided that the string "table/view" was ugly and that
+	it should know whether the entity was a table or view.	In the
+	process, decided that the whole process was too complex and
+	simplified it in the following ways:
+
 2001-11-26 19:12  awharrison
 
 	* interbase/jrd/: common.h, jrd.c:
