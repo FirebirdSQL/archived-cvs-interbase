@@ -678,7 +678,7 @@ codes.exe:	codes.o
 	$(CHMOD_7) codes.exe
 blrtable.h:	blrtable.c $(STDIO)
 	$(CC) $(CFLAGS) $(VERSION_FLAG) $(LINK_OPTS) blrtable.c $(STDIO) $(LD_LIBS) -o blrtable
-	-blrtable > blrtable.h
+	-./blrtable > blrtable.h
 	-$(RM) blrtable
 ids.h:	ids.m relations.h
 	m4 ids.m > ids.h

@@ -25,7 +25,7 @@ all:		build_file$(EXEC_EXT) check_messages$(EXEC_EXT) \
 
 interbase.msg:	build_file$(EXEC_EXT) check_messages$(EXEC_EXT) indicator.msg 
 	-$(RM) interbase.msg source/interbase/interbase.msg
-	build_file -d $(MSGSDIR)master_msg_db -f source/interbase/interbase.msg
+	./build_file -d $(MSGSDIR)master_msg_db -f source/interbase/interbase.msg
 	$(TOUCH) interbase.msg
 	$(CHMOD_6) interbase.msg source/interbase/interbase.msg
 
@@ -36,7 +36,7 @@ locales.msg:	$(LOCALES)
 
 fr_FR.msg:	build_file$(EXEC_EXT) indicator.msg indicator.loc
 	-$(RM) fr_FR.msg source/interbase/intl/fr_FR.msg
-	build_file -d $(MSGSDIR)master_msg_db \
+	./build_file -d $(MSGSDIR)master_msg_db \
 	-l fr_FR	\
 	-p source/interbase/intl
 	$(TOUCH) fr_FR.msg
