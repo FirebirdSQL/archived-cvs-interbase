@@ -1,3 +1,40 @@
+2001-09-11 20:41  bellardo
+
+	* interbase/dsql/pass1.c:
+	
+	Fixed problem where incorrect datatype was being reported in the
+	SQLDA when a bind parameter was used in FIRST/SKIP.
+
+2001-09-11 11:19  robocop
+
+	* interbase/isql/: extract.e, isql.e, isql_proto.h, show.e:
+	
+	Fixes #460624 and closes req for enhancement #460630
+
+2001-09-11 10:55  robocop
+
+	* interbase/jrd/idx.h:
+	
+	Clean misleading comment about undone changes in the header.
+
+2001-09-11 10:53  robocop
+
+	* interbase/dsql/blob.e:
+	
+	Fixed bug #460621 with embedded blanks in identifiers.
+
+2001-09-11 10:45  robocop
+
+	* interbase/dsql/: parse.c, parse.y:
+	
+	Fixed bug #457133 with single line comments.
+
+2001-09-11 03:30  bellardo
+
+	* interbase/dsql/pass1.c:
+	
+	Fix for BUG #451798 - FIRST/SKIP applied before aggregates.
+
 2001-09-05 07:01  robocop
 
 	* interbase/jrd/ibase.h:
