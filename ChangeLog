@@ -1,3 +1,16 @@
+2001-08-13 07:14  robocop
+
+	* interbase/jrd/: dfw.e, scl.e:
+	
+	Fixes a couple of anomalies and security breaches with quoted
+	identifiers and embedded blanks.
+
+2001-08-13 07:12  robocop
+
+	* interbase/dsql/: gen.c, parse.c, parse.y:
+	
+	Fixes Bug #450301
+
 2001-08-09 09:32  robocop
 
 	* interbase/jrd/: gdsold.h, ibase.h, inf.c:
