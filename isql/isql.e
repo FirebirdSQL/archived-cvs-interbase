@@ -7471,6 +7471,18 @@ if (isc_dsql_prepare (isc_status, &prepare_trans, &Stmt, 0, string,
 if (isc_status[2] == isc_arg_warning)
     ISQL_warning (isc_status);
 
+/* Find out what kind of statement this is */
+
+if (isc_dsql_sql_info (isc_status, &Stmt, sizeof (sqlda_info), sqlda_info,
+	sizeof (info_buffer), info_buffer))
+    ISQL_errmsg (isc_status);
+else
+    if (info_buffer [0] == isc_info_sql_stmt_type)
+	{
+	l = gds__vax_integer (info_buffer + 1, 2);
+	statement_type = gds__vax_integer (info_buffer + 3, l);
+	}
+
 
 #ifdef DEV_BUILD
 if (Sqlda_display)
@@ -7507,8 +7519,9 @@ if (Sqlda_display)
 	    ISQL_warning (isc_status);
 	}
 
- if ((statement_type == isc_info_sql_stmt_select) 
-    || statement_type == isc_info_sql_stmt_select_for_upd)
+ if ((statement_type == isc_info_sql_stmt_select) ||
+     (statement_type == isc_info_sql_stmt_select_for_upd) ||
+	 (statement_type == isc_info_sql_stmt_exec_procedure))
 	{
 	UCHAR	buffer [100];
 	USHORT	i;
@@ -7538,23 +7551,11 @@ if (Sqlda_display)
     }
 #endif
 
-/* Find out what kind of statement this is */
-
-if (isc_dsql_sql_info (isc_status, &Stmt, sizeof (sqlda_info), sqlda_info,
-	sizeof (info_buffer), info_buffer))
-    ISQL_errmsg (isc_status);
-else
-    if (info_buffer [0] == isc_info_sql_stmt_type)
-	{
-	l = gds__vax_integer (info_buffer + 1, 2);
-	statement_type = gds__vax_integer (info_buffer + 3, l);
-	}
-
-/* if PLAN is set, print out the plan now */
-
 /* check for warnings */
 if (isc_status[2] == isc_arg_warning)
     ISQL_warning (isc_status);
+
+/* if PLAN is set, print out the plan now */
 
 if (Plan)
     {
@@ -7583,7 +7584,8 @@ if (Plan)
 /* If the statement isn't a select, execute it and be done */
 
 if (statement_type != isc_info_sql_stmt_select 
-    && statement_type != isc_info_sql_stmt_select_for_upd)
+    && statement_type != isc_info_sql_stmt_select_for_upd
+    && statement_type != isc_info_sql_stmt_exec_procedure)
     {
     /* If this is an autocommit, put the DDL stmt on a special trans */
 
