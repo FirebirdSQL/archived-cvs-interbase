@@ -1,3 +1,50 @@
+2001-12-04 16:31  paul_reeves
+
+	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_Build_No.bat,
+	FB_Build_Win32_Readme.txt, jrd/version_95.rc:
+	
+	Win32 build - Turned off compile warnings by default and added
+	option to turn them on. Fixed slash conversion to work correctly.
+	Added string terminator to special build resource in version_95.rc.
+
+2001-12-04 08:25  robocop
+
+	* interbase/jrd/inf.c:
+	
+	Refresh the db's header only once when necessary to fulfill a
+	request for txn info or forced writes.
+
+2001-12-04 08:19  robocop
+
+	* interbase/dsql/: ddl.c, dsql.h, metd.e, metd_proto.h, pass1.c:
+	
+	Allow UDF arguments to be query parameters. Beware that with udfs
+	that use descriptors, the formal argument is used; the engine
+	cannot guess the actual intended argument type: a UDF using int by
+	descritor can cope with any numeric type with precision smaller
+	than 10 but the client will see an integer parameter. This issue
+	doesn't happen with arguments that aren't parameters, so one way is
+	to redeclare the udf for the exact needed type and the other is to
+	try to change the DSQL descriptors, same as when varchar can be
+	changed to char in the API examples.
+
+2001-12-04 01:02  awharrison
+
+	* interbase/jrd/tra.c:
+	
+	
+	 Modified Files:
+		interbase/jrd/tra.c
+	-------------------------------------------------------------------
+	--- Make read-only read-committed transactions non-blocking
+
+2001-12-04 01:00  awharrison
+
+	* interbase/dsql/pass1.c:
+	
+	
+	Check that a field exists before checking its ambiguity
+
 2001-12-03 15:17  kkuznetsov
 
 	* interbase/jrd/gds.c:
