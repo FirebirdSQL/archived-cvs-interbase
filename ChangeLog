@@ -1,3 +1,17 @@
+2001-06-25 18:51  bellardo
+
+	* interbase/jrd/gds.c:
+	
+	Fixed compile error in Darwin SS caused by the previous days
+	common.h changes.
+
+2001-06-25 02:39  bellardo
+
+	* interbase/jrd/common.h:
+	
+	Fixed a memory allocation bug in Darwin SS port that caused all
+	attempts to allocate memory to fail.
+
 2001-06-22 17:27  fsg
 
 	* interbase/intl/anhun.h:
