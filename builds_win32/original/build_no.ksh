@@ -46,15 +46,15 @@
 
 # For Firebird we also are adopting an odd minor number => dev/test/beta 
 # and even minor number => production release.
-# That way 0.9 is precursor to production 1.0 and 1.1 versions are dev/test
-# versions of the upcomming production 1.2 version.
+# That way 0.9 is a precursor to production 1.0 and 1.1 versions are dev/test
+# versions of the upcoming production 1.2 version.
 # This method is also used in a few other projects (linux kernel, gcc etc).
 
 BUILD_TYPE=T
 MAJOR_VER=1
 MINOR_VER=0
 REV_NO=0
-BUILD_SUFFIX="Firebird Release Candidate 1"
+BUILD_SUFFIX="Firebird Release Candidate 2"
 ISC_MAJOR_VER=6
 ISC_MINOR_VER=2
 

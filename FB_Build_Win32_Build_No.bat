@@ -38,7 +38,7 @@ set BUILD_TYPE=T
 set MAJOR_VER=1
 set MINOR_VER=0
 set REV_NO=0
-set BUILD_SUFFIX="Firebird RC1"
+set BUILD_SUFFIX="Firebird Release Candidate 2"
 
 set ISC_MAJOR_VER=6
 set ISC_MINOR_VER=2
@@ -82,7 +82,7 @@ echo #define FB_MINOR_VER "%MINOR_VER%" >> jrd/build_no.h
 echo #define FB_REV_NO "%REV_NO%" >> jrd/build_no.h
 echo #define FB_BUILD_NO "%THISBUILD%" >> jrd/build_no.h
 echo #define FB_BUILD_TYPE "%BUILD_TYPE%" >> jrd/build_no.h
-echo #define FB_BUILD_SUFFIX %BUILD_SUFFIX% >> jrd/build_no.h
+echo #define FB_BUILD_SUFFIX "%BUILD_SUFFIX%\0" >> jrd/build_no.h
 echo #define WIN_FILE_VER_NUMBER %WIN_FILE_VER_NUMBER% >> jrd/build_no.h
 echo #define ISC_MAJOR_VER "%ISC_MAJOR_VER%" >> jrd/build_no.h
 echo #define ISC_MINOR_VER "%ISC_MINOR_VER%" >> jrd/build_no.h
