@@ -1,3 +1,23 @@
+2001-09-26 09:45  robocop
+
+	* interbase/dsql/pass1.c:
+	
+	Make the DSQL layer reject ambiguous field names with an error msg
+	instead of a simple warning.
+
+2001-09-26 08:18  robocop
+
+	* interbase/jrd/evl.c:
+	
+	Fixes a crash when doing substring() against unicode blobs.  (There
+	should be an error message until that functionality is built.)
+
+2001-09-26 08:13  robocop
+
+	* interbase/jrd/cvt2.c:
+	
+	Fixes a crash when comparing strings against BLOBs.
+
 2001-09-25 21:08  bellardo
 
 	* interbase/pipe/head.c:
