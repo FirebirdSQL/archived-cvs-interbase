@@ -50,11 +50,11 @@
 # versions of the upcoming production 1.2 version.
 # This method is also used in a few other projects (linux kernel, gcc etc).
 
-BUILD_TYPE=V
+BUILD_TYPE=T
 MAJOR_VER=1
 MINOR_VER=0
-REV_NO=2
-BUILD_SUFFIX="Firebird 1.0"
+REV_NO=3
+BUILD_SUFFIX="Firebird 1.0.3"
 ISC_MAJOR_VER=6
 ISC_MINOR_VER=2
 

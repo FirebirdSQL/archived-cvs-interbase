@@ -1,33 +1,83 @@
-Firebird 1.0.2 for Linux
+Firebird 1.0.3 for Linux
 ========================
 
-More information can be found about the Firebird 
-database engine from: 
+More information can be found about the Firebird
+database engine from:
 
   http://www.firebirdsql.org
 
-or affiliated sites: 
+or affiliated sites:
 
   http://www.ibphoenix.com
 
 
-The Firebird database engine is derived from the InterBase(tm) 
-product currently owned by Borland.  The documentation for 
-InterBase v 6.0 applies also to the current FireBird release.  
-InterBase documentation is available in Adobe Acrobat format from 
+The Firebird database engine is derived from the InterBase(tm)
+product currently owned by Borland.  The documentation for
+InterBase v 6.0 applies also to the current FireBird release.
+InterBase documentation is available in Adobe Acrobat format from
 http://info.borland.com/techpubs/interbase/.
 
 
-WHATS NEW IN FIREBIRD 1.0.2
+WHATS NEW IN FIREBIRD 1.0.3
 ===========================
 
-There are no new features in this release.
+There are two new features in this release:
 
-There was no official Firebird 1.0.1 release for any platform except 
-Mac OS X. That release was made to cater for an operating system upgrade.
+o The artificial maximum index limit per table has been removed.
+  This limit was set at 64 indexes and provided consistency across
+  page sizes and regardless of the number of columns that made up the
+  index. Under most circumstances even 64 indexes for a table is too
+  many. Insert and update performance can deteriorate significantly when
+  numerous indexes are defined.
 
-The main bugs fixed in this release (all platforms)
- are:
+  The purpose of this feature is to support data warehouse type
+  applications where data is updated by a batch process, rather than
+  interactively. When using this feature it is advisable to disable the
+  indexes prior to a data load.
+
+  The new limits for indexes are:
+
+   Page Size     Single column        Double Column
+   ------------------------------------------------
+       1 k             60                    48
+       2 k            124                    99
+       4 k            252                   203
+       8 k            508                   406
+      16 k           1020                   816
+
+
+o A control panel applet is now part of the Win32 installation
+  package. It will install automatically by default but this option
+  can be turned off at install time.
+
+
+Bugs fixed in this release (all platforms)
+==========================================
+
+The bugs fixed are :
+
+o The Service Manager api is now available to the command-line tools
+  again. This was (un)fortunately the only bug known to be introduced
+  by Firebird 1.0.2
+
+o An event handler bug was fixed. Some Operating Systems that supported
+  multi-threading were using out of band notification for events. This
+  would lead to occasional, hard to diagnose problems.
+
+o SIGPIPE errors on *nix Super Server builds were being logged excessively.
+  This problem was benign, as long as enough disc space was available.
+
+o Connection times had a built in delay of 1 second per attachment. This was
+  fixed for Firebird 1.5 and the change back-ported to the Firebird 1.0.n
+  code.
+
+o A couple of buffer overruns have been fixed.
+
+
+Bugs fixed in previous maintenance releases
+========================================================
+
+The main bugs fixed in Firebird 1.0.2 (all platforms) are:
 
 o There was problem with connection strings on Unix platforms that
   could lead to database corruption.
@@ -56,6 +106,9 @@ o SF Bug #533915 - Deferred work trashed the contents of
 
 o SF Bug #526204 - GPRE Cobol Variable problems fixed.
 
+
+There was no official Firebird 1.0.1 release for any platform except
+Mac OS X. That release was made to cater for an operating system upgrade.
 
 
 WHAT WAS NEW IN FIREBIRD 1.0.0
