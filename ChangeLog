@@ -1,3 +1,23 @@
+2001-06-06 00:08  bellardo
+
+	* interbase/builds/original/: sfx.client, sfx.remote:
+	
+	Last two files to get the original Darwin SS port build changes in
+	the repository.
+
+2001-06-05 21:43  bellardo
+
+	* interbase/: builds/original/prefix.darwin,
+	builds/original/sfx.interbase, builds/original/sfx.lock,
+	builds/original/sfx.utilities,
+	firebird/bellardo/darwin/FirebirdFramework.make,
+	firebird/bellardo/darwin/install, jrd/common.h, jrd/dyn.e,
+	jrd/isc_sync.c, lock/lock.h:
+	
+	Changes to the build system to allow Darwin classic to compile
+	given other platform constraints.  Also included changes to allow
+	Darwin SS to compile.
+
 2001-06-04 16:15  kkuznetsov
 
 	* interbase/jrd/gds.c:
