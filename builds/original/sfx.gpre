@@ -61,7 +61,7 @@ gprelib.lib:	$(GPRE_OBJECTS) $(FORM_OBJECTS) $(FORM_TRN_OBJECTS)
 	$(IMPLIB) -out:gprelib.lib $(GPRE_OBJECTS) $(FORM_OBJECTS) $(FORM_TRN_OBJECTS)
 	$(TOUCH) gprelib.lib
 
-gpre_boot:	$(GPRE_OBJECTS) no_form.o $(JRD_LINK) $(BOOT)
+gpre_boot:	$(GPRE_OBJECTS) noform.o $(JRD_LINK) $(BOOT)
 	$(CC) $(LINK_OPTS) $(GPRE_OBJECTS) noform.o $(JRD_LINK) -o gpre $(BOOT)
 	$(MV) gpre $(GPRE)
 
@@ -103,7 +103,7 @@ met.o:		met.c gpre.h source/jrd/license.h parse.h source/jrd/intl.h
 movg.o:		movg.c 
 msc.o:		msc.c gpre.h parse.h
 no_ada.o:	no_ada.c gpre.h form.h
-no_form.o:	no_form.c gpre.h form.h source/pyxis/phase1.h
+noform.o:	noform.c gpre.h form.h source/pyxis/phase1.h
 par.o:		par.c gpre.h parse.h form.h
 parse.h:	words.h
 	$(TOUCH) parse.h
