@@ -84,7 +84,7 @@
 #include "../dsql/pass1_proto.h"
 #include "../jrd/dsc_proto.h"
 #include "../jrd/thd_proto.h"
-//#include "../jrd/err_proto.h"
+/*#include "../jrd/err_proto.h" */
 #include "../dsql/dsql_proto.h"
 
 ASSERT_FILENAME				/* Define things assert() needs */

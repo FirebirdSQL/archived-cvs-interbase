@@ -1940,7 +1940,7 @@ enum db_info_types
 	isc_info_next_transaction = 107,
 	isc_info_db_provider = 108,
 
-	isc_info_db_last_value   // Leave this LAST!
+	isc_info_db_last_value   /* Leave this LAST! */
     };
 
 
@@ -2005,7 +2005,7 @@ enum  info_db_implementations
 	isc_info_db_impl_netbsd = 62,
 	isc_info_db_impl_darwin = 63,
 
-	isc_info_db_impl_last_value   // Leave this LAST!
+	isc_info_db_impl_last_value   /* Leave this LAST! */
     };
 
 #define isc_info_db_impl_isc_a            isc_info_db_impl_isc_apl_68K
@@ -2030,7 +2030,7 @@ enum	info_db_class
 	isc_info_db_class_classic_access = 13,
 	isc_info_db_class_server_access = 14,
 
-	isc_info_db_class_last_value   // Leave this LAST!
+	isc_info_db_class_last_value   /* Leave this LAST! */
     };
 
 enum	info_db_provider
@@ -2040,7 +2040,7 @@ enum	info_db_provider
 	isc_info_db_code_interbase = 3,
 	isc_info_db_code_firebird = 4,
 
-	isc_info_db_code_last_value   // Leave this LAST!
+	isc_info_db_code_last_value   /* Leave this LAST! */
     };
 
 
