@@ -1,3 +1,10 @@
+2001-08-19 05:49  robocop
+
+	* interbase/dsql/: ddl.c, dsql.c, node.h, parse.c, parse.y,
+	pass1.c:
+	
+	Implement RECREATE PROCEDURE and fix RECREATE TABLE
+
 2001-08-17 16:42  skywalker
 
 	* interbase/firebird/skywalker/install/super/SSpostinstall.sh:
