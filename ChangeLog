@@ -1,3 +1,10 @@
+2002-12-04 16:14  pcisar
+
+	* interbase/firebird/install/linux/: misc/firebird.init.d.suse,
+	misc/rc.config.firebird, super/postinstall.sh:
+	
+	I
+
 2002-11-13 15:27  paul_reeves
 
 	* interbase/jrd/isc_file.c:
