@@ -1,0 +1,12 @@
+{
+  Description   = "Firebird Database server";
+  Provides      = ("FB_DB");
+  Requires      = ("Resolver");
+  Uses          = "";
+  Preference    = "None";
+  Messages =
+  {
+    start = "Starting Firebird Database";
+    stop  = "Stopping Firebird Database";
+  };
+}
