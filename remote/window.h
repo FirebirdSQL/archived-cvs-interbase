@@ -30,6 +30,7 @@
 /* This is the title used by the hidden msgs window in the engine.
 Both gds32.dll and ibserver.exe should use the same. */
 #define APP_NAME			"InterBase Server"
+#define APP_LABEL			"Firebird Server"
 
 #define ON_NOTIFYICON		WM_USER + 2
 
