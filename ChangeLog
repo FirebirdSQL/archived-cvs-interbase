@@ -1,3 +1,20 @@
+2001-06-26 09:54  robocop
+
+	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/dsql.h, dsql/gen.c,
+	dsql/keywords.h, dsql/make.c, dsql/metd.e, dsql/node.h,
+	dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/blb.c,
+	jrd/blb_proto.h, jrd/blr.h, jrd/blrtable.c, jrd/blrtable.h,
+	jrd/cmp.c, jrd/codes.h, jrd/codetext.h, jrd/cvt.c, jrd/cvt2.c,
+	jrd/cvt2_proto.h, jrd/dfw.e, jrd/dyn_def.e, jrd/dyn_mod.e,
+	jrd/evl.c, jrd/exe.c, jrd/fun.e, jrd/ibase.h, jrd/iberror.h,
+	jrd/irq.h, jrd/isc_file.c, jrd/jrd.h, jrd/met.e, jrd/met_proto.h,
+	jrd/msgs.h, jrd/nod.h, jrd/obj.h, jrd/par.c, jrd/rdb_codes.h,
+	jrd/scl.e, jrd/shrinit.c, jrd/sql_code.h, jrd/tra.h, jrd/utl.c,
+	jrd/vio.c, misc/help.gbak, misc/msg.gbak, msgs/msg.gbak,
+	remote/window.rc:
+	
+	no message
+
 2001-06-25 18:51  bellardo
 
 	* interbase/jrd/gds.c:
