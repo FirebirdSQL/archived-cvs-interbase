@@ -1646,17 +1646,12 @@ typedef USHORT		FLD_LENGTH;
 #define TRACE(msg)              OutputDebugString(msg)
 #endif
 
-#ifdef WIN_NT
-#define TRACE(msg)              gds__log (msg)
-#define DEV_REPORT(msg)         gds__log (msg)
-#endif
-
 #ifndef TRACE
-#define TRACE(msg)              ib_fprintf (ib_stderr, (msg))
+#define TRACE(msg)              gds__log (msg)
 #endif
 
 #ifndef DEV_REPORT
-#define DEV_REPORT(msg)         ib_fprintf (ib_stderr, (msg))
+#define DEV_REPORT(msg)         gds__log (msg)
 #endif
 
 #ifndef BREAKPOINT
