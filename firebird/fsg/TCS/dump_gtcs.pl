@@ -10,7 +10,6 @@ use strict;
 my $DBPATH='./tests/gtcs.gdb';
 my $EXPORTPATH='./export/global/';
 
-
 # Connect to database
 
 my $db = new IBPerl::Connection(
