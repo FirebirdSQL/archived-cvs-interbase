@@ -1,13 +1,14 @@
--Building the *****Base server on win32 platforms- 
-ibbuild-win32.txt version 1.0.9 last revised Dec 27, 2000
 
-The latest version of this file is available at
+-Building the *****Base server on win32 platforms- 
+ibbuild-win32.txt last revised April 20, 2001
+
+The latest version of this file is available at:
 http://sourceforge.net/docman/display_doc.php?docid=349&group_id=9028
 
 Please send comments and corrections to
-rfm@cruzers.com or the ib-build mailing list at mers.com
-the ib-build mailing list is also available as a newsgroup at
-news.mers.com:mers.interbase.build
+rfm@cruzers.com or the firebird-devel mailing list at sourceforge
+the firebird-devel mailing list is also available as a newsgroup at
+news.atkin.com:sourceforge.firebird-devel
 
 For more information see the firebird and interbase projects 
 on sourceforge.net (http://www.sourceforge.com/projects/firebird,
@@ -19,8 +20,18 @@ under windows NT 4.0, service pack 6. This information should
 apply on other windows platforms, but I have not tested it.
 	This document specifically refers to the 'firebird' cvs tree
 on sourceforge. If you are looking for instruction for the original
-source distribution from inprise, please see
+source distribution from inprise, please refer to the borland web site.
+Some slightly outdated information may also be found at: 
 http://www.cruzers.com/~rfm/ib/ibbuild-win32-inpr.txt
+	I assume that the reader already has a working knowledge
+of CVS, make, unix shell, and interbase. If not, you will have to
+do some self-education that is beyond the scope of this document.
+
+NOTE: If you are on a slow internet connection, it is wise
+to keep a clean copy of the CVS tree, and do the setup and
+building described below in a copy. That way, if you mess up,
+you can start over from scratch without downloading the whole
+source tree again.
 
 Directory structure:
 I refer to the directory in which you did cvs checkout as
@@ -43,10 +54,17 @@ build databases if you have multiple developers on a single
 lan working with the interbase code.
 
 Tools requirements:
- * InterBase 6 final binary release. 
- * A borland C compiler (the 'free' one should be ok)
-This is required for the 'make' program, and also to build
-the import library for borland tools.
+ * Installed firebird 0.9.x or InterBase 6 binary. 
+ * A borland C compiler (the 'free' available from the Borland
+web site will work, as will Borland C builder.)
+The compiler itself is not used, but the 'make' program is.
+The 'implib' tool is required to make an import library that can
+be used by the borland tools (if you do not need a borland 
+import library, you can comment out the portion of
+{BUILD_DIR}/build_win32/original/make.jrd which mentions implib)
+Dmitry Kuzmenko has also reported that the 'make' provided
+with Delphi 5 does not work with the makefiles.
+The borland resource compiler (brc32) is also used.
 
  * Microsoft visual C (I used 6, but 5.x should be workable as well)
 
@@ -85,7 +103,7 @@ int main(int argc, char **argv)
 }
 --end echo.c
 If you do not use the MKS or cygwin echo for other purposes,
-you can just rename it instead of making your own.
+you can just rename (or delete) it instead of making your own.
 
 PATH requirements:
  * The echo.exe resulting from the above C code MUST be in your path
@@ -177,7 +195,7 @@ Commented build commands:
 	referring to qli.exe and qli.pdb
 
 Preparing to build for the first time:
-make sure server is running from {INST_DIR} not {BUILD_DIR}
+make sure interbase server is running from {INST_DIR} not {BUILD_DIR}
 
 make sure your {INST_DIR}/isc4.gdb has a user named builder
 with password builder. (or change the ISC_USER and password
@@ -261,4 +279,3 @@ might pick up first.
 
 TRADEMARKS:
 All trademarks are property of their respective owners.
-
