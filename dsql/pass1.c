@@ -1525,14 +1525,18 @@ else
 	}
 	else if (node->nod_type == nod_udf) 
 	{
-		/* does this udf appear in list of group by  */
+
 		NOD reference;
 		STR udf_name1;
 		STR udf_name2;
 
-		if (!list)
-			return TRUE;
+		if (!list)      /* validating select element */
+		{
+			invalid = invalid_reference (node->nod_arg [1], list);
+			return invalid;
+		}
 
+		/* does this udf appear in list of group by  */
 		for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++) 
 		{
 			DEV_BLKCHK(*ptr, type_nod);
