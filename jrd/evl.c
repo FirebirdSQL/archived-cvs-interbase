@@ -896,6 +896,18 @@ switch (node->nod_type)
 	impure = (VLU) ((SCHAR*) request + node->nod_impure);
 	extract_part = (ULONG) node->nod_arg [e_extract_part];
 	value = EVL_expr (tdbb, node->nod_arg [e_extract_value]);
+
+	impure->vlu_desc.dsc_dtype = dtype_short;
+	impure->vlu_desc.dsc_scale = 0;
+	impure->vlu_desc.dsc_address = &impure->vlu_misc.vlu_short;
+	impure->vlu_desc.dsc_length = sizeof (SSHORT);
+	if (!value)
+		{
+		request->req_flags |= req_null;
+		impure->vlu_misc.vlu_short = 0;
+		return &impure->vlu_desc;
+		}
+
 	switch (value->dsc_dtype)
 	    {
 	    case dtype_sql_time:
@@ -924,10 +936,7 @@ switch (node->nod_type)
 		ERR_post (gds__expression_eval_err, 0);
 		break;
 	    }
-	impure->vlu_desc.dsc_dtype = dtype_short;
-	impure->vlu_desc.dsc_scale = 0;
-	impure->vlu_desc.dsc_address = &impure->vlu_misc.vlu_short;
-	impure->vlu_desc.dsc_length = sizeof (SSHORT);
+
 	switch (extract_part)
 	    {
 	    case blr_extract_year:
