@@ -132,6 +132,11 @@ extern int		access();
 					vector [1] = SUCCESS;\
 					vector [2] = gds_arg_end
 
+#define IS_NETWORK_ERROR(vector) \
+	(vector[1] == isc_network_error || \
+	 vector[1] == isc_net_write_err || \
+	 vector[1] == isc_net_read_err)
+
 #define CHECK_HANDLE(blk, blk_type, code) if (!(blk) || (blk)->type != blk_type) \
 	return bad_handle (user_status, code)
 
@@ -4321,9 +4326,12 @@ for (sub = transaction; sub; sub = sub->next)
 	    status,
 	    &sub->handle))
 		{
-		if (status[1] != isc_network_error)
+		if (!IS_NETWORK_ERROR(status))
 			return error (status, local);
 		}
+
+if (IS_NETWORK_ERROR(status))
+	INIT_STATUS(status);
 
 subsystem_exit();
 
