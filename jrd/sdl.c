@@ -48,7 +48,13 @@
 #else
 
 #include "../jrd/ib_stdio.h"
+#ifdef _assert
+#undef _assert
+#endif
 #define _assert(ex)	{if (!(ex)){(void) ib_fprintf (ib_stderr, "assert failure: %s %ld\n", __FILE__, __LINE__);}}
+#ifdef assert
+#undef assert
+#endif
 #define assert(ex)	_assert(ex)
 
 #endif
