@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.07.28: John Bellardo: Added code to handle rse_skip nodes.
+ * 2001.07.17 Claudio Valderrama: Stop crash with indices and recursive calls
+ *   of OPT_compile: indicator csb_indices set to zero after used memory is
+ *   returned to the free pool.
  */
 /*
 $Id$
@@ -635,12 +638,16 @@ if (rse->rse_first)
 /* release memory allocated for index descriptions */
 
 for (i = 0; i < streams [0]; i++)
-    {
+{
     stream = streams [i+1];
     if (csb->csb_rpt [stream].csb_idx_allocation)
-	ALL_RELEASE (csb->csb_rpt [stream].csb_idx_allocation);
+		ALL_RELEASE (csb->csb_rpt [stream].csb_idx_allocation);
     csb->csb_rpt [stream].csb_idx_allocation = NULL_PTR;
-    }
+	/* CVC: The following line added because OPT_compile is recursive, both directly
+	and through gen_union(), too. Otherwise, we happen to step on deallocated memory
+	and this is the cause of the crashes with indices that have plagued IB since v4. */
+	csb->csb_rpt [stream].csb_indices = 0;
+}
 
 DEBUG
 
