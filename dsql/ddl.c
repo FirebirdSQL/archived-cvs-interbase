@@ -19,9 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- */
-/*
-$Id$
+ * $Id$
+ * 2001.5.20 Claudio Valderrama: Stop null pointer that leads to a crash,
+ * caused by incomplete yacc syntax that allows ALTER DOMAIN dom SET;
 */
 
 #include "../jrd/ib_stdio.h"
@@ -4150,6 +4150,14 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
     switch (element->nod_type)
 	{
 	case nod_def_default:
+			/* CVC: So do you want to crash me with ALTER DOMAIN dom SET; ??? */
+			if (!element->nod_arg[e_dft_default])
+			{
+				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
+				gds_arg_gds, gds__command_end_err,    /* Unexpected end of command */
+				0);
+			}
+			/* CVC End modification. */
             element->nod_arg[e_dft_default] = PASS1_node (request, element->nod_arg[e_dft_default],0);
     	    begin_blr (request, gds__dyn_fld_default_value);
             GEN_expr (request, element->nod_arg[e_dft_default]);
