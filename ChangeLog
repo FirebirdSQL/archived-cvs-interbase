@@ -1,3 +1,10 @@
+2002-12-17 12:00  paul_reeves
+
+	* interbase/: FB_Build_Win32_Build_No.bat,
+	builds_win32/install/FirebirdInstall.iss:
+	
+	Fix install builder
+
 2002-12-10 18:12  paul_reeves
 
 	* interbase/: builds_win32/install/FirebirdInstall.iss,
