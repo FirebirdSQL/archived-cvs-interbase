@@ -26,6 +26,7 @@ $Id$
 
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "../jrd/gds.h"
 #include "../jrd/jrd.h"
 #include "../jrd/pwd.h"
@@ -128,6 +129,11 @@ void mk_pwd(TEXT *pw)
 {
     unsigned char  i=0;
     unsigned char  j=0;
+
+/* I hope that this will work on all platforms
+   FSG 22.Dez.2000
+*/
+    srand( (unsigned)time (NULL));
     for (i=0; i < strlen(pw); i++)
     {
        j=1+(int) (255.0*rand()/(RAND_MAX+1.0));
