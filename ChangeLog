@@ -1,3 +1,216 @@
+2002-02-27 08:32  robocop
+
+	* interbase/this_build (1.770):
+	
+	inc_build_no
+
+2002-02-27 08:32  robocop
+
+	* interbase/remote/server.c (1.6):
+	
+	Fix SF Bug #509995.  Notice the counter will wrap at 32K because
+	some routines treat the size of the input buffer as signed and
+	others as unsigned short. Hence, the maximum practical size of the
+	result buffer passed to isc_database_info() is 32K-1.
+
+2002-02-27 02:40  nmcc
+
+	* interbase/jrd/sort.c (1.17):
+	
+	Fix compile on non Windows platforms.
+
+2002-02-27 02:40  nmcc
+
+	* interbase/this_build (1.769):
+	
+	inc_build_no
+
+2002-02-26 23:31  skywalker
+
+	* interbase/: FB_Build_Win32_Build_No.bat (1.7),
+	FB_Build_Win32_Clean.bat (1.2),
+	builds_win32/install/FirebirdInstall.iss (1.2),
+	builds_win32/install/Readme.txt (1.2),
+	builds_win32/install/installation_readme_rus.txt (1.2),
+	builds_win32/original/build_no.ksh (1.14),
+	firebird/install/linux/Makefile (1.3),
+	firebird/install/linux/misc/firebird.init.d.suse (1.3), gpre/gpre.h
+	(1.5), iscguard/iscguard_utils.c (1.3), jrd/dyn_def.e (1.13),
+	jrd/isc.c (1.8), jrd/sort.c (1.16), utilities/install_nt.h (1.2),
+	utilities/install_svc.c (1.2), utilities/registry.c (1.2),
+	utilities/registry.h (1.2), utilities/services.c (1.2):
+	
+	Updates appled to V1-0-0.731 branch I have now applied to the main
+	chain
+
+2002-02-26 23:31  skywalker
+
+	* interbase/: this_build (1.761), this_build (1.760), this_build
+	(1.763), this_build (1.762), this_build (1.767), this_build
+	(1.766), this_build (1.765), this_build (1.764), this_build
+	(1.768):
+	
+	inc_build_no
+
+2002-02-26 07:31  robocop
+
+	* interbase/dsql/make.c (1.9):
+	
+	Substring() verification should be ANDed, not ORed.
+
+2002-02-26 07:31  robocop
+
+	* interbase/this_build (1.759):
+	
+	inc_build_no
+
+2002-02-25 17:36  bellardo
+
+	* interbase/jrd/dyn_def.e (1.12.2.1):
+	
+	Fixed uninitialized RDB$TRIGGERS.RDB$SYSTEM_FLAG value in
+	define_trigger.
+
+2002-02-25 17:36  bellardo
+
+	* interbase/this_build (1.758):
+	
+	inc_build_no
+
+2002-02-25 14:30  paul_reeves
+
+	* interbase/jrd/sort.c (1.15.2.3):
+	
+	Mike Grover's fix to limit size of temporary sort files to less
+	than 2Gb.
+
+2002-02-25 14:30  paul_reeves
+
+	* interbase/this_build (1.757):
+	
+	inc_build_no
+
+2002-02-25 13:59  paul_reeves
+
+	* interbase/FB_Build_Win32_Clean.bat (1.1.2.1):
+	
+	Now washes whiter than ever.
+
+2002-02-25 13:57  paul_reeves
+
+	* interbase/: this_build (1.755), this_build (1.756):
+	
+	inc_build_no
+
+2002-02-25 13:57  paul_reeves
+
+	* interbase/builds_win32/install/installation_readme_rus.txt (1.1):
+	
+	file installation_readme_rus.txt was initially added on branch
+	V1-0-0_731.
+
+2002-02-25 13:57  paul_reeves
+
+	* interbase/builds_win32/install/installation_readme_rus.txt
+	(1.1.2.1):
+	
+	D. Kuzmenko's Russian translation of the installation instructions
+
+2002-02-25 09:52  robocop
+
+	* interbase/jrd/: req.h (1.3), rse.c (1.6):
+	
+	Outer joins v/s sort or group. String truncation errors, phantom
+	NULL values, wrong aggregate calculations, failures in SQL views,
+	etc. Fixes SF Bugs #225283, #518279, #514186, #221925 & other
+	entries that were duplicates.
+
+2002-02-25 09:52  robocop
+
+	* interbase/this_build (1.754):
+	
+	inc_build_no
+
+2002-02-25 09:41  robocop
+
+	* interbase/this_build (1.753):
+	
+	inc_build_no
+
+2002-02-25 09:41  robocop
+
+	* interbase/jrd/jrd.c (1.13):
+	
+	Checking bounds. :-)
+
+2002-02-25 09:39  robocop
+
+	* interbase/jrd/evl.c (1.12):
+	
+	Minor change: substring() can handle binary data directly.
+
+2002-02-25 09:37  robocop
+
+	* interbase/jrd/cmp.c (1.15):
+	
+	Substring() v/s blobs, round two. SF Bug #522296.  Teach
+	concatenate() to behave properly, SF Bug #518282.
+
+2002-02-25 09:37  robocop
+
+	* interbase/: this_build (1.751), this_build (1.752):
+	
+	inc_build_no
+
+2002-02-25 09:34  robocop
+
+	* interbase/dsql/metd.e (1.6):
+	
+	Views should ack NULLs in outer joins. SF Bug #228135.
+
+2002-02-25 09:34  robocop
+
+	* interbase/this_build (1.750):
+	
+	inc_build_no
+
+2002-02-25 09:31  robocop
+
+	* interbase/dsql/make.c (1.8):
+	
+	Substring() v/s blobs, round one. SF Bug #518350.
+
+2002-02-25 09:30  robocop
+
+	* interbase/: this_build (1.748), this_build (1.749):
+	
+	inc_build_no
+
+2002-02-25 09:30  robocop
+
+	* interbase/dsql/gen.c (1.12):
+	
+	Columns with UPPER() built-in function should have a title and name
+	"UPPER" for now instead of an empty name.
+
+2002-02-24 19:40  nmcc
+
+	* interbase/jrd/sort.c (1.15.2.2):
+	
+	Convert comment from // to /* */
+
+2002-02-24 19:40  nmcc
+
+	* interbase/this_build (1.747):
+	
+	inc_build_no
+
+2002-02-18 17:39  fsg
+
+	* interbase/this_build (1.746):
+	
+	inc_build_no
+
 2002-02-17 18:56  paul_reeves
 
 	* interbase/builds_win32/install/FirebirdInstall.iss (1.1.2.2):
