@@ -1,26 +1,13 @@
-#if defined(__STDC__) || defined(__cplusplus)
-#define YYCONST const
-#define YYPARAMS(x) x
-#define YYDEFUN(name, arglist, args) name(args)
-#define YYAND ,
-#define YYPTR void *
-#else
-#define YYCONST
-#define YYPARAMS(x) ()
-#define YYDEFUN(name, arglist, args) name arglist args;
-#define YYAND ;
-#define YYPTR char *
-#endif
 #ifndef lint
-YYCONST static char yysccsid[] = "@(#)yaccpar	1.8 (Berkeley +Cygnus.28) 01/20/91";
+static char yysccsid[] = "@(#)yaccpar	1.9 (Berkeley) 02/21/93";
 #endif
 #define YYBYACC 1
-#ifndef YYDONT_INCLUDE_STDIO
-#include <stdio.h>
-#endif
-#ifdef __cplusplus
-#include <stdlib.h> /* for malloc/realloc/free */
-#endif
+#define YYMAJOR 1
+#define YYMINOR 9
+#define yyclearin (DSQL_yychar=(-1))
+#define yyerrok (DSQL_yyerrflag=0)
+#define YYRECOVERING (DSQL_yyerrflag!=0)
+#define YYPREFIX "yy"
 /* 
  *	PROGRAM:	Dynamic SQL runtime support
  *	MODULE:		parse.y
@@ -379,7 +366,7 @@ static void	yyerror (TEXT *);
 #define NUMBER64BIT 494
 #define SCALEDINT 495
 #define YYERRCODE 256
-static YYCONST short yylhs[] = {                                        -1,
+static short yylhs[] = {                                        -1,
     0,    0,    1,    1,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    1,    1,    1,    1,    1,    9,
     9,    9,    9,    9,   20,   20,   19,   19,   19,   30,
@@ -469,7 +456,7 @@ static YYCONST short yylhs[] = {                                        -1,
   332,  158,  191,  245,   61,   58,  195,  106,   64,  300,
    33,   39,  306,  244,   37,   40,  189,   38,
 };
-static YYCONST short yylen[] = {                                         2,
+static short yylen[] = {                                         2,
     1,    2,    1,    1,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    1,    1,    1,    1,    2,    7,
     8,    6,    7,    5,    1,    2,    1,    2,    1,    1,
@@ -559,7 +546,7 @@ static YYCONST short yylen[] = {                                         2,
     1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
     1,    1,    1,    1,    1,    1,    1,    1,
 };
-static YYCONST short yydefred[] = {                                      0,
+static short yydefred[] = {                                      0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    3,
     4,    5,    6,    7,    8,    9,   10,   11,   12,   13,
@@ -723,7 +710,7 @@ static YYCONST short yydefred[] = {                                      0,
     0,  340,    0,    0,    0,    0,  314,  290,    0,    0,
   761,    0,  657,  299,  291,    0,  660,
 };
-static YYCONST short yydgoto[] = {                                      18,
+static short yydgoto[] = {                                      18,
    19,   20,   21,   22,   23,   24, 1361,   26,   27, 1362,
    29,   30,   31,   32, 1363,   34, 1364,  571,   98,  369,
   814, 1036,   99,  601,  815,  100,  374,  606,  126,  101,
@@ -761,7 +748,7 @@ static YYCONST short yydgoto[] = {                                      18,
   588,  589,  590, 1172,  992,  994, 1173,  631,  423,  424,
   425,  862,  365,  207,  855,
 };
-static YYCONST short yysindex[] = {                                   4812,
+static short yysindex[] = {                                   4812,
  1705, -233, 2886,   11,  -15,  -39, 4538,  -91, 2230,   12,
   124,  586, 2963, -233,  996,  420,  -56,    0,  408,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
@@ -925,7 +912,7 @@ static YYCONST short yysindex[] = {                                   4812,
   982,    0, 1770, 2311, 2315, 1595,    0,    0, 4086, 4596,
     0,  185,    0,    0,    0,  -59,    0,
 };
-static YYCONST short yyrindex[] = {                                      0,
+static short yyrindex[] = {                                      0,
     0,  122,  -30,    0,    0,    0,    0,    0,    0,    0,
     0,    0,    0,  237, 4444,    0,    0,    0, 2359,    0,
     0,    0,    0,    0,    0,    0,    0,    0,    0,    0,
@@ -1089,7 +1076,7 @@ static YYCONST short yyrindex[] = {                                      0,
  2065,    0, 2386, 2398,    0,    0,    0,    0,    0,    0,
     0,    0,    0,    0,    0,  752,    0,
 };
-static YYCONST short yygindex[] = {                                      0,
+static short yygindex[] = {                                      0,
     0,    0,    0,    0,    0,    0, 2445,    0,    0, 2446,
     0,    0,    0,    0,    8,    0, 2447,    1,  257,   74,
  -538, 1410,  288, -265, -428, 2436, 2202,    0,  -36,    0,
@@ -1128,7 +1115,7 @@ static YYCONST short yygindex[] = {                                      0,
  -213, 1958, 2259,    0,    0,
 };
 #define YYTABLESIZE 7319
-static YYCONST short yytable[] = {                                     128,
+static short yytable[] = {                                     128,
   161,  183,   71,  231,   70,  185,  164,   33,  175,  360,
   182,  359,  364,  166,  180,  668,  189,  254,  257,  479,
   544,  255,  258,  513,  194,  215,  191,  782,  508,  785,
@@ -1862,7 +1849,7 @@ static YYCONST short yytable[] = {                                     128,
   418,  418,  418,  418,  418,  418,  418,  418,  418,  418,
   418,  418,  418,  418,  418,  418,  418,  418,  418,
 };
-static YYCONST short yycheck[] = {                                      17,
+static short yycheck[] = {                                      17,
    48,   56,    4,   96,    4,   57,   49,    0,   55,  226,
    56,  226,  226,   50,   56,  450,   59,  117,  118,  296,
   327,  117,  118,  323,   61,   77,   60,  575,  319,  577,
@@ -2602,7 +2589,7 @@ static YYCONST short yycheck[] = {                                      17,
 #endif
 #define YYMAXTOKEN 495
 #if YYDEBUG
-static YYCONST char *YYCONST yyname[] = {
+char *yyname[] = {
 "end-of-file",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 0,0,0,0,0,0,"'('","')'","'*'","'+'","','","'-'","'.'","'/'",0,0,0,0,0,0,0,0,0,0,
 "':'","';'","'<'","'='","'>'","'?'",0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -2642,7 +2629,7 @@ static YYCONST char *YYCONST yyname[] = {
 "CURRENT_USER","CURRENT_ROLE","KW_BREAK","SUBSTRING","KW_DESCRIPTOR","FIRST",
 "SKIP","NUMBER64BIT","SCALEDINT",
 };
-static YYCONST char *YYCONST yyrule[] = {
+char *yyrule[] = {
 "$accept : top",
 "top : statement",
 "top : statement ';'",
@@ -3527,17 +3514,9 @@ static YYCONST char *YYCONST yyrule[] = {
 #ifndef YYSTYPE
 typedef int YYSTYPE;
 #endif
-#define YYLEX yylex(client_dialect, db_dialect, parser_version, stmt_ambiguous)
-#define YYEMPTY -1
-#define yyclearin (DSQL_yychar=(YYEMPTY))
-#define yyerrok (DSQL_yyerrflag=0)
-#ifndef YYINITDEPTH
-#define YYINITDEPTH 200
-#endif
 #ifdef YYSTACKSIZE
-#ifndef YYMAXDEPTH
+#undef YYMAXDEPTH
 #define YYMAXDEPTH YYSTACKSIZE
-#endif
 #else
 #ifdef YYMAXDEPTH
 #define YYSTACKSIZE YYMAXDEPTH
@@ -3545,9 +3524,6 @@ typedef int YYSTYPE;
 #define YYSTACKSIZE 500
 #define YYMAXDEPTH 500
 #endif
-#endif
-#ifndef YYMAXSTACKSIZE
-#define YYMAXSTACKSIZE 10000
 #endif
 static int yydebug;
 static int yynerrs;
@@ -3557,65 +3533,13 @@ int DSQL_yyerrflag;
 #ifndef SHLIB_DEFS
 int DSQL_yychar;
 #endif
+short *yyssp;
+static YYSTYPE *yyvsp;
 static YYSTYPE yyval;
 static YYSTYPE yylval;
-static short *yyss;
-static YYSTYPE *yyvs;
-static int yystacksize;
-#define yyfree(x) free(x)
-extern int yylex(client_dialect, db_dialect, parser_version, stmt_ambiguous);
-
-static YYPTR
-YYDEFUN (yymalloc, (bytes), unsigned bytes)
-{
-    YYPTR ptr = (YYPTR) malloc (bytes);
-    if (ptr != 0) return (ptr);
-    yyerror ("dsql_yyparse: memory exhausted");
-    return (0);
-}
-
-static YYPTR
-YYDEFUN (yyrealloc, (old, bytes), YYPTR old YYAND unsigned bytes)
-{
-    YYPTR ptr = (YYPTR) realloc (old, bytes);
-    if (ptr != 0) return (ptr);
-    yyerror ("dsql_yyparse: memory exhausted");
-    return (0);
-}
-
-static int
-#ifdef __GNUC__
-__inline__
-#endif
-yygrow ()
-{
-    int old_stacksize = yystacksize;
-    short *new_yyss;
-    YYSTYPE *new_yyvs;
-
-    if (yystacksize == YYMAXSTACKSIZE)
-        return (1);
-    yystacksize += (yystacksize + 1 ) / 2;
-    if (yystacksize > YYMAXSTACKSIZE)
-        yystacksize = YYMAXSTACKSIZE;
-#if YYDEBUG
-    if (yydebug)
-        printf("yydebug: growing stack size from %d to %d\n",
-               old_stacksize, yystacksize);
-#endif
-    new_yyss = (short *) yyrealloc ((char *)yyss, yystacksize * sizeof (short));
-    if (new_yyss == 0)
-        return (1);
-    new_yyvs = (YYSTYPE *) yyrealloc ((char *)yyvs, yystacksize * sizeof (YYSTYPE));
-    if (new_yyvs == 0)
-    {
-        yyfree (new_yyss);
-        return (1);
-    }
-    yyss = new_yyss;
-    yyvs = new_yyvs;
-    return (0);
-}
+static short yyss[YYSTACKSIZE];
+static YYSTYPE yyvs[YYSTACKSIZE];
+#define yystacksize YYSTACKSIZE
 
 /*
  *	PROGRAM:	Dynamic SQL runtime support
@@ -4706,26 +4630,16 @@ ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) sql_code,
 	gds_arg_gds, error_symbol, 0);
 }
 #define YYABORT goto yyabort
+#define YYREJECT goto yyabort
 #define YYACCEPT goto yyaccept
 #define YYERROR goto yyerrlab
-
-#if YYDEBUG
-#ifdef __cplusplus
-extern "C" char *getenv();
-#else
-extern char *getenv();
-#endif
-#endif
-
 int
 dsql_yyparse(USHORT client_dialect, USHORT db_dialect, USHORT parser_version, BOOLEAN *stmt_ambiguous)
 {
     register int yym, yyn, yystate;
-    register YYSTYPE *yyvsp;
-    register short *yyssp;
-    short *yysse;
 #if YYDEBUG
-    register YYCONST char *yys;
+    register char *yys;
+    extern char *getenv();
 
     if (yys = getenv("YYDEBUG"))
     {
@@ -4739,44 +4653,12 @@ dsql_yyparse(USHORT client_dialect, USHORT db_dialect, USHORT parser_version, BO
     DSQL_yyerrflag = 0;
     DSQL_yychar = (-1);
 
-    if (yyss == 0)
-    {
-        yyss = (short *) yymalloc (YYSTACKSIZE * sizeof (short));
-        if (yyss == 0)
-          goto yyabort;
-        yyvs = (YYSTYPE *) yymalloc (YYSTACKSIZE * sizeof (YYSTYPE));
-        if (yyvs == 0)
-        {
-            yyfree (yyss);
-            goto yyabort;
-        }
-        yystacksize = YYSTACKSIZE;
-    }
-    yysse = yyss + yystacksize - 1;
     yyssp = yyss;
     yyvsp = yyvs;
     *yyssp = yystate = 0;
-    goto yyloop;
-
-yypush_lex:
-    yyval = yylval;
-    yystate = yytable[yyn];
-yypush:
-    if (yyssp >= yysse)
-    {
-        int depth = yyssp - yyss;
-        if (yygrow() != 0)
-             goto yyoverflow;
-        yysse = yyss + yystacksize -1;
-        yyssp = depth + yyss;
-        yyvsp = depth + yyvs;
-    }
-    *++yyssp = yystate;
-    *++yyvsp = yyval;
 
 yyloop:
     if (yyn = yydefred[yystate]) goto yyreduce;
-    yyn = yysindex[yystate];
     if (DSQL_yychar < 0)
     {
         if ((DSQL_yychar = yylex(client_dialect, db_dialect, parser_version, stmt_ambiguous)) < 0) DSQL_yychar = 0;
@@ -4786,28 +4668,31 @@ yyloop:
             yys = 0;
             if (DSQL_yychar <= YYMAXTOKEN) yys = yyname[DSQL_yychar];
             if (!yys) yys = "illegal-symbol";
-            printf("yydebug: state %d, reading %d (%s)\n", yystate,
-                    DSQL_yychar, yys);
+            printf("%sdebug: state %d, reading %d (%s)\n",
+                    YYPREFIX, yystate, DSQL_yychar, yys);
         }
 #endif
     }
-    if (yyn != 0
-        && ((yyn += DSQL_yychar), ((unsigned)yyn <= (unsigned)YYTABLESIZE))
-        && yycheck[yyn] == DSQL_yychar)
+    if ((yyn = yysindex[yystate]) && (yyn += DSQL_yychar) >= 0 &&
+            yyn <= YYTABLESIZE && yycheck[yyn] == DSQL_yychar)
     {
 #if YYDEBUG
         if (yydebug)
-            printf("yydebug: state %d, shifting to state %d\n",
-                    yystate, yytable[yyn]);
+            printf("%sdebug: state %d, shifting to state %d\n",
+                    YYPREFIX, yystate, yytable[yyn]);
 #endif
-        if (DSQL_yyerrflag > 0)  --DSQL_yyerrflag;
+        if (yyssp >= yyss + yystacksize - 1)
+        {
+            goto yyoverflow;
+        }
+        *++yyssp = yystate = yytable[yyn];
+        *++yyvsp = yylval;
         DSQL_yychar = (-1);
-        goto yypush_lex;
+        if (DSQL_yyerrflag > 0)  --DSQL_yyerrflag;
+        goto yyloop;
     }
-    yyn = yyrindex[yystate];
-    if (yyn != 0
-        && ((yyn += DSQL_yychar), ((unsigned)yyn <= (unsigned)YYTABLESIZE))
-        && yycheck[yyn] == DSQL_yychar)
+    if ((yyn = yyrindex[yystate]) && (yyn += DSQL_yychar) >= 0 &&
+            yyn <= YYTABLESIZE && yycheck[yyn] == DSQL_yychar)
     {
         yyn = yytable[yyn];
         goto yyreduce;
@@ -4829,24 +4714,28 @@ yyinrecovery:
         DSQL_yyerrflag = 3;
         for (;;)
         {
-            yyn = yysindex[*yyssp];
-            if (yyn != 0
-                && ((yyn += YYERRCODE), ((unsigned)yyn <= (unsigned)YYTABLESIZE))
-                && yycheck[yyn] == YYERRCODE)
+            if ((yyn = yysindex[*yyssp]) && (yyn += YYERRCODE) >= 0 &&
+                    yyn <= YYTABLESIZE && yycheck[yyn] == YYERRCODE)
             {
 #if YYDEBUG
                 if (yydebug)
-                    printf("yydebug: state %d, error recovery shifting\
- to state %d\n", *yyssp, yytable[yyn]);
+                    printf("%sdebug: state %d, error recovery shifting\
+ to state %d\n", YYPREFIX, *yyssp, yytable[yyn]);
 #endif
-                goto yypush_lex;
+                if (yyssp >= yyss + yystacksize - 1)
+                {
+                    goto yyoverflow;
+                }
+                *++yyssp = yystate = yytable[yyn];
+                *++yyvsp = yylval;
+                goto yyloop;
             }
             else
             {
 #if YYDEBUG
                 if (yydebug)
-                    printf("yydebug: error recovery discarding state %d\n",
-                            *yyssp);
+                    printf("%sdebug: error recovery discarding state %d\n",
+                            YYPREFIX, *yyssp);
 #endif
                 if (yyssp <= yyss) goto yyabort;
                 --yyssp;
@@ -4863,8 +4752,8 @@ yyinrecovery:
             yys = 0;
             if (DSQL_yychar <= YYMAXTOKEN) yys = yyname[DSQL_yychar];
             if (!yys) yys = "illegal-symbol";
-            printf("yydebug: state %d, error recovery discards token %d (%s)\n",
-                    yystate, DSQL_yychar, yys);
+            printf("%sdebug: state %d, error recovery discards token %d (%s)\n",
+                    YYPREFIX, yystate, DSQL_yychar, yys);
         }
 #endif
         DSQL_yychar = (-1);
@@ -4873,8 +4762,8 @@ yyinrecovery:
 yyreduce:
 #if YYDEBUG
     if (yydebug)
-        printf("yydebug: state %d, reducing by rule %d (%s)\n",
-                yystate, yyn, yyrule[yyn]);
+        printf("%sdebug: state %d, reducing by rule %d (%s)\n",
+                YYPREFIX, yystate, yyn, yyrule[yyn]);
 #endif
     yym = yylen[yyn];
     yyval = yyvsp[1-yym];
@@ -7289,15 +7178,15 @@ case 856:
 break;
     }
     yyssp -= yym;
+    yystate = *yyssp;
     yyvsp -= yym;
     yym = yylhs[yyn];
-    yystate = *yyssp;
     if (yystate == 0 && yym == 0)
     {
 #if YYDEBUG
         if (yydebug)
-            printf("yydebug: after reduction, shifting from state 0 to\
- state %d\n", YYFINAL);
+            printf("%sdebug: after reduction, shifting from state 0 to\
+ state %d\n", YYPREFIX, YYFINAL);
 #endif
         yystate = YYFINAL;
         *++yyssp = YYFINAL;
@@ -7311,27 +7200,31 @@ break;
                 yys = 0;
                 if (DSQL_yychar <= YYMAXTOKEN) yys = yyname[DSQL_yychar];
                 if (!yys) yys = "illegal-symbol";
-                printf("yydebug: state %d, reading %d (%s)\n",
-                        YYFINAL, DSQL_yychar, yys);
+                printf("%sdebug: state %d, reading %d (%s)\n",
+                        YYPREFIX, YYFINAL, DSQL_yychar, yys);
             }
 #endif
         }
         if (DSQL_yychar == 0) goto yyaccept;
         goto yyloop;
     }
-    yyn = yygindex[yym];
-	 if (yyn != 0
-        && ((yyn += yystate), ((unsigned)yyn <= (unsigned)YYTABLESIZE))
-        && yycheck[yyn] == yystate)
+    if ((yyn = yygindex[yym]) && (yyn += yystate) >= 0 &&
+            yyn <= YYTABLESIZE && yycheck[yyn] == yystate)
         yystate = yytable[yyn];
     else
         yystate = yydgoto[yym];
 #if YYDEBUG
     if (yydebug)
-        printf("yydebug: after reduction, shifting from state %d \
-to state %d\n", *yyssp, yystate);
+        printf("%sdebug: after reduction, shifting from state %d \
+to state %d\n", YYPREFIX, *yyssp, yystate);
 #endif
-    goto yypush;
+    if (yyssp >= yyss + yystacksize - 1)
+    {
+        goto yyoverflow;
+    }
+    *++yyssp = yystate;
+    *++yyvsp = yyval;
+    goto yyloop;
 yyoverflow:
     yyerror("yacc stack overflow");
 yyabort:
