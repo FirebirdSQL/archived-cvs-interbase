@@ -102,7 +102,7 @@ Source: interbase\bin\ibguard.exe; DestDir: {app}\bin; Components: Server DevToo
 Source: interbase\bin\iblockpr.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\ibserver.exe; DestDir: {app}\bin; Components: Server; CopyMode: alwaysoverwrite; Flags: restartreplace
 Source: interbase\bin\ib_util.dll; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: Server DevTools Client; CopyMode: alwaysoverwrite
 Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
@@ -122,6 +122,7 @@ Name: {group}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tas
 Name: {userdesktop}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: desktopicon; IconIndex: 0
 
 [Registry]
+;This section is more or less redundant. Instreg.exe now handles all the registry stuff.
 ;Root: HKLM; Subkey: SOFTWARE\Borland; Flags: uninsdeletekeyifempty
 ;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase; Flags: uninsdeletekey
 ;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; Flags: uninsdeletekey
@@ -145,7 +146,7 @@ Filename: {app}\bin\instsvc.exe; Parameters: start; StatusMsg: "Starting the ser
 [UninstallRun]
 Filename: {app}\bin\instsvc.exe; Parameters: stop; StatusMsg:  "Stopping the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
 Filename: {app}\bin\instsvc.exe; Parameters: remove -g; StatusMsg:  "Removing the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
-Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg:  "Updating the registry"; MinVersion: 4.0,4.0; Components: Server; Flags: runminimized;
+Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg:  "Updating the registry"; MinVersion: 4.0,4.0; Components: Server DevTools Client; Flags: runminimized;
 
 [UninstallDelete]
 Type: files; Name: "{app}\{%COMPUTERNAME}.lck"
@@ -190,12 +191,18 @@ end;
 
 function InstallDir(Default: String): String;
 var
-  s: string;
+	sRootDir: String;
 begin
-  s:=getenv('INTERBASE');
-  if s<>'' then
-    Result := ChangeDirConst(s);
+	sRootDir := '';
+// Try to find the value of "RootDirectory" in the Firebird registry settings
+	if (RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion', 'RootDirectory', sRootDir) = False) then
+// If the Firebird registry settings don't exits try to find the Borland ones
+		RegQueryStringValue(HKEY_LOCAL_MACHINE, 'SOFTWARE\Borland\InterBase\CurrentVersion', 'RootDirectory', sRootDir);
+// Only if the Firebird or InterBase "RootKey" was found create a result
+	if (sRootDir <> '') then
+		Result := ChangeDirConst(sRootDir);
 end;
+
 
 begin
 end.
