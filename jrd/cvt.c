@@ -21,6 +21,8 @@
  * Contributor(s): ______________________________________.
  * 2001.6.16 Claudio Valderrama: Wiped out the leading space in
  * cast(float_expr as char(n)) in dialect 1, reported in SF.
+ * 2001.11.19 Claudio Valderrama: integer_to_text() should use the
+ * source descriptor "from" to call conversion_error.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -2343,7 +2345,7 @@ length = l + neg + decimal + pad;
 if ((to->dsc_dtype == dtype_text    && length > to->dsc_length) ||
     (to->dsc_dtype == dtype_cstring && length >= to->dsc_length) ||
     (to->dsc_dtype == dtype_varying && length > (SSHORT)(to->dsc_length - sizeof (USHORT))))
-    conversion_error (to, err);
+    conversion_error (from, err);
 
 q = (to->dsc_dtype == dtype_varying) ? to->dsc_address + sizeof (USHORT) : to->dsc_address;
 
