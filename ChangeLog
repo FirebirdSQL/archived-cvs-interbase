@@ -1,3 +1,15 @@
+2003-03-31 15:45  paul_reeves
+
+	* interbase/jrd/cch.c:
+	
+	Speed up connection times a little.
+
+2003-03-31 13:28  paul_reeves
+
+	* interbase/remote/inet_server.c:
+	
+	Stop logging SIGPIPE errors and let EPIPE surface instead.
+
 2003-03-25 17:01  paul_reeves
 
 	* interbase/remote/inet.c:
