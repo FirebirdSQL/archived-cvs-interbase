@@ -1,3 +1,32 @@
+2001-07-29 09:34  robocop
+
+	* interbase/: dsql/parse.c, jrd/opt.c:
+	
+	allowing successful compilation on Win32 again
+
+2001-07-29 09:05  bellardo
+
+	* interbase/dsql/dsql.c:
+	
+	Updated DSQL_pretty to understand nod_limit.
+
+2001-07-29 06:45  bellardo
+
+	* interbase/: dsql/parse.c, dsql/parse.y, jrd/blp.h:
+	
+	Fixed bug preventing blr_skip and blr_current_role from pretty
+	printing correctly.  Reorder token definitions in parse.y to
+	reflect chronological order.
+
+2001-07-29 01:26  bellardo
+
+	* interbase/: dsql/gen.c, dsql/keywords.h, dsql/node.h,
+	dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/blr.h, jrd/cmp.c,
+	jrd/exe.h, jrd/gdsold.h, jrd/ibase.h, jrd/inf.h, jrd/opt.c,
+	jrd/par.c, jrd/rse.c, jrd/rse.h:
+	
+	Added limit functionality.
+
 2001-07-25 08:42  robocop
 
 	* interbase/jrd/cmp.c:
