@@ -20,6 +20,7 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.6.21 Claudio Valderrama: BREAK and SUBSTRING.
+ * 2001.07.28: John Bellardo:  Added code to generate blr_skip.
  */
 /*
 $Id$
@@ -1943,6 +1944,12 @@ else
 if ((node = rse->nod_arg [e_rse_first]) != NULL)
     {
     STUFF (blr_first);
+    GEN_expr (request, node);
+    }
+
+if ((node = rse->nod_arg [e_rse_skip]) != NULL)
+    {
+    STUFF (blr_skip);
     GEN_expr (request, node);
     }
 

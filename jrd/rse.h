@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.28: Added rsb_t.rsb_skip and IRSB_SKIP to support LIMIT functionality.
  */
 
 #ifndef _JRD_RSE_H_
@@ -33,6 +34,7 @@ typedef ENUM rsb_t {
     rsb_cross,
     rsb_dbkey,
     rsb_first,
+    rsb_skip,
     rsb_indexed,
     rsb_merge,
     rsb_multiple,
@@ -130,6 +132,12 @@ typedef struct irsb_first_n {
     ULONG	irsb_flags;
     SLONG	irsb_number;
 } *IRSB_FIRST;
+
+typedef struct irsb_skip_n {
+    ULONG	irsb_flags;
+    SLONG	irsb_number;
+    SLONG	irsb_skip;
+} *IRSB_SKIP;
 
 typedef struct irsb_index {
     ULONG	irsb_flags;

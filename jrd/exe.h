@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.28: Added rse_skip to struct rse to support LIMIT.
  */
 
 #ifndef _JRD_EXE_H_
@@ -75,6 +76,7 @@ typedef struct rse {
     USHORT	rse_jointype;		/* inner, left, right, full */
     struct rsb	*rse_rsb;
     struct nod	*rse_first;
+    struct nod	*rse_skip;
     struct nod	*rse_boolean;
     struct nod	*rse_sorted;
     struct nod	*rse_projection;

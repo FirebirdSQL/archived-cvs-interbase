@@ -22,6 +22,7 @@
  * 2001.6.12 Claudio Valderrama: add break_* constants.
  * 2001.6.30 Claudio valderrama: Jim Starkey suggested to hold information
  * about source line in each node that's created.
+ * 2001.7.28 John Bellardo: Added e_rse_limit to nod_rse and nod_limit.
  */
 
 #ifndef _DSQL_NODE_H_
@@ -339,7 +340,10 @@ typedef ENUM nod_t {
     nod_current_role, /* nod_role_name is already taken but only for DDL. */
     nod_breakleave,
     nod_redef_relation, /* allows silent creation/overwriting of a relation. */
-    nod_udf_param /* there should be a way to signal a param by descriptor! */
+    nod_udf_param, /* there should be a way to signal a param by descriptor! */
+
+    /* limit support */
+    nod_limit
 
 } NOD_TYPE;
 
@@ -468,7 +472,12 @@ typedef struct nod {
 #define e_rse_first	5
 #define e_rse_singleton	6
 #define e_rse_plan	7
-#define e_rse_count	8
+#define e_rse_skip	8
+#define e_rse_count	9
+
+#define e_limit_skip	0	/* nod_limit */
+#define e_limit_length	1
+#define e_limit_count	2
 
 #define e_par_parameter	0	/* nod_parameter */
 #define e_par_count	1
@@ -507,12 +516,13 @@ typedef struct nod {
 #define e_sel_distinct	0	/* nod_select_expr */
 #define e_sel_list	1
 #define e_sel_from	2
-#define e_sel_where	3
-#define e_sel_group	4
-#define e_sel_having	5
-#define e_sel_plan	6
-#define e_sel_singleton	7
-#define e_sel_count	8
+#define e_sel_limit	3
+#define e_sel_where	4
+#define e_sel_group	5
+#define e_sel_having	6
+#define e_sel_plan	7
+#define e_sel_singleton	8
+#define e_sel_count	9
 
 #define e_ins_relation	0	/* nod_insert */
 #define e_ins_fields	1

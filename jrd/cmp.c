@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.28: John Bellardo: Added code to handle rse_skip.
  */
 /*
 $Id$
@@ -2547,6 +2548,7 @@ switch (input->nod_type)
 	    *arg2 = copy (tdbb, csb, *arg1, remap, field_id, remap_fld);
 	new_rse->rse_jointype = old_rse->rse_jointype;
 	new_rse->rse_first = copy (tdbb, csb, old_rse->rse_first, remap, field_id, remap_fld);
+	new_rse->rse_skip = copy (tdbb, csb, old_rse->rse_skip, remap, field_id, remap_fld);
 	new_rse->rse_boolean = copy (tdbb, csb, old_rse->rse_boolean, remap, field_id, remap_fld);
 	new_rse->rse_sorted = copy (tdbb, csb, old_rse->rse_sorted, remap, field_id, remap_fld);
 	new_rse->rse_projection = copy (tdbb, csb, old_rse->rse_projection, remap, field_id, remap_fld);
@@ -3647,7 +3649,7 @@ static RSE pass1_rse (
  **************************************/
 USHORT	count;
 LLS	stack, temp;
-NOD	*arg, *end, boolean, sort, project, first, plan;
+NOD	*arg, *end, boolean, sort, project, first, skip, plan;
 #ifdef SCROLLABLE_CURSORS
 NOD	async_message;
 #endif
@@ -3673,6 +3675,7 @@ boolean = NULL;
 sort = rse->rse_sorted;
 project = rse->rse_projection;
 first = rse->rse_first;
+skip = rse->rse_skip;
 plan = rse->rse_plan;
 #ifdef SCROLLABLE_CURSORS
 async_message = rse->rse_async_message;
@@ -3708,6 +3711,8 @@ while (stack)
 
 if (first)
     rse->rse_first = pass1 (tdbb, csb, first, view, view_stream, FALSE);
+if (skip)
+    rse->rse_skip = pass1 (tdbb, csb, skip, view, view_stream, FALSE);
 
 if (boolean)
     {
@@ -4765,6 +4770,9 @@ DEV_BLKCHK (rse, type_nod);
 
 if (rse->rse_first)
     pass2 (tdbb, csb, rse->rse_first, NULL_PTR);
+
+if (rse->rse_skip)
+    pass2 (tdbb, csb, rse->rse_skip, NULL_PTR);
 
 for (ptr = rse->rse_relation, end = ptr + rse->rse_count;
      ptr < end; ptr++)

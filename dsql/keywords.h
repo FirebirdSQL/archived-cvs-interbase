@@ -16,8 +16,10 @@
  * Copyright (C) Inprise Corporation.
  *
  * All Rights Reserved.
- * Contributor(s): ______________________________________.
+ * Contributor(s): 
+ *       2001.7.28   John Bellardo added tokens for FIRST and LIMIT
    See dsql/parse.y for a chronological list. */
+
 NOT_LSS,  "!<", 1,
 NEQ,	  "!=", 1,
 NOT_GTR,  "!>", 1,
@@ -106,6 +108,7 @@ EXTERNAL, "EXTERNAL", 1,
 EXTRACT,  "EXTRACT", 2,
 KW_FILE,  "FILE", 1,
 FILTER,	  "FILTER", 1,
+FIRST,    "FIRST", 2,
 KW_FLOAT, "FLOAT", 1,
 FOR,	  "FOR", 1,
 FOREIGN,  "FOREIGN", 1,
@@ -139,6 +142,7 @@ LEFT,	  "LEFT", 1,
 LENGTH,	  "LENGTH", 1,
 LEVEL,	  "LEVEL", 1,
 LIKE,	  "LIKE", 1,
+LIMIT,    "LIMIT", 2,
 LOGFILE,  "LOGFILE", 1,
 LOG_BUF_SIZE, "LOG_BUFFER_SIZE", 1,
 KW_LONG,  "LONG", 1,

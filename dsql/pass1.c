@@ -29,6 +29,7 @@
  * 2001.6.27: Claudio Valderrama: pass1_variable() now gives the name of the
  * variable it can't find in the error message.
  * 2001.6.30: Claudio Valderrama: Enhanced again to provide (line, col), see node.h.
+ * 2001.7.28: John Bellardo: added code to handle nod_limit and associated fields.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -3366,6 +3367,21 @@ if (parent_context)
     parent_rse = target_rse = MAKE_node (nod_rse, e_rse_count);
     parent_rse->nod_arg [e_rse_streams] = list = MAKE_node (nod_list, 1);
     list->nod_arg [0] = aggregate;
+    }
+
+/* Process LIMIT, if any */
+if (node = input->nod_arg [e_sel_limit])
+    {
+    if (node->nod_arg [e_limit_length])
+        {
+        rse->nod_arg [e_rse_first] =
+            PASS1_node (request, node->nod_arg [e_limit_length], 0);
+        }
+    if (node->nod_arg [e_limit_skip])
+        {
+        rse->nod_arg [e_rse_skip] =
+            PASS1_node (request, node->nod_arg [e_limit_skip], 0);
+        }
     }
 
 /* Process boolean, if any */

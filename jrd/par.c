@@ -21,6 +21,7 @@
  * Contributor(s): ______________________________________.
  * 27-May-2001 Claudio Valderrama: par_plan() no longer uppercases
  *			an index's name before doing a lookup of such index.
+ * 2001.07.28: Added parse code for blr_skip to support LIMIT.
  */
 /*
 $Id$
@@ -2113,6 +2114,12 @@ while (TRUE)
 	    if (rse_op == blr_rs_stream)
 		syntax_error (*csb, "rse stream clause");
 	    rse->rse_first = parse (tdbb, csb, VALUE);
+	    break;
+
+	case blr_skip:
+	    if (rse_op == blr_rs_stream)
+		syntax_error (*csb, "rse stream clause");
+	    rse->rse_skip = parse (tdbb, csb, VALUE);
 	    break;
 
 	case blr_sort:

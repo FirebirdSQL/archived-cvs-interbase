@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.28: John Bellardo: Implemented rse_skip and made rse_first work with
+ *                              seekable streams.
  */
 /*
 $Id$
@@ -184,6 +186,7 @@ while (TRUE)
 #endif
     
 	case rsb_first:
+	case rsb_skip:
 	case rsb_boolean:
 	case rsb_aggregate:
 	    rsb = rsb->rsb_next;
@@ -727,6 +730,12 @@ while (TRUE)
 	    return;
 
 	case rsb_first:
+	    impure->irsb_number =
+		MOV_get_long (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
+	    rsb = rsb->rsb_next;
+	    break;
+	
+	case rsb_skip:
 	    impure->irsb_number =
 		MOV_get_long (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
 	    rsb = rsb->rsb_next;
@@ -2607,12 +2616,78 @@ switch (rsb->rsb_type)
 	    }
 	}
 	
+    /******
+      ***     IMPORTANT!!
+      *
+      *   If the RSB list contains both a rsb_first node and a rsb_skip node
+      *     the rsb_skip node MUST be after the rsb_first node in the list.
+      *     The reason is the rsb_skip calls get_record in a loop to skip
+      *     over the first n records in the stream.  If the rsb_first node
+      *     was down stream the counter associated with rsb_first would
+      *     be decremented by the calls to get_record that never return a
+      *     record to the user.  Possible symptoms of this are erroneous
+      *     empty result sets (when skip >= first) and too small result sets
+      *     (when first > skip, first - skip records will be returned).
+      *******/
+
     case rsb_first:
-	if ((--((IRSB_FIRST) impure)->irsb_number) < 0)
-	    return FALSE;
-	if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
-	    return FALSE;
+        switch(mode)
+        {
+            case RSE_get_forward:
+	        if (((IRSB_FIRST) impure)->irsb_number <= 0)
+                    return FALSE;
+	        ((IRSB_FIRST) impure)->irsb_number--;
+	        if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+	            return FALSE;
+                break;
+
+            case RSE_get_current:
+	        if (((IRSB_FIRST) impure)->irsb_number <= 0)
+                    return FALSE;
+	        if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+	            return FALSE;
+                break;
+
+            case RSE_get_backward:
+	        ((IRSB_FIRST) impure)->irsb_number++;
+	        if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+	            return FALSE;
+                break;
+        }
 	break;
+
+    case rsb_skip:
+        switch(mode)
+        {
+            /* skip only supports get_forward because the irsb_number variable
+             * is only a LONG and would fail after 2 bln. records.  We can't
+             * have that.  Once it is moved up to a long long we can work out
+             * the get_backward case.
+             */
+            case RSE_get_backward:
+                ERR_post (isc_wish_list, gds_arg_interpreted,
+                    "get_record: backward seeking of LIMIT clause not supported"
+                    , 0);
+
+            case RSE_get_forward:
+                while(((IRSB_SKIP) impure)->irsb_number > 1)
+                {
+                    ((IRSB_SKIP) impure)->irsb_number--;
+                    if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+                        return FALSE;
+                }
+                /* ((IRSB_SKIP) impure)->irsb_number--; */
+                if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+                    return FALSE;
+                break;
+
+            case RSE_get_current:
+                if (((IRSB_SKIP) impure)->irsb_number > 1)
+                    return FALSE;
+                else if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+                    return FALSE;
+        }
+        break;
 
     case rsb_merge:
 	if (!get_merge_join (tdbb, rsb, (IRSB_MRG) impure
@@ -3443,6 +3518,7 @@ switch (rsb->rsb_type)
 	}
 
     case rsb_first:
+    case rsb_skip:
     case rsb_boolean:
 	pop_rpbs (request, rsb->rsb_next);
 	return;
@@ -3563,6 +3639,7 @@ switch (rsb->rsb_type)
 	}
 
     case rsb_first:
+    case rsb_skip:
     case rsb_boolean:
 	push_rpbs (tdbb, request, rsb->rsb_next);
 	return;

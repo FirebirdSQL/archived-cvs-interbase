@@ -26,6 +26,7 @@
  * 2001.06.13: Claudio Valderrama: SUBSTRING is being surfaced.
  * 2001.06.30: Claudio valderrama: Feed (line,column) for each node. See node.h.
  * 2001.07.10: Claudio Valderrama: Better (line,column) report and "--" for comments.
+ * 2001.07.28: John Bellardo: Changes to support parsing LIMIT and FIRST/
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -353,7 +354,9 @@ static SSHORT	log_defined, cache_defined;
 /* CVC: Special Firebird additions. */
 %token CURRENT_USER
 %token CURRENT_ROLE
+%token FIRST
 %token KW_BREAK
+%token LIMIT
 %token SUBSTRING
 %token KW_DESCRIPTOR
 
@@ -2453,12 +2456,13 @@ for_update_list	: OF column_list
 select_expr	: SELECT distinct_clause
 			 select_list 
 			 from_clause 
+			 limit_clause
 			 where_clause 
 			 group_clause 
 			 having_clause
 			 plan_clause
 			{ $$ = make_node (nod_select_expr, e_sel_count, 
-					$2, $3, $4, $5, $6, $7, $8, NULL); }
+					$2, $3, $4, $5, $6, $7, $8, $9, NULL); }
 		;                                               
 
 
@@ -2563,6 +2567,16 @@ join_type	: INNER
 		;
 
 /* other clauses in the select expression */
+
+limit_clause	: FIRST value
+			{ $$ = make_node (nod_limit, e_limit_count, NULL, $2); }
+		| LIMIT '(' value ')'
+			{ $$ = make_node (nod_limit, e_limit_count, NULL, $3); }
+		| LIMIT '(' value ',' value ')'
+			{ $$ = make_node (nod_limit, e_limit_count, $5, $3); }
+		|
+			{ $$ = 0; }
+		;
 
 group_clause	: GROUP BY grp_column_list
 			{ $$ = make_list ($3); }

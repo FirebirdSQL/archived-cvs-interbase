@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.28: John Bellardo: Added code to handle rse_skip nodes.
  */
 /*
 $Id$
@@ -618,8 +619,15 @@ if (project || sort)
 	rsb = gen_sort (tdbb, opt, beds, key_streams, rsb, sort, FALSE);
     }
 
-/* If there's a FIRST n clause, handle it */
 
+/* Handle first and/or skip.  The skip MUST (if present)
+ * appear in the rsb list AFTER the first.  Since the gen_first and gen_skip
+ * functions add their nodes at the beginning of the rsb list we MUST call
+ * gen_skip before gen_first.
+ **/
+
+if (rse->rse_skip)
+    rsb = gen_skip (tdbb, opt, rsb, rse->rse_skip);
 if (rse->rse_first)
     rsb = gen_first (tdbb, opt, rsb, rse->rse_first);
 
@@ -1498,6 +1506,9 @@ result = TRUE;
 if ((sub = rse->rse_first) && !computable (csb, sub, stream, idx_use))
     return FALSE;
     
+if ((sub = rse->rse_skip) && !computable (csb, sub, stream, idx_use))
+    return FALSE;
+    
 /* Set sub-streams of rse active */
 
 for (ptr = rse->rse_relation, end = ptr + rse->rse_count; ptr < end; ptr++)
@@ -2120,6 +2131,10 @@ switch (rsb->rsb_type)
     
     case rsb_first:
 	*buffer++ = gds__info_rsb_first;
+	break;
+
+    case rsb_skip:
+	*buffer++ = gds__info_rsb_skip;
 	break;
 
     case rsb_boolean:
@@ -3225,6 +3240,10 @@ static RSB gen_first (
  *	Compile and optimize a record selection expression into a
  *	set of record source blocks (rsb's).
  *
+ *      NOTE: The rsb_first node MUST appear in the rsb list before the
+ *          rsb_skip node.  The calling code MUST call gen_first after
+ *          gen_skip.
+ *
  **************************************/
 register CSB	csb;
 register RSB	rsb;
@@ -3242,6 +3261,47 @@ rsb->rsb_type = rsb_first;
 rsb->rsb_next = prior_rsb;
 rsb->rsb_arg [0] = (RSB) node;
 rsb->rsb_impure = CMP_impure (csb, sizeof (struct irsb_first_n));
+
+return rsb;
+}
+
+static RSB gen_skip (
+    TDBB		tdbb,
+    register OPT	opt,
+    RSB			prior_rsb,
+    NOD			node)
+{
+/**************************************
+ *
+ *	g e n _ s k i p
+ *
+ **************************************
+ *
+ * Functional description
+ *	Compile and optimize a record selection expression into a
+ *	set of record source blocks (rsb's).
+ *
+ *      NOTE: The rsb_skip node MUST appear in the rsb list after the
+ *          rsb_first node.  The calling code MUST call gen_skip before
+ *          gen_first.
+ *
+ **************************************/
+register CSB	csb;
+register RSB	rsb;
+
+DEV_BLKCHK (opt, type_opt);
+DEV_BLKCHK (prior_rsb, type_rsb);
+DEV_BLKCHK (node, type_nod);
+
+SET_TDBB (tdbb);
+
+csb = opt->opt_csb;
+rsb = (RSB) ALLOCDV (type_rsb, 1);
+rsb->rsb_count = 1;
+rsb->rsb_type = rsb_skip;
+rsb->rsb_next = prior_rsb;
+rsb->rsb_arg [0] = (RSB) node;
+rsb->rsb_impure = CMP_impure (csb, sizeof (struct irsb_skip_n));
 
 return rsb;
 }

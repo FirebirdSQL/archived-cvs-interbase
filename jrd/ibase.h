@@ -20,6 +20,7 @@
  * Contributor(s): ______________________________________.
  * Added TCP_NO_DELAY option for superserver on Linux
  * FSG 16.03.2001 
+ * 2001.07.28: John Bellardo:  Added blr_skip
  */
 /*
 $Id$
@@ -1657,6 +1658,7 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define blr_gen_id2		  172
 #define blr_set_generator2        173
 #define blr_current_role          174
+#define blr_skip			   175
 #endif					/* _JRD_BLR_H_ */
 
 /**********************************/
