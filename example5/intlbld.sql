@@ -16,7 +16,7 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
-set sql dialect 1;
+set sql dialect 3;
 create database 'intlemp.gdb' default character set iso8859_1;
 show version;
 input intlddl.sql;

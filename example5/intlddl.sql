@@ -214,7 +214,7 @@ CREATE TABLE employee
     first_name      FIRSTNAME NOT NULL,
     last_name       LASTNAME NOT NULL,
     phone_ext       VARCHAR(4),
-    hire_date       DATE DEFAULT 'NOW' NOT NULL,
+    hire_date       DATE DEFAULT 'TODAY' NOT NULL,
     dept_no         DEPTNO NOT NULL,
     job_code        JOBCODE NOT NULL,
     job_grade       JOBGRADE NOT NULL,
@@ -331,7 +331,7 @@ CREATE TABLE proj_dept_budget
 CREATE TABLE salary_history
 (
     emp_no              EMPNO NOT NULL,
-    change_date         DATE DEFAULT 'NOW' NOT NULL,
+    change_date         TIMESTAMP DEFAULT 'NOW' NOT NULL,
     updater_id          VARCHAR(20) NOT NULL,
     old_salary          SALARY NOT NULL,
     percent_change      DOUBLE PRECISION
@@ -441,7 +441,7 @@ CREATE TABLE sales
                         CHECK (order_status in
                             ('new', 'open', 'shipped', 'waiting')),
     order_date      DATE 
-			DEFAULT 'NOW'
+			DEFAULT 'TODAY'
                         NOT NULL,
     ship_date       DATE
                         CHECK (ship_date >= order_date OR ship_date IS NULL),
@@ -866,7 +866,7 @@ BEGIN
 		WHERE cust_no = :cust_no
 		AND order_status = 'shipped'
 		AND paid = 'n'
-		AND ship_date < CAST('NOW' AS DATE) - 60
+		AND ship_date < CAST('TODAY' AS DATE) - 60
 		INTO :any_po
 	DO
 	BEGIN
@@ -883,7 +883,7 @@ BEGIN
 	 *	Ship the order.
 	 */
 	UPDATE sales
-	SET order_status = 'shipped', ship_date = 'NOW' 
+	SET order_status = 'shipped', ship_date = 'TODAY' 
 	WHERE po_number = :po_num;
 
 	SUSPEND;
