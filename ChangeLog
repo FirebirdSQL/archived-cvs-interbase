@@ -1,3 +1,10 @@
+2001-09-22 18:05  awharrison
+
+	* interbase/jrd/ibase.h:
+	
+	
+	VS: Committing in .  Give all enums explicit values.
+
 2001-09-21 17:24  awharrison
 
 	* interbase/jrd/license.h:
