@@ -88,7 +88,6 @@ typedef struct itm {
 #define GETWD(buf)		getcwd (buf, MAXPATHLEN)
 #define MTAB			"/etc/mnttab"
 #include <sys/types.h>
-/* RITTER - added HP11 to the pre-processor condition below */
 #if !(defined HP10 || defined HP11)
 #include <cluster.h>
 #endif
@@ -547,7 +546,6 @@ MTAB_CLOSE (mtab);
 #endif
 
 #ifdef hpux
-/* RITTER - added HP11 to the pre-processor condition below */
 #if !(defined HP10 || defined HP11)
 if (!flag)
     flag = get_server (expanded_filename, node_name);
@@ -2943,7 +2941,6 @@ return FALSE;
 #endif
 
 #ifdef hpux
-/* RITTER - added HP11 to the pre-processor condition below */
 #if !(defined HP10 || defined HP11)
 static BOOLEAN get_server (
     TEXT	*file_name,

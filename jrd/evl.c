@@ -5015,8 +5015,8 @@ else
 	else
 	{
 		/* Keep our starting pos safe. */
-#ifdef HPUX /* RITTER - removed the below cast on HP-UX to avoid compiler error */
-	        /*(UCHAR*)*/ desc.dsc_address = p;
+#ifdef HPUX 
+	        desc.dsc_address = p;
 #else
 		(UCHAR*) desc.dsc_address = p;
 #endif // HPUX

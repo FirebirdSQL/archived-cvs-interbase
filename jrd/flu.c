@@ -48,7 +48,7 @@ static int	condition_handler (int *, int *, int *);
 
 /* HP-UX specific stuff */
 
-#if (defined HP700 || defined HP10)
+#if (defined HP700 || defined HPUX)
 #include <dl.h>
 #include <shl.h>
 #include <unistd.h>
@@ -266,7 +266,7 @@ for (mod = &FLU_modules; *mod; mod = &(*mod)->mod_next)
 	break;
 	}
 
-#if (defined HP700 || defined HP10)
+#if (defined HP700 || defined HPUX)
 shl_unload (module->mod_handle);
 #endif
 
@@ -477,7 +477,7 @@ return function;
 }
 #endif
 
-#if (defined HP700 || defined HP10)
+#if (defined HP700 || defined HPUX)
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
     TEXT	*module,

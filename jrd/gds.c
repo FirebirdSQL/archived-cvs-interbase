@@ -2941,7 +2941,7 @@ if (ib_prefix_msg == NULL)
         }
     else
         {
-        strncat(ib_prefix_msg_val, ib_prefix_msg, sizeof(ib_prefix_msg_val)-1); 
+        strcat (ib_prefix_msg_val, ib_prefix_msg); 
         ib_prefix_msg = ib_prefix_msg_val;
         }
     }
@@ -5259,7 +5259,6 @@ static void init (void)
 #ifdef UNIX
     gds_pid = getpid();
 #ifdef SUPERSERVER
-    /* RITTER - changed HP10 to HPUX */
 #if (defined SOLARIS || defined HPUX || defined LINUX)
     {
         /* Increase max open files to hard limit for Unix

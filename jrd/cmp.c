@@ -102,7 +102,6 @@ typedef ENUM rids {
 #define REQ_TAIL		sizeof (((REQ) 0)->req_rpb[0])
 #define MAP_LENGTH		256
 
-/* RITTER - changed HP10 to HPUX */
 #if defined (HPUX) && defined (SUPERSERVER)
 #define MAX_RECURSION		96
 #endif

@@ -66,7 +66,6 @@ $Id$
 #endif
 #endif
 
-/* RITTER - changed HP10 to HPUX in the line below */
 #if (defined(HPUX) && defined(SUPERSERVER))
 #define POSIX_THREADS		1
 #define MULTI_THREAD		1

@@ -361,13 +361,12 @@
 
 #define STRICMP(s1, s2)		strcasecmp(s1, s2)
 
-#if !(defined(SOLARIS26) || defined(HP10))
+#if !(defined(SOLARIS26))
 //#ifndef SOLARIS26
 
 /* If our build platform is at least Solaris release 2.6, then unistd.h
    declares these functions, so we must not define them with macros. 
-   The same applies to HP10 16-Apr-2002 Paul Beach */
-
+   
 #define setreuid(ruid,euid)     ((setuid (ruid) == -1 || seteuid (euid) == -1) ? -1 : 0)
 #define setregid(rgid,egid)     ((setgid (rgid) == -1 || setegid (egid) == -1) ? -1 : 0)
 #endif
