@@ -110,7 +110,7 @@ ASSERT_FILENAME				/* Define things assert() needs */
 
 static BOOLEAN	aggregate_found (REQ, NOD, NOD *);
 static BOOLEAN	aggregate_found2 (REQ, NOD, NOD *, BOOLEAN *);
-static BOOLEAN	aggregate_in_list (NOD, BOOLEAN *);
+static BOOLEAN	aggregate_in_list (NOD, BOOLEAN *, NOD);
 static NOD	ambiguity_check (NOD, REQ, FLD, LLS, LLS);
 static void	assign_fld_dtype_from_dsc (FLD, DSC *);
 static NOD	compose (NOD, NOD, NOD_TYPE);
@@ -1030,7 +1030,8 @@ switch (sub->nod_type)
 
 static BOOLEAN aggregate_in_list (
     NOD		sub,
-	BOOLEAN	*field)
+	BOOLEAN	*field,
+	NOD 	list)
 {
 /**************************************
  *
@@ -1065,7 +1066,8 @@ switch (sub->nod_type)
 		return TRUE;
 
     case nod_field:
-		*field = TRUE;
+		/* field is only ok if it also appears in group by */
+		*field = invalid_reference (sub, list);	
 		return FALSE;
     case nod_constant:
 		return FALSE;
@@ -1091,7 +1093,7 @@ switch (sub->nod_type)
 		for (ptr = sub->nod_arg, end = ptr + sub->nod_count; ptr < end; ptr++)
 	    	{
 	    	DEV_BLKCHK (*ptr, type_nod);
-	    	aggregate |= aggregate_in_list (*ptr,field);
+	    	aggregate |= aggregate_in_list (*ptr,field,list);
 	    	}
 		return aggregate;
 
@@ -1100,7 +1102,7 @@ switch (sub->nod_type)
     case nod_gen_id:
     case nod_gen_id2:
 		if (sub->nod_count == 2)
-            	return (aggregate_in_list (sub->nod_arg[1],field));
+            	return (aggregate_in_list (sub->nod_arg[1],field,list));
 		else 
 	    	return FALSE;
 
@@ -1771,10 +1773,11 @@ else
 		
 		if (node->nod_count == 2) 
 		{		
-			if(aggregate_in_list (node->nod_arg [1], &non_agg_field) == TRUE)
+			if(aggregate_in_list (node->nod_arg [1], &non_agg_field,list) == TRUE)
 			{
 				/* abs(trunc(sum(total)+field)) is not valid in select list
-				   if a group by clause as field is 'undefined' 
+				   unless it also appears in the group by clause when its
+				   value is then known
 				*/
 				if (non_agg_field == TRUE)
 				{
