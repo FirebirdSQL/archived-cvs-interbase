@@ -43,11 +43,8 @@ instructions that are contained within the setup wizard.
 Known Issues
 ============
 
-The following are the known issues at this time. (7-Mar-2002). 
-
-  o Multi-file backup fails
+There are no known issues at this time. (11-Mar-2002). 
   
-
 
 Reporting Bugs
 ==============
@@ -66,7 +63,7 @@ o Still think it is a bug?
 
   Check the list of Open Bugs. This can be found at
 
-    http://firebird.sourceforge.net/rabbits/pcisar/FirebirdBugsOpen.html
+    http://prdownloads.sourceforge.net/firebird/Firebird_v1_OpenBugs.html
 
   An older version is contained in the doc directory of this release.
 
@@ -84,7 +81,7 @@ Before submitting feature requests please review the existing
 feature request list. Chances are that someone has already thought 
 of it. See this link for a current list:
 
-  http://firebird.sourceforge.net/rabbits/pcisar/FirebirdFeatureRequestOpen.html
+  http://prdownloads.sourceforge.net/firebird/Firebird_v1_OpenFeatures.html
 
 or look in the doc directory of this release for a slightly older version.
 

@@ -122,8 +122,8 @@ Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: Server Dev
 Source: extlib\fbudf\Release\fbudf.dll; DestDir: {app}\UDF; Components: Server DevTools; CopyMode: alwaysoverwrite;
 Source: extlib\fbudf\fbudf.sql; DestDir: {app}\examples; Components: Server DevTools; CopyMode: alwaysoverwrite
 Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: firebird\install\linux\doc\FB1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: firebird\install\linux\doc\Firebird*.html; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: firebird\install\doc_all_platforms\Firebird_v1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
+Source: firebird\install\doc_all_platforms\Firebird_v1_*.html; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
 
 [Icons]
 Name: {group}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: group; IconIndex: 0
