@@ -138,9 +138,9 @@ buildSuperDir() {
 
     cd $SuperDirName
     if [ $BuildHostType = "SOLARIS" -o $BuildHostType = "SCO_EV" ]; then
-      ln -s ../../$ClassicDirName/[a-z]*[!oa] .  
+      ln -s ../../$ClassicDirName/[a-z0-9]*[!oa] .  
     else   
-      ln -s ../../$ClassicDirName/[a-z]*[^oa] .  
+      ln -s ../../$ClassicDirName/[a-z0-9]*[^oa] .  
     fi
     cd ../..
 
@@ -300,12 +300,14 @@ setUnix64BitIo() {
 			echo "#define _64_BIT_IO_H" >> jrd/64bitio.h
 			echo "#define UNIX_64_BIT_IO" >> jrd/64bitio.h
 			echo "#endif" >> jrd/64bitio.h
+			BuildIOsize=64
 		else
 			echo "" > jrd/64bitio.h
 		fi
        ;;
     DARWIN)
         echo "#define UNIX_64_BIT_IO" > jrd/64bitio.h
+		BuildIOsize=64
         ;;
     *)
            echo "" > jrd/64bitio.h
@@ -374,6 +376,8 @@ checkVariables() {
      echo "Host  OS Type                          : $BuildHostType"
      echo "Build Type                             : $BuildBuildType"
      echo "Boot Type Build                        : $BuildBootFlg"
+	 echo ""
+	 echo "File IO bit size (32/64)               : $BuildIOsize"
      echo ""
      echo "From env. variables:"
      if [ "$BuildBootFlg" = "No" ]
@@ -512,6 +516,7 @@ BuildBootFlg="No"
 BuildHostType=""
 BuildBuildType="PROD"
 MasterSourceDir="`pwd`/refDatabases"
+BuildIOsize=32
 
 export BuildHostType
 export BuildBuidType
