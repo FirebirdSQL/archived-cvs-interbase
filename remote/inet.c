@@ -530,7 +530,11 @@ static CONST struct xdr_ops	inet_ops =
 #endif 
 
 #ifndef MAX_PTYPE
-#define MAX_PTYPE	ptype_out_of_band
+#ifdef MULTI_THREAD
+#define MAX_PTYPE       ptype_batch_send
+#else
+#define MAX_PTYPE       ptype_out_of_band
+#endif
 #endif
 
 #define MAXCLIENTS	NOFILE - 10
