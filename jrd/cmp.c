@@ -23,6 +23,10 @@
  * 2001.07.17 Claudio Valderrama: Stop crash when parsing user-supplied SQL plan.
  * 2001.10.04 Claudio Valderrama: Fix annoying & invalid server complaint about
  *   triggers not having REFERENCES privilege over their owner table.
+ * 2002.02.24 Claudio Valderrama: substring() should signal output as string even
+ *   if source is blob and should check implementation limits on field lengths.
+ * 2002.02.25 Claudio Valderrama: concatenate() should be a civilized function.
+ *   This closes the heart of SF Bug #518282.
  */
 /*
 $Id$
@@ -1401,22 +1405,28 @@ switch (node->nod_type)
     case nod_concatenate:
 	{
 	DSC	desc1, desc2;
-
+	ULONG rc_len;
 	CMP_get_desc (tdbb, csb, node->nod_arg [0], &desc1);
 	CMP_get_desc (tdbb, csb, node->nod_arg [1], &desc2);
 	desc->dsc_dtype = dtype_text;
 	if (desc1.dsc_dtype <= dtype_varying)
 	    {
-	    desc->dsc_length = desc1.dsc_length;
+	    rc_len = desc1.dsc_length;
 	    desc->dsc_ttype  = desc1.dsc_ttype;
 	    }
 	else
 	    {
-	    desc->dsc_length = DSC_convert_to_text_length( desc1.dsc_dtype);
+	    rc_len = DSC_convert_to_text_length (desc1.dsc_dtype);
 	    desc->dsc_ttype  = ttype_ascii;
 	    }
-	desc->dsc_length += (desc2.dsc_dtype <= dtype_varying) ?
-	    desc2.dsc_length : DSC_convert_to_text_length( desc2.dsc_dtype);
+	if (desc2.dsc_dtype <= dtype_varying)
+	    rc_len += desc2.dsc_length;
+	else
+	    rc_len += DSC_convert_to_text_length (desc2.dsc_dtype);
+	/* error() is a local routine in par.c, so we use plain ERR_post. */
+	if (rc_len > MAX_COLUMN_SIZE)
+		ERR_post (gds__imp_exc, gds_arg_gds, gds__blktoobig, 0);
+	desc->dsc_length = (USHORT) rc_len;
 	desc->dsc_scale = 0;
 	desc->dsc_flags = 0;
 	return;
@@ -1555,6 +1565,31 @@ switch (node->nod_type)
 
     case nod_substr:
 	CMP_get_desc (tdbb, csb, node->nod_arg [0], desc);
+	if (desc->dsc_dtype == dtype_blob)
+		{
+		DSC	desc1, desc2;
+		ULONG rc_len;
+		CMP_get_desc (tdbb, csb, node->nod_arg [1], &desc1);
+		CMP_get_desc (tdbb, csb, node->nod_arg [2], &desc2);
+		if (desc1.dsc_flags & DSC_null || desc2.dsc_flags & DSC_null)
+			{
+			rc_len = 0;
+			desc->dsc_flags |= DSC_null;
+			}
+		else
+			{
+			SLONG sl1 = MOV_get_long (&desc1, 0);
+			SLONG sl2 = MOV_get_long (&desc2, 0);
+			/* error() is a local routine in par.c, so we use plain ERR_post. */
+			if (sl1 < 0 || sl2 < 0 || sl2 > MAX_COLUMN_SIZE - sizeof (USHORT))
+				ERR_post (gds__imp_exc, gds_arg_gds, gds__blktoobig, 0);
+			rc_len = sl2;
+			}
+		desc->dsc_dtype = dtype_varying;
+		desc->dsc_ttype = desc->dsc_scale;
+		desc->dsc_scale = 0;
+		desc->dsc_length = (USHORT) rc_len + sizeof (USHORT);
+		}
 	return;
 
     case nod_function:
