@@ -49,7 +49,7 @@
  * isc_info_svc_get_config                  *
  *                                          *
  *             UNDOCUMENTED                 *
-/********************************************/
+ ********************************************/
 
 #define isc_spb_ibc_lock_mem_size     5
 #define isc_spb_ibc_lock_sem_count    6
