@@ -1,3 +1,35 @@
+2001-08-04 21:27  bellardo
+
+	* interbase/dsql/: parse.c, parse.y:
+	
+	Changed FIRST/SKIP syntax to:
+	
+	SELECT [FIRST X | FIRST ? | FIRST (value)] [SKIP X | SKIP ? | SKIP
+	(value)] ...  where X is a long integer ONLY.  The syntax still
+	accepts full value expressions, but it requires the parens around
+	them.
+	
+	because with the old syntax and the following query:
+	
+	SELECT FIRST 5 * FROM MESSAGES;
+	
+	the parser was treating the * as the times symbol and not the field
+	list.  This caused an error because '5 * FROM' doesn't parse.
+
+2001-08-04 07:26  skywalker
+
+	* interbase/builds/original/buildRefDatabases:
+	
+	Fix script to correctly build empbuild database (need to escape $
+	when passed to a ed script)
+
+2001-08-04 00:12  rfm
+
+	* interbase/example5/: empddl.sql, intlddl.sql:
+	
+	first is now a keyword. use first_name instead. Use last_name as
+	well, for consistancy.
+
 2001-08-03 20:25  bellardo
 
 	* interbase/dsql/: keywords.h, node.h, parse.c, parse.y:
