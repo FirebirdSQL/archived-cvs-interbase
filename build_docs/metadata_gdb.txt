@@ -1,8 +1,8 @@
 -the purpose of yachts.gdb/metadata.gdb- 
-metadata_gdb.txt version 1.0.3 last revised 8/12/2000
+metadata_gdb.txt version 1.0.4 last revised Dec 27, 2000
 
 The latest version of this file is available at
-http://www.cruzers.com/~rfm/metadata_gdb.txt
+http://sourceforge.net/docman/display_doc.php?docid=345&group_id=9028
 
 Please send comments and corrections to
 rfm@cruzers.com or the ib-build mailing list at mers.com

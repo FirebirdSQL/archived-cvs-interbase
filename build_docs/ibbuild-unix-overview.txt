@@ -1,8 +1,8 @@
 -General overview of unix build process for the *****Base server- 
-ibbuild-unix-overview.txt version 1.0.2 last revised 8/12/2000
+ibbuild-unix-overview.txt version 1.0.3 last revised Dec 27, 2000
 
 The latest version of this file is available at
-http://www.cruzers.com/~rfm/ibbuild-unix-overview.txt
+http://sourceforge.net/docman/display_doc.php?docid=348&group_id=9028
 
 Please send comments and corrections to
 rfm@cruzers.com or the ib-build mailing list at mers.com
