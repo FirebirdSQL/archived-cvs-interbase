@@ -2322,8 +2322,8 @@ ISQL_printf (Out, NEWLINE);
 return (ret);
 }
 #endif
-
-#ifdef	DEV_BUILD
+
+/* #ifdef	DEV_BUILD Requested by Paul Beach. */
 static SSHORT add_row (
     TEXT	*tabname)
 {
@@ -2752,8 +2752,8 @@ if (nullind)
 
 return (SKIP);
 }
-#endif
-
+/* #endif Requested by Paul Beach. */
+
 static SSHORT blobedit (
     TEXT	*action,
     TEXT	**cmd)
@@ -2961,9 +2961,9 @@ switch (str_flag)
     break;
     }
 }
-
+
 #ifndef GUI_TOOLS
-#ifdef	DEV_BUILD
+/* #ifdef	DEV_BUILD Requested by Paul Beach. */
 static SSHORT copy_table (
     TEXT	*source,
     TEXT	*destination,
@@ -3057,9 +3057,9 @@ Out = holdout;
 
 return (SKIP);
 }
-#endif	/* DEV_BUILD */
+/* #endif Requested by Paul Beach. */	/* DEV_BUILD */
 #endif   /* GUI_TOOLS */
-
+
 static SSHORT create_db (
     TEXT 	*statement,
     TEXT	*d_name)
@@ -4092,7 +4092,7 @@ if (!strcmp (parms [0], "SHOW"))
     if (gds__trans)
         COMMIT_TRANS (&gds__trans);
     }
-#ifdef DEV_BUILD
+/* #ifdef DEV_BUILD Requested by Paul Beach. */
 else if (!strcmp (parms [0], "ADD"))
     {
     if (DB && !gds__trans)
@@ -4139,7 +4139,7 @@ else if (!strcmp (parms [0], "COPY"))
     if (gds__trans)
         COMMIT_TRANS (&gds__trans);
     }
-#endif
+/* #endif Requested by Paul Beach. */
 #ifdef MU_ISQL
 /*
 ** This is code for QA Test bed Multiuser environment.
