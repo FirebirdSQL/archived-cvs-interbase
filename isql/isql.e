@@ -28,6 +28,7 @@
   Apparently this has to be done in show.e also,
   but that is for another day :-)
 
+  2001/05/20  Neil McCalden  add planonly option
 */
 
 #include "../jrd/ib_stdio.h"
@@ -197,6 +198,7 @@ static SSHORT	Doblob = 1;	/* Default to printing only text types */
 static SSHORT	List = FALSE;	
 static SSHORT 	Docount = FALSE;
 static SSHORT	Plan = FALSE;
+static SSHORT	Planonly = FALSE;
 static int	Termlen = 0;
 static SCHAR	ISQL_charset[MAXCHARSET_LENGTH] = {0};
 static IB_FILE	*Diag;
@@ -1855,6 +1857,7 @@ Quiet 		= FALSE;
 List 		= FALSE;
 Docount 	= FALSE;
 Plan 		= FALSE;
+Planonly 	= FALSE;
 Doblob		= 1;
 Time_display	= FALSE;
 Sqlda_display	= FALSE;
@@ -1932,6 +1935,7 @@ Autocommit     	= TRUE;
 Autofetch	= TRUE;
 Docount 	= FALSE;
 Plan 		= FALSE;
+Planonly 	= FALSE;
 Doblob		= 1;
 Time_display	= FALSE;
 Sqlda_display	= FALSE;
@@ -4173,6 +4177,13 @@ else if (!strcmp (parms [0], "SET"))
 	ret = do_set_command (parms[2], &List);
     else if (!strcmp (parms [1], "PLAN"))
 	ret = do_set_command (parms[2], &Plan);
+    else if (!strcmp (parms [1], "PLANONLY")) 
+	{
+		ret = do_set_command (parms[2], &Planonly);
+		if ( Planonly && (! Plan) ) 
+			/* turn on plan */
+			ret = do_set_command ("ON", &Plan);		
+	}
     else if ((!strcmp (parms [1], "BLOBDISPLAY")) ||
 	    (!strcmp (parms [1], "BLOB")))
 	{
@@ -5468,6 +5479,9 @@ ISQL_printf (Out, NEWLINE);
 #endif
 ISQL_printf (Out, "Access Plan:             ");
 ISQL_printf (Out, (Plan ? "ON" : "OFF"));
+ISQL_printf (Out, NEWLINE);
+ISQL_printf (Out, "Access Plan only:        ");
+ISQL_printf (Out, (Planonly ? "ON" : "OFF"));
 ISQL_printf (Out, NEWLINE);
 ISQL_printf (Out, "Display BLOB type:       ");
 if (Doblob == ALL_BLOBS)
@@ -7456,6 +7470,9 @@ if (Plan)
 	ISQL_printf (Diag, Print_buffer);
 	}
     ISQL_FREE (plan_buffer);
+	
+	if (Planonly) return ret;	/* do not execute */
+	
     }
 	
 /* If the statement isn't a select, execute it and be done */
