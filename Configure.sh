@@ -552,8 +552,10 @@ fi
 echo "- Setting build version strings in file jrd/build_no.h"
 echo ""
 sh builds_win32/original/build_no.ksh
-
-
+if [ $? -ne 0 ]; then
+  echo "Check builds_win32/original/build_no.ksh  - somebody has broken it!"
+  exit 1
+fi
 
 
 # The boot build copies a number of already precompiled C files into
