@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <sys/types.h>
@@ -132,9 +135,12 @@ if (WIFEXITED (child_exit_status) &&
     (WEXITSTATUS (child_exit_status) != 0))
     return (WEXITSTATUS (child_exit_status));
 
-if (WCOREDUMP (child_exit_status) ||
+if (
+#ifndef AIX_PPC
+	WCOREDUMP (child_exit_status) ||
+#endif
     WIFSIGNALED (child_exit_status) ||
-    !WIFEXITED (child_exit_status))
+    !WIFEXITED (child_exit_status) )
     return (-1);
 
 return (0);
