@@ -196,7 +196,6 @@ do
 /* TMN 29 Jul 2000 - close the thread handle */
 CloseHandle(cleanup_thread_handle);
 
-CloseHandle (cleanup_thread_handle);
 report_status (SERVICE_STOPPED, last_error, 0, 0);
 }
 
