@@ -281,7 +281,6 @@ static void	yyerror (TEXT *);
 %token RAW_PARTITIONS
 %token READ
 %token REAL
-%token RECREATE
 %token REFERENCES
 %token RESERVING
 %token RETAIN
@@ -367,6 +366,7 @@ static void	yyerror (TEXT *);
 %token CURRENT_ROLE
 %token KW_BREAK
 %token SUBSTRING
+%token RECREATE
 %token KW_DESCRIPTOR
 %token FIRST
 %token SKIP
