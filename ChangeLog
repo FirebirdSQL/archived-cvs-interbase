@@ -1,3 +1,15 @@
+2001-07-12 23:56  bellardo
+
+	* interbase/jrd/jrd.c:
+	
+	Removed duplicate comment termination and fix fl undefined error.
+
+2001-07-12 23:55  bellardo
+
+	* interbase/jrd/idx.h:
+	
+	Added missing end of comment.
+
 2001-07-10 23:07  awharrison
 
 	* interbase/misc/help.gbak:
