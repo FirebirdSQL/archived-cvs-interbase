@@ -1,0 +1,12 @@
+Title			Firebird __MAJOR__ __BUILD_TYPE__ for MacOS X / Darwin
+Version			__VERSION__
+Description		A full-featured open source SQL database based on Interbase.  Includes a network server, blobs, arrays, C API, and more.  Alpha 1 is the first release of the Mac OS X / Darwin port, and should be used for testing and debuging purposes only.  IT IS NOT SECURE.  Do NOT INSTALL on machines where sercurity is an issue.  Report bugs to the firebird project at www.sourceforge.com/projects/firebird.  See the afore mentioned site for more information.
+
+DefaultLocation		/Library/Frameworks
+Relocatable		NO
+
+NeedsAuthorization	YES
+Application		NO
+DeleteWarning		YES
+InstallOnly		NO
+DisableStop		NO
