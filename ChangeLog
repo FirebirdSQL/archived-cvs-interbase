@@ -1,3 +1,34 @@
+2002-06-17 12:19  paul_reeves
+
+	* interbase/: Configure.sh (1.13), builds/original/prefix.hp10
+	(1.2), builds/original/sfx.burp (1.3), builds/original/sfx.dudley
+	(1.3), builds/original/sfx.gpre (1.4), builds/original/sfx.jrd
+	(1.6), builds/original/sfx.qli (1.3), builds/original/sfx.utilities
+	(1.6), builds_win32/original/build_no.ksh (1.15), burp/burp.h
+	(1.6), gpre/cob.c (1.10), gpre/gpre_proto.h (1.2), jrd/build_no.h
+	(1.6), jrd/cmp.c (1.17), jrd/common.h (1.23), jrd/dsc.h (1.2),
+	jrd/evl.c (1.14), jrd/flu.h (1.2), jrd/gds.c (1.15), jrd/ibase.h
+	(1.20), jrd/isc_file.c (1.10), jrd/isc_sync.c (1.8), jrd/jrd.h
+	(1.5), jrd/license.h (1.15), jrd/sort.c (1.20), jrd/svc.c (1.6),
+	jrd/thd.h (1.5), lock/lock.h (1.4):
+	
+	Added most of the changes required to build the HP10 and HP11
+	ports.
+
+2002-06-17 12:19  paul_reeves
+
+	* interbase/: this_build (1.835), this_build (1.839), this_build
+	(1.838), this_build (1.837), this_build (1.836), this_build
+	(1.841), this_build (1.840):
+	
+	inc_build_no
+
+2002-06-05 09:27  fsg
+
+	* interbase/this_build (1.834):
+	
+	inc_build_no
+
 2002-06-05 02:23  bellardo
 
 	* interbase/: this_build (1.827), this_build (1.826), this_build
