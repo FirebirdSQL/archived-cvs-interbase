@@ -44,6 +44,8 @@ chown root		\
 	include/*	\
 	intl/*		\
 	lib/*		\
+	UDF			\
+	UDF/*		\
 	inetd.conf.isc	\
 	install		\
 	interbase.msg	\
@@ -61,6 +63,8 @@ chgrp bin		\
 	include/*	\
 	intl/*		\
 	lib/*		\
+	UDF			\
+	UDF/*		\
 	inetd.conf.isc	\
 	install		\
 	interbase.msg	\
@@ -77,6 +81,7 @@ chmod uog=r		\
 	include/*	\
 	intl/*		\
 	lib/*		\
+	UDF/*		\
 	inetd.conf.isc	\
 	interbase.msg	\
 	services.isc
