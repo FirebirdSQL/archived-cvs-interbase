@@ -1411,7 +1411,7 @@ switch (node->nod_type)
 	desc->dsc_dtype = dtype_text;
 	if (desc1.dsc_dtype <= dtype_varying)
 	    {
-	    rc_len = desc1.dsc_length;
+	    rc_len = DSC_string_length (&desc1);
 	    desc->dsc_ttype  = desc1.dsc_ttype;
 	    }
 	else
@@ -1420,11 +1420,11 @@ switch (node->nod_type)
 	    desc->dsc_ttype  = ttype_ascii;
 	    }
 	if (desc2.dsc_dtype <= dtype_varying)
-	    rc_len += desc2.dsc_length;
+	    rc_len += DSC_string_length (&desc2);
 	else
 	    rc_len += DSC_convert_to_text_length (desc2.dsc_dtype);
 	/* error() is a local routine in par.c, so we use plain ERR_post. */
-	if (rc_len > MAX_COLUMN_SIZE)
+	if (rc_len > MAX_FORMAT_SIZE)
 		ERR_post (gds__imp_exc, gds_arg_gds, gds__blktoobig, 0);
 	desc->dsc_length = (USHORT) rc_len;
 	desc->dsc_scale = 0;
