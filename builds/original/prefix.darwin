@@ -40,6 +40,7 @@ DEV_CFLAGS=		-ggdb
 
 PHASE2_SHLIB_PATH=	unset INTERBASE; export DYLD_FRAMEWORK_PATH=source/interbase;
 POST_BUILD_TARGET=	darwin_framework
+SS_POST_BUILD_TARGET=	ss_darwin_framework
 
 DEBUG_OBJECTS=		$($(VERSION)_DEBUG_OBJECTS)
 SHRLIB_DIR=		$($(VERSION)_SHRLIB_DIR)
@@ -76,13 +77,16 @@ GDS_LINK=		$(GDSSHR_LINK)
 GDS_PYXIS=		gds_pyxis.a
 GDSLIB_BACKEND=		source/interbase/lib/gds_b.a
 GDSLIB_LINK=		-Lsource/jrd -lgds_b
-LINK_OPTS=		-Fsource/interbase -framework Firebird
+#LINK_OPTS=		-Fsource/interbase -framework Firebird
+#SS_LINK_OPTS=		-Fsource/interbase
 GPRE_BOOT_LINK_OPTS=	
+PLATFORM_INSTALLER=	darwin_installer
+SUPER_PLATFORM_INSTALLER= super_darwin_installer
 
 GDSSHR_DEST=		source/interbase/lib/gds.dylib
 GDSSHR=			gds.dylib
-LINUX_GDSSHR=		$(GDSSHR)
-GDSSHR_LINK=		$(SHRLIB_DIR)
+#LINUX_GDSSHR=		$(GDSSHR)
+GDSSHR_LINK=		-Fsource/interbase -framework Firebird
 #GDSSHR_LINK=		$(SHRLIB_DIR) -lgds_pyxis
 #PIPE_GDSSHR=		source/interbase/lib/gds.so.0
 #PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) -lgds_pyxis
@@ -133,9 +137,9 @@ SOCKET_LIB=
 THREAD_LIB=		-lpthread
 SUN_FUNCSHR=		$(FUNCSHR)
 DARWIN_SUPER_GDSSHR=		source/interbase/lib/gds.dylib.1
-SUPER_CLIENT_GDSSHR=    $(LX_SUPER_GDSSHR)
+SUPER_CLIENT_GDSSHR=    $(DARWIN_SUPER_GDSSHR)
 SUPER_BACKEND=		source/jrd/gds_ss.a
-SUPER_LINK=		-Lsource/jrd -lgds_ss -lpthread
+SUPER_LINK=		-Lsource/jrd -lgds_ss -framework System -framework Foundation
 SUPER_SERVER=	
 UTILITIES=		
 WAL_P_OBJS=		wal_p_objects
