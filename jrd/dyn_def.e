@@ -3884,6 +3884,7 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
     X.RDB$TRIGGER_SEQUENCE.NULL = FALSE;
     X.RDB$TRIGGER_INACTIVE = 0;
     X.RDB$TRIGGER_INACTIVE.NULL = FALSE;
+	X.RDB$SYSTEM_FLAG.NULL = TRUE;
 
     /* currently, we make no difference between ignoring permissions in
        order to define this trigger and ignoring permissions checks when the
