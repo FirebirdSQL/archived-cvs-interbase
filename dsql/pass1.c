@@ -371,14 +371,12 @@ NOD PASS1_rse (
  *
  **************************************/
 NOD	node;
-int foo;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
 DEV_BLKCHK (order, type_nod);
 
 request->req_scope_level++;
-foo = request->req_scope_level;
 node = pass1_rse (request, input, order);
 request->req_scope_level--;
 
@@ -742,6 +740,7 @@ switch (input->nod_type)
     case nod_breakleave:
 	input->nod_arg [e_break_number] = (NOD) (request->req_loop_number - 1);
 	return input;
+
 
     case nod_return:
 	if (request->req_flags & REQ_trigger)
