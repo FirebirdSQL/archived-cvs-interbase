@@ -1,0 +1,148 @@
+Index: dsql.c
+===================================================================
+RCS file: /cvsroot/firebird/interbase/dsql/dsql.c,v
+retrieving revision 1.12
+diff -U3 -r1.12 dsql.c
+--- dsql.c	2001/10/11 04:43:24	1.12
++++ dsql.c	2001/10/13 08:54:58
+@@ -134,6 +134,8 @@
+ #define FREE_MEM_RETURN		return
+ #endif
+ 
++STATUS DLL_EXPORT callback_execute_immediate (STATUS *, int *, int *, UCHAR *, int);
++
+ static void	cleanup (void *);
+ static void	cleanup_database (SLONG **, SLONG);
+ static void	cleanup_transaction (SLONG *, SLONG);
+@@ -201,6 +203,91 @@
+ #define GDS_DSQL_SET_CURSOR	dsql8_set_cursor
+ #define GDS_DSQL_SQL_INFO	dsql8_sql_info
+ 
++STATUS DLL_EXPORT callback_execute_immediate (
++    STATUS	*status,
++    int 	*jrd_attachment_handle,
++    int 	*jrd_transaction_handle,
++    UCHAR	*sql_operator,
++    int 	len)
++{
++/**************************************
++ *
++ * Functional description
++ *	Execute sql_operator in context of jrd_transaction_handle
++ *
++ **************************************/
++
++STATUS s;
++
++typedef struct hndl {
++    UCHAR	type;
++    UCHAR	flags;
++    USHORT	implementation;
++    int		*handle;
++    struct hndl	*parent;
++    struct hndl	*next;
++    struct hndl	*requests;
++    struct hndl	*statements;
++    struct hndl *blobs;
++    struct hndl	**user_handle;
++    struct clean *cleanup;
++    TEXT	*db_path;
++} *WHY;  /* exact copy of `struct hndl' from why.c */
++WHY	why_db_handle = NULL;
++WHY	why_trans_handle = NULL;
++
++DBB	database;
++
++/* 1. Locate why_db_handle, corresponding to jrd_database_handle */
++THD_MUTEX_LOCK (&databases_mutex);
++for (database = databases; database; database = database->dbb_next)
++    if (((WHY)(database->dbb_database_handle))->handle == jrd_attachment_handle)
++	break;
++if (! database)
++    {
++    status[0] = gds_arg_gds;
++    status[1] = gds__bad_db_handle;
++    status[2] = gds_arg_end;
++    THD_MUTEX_UNLOCK (&databases_mutex);
++    return status[1];
++    }
++why_db_handle = (WHY)(database->dbb_database_handle);
++
++/* 2. Create why_trans_handle - it's new, but points to the same jrd
++      transaction as original before callback. */
++why_trans_handle = (WHY) gds__alloc ((SLONG) sizeof (struct hndl));
++if (! why_trans_handle)
++    {
++    status[0] = gds_arg_gds;
++    status[1] = gds__virmemexh;
++    status[2] = gds_arg_end;
++    THD_MUTEX_UNLOCK (&databases_mutex);
++    return status[1];
++    }
++memset (why_trans_handle, 0, sizeof (struct hndl));
++why_trans_handle->implementation = why_db_handle->implementation;
++why_trans_handle->handle = jrd_transaction_handle;
++
++#define HANDLE_transaction 2   /* exact copy of `HANDLE_transaction' from why.c */
++why_trans_handle->type = HANDLE_transaction;
++#undef HANDLE_transaction
++
++why_trans_handle->parent = why_db_handle;
++THD_MUTEX_UNLOCK (&databases_mutex);
++
++/* 3. Call isc... function */
++THREAD_EXIT;
++s = isc_dsql_execute_immediate (
++	status,
++	&why_db_handle,
++	&why_trans_handle,
++	len, sql_operator, database->dbb_db_SQL_dialect, NULL);
++THREAD_ENTER;
++
++gds__free(why_trans_handle);
++return s;
++}
++
+ STATUS DLL_EXPORT GDS_DSQL_ALLOCATE (
+     STATUS	*user_status,
+     int		**db_handle,
+@@ -1352,19 +1439,20 @@
+ 
+ 	/* CVC: New node redef_relation. */
+ 	case nod_redef_relation:    verb = "redefine relation";     break;
++
++    case nod_def_view:		verb = "define view"; 		break;
++    case nod_delete:		verb = "delete";		break;
++    case nod_del_field:		verb = "delete field";		break;
++    case nod_del_filter:        verb = "delete filter";         break;
++    case nod_del_generator:     verb = "delete generator";      break;
++    case nod_del_index:		verb = "delete index";		break;
++    case nod_del_relation:	verb = "delete relation";	break;
+ 
+-	 case nod_def_view:		verb = "define view"; 		break;
+-	 case nod_delete:		verb = "delete";		break;
+-	 case nod_del_field:		verb = "delete field";		break;
+-	 case nod_del_filter:        verb = "delete filter";         break;
+-	 case nod_del_generator:     verb = "delete generator";      break;
+-	 case nod_del_index:		verb = "delete index";		break;
+-	 case nod_del_relation:	verb = "delete relation";	break;
++    /* CVC: New node del_view. */
++    case nod_del_view:		verb = "delete view";		break;
+ 
+-	 /* CVC: New node del_view. */
+-	 case nod_del_view:		verb = "delete view";		break;
++    case nod_def_procedure:	verb = "define procedure";	break;
+ 
+-	 case nod_def_procedure:	verb = "define procedure";	break;
+ 	 /* CVC: New node redef_procedure. */
+ 	 case nod_redef_procedure:	verb = "redefine procedure"; break;
+     case nod_del_procedure:	verb = "delete porcedure";	break;
+@@ -1378,6 +1466,7 @@
+     case nod_erase:	verb = "erase";		break;
+     case nod_execute:   verb = "execute";       break;
+     case nod_exec_procedure:   verb = "execute procedure";       break;
++    case nod_exec_sql:  verb = "execute varchar";               break;
+     case nod_exists:	verb = "exists";	break;
+     case nod_extract:   verb = "extract";	break;
+     case nod_fetch:	verb = "fetch";		break;
+

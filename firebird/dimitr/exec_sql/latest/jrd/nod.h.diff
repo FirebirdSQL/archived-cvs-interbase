@@ -1,0 +1,13 @@
+Index: nod.h
+===================================================================
+RCS file: /cvsroot/firebird/interbase/jrd/nod.h,v
+retrieving revision 1.2
+diff -U3 -r1.2 nod.h
+--- nod.h	2001/06/26 07:54:54	1.2
++++ nod.h	2001/10/13 09:19:07
+@@ -195,3 +195,4 @@
+ 
+ NODE (nod_current_role, current_role, "")
+ NODE (nod_breakleave, breakleave, "")
++NODE (nod_exec_sql, exec_sql, "EXECUTE VARCHAR")
+

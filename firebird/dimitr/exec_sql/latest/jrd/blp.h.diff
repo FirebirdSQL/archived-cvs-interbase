@@ -1,0 +1,13 @@
+Index: blp.h
+===================================================================
+RCS file: /cvsroot/firebird/interbase/jrd/blp.h,v
+retrieving revision 1.2
+diff -U3 -r1.2 blp.h
+--- blp.h	2001/07/29 04:45:48	1.2
++++ blp.h	2001/10/13 09:06:17
+@@ -199,3 +199,4 @@
+     "set_generator2",        gen_id,
+     "current_role",	     zero, 
+     "skip",		     one, 
++    "execute_varchar", 	 one, 
+

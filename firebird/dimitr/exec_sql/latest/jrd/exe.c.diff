@@ -1,0 +1,134 @@
+Index: exe.c
+===================================================================
+RCS file: /cvsroot/firebird/interbase/jrd/exe.c,v
+retrieving revision 1.5
+diff -U3 -r1.5 exe.c
+--- exe.c	2001/10/11 08:59:25	1.5
++++ exe.c	2001/10/13 09:10:31
+@@ -83,8 +83,11 @@
+ #undef send
+ #endif
+ 
++extern STATUS DLL_EXPORT callback_execute_immediate (STATUS *, int *, int *, UCHAR *, int);
++
+ static void cleanup_rpb (TDBB, RPB *);
+ static NOD	erase			(TDBB, NOD, SSHORT);
++static void	exec_sql		(REQ, TDBB, DSC *);
+ static void 	execute_looper		(TDBB, REQ, TRA,
+ 						ENUM req_s);
+ static void	execute_procedure	(TDBB, NOD);
+@@ -149,6 +152,8 @@
+ #define MAX_CLONES	1000
+ #endif
+ 
++#define MAX_CALLBACKS   50
++
+ #define ALL_TRIGS	0
+ #define PRE_TRIG	1
+ #define POST_TRIG	2
+@@ -1234,6 +1239,85 @@
+ return node->nod_parent;
+ }
+ 
++static void exec_sql (
++    REQ 	request,
++    TDBB	tdbb,
++    DSC		*dsc)
++{
++/**************************************
++ *
++ *	e x e c _ s q l
++ *
++ **************************************
++ *
++ * Functional description
++ *	Execute a string like SQL operator.
++ *
++ **************************************/
++
++#ifndef STACK_REDUCTION
++UCHAR   *p, buffer[BUFFER_LARGE + 1];
++#else
++STR	temp_str;
++UCHAR   *p, *buffer;
++#endif
++SSHORT  l;
++STATUS *status, local[ISC_STATUS_LENGTH];
++static char *cba = "Callback Argument";
++
++#ifdef STACK_REDUCTION
++/*  do a block allocation of local variable */
++temp_str = (STR) ALLOCDV (type_str, (SLONG)(sizeof (UCHAR) * (BUFFER_LARGE + 1)));
++buffer = temp_str->str_data;
++#endif
++
++memset(local, 0, sizeof local);
++status = local;
++
++SET_TDBB (tdbb);
++p = 0;
++l = MOV_get_string (dsc, &p, buffer, BUFFER_LARGE);
++if (p) 
++    {
++    if (tdbb->tdbb_transaction->tra_callback_count >= MAX_CALLBACKS)
++        {
++        status[0] = gds_arg_gds;
++        status[1] = gds__req_max_clones_exceeded;
++        status[2] = gds_arg_end;
++        }
++    else
++        {
++        tdbb->tdbb_transaction->tra_callback_count++;
++        callback_execute_immediate (
++		status,
++		(int *)(tdbb->tdbb_attachment),
++		(int *)(tdbb->tdbb_transaction),
++		p, l);
++        tdbb->tdbb_transaction->tra_callback_count--;
++        }
++    }
++else
++    {
++    status[0] = gds_arg_gds;
++    status[1] = gds__convert_error;
++    status[2] = gds_arg_string;
++    status[3] = cba;
++    status[4] = gds_arg_end;
++    }
++
++#ifdef STACK_REDUCTION
++/*  block de-alloc */
++ALL_release (temp_str);
++#endif
++
++if (status[1]) 
++    {
++    /* SET_TDBB (tdbb); */
++    memcpy(tdbb->tdbb_status_vector, status, sizeof(local));
++    ERR_punt();
++    }
++}
++
+ static void execute_looper (
+     TDBB	tdbb,
+     REQ		request,
+@@ -2226,6 +2310,18 @@
+ 
+ 	case nod_receive:
+ 	    node = receive_msg (tdbb, node);
++	    break;
++
++	case nod_exec_sql:
++	    if (request->req_operation == req_unwind)
++		{
++		node = node->nod_parent;
++		break;
++		}
++	    exec_sql (request, tdbb, EVL_expr (tdbb, node->nod_arg [0]));
++	    if (request->req_operation == req_evaluate)
++		request->req_operation = req_return;
++	    node = node->nod_parent;
+ 	    break;
+ 
+ 	case nod_post:
+

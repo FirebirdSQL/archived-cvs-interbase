@@ -1,0 +1,16 @@
+Index: ibase.h
+===================================================================
+RCS file: /cvsroot/firebird/interbase/jrd/ibase.h,v
+retrieving revision 1.14
+diff -U3 -r1.14 ibase.h
+--- ibase.h	2001/10/10 09:25:39	1.14
++++ ibase.h	2001/10/13 09:30:14
+@@ -1677,6 +1677,7 @@
+ #define blr_set_generator2        173
+ #define blr_current_role          174
+ #define blr_skip			   175
++#define blr_exec_sql              176
+ #endif					/* _JRD_BLR_H_ */
+ 
+ /**********************************/
+

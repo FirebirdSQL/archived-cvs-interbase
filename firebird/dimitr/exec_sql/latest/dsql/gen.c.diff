@@ -1,0 +1,22 @@
+Index: gen.c
+===================================================================
+RCS file: /cvsroot/firebird/interbase/dsql/gen.c,v
+retrieving revision 1.9
+diff -U3 -r1.9 gen.c
+--- gen.c	2001/08/13 05:12:45	1.9
++++ gen.c	2001/10/13 08:57:44
+@@ -987,7 +987,12 @@
+ 	STUFF ((int) node->nod_arg [e_break_number]);
+ 	return;
+ 
+-    case nod_store:
++    case nod_exec_sql:
++	STUFF (blr_exec_sql);
++	GEN_expr (request, node->nod_arg [e_exec_vc]);
++	return;
++	
++	case nod_store:
+ 	if ((temp = node->nod_arg [e_sto_rse]) != NULL)
+ 	    {
+ 	    STUFF (blr_for);
+

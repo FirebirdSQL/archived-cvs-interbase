@@ -1,0 +1,44 @@
+Index: parse.y
+===================================================================
+RCS file: /cvsroot/firebird/interbase/dsql/parse.y,v
+retrieving revision 1.20
+diff -U3 -r1.20 parse.y
+--- parse.y	2001/10/11 04:43:24	1.20
++++ parse.y	2001/10/13 09:03:36
+@@ -115,7 +115,7 @@
+ static NOD	field_name;
+ static TEXT	*beginning;
+ static SSHORT	log_defined, cache_defined;
+-
++static void	yyerror (TEXT *);
+ 
+ %}
+ 
+@@ -1355,6 +1355,7 @@
+ 		| EXCEPTION symbol_exception_name ';'
+ 			{ $$ = make_node (nod_exception_stmt, 1, $2); }
+ 		| exec_procedure
++		| exec_sql
+ 		| for_select
+ 		| if_then_else
+ 		| insert ';'
+@@ -1376,6 +1377,10 @@
+ 					  $4, $5); }
+ 		;
+ 
++exec_sql	: EXECUTE VARCHAR value ';'
++			{ $$ = make_node (nod_exec_sql, e_exec_vc_count, $3); }
++		;
++		
+ for_select	: FOR select INTO variable_list cursor_def DO proc_block
+ 			{ $$ = make_node (nod_for_select, e_flp_count, $2,
+ 					  make_list ($4), $5, $7, NULL); }
+@@ -3467,7 +3472,6 @@
+ static void	stack_nodes (NOD, LLS *);
+ static int 	swallow_single_line_comment (void);
+ static int	yylex (USHORT, USHORT, USHORT, BOOLEAN *);
+-static void	yyerror (TEXT *);
+ static void	yyabandon (SSHORT, STATUS);
+ #ifndef WINDOWS_ONLY
+ static void	check_log_file_attrs (void);
+

@@ -1,0 +1,21 @@
+Index: pass1.c
+===================================================================
+RCS file: /cvsroot/firebird/interbase/dsql/pass1.c,v
+retrieving revision 1.18
+diff -U3 -r1.18 pass1.c
+--- pass1.c	2001/10/12 22:21:56	1.18
++++ pass1.c	2001/10/13 09:01:04
+@@ -743,6 +743,12 @@
+ 	input->nod_arg [e_break_number] = (NOD) (request->req_loop_number - 1);
+ 	return input;
+ 
++    case nod_exec_sql:
++	node = MAKE_node (input->nod_type, input->nod_count);
++	node->nod_arg [e_exec_vc] = PASS1_node (request,
++				input->nod_arg [e_exec_vc], proc_flag);
++	return node;
++
+     case nod_return:
+ 	if (request->req_flags & REQ_trigger)
+ 	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
+

@@ -1,0 +1,16 @@
+Index: tra.h
+===================================================================
+RCS file: /cvsroot/firebird/interbase/jrd/tra.h,v
+retrieving revision 1.2
+diff -U3 -r1.2 tra.h
+--- tra.h	2001/06/26 07:54:54	1.2
++++ tra.h	2001/10/13 09:20:35
+@@ -54,6 +54,7 @@
+     struct dfw	*tra_deferred_work;	/* work deferred to commit time */
+     struct rsc	*tra_resources;		/* resource existence list */
+     UCHAR	tra_use_count;		/* use count for safe AST delivery */
++    UCHAR	tra_callback_count;	/* callback count for 'execute varchar' */
+     UCHAR	tra_transactions[1];
+ } *TRA;
+ 
+

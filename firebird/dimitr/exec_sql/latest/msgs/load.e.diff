@@ -1,0 +1,16 @@
+Index: load.e
+===================================================================
+RCS file: /cvsroot/firebird/interbase/msgs/load.e,v
+retrieving revision 1.1.1.1
+diff -U3 -r1.1.1.1 load.e
+--- load.e	2000/08/03 20:52:51	1.1.1.1
++++ load.e	2001/10/13 09:21:36
+@@ -73,6 +73,7 @@
+ ITEM (blr_leave, BLR, STATEMENTS)
+ ITEM (blr_store2, BLR, STATEMENTS)
+ ITEM (blr_post, BLR, STATEMENTS)
++ITEM (blr_exec_sql, BLR, STATEMENTS)
+ 
+ ITEM (blr_literal, BLR, VALUES)
+ ITEM (blr_dbkey, BLR, VALUES)
+

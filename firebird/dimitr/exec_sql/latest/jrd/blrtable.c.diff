@@ -1,0 +1,18 @@
+Index: blrtable.c
+===================================================================
+RCS file: /cvsroot/firebird/interbase/jrd/blrtable.c,v
+retrieving revision 1.2
+diff -U3 -r1.2 blrtable.c
+--- blrtable.c	2001/06/26 07:54:54	1.2
++++ blrtable.c	2001/10/13 09:09:11
+@@ -243,6 +243,9 @@
+ 		e_current_timestamp_length, 0, VALUE, OTHER)
+ 
+     PAIR (nod_current_role, blr_current_role, 1, 0, VALUE, VALUE)
++    
++    /* exec_sql (aka execute varchar) support */
++    PAIR (nod_exec_sql, blr_exec_sql, 1, 1, STATEMENT, VALUE)
+ 
+     0
+ };
+
