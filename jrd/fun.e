@@ -22,6 +22,8 @@
  */
 /*
 $Id$
+2001.9.18 Claudio Valderrama: Allow return parameter by descriptor
+   to signal NULL by testing the flags of the parameter's descriptor.
 */
 
 #include <stdlib.h>
@@ -555,7 +557,9 @@ while (blob_stack)
 while (array_stack)
     ALL_free (LLS_POP (&array_stack));
 
-if (temp_ptr == NULL)
+if (temp_ptr == NULL || function->fun_return_arg &&
+	return_ptr->fun_mechanism == FUN_descriptor &&
+	(value->vlu_desc.dsc_flags & DSC_null))
     request->req_flags |= req_null;
 else
     request->req_flags &= ~req_null;
