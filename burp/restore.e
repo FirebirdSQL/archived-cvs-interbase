@@ -682,7 +682,7 @@ for (file = tdgbl->gbl_sw_files; file; file = file->fil_next)
 		/* msg 57 adding file %s, starting at page %ld */
 	}
     else if (((signed long )file->fil_length) >= start - 1)
-	((signed long )file->fil_length) -= start - 1;
+	file->fil_length -= start - 1;
     else
 	{
 	BURP_print (96, (void*) file->fil_length, (void*) (start - 1), NULL_PTR, NULL_PTR, NULL_PTR);
