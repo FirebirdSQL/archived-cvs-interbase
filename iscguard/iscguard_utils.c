@@ -24,6 +24,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.10.24 Claudio Valderrama: Let GetGuardStartupInfo detect problems
+ *   with the three important system calls that open/query the registry.
 */
 
 #include <stdlib.h>
@@ -54,19 +56,26 @@ DWORD   buffSize, retval;
 buffSize = MAX_PATH - 2; /* reserve place for null and the \ */
 
 retval = RegOpenKeyEx(HKEY_LOCAL_MACHINE, lpSubKey, 0, KEY_QUERY_VALUE, &hKeyResult);
+if (retval != ERROR_SUCCESS)
+    return 0;
+
 retval = RegQueryValueEx(hKeyResult, "ServerDirectory", NULL, NULL, svrpath, &buffSize);
-/* if there is a value check for the last charecter if it is not a \ then
+if (retval != ERROR_SUCCESS)
+    return 0;
+
+/* if there is a value check for the last character if it is not a \ then
  * add a \ 
  */
 if (buffSize)
     {
     /* buffSize includes the null character in its size hence it is strlen + 1 */
-    if (svrpath[buffSize-2] != '\\')
+    if (svrpath[buffSize - 2] != '\\')
         {
 	svrpath[buffSize - 1] = '\\';
 	svrpath[buffSize] = 0;
 	}
     }
+
 retval = RegQueryValueEx(hKeyResult, "GuardianOptions",NULL, NULL, opt, &buffSize);
 RegCloseKey (hKeyResult);
 return ( (retval == ERROR_SUCCESS ? 1 : 0));

@@ -76,7 +76,7 @@ HWND hPSDlg, hWndGbl;
 static DWORD ServerPid = 0;
 static int nRestarts = 0;  /* the number of times the server was restarted */
 unsigned short service_flag = TRUE;
-unsigned short shutdown_flag = FALSE;
+/* unsigned short shutdown_flag = FALSE; */
 struct log_info *log_entry;
 
 /* contains the guardian service */
@@ -159,8 +159,8 @@ static unsigned short parse_args( LPSTR   lpszArgs,
 *      a cool argv.  Parse through the string and
 *      set the options.
 * Returns
-*      A value of TRUE or FALSE depending on if -s is specified.
-*      
+*      A value of TRUE or FALSE depending on if -a is specified.
+*      CVC: Service is the default for NT, use -a for application.
 *
 **************************************/
 char    *p, c;
