@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #ifdef SHLIB_DEFS
@@ -60,15 +63,15 @@
 
 /* SUPERSERVER uses a mutex to allow atomic seek/read(write) sequences.
    SUPERSERVER_V2 uses "positioned" read (write) calls to avoid a seek
-   and allow multiple threads to overlap database I/O. 
+   and allow multiple threads to overlap database I/O.
     17-Oct-1996  Enabled positioned I/O calls on SOLARIS Superserver. */
- 
+
 #if (defined SUPERSERVER && (defined SOLARIS_MT || defined LINUX))
 #define PREAD_PWRITE
 #if !(defined SOLARIS_MT || defined LINUX)
     /* pread() and pwrite() function calls are provided on SOLARIS.
        The aio_read(), aio_*() etc. calls are not implemented on
-       the HP-UX systems. Once it is implemented, this #include could 
+       the HP-UX systems. Once it is implemented, this #include could
        be enabled only for HP-UX systems (POSIX). */
 #include <aio.h>
 #endif  /* SOLARIS_MT */
@@ -218,7 +221,7 @@ file->fil_next = new_file;
 
 return sequence;
 }
- 
+
 void PIO_close (
     FIL		main_file)
 {
@@ -324,9 +327,9 @@ flag = O_RDWR | O_CREAT | (overwrite ? O_TRUNC : O_EXCL) | O_BINARY;
 #endif
 
 if ((desc = open (file_name, flag, MASK)) == -1)
-    ERR_post (isc_io_error, 
-	gds_arg_string, "open O_CREAT", 
-	gds_arg_cstring, length, ERR_string (string, length), 
+    ERR_post (isc_io_error,
+	gds_arg_string, "open O_CREAT",
+	gds_arg_cstring, length, ERR_string (string, length),
     	isc_arg_gds, isc_io_create_err,
 	gds_arg_unix, errno, 0);
 
@@ -421,8 +424,8 @@ control = (flag) ? SYNC : 0;
 #endif
 
 if (fcntl (file->fil_desc, F_SETFL, control) == -1)
-    ERR_post (isc_io_error, 
-        gds_arg_string, "fcntl SYNC", 
+    ERR_post (isc_io_error,
+        gds_arg_string, "fcntl SYNC",
         gds_arg_cstring, file->fil_length, ERR_string (file->fil_string, file->fil_length),
         isc_arg_gds, isc_io_access_err,
         gds_arg_unix, errno, 0);
@@ -515,7 +518,7 @@ if (i == IO_RETRY)
 	ib_fflush (ib_stderr);
 #endif
 	}
-    else 
+    else
 	{
 #ifdef DEV_BUILD
     ib_fprintf (ib_stderr, "PIO_header: retry count exceeded\n");
@@ -562,7 +565,7 @@ if (fstat (file->fil_desc, &statistics))
     ISC_inhibit();
     unix_error ("fstat", file, isc_io_access_err, NULL_PTR);
     }
-    
+
 length = statistics.st_size;
 
 /****
@@ -596,7 +599,7 @@ FIL		file;
 SLONG tot_pages=0;
 
 /**
- **  Traverse the linked list of files and add up the number of pages 
+ **  Traverse the linked list of files and add up the number of pages
  **  in each file
  **/
 for (file = dbb->dbb_file; file != NULL; file = file->fil_next)
@@ -683,7 +686,6 @@ for (i = 0; i < IO_RETRY; i++)
 
 if (desc == -1)
     {
-#ifdef READONLY_DATABASE
     /* Try opening the database file in ReadOnly mode. The database file could
      * be on a RO medium (CD-ROM etc.). If this fileopen fails, return error.
      */
@@ -691,13 +693,11 @@ if (desc == -1)
     flag |= O_RDONLY;
     if ((desc = open (ptr, flag)) == -1)
 	{
-#endif  /* READONLY_DATABASE */
 	ERR_post (isc_io_error,
 	    gds_arg_string,	"open",
 	    gds_arg_cstring, file_length, ERR_string (file_name, file_length),
 	    isc_arg_gds, isc_io_open_err,
 	    gds_arg_unix, errno, 0);
-#ifdef READONLY_DATABASE
 	}
     else
 	{
@@ -708,8 +708,6 @@ if (desc == -1)
 	 */
 	if (!dbb->dbb_file)
 	    dbb->dbb_flags |= DBB_being_opened_read_only;
-	}
-#endif  /* READONLY_DATABASE */
     }
 
 return setup_file (dbb, string, length, desc);
@@ -802,7 +800,7 @@ if (i == IO_RETRY)
 	ib_fflush (ib_stderr);
 #endif
 	}
-    else 
+    else
 	{
 #ifdef DEV_BUILD
     ib_fprintf (ib_stderr, "PIO_read: retry count exceeded\n");
@@ -1109,8 +1107,8 @@ if (status = status_vector)
     return FALSE;
     }
 else
-    ERR_post (isc_io_error, 
-	gds_arg_string, string, 
+    ERR_post (isc_io_error,
+	gds_arg_string, string,
         gds_arg_string, ERR_string (file->fil_string, file->fil_length),
         isc_arg_gds, operation,
     	gds_arg_unix, errno, 0);
@@ -1145,7 +1143,7 @@ static SLONG pread (
  *
  * Functional description
  *
- *   This function uses Asynchronous I/O calls to implement 
+ *   This function uses Asynchronous I/O calls to implement
  *   positioned read from a given offset
  **************************************/
 {
@@ -1182,7 +1180,7 @@ static SLONG pwrite (
  *
  * Functional description
  *
- *   This function uses Asynchronous I/O calls to implement 
+ *   This function uses Asynchronous I/O calls to implement
  *   positioned write from a given offset
  **************************************/
 {
@@ -1207,4 +1205,3 @@ static SLONG pwrite (
 }
 
 #endif  /* defined PREAD_PWRITE && ! (defined SOLARIS_MT || LINUX) */
-

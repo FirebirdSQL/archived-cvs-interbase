@@ -1,7 +1,7 @@
 /*
  *	PROGRAM:	JRD Access Method
  *	MODULE:		cch.c
- *	DESCRIPTION:	Disk cache manager 
+ *	DESCRIPTION:	Disk cache manager
  *
  * The contents of this file are subject to the Interbase Public
  * License Version 1.0 (the "License"); you may not use this file
@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 #include "../jrd/ibsetjmp.h"
 #include "../jrd/ib_stdio.h"
@@ -121,8 +124,8 @@ static void	unmark (TDBB, WIN *);
 #endif
 
 /* In the superserver mode, no page locks are acquired through the lock manager.
-   Instead, a latching mechanism is used.  So the calls to lock subsystem for 
-   database pages in the original code should not be made, lest they should cause 
+   Instead, a latching mechanism is used.  So the calls to lock subsystem for
+   database pages in the original code should not be made, lest they should cause
    any undesirable side-effects.  The following defines help us achieve that.  */
 
 #ifdef SUPERSERVER
@@ -135,15 +138,15 @@ static void	unmark (TDBB, WIN *);
 #endif
 
 #ifdef PAGE_LATCHING
-#define PAGE_LOCK(lock, lock_type, wait)	
+#define PAGE_LOCK(lock, lock_type, wait)
 #define PAGE_LOCK_RELEASE(lock)
 #define PAGE_LOCK_ASSERT(lock)
-#define PAGE_LOCK_OPT(lock, lock_type, wait)	
+#define PAGE_LOCK_OPT(lock, lock_type, wait)
 #define PAGE_LOCK_RE_POST(lock)
 #define PAGE_OVERHEAD	(sizeof (struct bcb_repeat) + sizeof (struct bdb) + \
 			 (int) dbb->dbb_page_size)
 #else
-#define PAGE_LOCK(lock, lock_type, wait)	LCK_lock (tdbb, lock, lock_type, wait)	
+#define PAGE_LOCK(lock, lock_type, wait)	LCK_lock (tdbb, lock, lock_type, wait)
 #define PAGE_LOCK_RELEASE(lock)			LCK_release (tdbb, lock)
 #define PAGE_LOCK_ASSERT(lock)			LCK_assert (tdbb, lock)
 #define PAGE_LOCK_OPT(lock, lock_type, wait)	LCK_lock_opt (tdbb, lock, lock_type, wait)
@@ -435,7 +438,7 @@ BOOLEAN CCH_exclusive (
  *
  * Functional description
  *	Get exclusive access to a database.  If we get it, return TRUE.
- *	If the wait flag is FALSE, and we can't get it, give up and 
+ *	If the wait flag is FALSE, and we can't get it, give up and
  *	return FALSE. There are two levels of database exclusivity: LCK_PW
  *	guarantees there are  no normal users in the database while LCK_EX
  *	additionally guarantes background database processes like the
@@ -464,17 +467,17 @@ switch (level)
 	if ((lock->lck_physical >= LCK_PW) || LCK_convert (tdbb, lock, LCK_PW, wait_flag))
 	    return TRUE;
 	break;
-	
+
     case LCK_EX:
         if (lock->lck_physical == LCK_EX ||
 	    LCK_convert (tdbb, lock, LCK_EX, wait_flag))
 	    return TRUE;
 	break;
-	
+
     default:
         break;
     }
-	
+
 /* If we are supposed to wait (presumably patiently),
    but can't get the lock, generate an error */
 
@@ -499,7 +502,7 @@ BOOLEAN CCH_exclusive_attachment (
  *
  * Functional description
  *	Get exclusive access to a database. If we get it, return TRUE.
- *	If the wait flag is FALSE, and we can't get it, give up and 
+ *	If the wait flag is FALSE, and we can't get it, give up and
  *	return FALSE.
  *
  **************************************/
@@ -534,12 +537,12 @@ if (level != LCK_none)
     attachment->att_next = dbb->dbb_attachments;
     dbb->dbb_attachments = attachment;
     }
-    
+
 for (remaining = timeout; remaining > 0; remaining -= CCH_EXCLUSIVE_RETRY_INTERVAL)
     {
     if (tdbb->tdbb_attachment->att_flags & ATT_shutdown)
         break;
-    
+
     found = FALSE;
     for (attachment = tdbb->tdbb_attachment->att_next; attachment; attachment = attachment->att_next)
     	{
@@ -568,7 +571,7 @@ for (remaining = timeout; remaining > 0; remaining -= CCH_EXCLUSIVE_RETRY_INTERV
 	    break;
 	    }
 	}
-    
+
     if (!found)
     	{
 	tdbb->tdbb_attachment->att_flags &= ~(ATT_exclusive_pending | ATT_attach_pending);
@@ -576,7 +579,7 @@ for (remaining = timeout; remaining > 0; remaining -= CCH_EXCLUSIVE_RETRY_INTERV
 	    tdbb->tdbb_attachment->att_flags |= ATT_exclusive;
         return TRUE;
 	}
-    
+
     /* Our thread needs to sleep for CCH_EXCLUSIVE_RETRY_INTERVAL seconds. */
 
     THREAD_EXIT;
@@ -671,7 +674,7 @@ if (!bdb)
    update the bcb_free_pages field appropriately. */
 
 if (bdb->bdb_flags & (BDB_dirty | BDB_db_dirty))
-    { 
+    {
     /* If the caller didn't want to wait at all, then
        return 'try to fake an other page' to the caller. */
 
@@ -687,7 +690,7 @@ if (bdb->bdb_flags & (BDB_dirty | BDB_db_dirty))
 else if (QUE_NOT_EMPTY (bdb->bdb_lower))
     {
     /* Clear residual precedence left over from AST-level I/O. */
-    
+
     clear_precedence (dbb, bdb);
     }
 
@@ -860,7 +863,7 @@ if ((latch_wait != 1) && (bdb == NULL_PTR))
 if (lock_type >= LCK_write)
     bdb->bdb_flags |= BDB_writer;
 
-/* the expanded index buffer is only good when the page is 
+/* the expanded index buffer is only good when the page is
    fetched for read; if it is ever fetched for write, it must
    be discarded */
 
@@ -909,7 +912,7 @@ dbb =  tdbb->tdbb_database;
 bdb = window->win_bdb;
 
 status = tdbb->tdbb_status_vector;
-        
+
 page = bdb->bdb_buffer;
 bdb->bdb_incarnation = ++dbb->dbb_page_incarnation;
 
@@ -922,22 +925,22 @@ page = bdb->bdb_buffer;
 file = dbb->dbb_file;
 retryCount = 0;
 
-/* We will read a page, and if there is an I/O error we will try to 
+/* We will read a page, and if there is an I/O error we will try to
    use the shadow file, and try reading again, for a maximum of
    3 tries, before it gives up.
 
    The read_shadow flag is set to false only in the call to
    FETCH_NO_SHADOW, which is only called from validate
-   code. 
-      
+   code.
+
    read_shadow = FALSE -> IF an I/O error occurs give up (exit
    the loop, clean up, and return). So the caller,
-   validate in most cases, can know about it and attempt 
-   to remedy the situation. 
-     
+   validate in most cases, can know about it and attempt
+   to remedy the situation.
+
    read_shadow = TRUE -> IF an I/O error occurs attempt
    to rollover to the shadow file.  If the I/O error is
-   persistant (more than 3 times) error out of the routine by 
+   persistant (more than 3 times) error out of the routine by
    calling CCH_unwind, and eventually punting out. */
 
 while (!PIO_read (file, bdb, page, status))
@@ -970,7 +973,7 @@ while (!PIO_read (file, bdb, page, status))
 #endif
     }
 
-#ifdef DEBUG_SAVE_BDB_PAGE 
+#ifdef DEBUG_SAVE_BDB_PAGE
 /* This debug option will not work with WAL or existing databases.
    Verify that page number saved in pag_offset by write_page(). */
 
@@ -979,13 +982,13 @@ if (bdb->bdb_page != page->pag_offset)
 #endif
 
 #ifndef NO_CHECKSUM
-if (((compute_checksum == 1) || ((compute_checksum == 2) && page->pag_type)) && 
+if (((compute_checksum == 1) || ((compute_checksum == 2) && page->pag_type)) &&
     ((page->pag_checksum != CCH_checksum (bdb)) && !(dbb->dbb_flags & DBB_damaged)))
     {
 #ifdef SUPERSERVER
     THREAD_ENTER;
 #endif
-    IBERR_build_status (tdbb->tdbb_status_vector, 
+    IBERR_build_status (tdbb->tdbb_status_vector,
         	gds__db_corrupt,
 		gds_arg_string, "",
 		gds_arg_gds, gds__bad_checksum,
@@ -996,7 +999,7 @@ if (((compute_checksum == 1) || ((compute_checksum == 2) && page->pag_type)) &&
     PAGE_LOCK_RELEASE (bdb->bdb_lock);
     CCH_unwind (tdbb, TRUE);
     }
-#endif /* NO_CHECKSUM */    
+#endif /* NO_CHECKSUM */
 
 #ifdef SUPERSERVER
 THREAD_ENTER;
@@ -1152,7 +1155,7 @@ void CCH_flush (
  **************************************
  *
  * Functional description
- *	Flush all buffers.  If the release flag is set, 
+ *	Flush all buffers.  If the release flag is set,
  *	release all locks.
  *
  **************************************/
@@ -1242,7 +1245,7 @@ else
 /* PIO_flush (dbb->dbb_shadow->sdw_file); */
 
 /* take the opportunity when we know there are no pages
-   in cache to check that the shadow(s) have not been 
+   in cache to check that the shadow(s) have not been
    scheduled for shutdown or deletion */
 
 SDW_check ();
@@ -1272,10 +1275,8 @@ BDB	bdb;
 dbb = tdbb->tdbb_database;
 bcb = dbb->dbb_bcb;
 
-#ifdef READONLY_DATABASE
 if (dbb->dbb_flags & DBB_read_only)
     return FALSE;
-#endif
 
 if (bcb->bcb_flags & BCB_free_pending &&
     (bdb = get_buffer (tdbb, FREE_PAGE, LATCH_none, 1)))
@@ -1514,9 +1515,7 @@ THREAD_ENTER;
 #endif
 
 #ifdef CACHE_WRITER
-#ifdef READONLY_DATABASE
 if (!(dbb->dbb_flags & DBB_read_only))
-#endif
     {
     event = dbb->dbb_writer_event;
     ISC_event_init (event, 0, 0);
@@ -1616,7 +1615,7 @@ if (bdb->bdb_flags & BDB_journal)
     else
 	{
 #ifdef DEV_BUILD
-	if (journal->bdb_sequence != 
+	if (journal->bdb_sequence !=
 	    MISC_checksum_log_rec ((UCHAR *) journal->bdb_buffer,
 				   journal->bdb_length, NULL_PTR, 0))
 	    DEBUG_PRINTF ("Checksum error in journal buffer\n");
@@ -1638,7 +1637,7 @@ else
     if (latch_bdb (tdbb, LATCH_mark, journal, journal->bdb_page, 1) == -1)
 	cache_bugcheck (302); /* msg 302 unexpected page change */
 
-    /* Now we can safely release this bdb to clear its bdb_io, bdb_exclusive and 
+    /* Now we can safely release this bdb to clear its bdb_io, bdb_exclusive and
        bdb_use_count fields.  */
     release_bdb (tdbb, journal, FALSE, FALSE, FALSE);
 
@@ -1785,7 +1784,7 @@ if (!(bdb->bdb_flags & BDB_writer))
     BUGCHECK (208); /* msg 208 page not accessed for write */
 
 bdb->bdb_flags |= (BDB_dirty | BDB_must_write);
-		   
+
 CCH_MARK (tdbb, window);
 }
 
@@ -1942,7 +1941,7 @@ for (end = pages + count; pages < end; )
 if (first_page)
     {
     struct prf	prefetch;
-    
+
     prefetch_init (&prefetch, tdbb);
     prefetch_prologue (&prefetch, &first_page);
     prefetch_io (&prefetch, tdbb->tdbb_status_vector);
@@ -1964,14 +1963,14 @@ BOOLEAN CCH_prefetch_pages (
  *
  * Functional description
  *	Check the prefetch bitmap for a set
- *	of pages and read them into the cache.  
+ *	of pages and read them into the cache.
  *
  **************************************/
 
 /* Place holder to be implemented when predictive prefetch is
    enabled. This is called by VIO/garbage_collector() when it
    is idle to help satisfy the prefetch demand. */
-   
+
 return FALSE;
 }
 
@@ -1986,7 +1985,7 @@ void CCH_recover_shadow (
  **************************************
  *
  * Functional description
- *	Walk through the sparse bit map created during recovery and 
+ *	Walk through the sparse bit map created during recovery and
  *	write all changed pages to all the shadows.
  *
  **************************************/
@@ -2008,7 +2007,7 @@ if (!sbm_rec)
     {
     /* Now that shadows are initialized after WAL, write the header
        page with the recover bit to shadow. */
- 
+
     if (dbb->dbb_wal)
     	{
     	window.win_page = LOG_PAGE;
@@ -2035,7 +2034,7 @@ if (dbb->dbb_shadow)
 
 if (result == FALSE)
     ERR_punt ();
-/* 
+/*
  * do 2 control points after a recovery to flush all the pages to the
  * database and shadow. Note that this has to be doen after the shadows
  * are updated.
@@ -2046,13 +2045,13 @@ if (dbb->dbb_wal)
     /* Flush cache to write all changes to disk */
 
     CCH_flush (tdbb, (USHORT) FLUSH_ALL, 0);
-    
+
 #ifndef WINDOWS_ONLY
     /* Inform wal writer about check point (actually a fake check point) */
 
     if (WAL_checkpoint_force (tdbb->tdbb_status_vector, dbb->dbb_wal, &seqno,
 			      walname, &p_offset, &offset) != SUCCESS)
-#endif     
+#endif
     	ERR_punt ();
 
 #ifndef WINDOWS_ONLY
@@ -2069,7 +2068,7 @@ if (dbb->dbb_wal)
 #ifndef WINDOWS_ONLY
     /* Inform wal writer that older log files are no longer required */
 
-    if (WAL_checkpoint_recorded (tdbb->tdbb_status_vector, dbb->dbb_wal) 
+    if (WAL_checkpoint_recorded (tdbb->tdbb_status_vector, dbb->dbb_wal)
 								!= SUCCESS)
 #endif
 	ERR_punt ();
@@ -2109,13 +2108,13 @@ dbb =  tdbb->tdbb_database;
 
 bdb = window->win_bdb;
 BLKCHK (bdb, type_bdb);
-                                       
-/* if an expanded buffer has been created, retain it 
+
+/* if an expanded buffer has been created, retain it
    for possible future use */
 
 bdb->bdb_expanded_buffer = window->win_expanded_buffer;
 window->win_expanded_buffer = NULL;
-                        
+
 /* A large sequential scan has requested that the garbage
    collector garbage collect. Mark the buffer so that the
    page isn't released to the LRU tail before the garbage
@@ -2127,7 +2126,7 @@ if (window->win_flags & WIN_large_scan &&
     bdb->bdb_flags |= BDB_garbage_collect;
     window->win_flags &= ~WIN_garbage_collect;
     }
-                        
+
 if (bdb->bdb_use_count == 1)
     {
     marked = (bdb->bdb_flags & BDB_marked) ? TRUE : FALSE;
@@ -2138,7 +2137,7 @@ if (bdb->bdb_use_count == 1)
     	{
 	/* Downgrade exclusive latch to shared to allow concurrent share access
 	   to page during I/O. */
-	   
+
 	release_bdb (tdbb, bdb, FALSE, TRUE, FALSE);
 	if (!write_buffer (tdbb, bdb, bdb->bdb_page, FALSE, tdbb->tdbb_status_vector, TRUE))
 	    {
@@ -2154,7 +2153,7 @@ if (bdb->bdb_use_count == 1)
 	    	{
 		/* Reassert blocking AST after write failure with dummy lock convert
 		   to same level. This will re-enable blocking AST notification. */
-		   
+
 		LCK_convert_opt (tdbb, bdb->bdb_lock, bdb->bdb_lock->lck_logical);
 	    	CCH_unwind (tdbb, TRUE);
 	    	}
@@ -2164,10 +2163,10 @@ if (bdb->bdb_use_count == 1)
 	bdb->bdb_ast_flags &= ~BDB_blocking;
 	}
 #endif
-	
+
     /* Make buffer the least-recently-used by queueing it
        to the LRU tail. */
-    
+
     if (release_tail)
     	{
 	if ((window->win_flags & WIN_large_scan &&
@@ -2305,7 +2304,7 @@ BOOLEAN CCH_rollover_to_shadow (
  **************************************
  *
  * Functional description
- *	An I/O error has been detected on the 
+ *	An I/O error has been detected on the
  *	main database file.  Roll over to use
  *	the shadow file.
  *
@@ -2549,12 +2548,12 @@ for (; sdw; sdw = sdw->sdw_next)
 
     /* Fix for bug 7925. drop_gdb fails to remove secondary file if
 	the shadow is conditional. Reason being the header page not
-	being correctly initialized. 
+	being correctly initialized.
 
 	The following block was not being performed for a conditional
 	shadow since SDW_INVALID expanded to include conditional shadow
 
-	-Sudesh  07/10/95 
+	-Sudesh  07/10/95
 old code --> if (sdw->sdw_flags & SDW_INVALID)
     */
 
@@ -2592,12 +2591,12 @@ old code --> if (sdw->sdw_flags & SDW_INVALID)
 
 	-Sudesh 07/10/95
 */
-    if ( (sdw->sdw_flags & SDW_conditional) && 
+    if ( (sdw->sdw_flags & SDW_conditional) &&
 	 (bdb->bdb_page != HEADER_PAGE ))
 	continue;
 
-    /* if a write failure happens on an AUTO shadow, mark the 
-       shadow to be deleted at the next available opportunity when we 
+    /* if a write failure happens on an AUTO shadow, mark the
+       shadow to be deleted at the next available opportunity when we
        know we don't have a page fetched */
 
     if (!PIO_write (sdw->sdw_file, bdb, page, status))
@@ -2607,7 +2606,7 @@ old code --> if (sdw->sdw_flags & SDW_INVALID)
 	    {
 	    sdw->sdw_flags |= SDW_delete;
 	    if (!inAst && SDW_check_conditional())
-		{	
+		{
 		if (SDW_lck_update ((SLONG) 0))
 		    {
 		    SDW_notify();
@@ -2713,7 +2712,7 @@ STATUS		ast_status[20];
 struct tdbb	thd_context, *tdbb;
 
 ISC_ast_enter();
-          
+
 /* Since this routine will be called asynchronously, we must establish
    a thread context. */
 
@@ -2767,9 +2766,9 @@ static void btc_flush (
  *
  * Functional description
  *	Walk the dirty page binary tree, flushing all buffers
- *	that could have been modified by this transaction.  
- *	The pages are flushed in page order to roughly 
- *	emulate an elevator-type disk controller. Iteration 
+ *	that could have been modified by this transaction.
+ *	The pages are flushed in page order to roughly
+ *	emulate an elevator-type disk controller. Iteration
  *	is used to minimize call overhead.
  *
  **************************************/
@@ -2784,7 +2783,7 @@ dbb = tdbb->tdbb_database;
    from being removed from the tree during write_page() --
    this simplifies worrying about random pages dropping
    out when dependencies have been set up */
-        
+
 max_seen = MIN_PAGE_NUMBER;
 
 /* Pick starting place at leftmost node */
@@ -2843,7 +2842,7 @@ while (bdb = next)
 	BTC_MUTEX_ACQUIRE;
 	continue;
 	}
- 
+
     /* this code replicates code in CCH_flush() --
        changes should be made in both places */
 
@@ -2868,7 +2867,7 @@ while (bdb = next)
         if (!write_buffer (tdbb, bdb, page, FALSE, status, TRUE))
 	    CCH_unwind (tdbb, TRUE);
         }
-	
+
     /* re-post the lock only if it was really written */
 
     if ((bdb->bdb_ast_flags & BDB_blocking) &&
@@ -2891,7 +2890,7 @@ static void btc_insert (
  **************************************
  *
  * Functional description
- *	Insert a buffer into the dirty page 
+ *	Insert a buffer into the dirty page
  *	binary tree.
  *
  **************************************/
@@ -2900,7 +2899,7 @@ SLONG	page;
 
 /* if the page is already in the tree (as in when it is
    written out as a dependency while walking the tree),
-   just leave well enough alone -- this won't check if 
+   just leave well enough alone -- this won't check if
    it's at the root but who cares then */
 
 if (bdb->bdb_parent)
@@ -2917,10 +2916,10 @@ if (!(node = dbb->dbb_bcb->bcb_btree))
     BTC_MUTEX_RELEASE;
     return;
     }
-           
+
 /* insert the page sorted by page number;
    do this iteratively to minimize call overhead */
-    
+
 page = bdb->bdb_page;
 
 while (TRUE)
@@ -2939,7 +2938,7 @@ while (TRUE)
 	else
    	    node = node->bdb_left;
 	}
-    else 
+    else
 	{
 	if (!node->bdb_right)
 	    {
@@ -2966,10 +2965,10 @@ static void btc_remove (
  *
  * Functional description
  * 	Remove a page from the dirty page binary tree.
- *	The idea is to place the left child of this 
- *	page in this page's place, then make the 
- *	right child of this page a child of the left 
- *	child -- this removal mechanism won't promote 
+ *	The idea is to place the left child of this
+ *	page in this page's place, then make the
+ *	right child of this page a child of the left
+ *	child -- this removal mechanism won't promote
  *	a balanced tree but that isn't of primary
  *	importance.
  *
@@ -3010,10 +3009,10 @@ if (new_child = bdb->bdb_left)
     if (ptr->bdb_right = bdb->bdb_right)
 	ptr->bdb_right->bdb_parent = ptr;
     }
-else 
+else
     new_child = bdb->bdb_right;
 
-/* link the parent with the child node -- 
+/* link the parent with the child node --
    if no parent place it at the root */
 
 if (!(bdb_parent = bdb->bdb_parent))
@@ -3141,7 +3140,7 @@ while (bcb->bcb_flags & BCB_cache_reader)
     	THREAD_ENTER;
 	continue;
 	}
-    
+
     /* Make a pass thru the global prefetch bitmap looking for something
        to read. When the entire bitmap has been scanned and found to be
        empty then wait for new requests. */
@@ -3194,7 +3193,7 @@ while (bcb->bcb_flags & BCB_cache_reader)
 	(bdb = get_buffer (tdbb, FREE_PAGE, LATCH_none, 1)))
     	{
 	/* In our spare time, help writer clean the cache. */
-	   
+
 	write_buffer (tdbb, bdb, bdb->bdb_page, TRUE, status_vector, TRUE);
 	}
     else
@@ -3275,7 +3274,7 @@ if (SETJMP (env))
     THREAD_EXIT;
     return;
     }
-    
+
 LCK_init (tdbb, LCK_OWNER_attachment);
 writer_event = dbb->dbb_writer_event;
 bcb = dbb->dbb_bcb;
@@ -3345,17 +3344,17 @@ while (bcb->bcb_flags & BCB_cache_writer)
 		}
 	    else
 	    	bcb->bcb_checkpoint = 0;
-    
+
     	if (!bcb->bcb_checkpoint && !(bcb->bcb_flags & BCB_checkpoint_db))
 	    if (WAL_checkpoint_start (status_vector,
 				      dbb->dbb_wal, &start_chkpt) != SUCCESS)
 	    	gds__log_status (dbb->dbb_file->fil_string, status_vector);
     	    else if (start_chkpt)
 	    	bcb->bcb_flags |= BCB_checkpoint_db;
-    
+
     	if ((bcb->bcb_flags & BCB_checkpoint_db) && !bcb->bcb_checkpoint)
     	    {
-    	    if (WAL_checkpoint_finish (status_vector, dbb->dbb_wal, 
+    	    if (WAL_checkpoint_finish (status_vector, dbb->dbb_wal,
 				       &seq, walname, &p_off, &off) != SUCCESS)
 	    	gds__log_status (dbb->dbb_file->fil_string, status_vector);
 	    else
@@ -3393,7 +3392,7 @@ while (bcb->bcb_flags & BCB_cache_writer)
 	/* Prefetch some pages in our spare time and in the process
 	   garbage collect the prefetch bitmap. */
 	struct prf	prefetch;
-	    
+
 	prefetch_init (&prefetch, tdbb);
 	prefetch_prologue (&prefetch, &starting_page);
 	prefetch_io (&prefetch, status_vector);
@@ -3884,16 +3883,16 @@ for (old_tail = old->bcb_rpt; old_tail < old_end; old_tail++, new_tail++)
 /* Allocate new buffer descriptor blocks */
 
 for (; new_tail < new_end; new_tail++)
-    {    
-    /* if current segment is exhausted, allocate another */    
-    
+    {
+    /* if current segment is exhausted, allocate another */
+
     if (!num_in_seg)
 	{
 	memory = (UCHAR *) ALL_sys_alloc (((SLONG) dbb->dbb_page_size *
 				 (num_per_seg + 1)), ERR_jmp);
 	LLS_PUSH (memory, &new->bcb_memory);
 #ifndef _CRAY
-	memory = (UCHAR*) (((U_IPTR) memory + dbb->dbb_page_size - 1) & 
+	memory = (UCHAR*) (((U_IPTR) memory + dbb->dbb_page_size - 1) &
 				~((int) dbb->dbb_page_size - 1));
 #endif
 	num_in_seg = num_per_seg;
@@ -3946,7 +3945,7 @@ static BDB get_buffer (
  *	bdb pointer if successful.
  *	NULL pointer if timeout occurred (only possible is latch_wait <> 1).
  *		     if cache manager doesn't have any pages to write anymore.
- *	
+ *
  **************************************/
 DBB			dbb;
 QUE			mod_que;
@@ -3965,7 +3964,7 @@ BCB_MUTEX_ACQUIRE;
 while (TRUE)
     {
 find_page:
-   
+
     bcb = dbb->dbb_bcb;
     if (page >= 0)
     	{
@@ -4043,7 +4042,7 @@ find_page:
     	{
 	bcb = dbb->dbb_bcb;  /* Re-initialize in the loop */
     	mod_que = &bcb->bcb_rpt [page % bcb->bcb_count].bcb_page_mod;
-	
+
     	/* If there is an empty buffer sitting around, allocate it */
 
    	if (QUE_NOT_EMPTY (bcb->bcb_empty))
@@ -4066,7 +4065,7 @@ find_page:
             	    QUE_INSERT (bcb->bcb_in_use, bdb->bdb_in_use);
 	    	}
 
-	    /* This correction for bdb_use_count below is needed to 
+	    /* This correction for bdb_use_count below is needed to
 	       avoid a deadlock situation in latching code.  It's not
 	       clear though how the bdb_use_count can get < 0 for a bdb
 	       in bcb_empty queue */
@@ -4096,7 +4095,7 @@ find_page:
 
      	if (bcb->bcb_in_use.que_forward == &bcb->bcb_in_use)
     	    cache_bugcheck (213); /* msg 213 insufficient cache size */
-    
+
     	oldest = BLOCK (que, BDB, bdb_in_use);
    	LATCH_MUTEX_ACQUIRE;
     	if (oldest->bdb_use_count || (oldest->bdb_flags & BDB_free_pending) || !writeable (oldest))
@@ -4108,7 +4107,7 @@ find_page:
 #ifdef SUPERSERVER_V2
 	/* If page has been prefetched but not yet fetched, let
 	   it cycle once more thru LRU queue before re-using it. */
-	
+
 	if (oldest->bdb_flags & BDB_prefetch)
 	    {
 	    oldest->bdb_flags &= ~BDB_prefetch;
@@ -4173,7 +4172,7 @@ find_page:
     	    ALL_free ((SCHAR *) bdb->bdb_expanded_buffer);
     	    bdb->bdb_expanded_buffer = NULL;
     	    }
-    
+
     	/* Cleanup any residual precedence blocks.  Unless something is
        	   screwed up, the only precedence blocks that can still be hanging
            around are ones cleared at AST level. */
@@ -4202,7 +4201,7 @@ find_page:
     	    QUE_DELETE (bdb->bdb_que);
     	QUE_INSERT (bcb->bcb_empty, bdb->bdb_que);
     	QUE_DELETE (bdb->bdb_in_use)
-                                              
+
     	bdb->bdb_page = JOURNAL_PAGE;
     	release_bdb (tdbb, bdb, FALSE, FALSE, FALSE);
     	break;
@@ -4255,8 +4254,8 @@ if (!(journal = bdb->bdb_jrn_bdb))
     header.jrnd_length           = dbb->dbb_page_size;
 
     AIL_put (dbb, status, &header.jrnd_header, JRND_SIZE,
-	     (UCHAR *) bdb->bdb_buffer, 
-	     dbb->dbb_page_size, bdb->bdb_buffer->pag_seqno, 
+	     (UCHAR *) bdb->bdb_buffer,
+	     dbb->dbb_page_size, bdb->bdb_buffer->pag_seqno,
 	     bdb->bdb_buffer->pag_offset, &seqno, &offset);
 #endif
 
@@ -4278,8 +4277,8 @@ header.jrnd_page 		= bdb->bdb_page;
 header.jrnd_length 		= journal->bdb_length;
 
 AIL_put (dbb, status, &header.jrnd_header, JRND_SIZE,
-	 (UCHAR *) journal->bdb_buffer, 
-	 journal->bdb_length, bdb->bdb_buffer->pag_seqno, 
+	 (UCHAR *) journal->bdb_buffer,
+	 journal->bdb_length, bdb->bdb_buffer->pag_seqno,
 	 bdb->bdb_buffer->pag_offset, &seqno, &offset);
 #endif
 
@@ -4380,11 +4379,11 @@ if (!bdb->bdb_use_count)
    ahead of all other latch requests (to avoid deadlocks and
    this does not cause starvation).  Also, shared latches are granted
    immediately if a disk write is in progress.
-   Note that asking for a higher mode latch when already holding a 
+   Note that asking for a higher mode latch when already holding a
    share latch results in deadlock.  CCH_handoff routinely acquires a
    shared latch while owning already a shared latch on the page
    (the case of handing off to the same page).  If the BDB_must_write
-   flag is set, then an exclusive latch request will be followed by 
+   flag is set, then an exclusive latch request will be followed by
    an io latch request. */
 
 switch (type)
@@ -4414,14 +4413,14 @@ switch (type)
 	           io_latch, then we have to wait also (there must be a exclusive
 		   latch waiter).  If there is an IO in progress, the violate the
 		   fairness and sneak ahead of the exclusive (or io) waiters. */
-		   
+
 	    	if ((QUE_NOT_EMPTY (bdb->bdb_waiters)) && !bdb->bdb_io)
 		    break;  /* be fair and wait behind exclusive latch requests */
 		}
 	    }
 	/* Nobody owns an exlusive latch, or sneak ahead of exclusive latch
 	   waiters while an io is in progress. */
-	
+
 	for (i=0; (i < BDB_max_shared) && bdb->bdb_shared[i]; i++);
 	if (i >= BDB_max_shared)
 	    break;
@@ -4429,7 +4428,7 @@ switch (type)
 	bdb->bdb_shared[i] = tdbb;
 	LATCH_MUTEX_RELEASE;
 	return 0;
-	
+
     case LATCH_io:
 	if (bdb->bdb_flags & BDB_read_pending)
 	    break;
@@ -4443,7 +4442,7 @@ switch (type)
     case LATCH_exclusive:
 	/* Exclusive latches wait for existing shared latches and
 	   (unfortunately) for existing io latches.  This is not as
-	   bad as it sounds because an exclusive latch is typically followed 
+	   bad as it sounds because an exclusive latch is typically followed
 	   by a mark latch, which then would wait behind the io latch. */
 	/* Note that the ail-code latches the same buffer multiple times
 	   in shared and exclusive */
@@ -4455,7 +4454,7 @@ switch (type)
 	bdb->bdb_exclusive = tdbb;
 	LATCH_MUTEX_RELEASE;
 	return 0;
-	
+
     case LATCH_mark:
 	if (bdb->bdb_exclusive != tdbb)
 	    cache_bugcheck (295); /* inconsistent LATCH_mark call */
@@ -4465,7 +4464,7 @@ switch (type)
 	bdb->bdb_io = tdbb;
 	LATCH_MUTEX_RELEASE;
 	return 0;
-	
+
     default:
        	break;
     }
@@ -4570,7 +4569,7 @@ static SSHORT latch_bdb (
  * Functional description
  *	Simple optimized latching for single-threaded
  *	non-SUPERSERVER platforms.
- * 
+ *
  **************************************/
 
 ++bdb->bdb_use_count;
@@ -4617,7 +4616,7 @@ static SSHORT lock_buffer (
  *	      LCK_NO_WAIT = FALSE = 0	=> If the lock can't be acquired immediately,
  *						give up and return -1.
  *	      <negative number>		=> Lock timeout interval in seconds.
- *		
+ *
  * return: 0  => buffer locked, page is already in memroy.
  *	   1  => buffer locked, page needs to be read from disk.
  *	   -1 => timeout on lock occurred, see input parameter 'wait'.
@@ -4641,15 +4640,15 @@ dbb = tdbb->tdbb_database;
 if (dbb->dbb_refresh_ranges && bdb->bdb_flags & BDB_writer &&
     (page_type == pag_data || page_type == pag_index))
     {
-      /* This gives refresh cache ranges the potential to work with page 
-       * latching by taking out a temporary page lock for notification 
+      /* This gives refresh cache ranges the potential to work with page
+       * latching by taking out a temporary page lock for notification
        * purposes.
        * Fix cache ranges on NetWare due to latching (bug 7199)
        * Marion change # 18270, 13-Oct-1994
        */
 
     struct lck	refresh;
-    
+
     MOVE_CLEAR (&refresh, sizeof (struct lck));
     refresh.lck_header.blk_type = type_lck;
     refresh.lck_dbb = dbb;
@@ -4671,7 +4670,7 @@ lock = bdb->bdb_lock;
 
 if (lock->lck_logical >= lock_type)
     return 0;
-    
+
 status = tdbb->tdbb_status_vector;
 
 if (lock->lck_logical == LCK_none)
@@ -4680,7 +4679,7 @@ if (lock->lck_logical == LCK_none)
        overhead. The promise is that the lock will unconditionally
        be released when the buffer use count indicates it is safe
        to do so. */
-       
+
     if (page_type == pag_header || page_type == pag_transactions)
         {
 	assert (lock->lck_ast == blocking_ast_bdb);
@@ -4689,7 +4688,7 @@ if (lock->lck_logical == LCK_none)
 	lock->lck_object = NULL;
 	}
     else assert (lock->lck_ast != NULL);
-    
+
     lock->lck_key.lck_long = bdb->bdb_page;
     if (PAGE_LOCK_OPT (lock, lock_type, wait))
     	{
@@ -4698,7 +4697,7 @@ if (lock->lck_logical == LCK_none)
 	    /* Restore blocking AST to lock block if it was swapped
 	       out. Flag the bdb so that the lock is released when
 	       the buffer is released. */
-	       
+
     	    assert (page_type == pag_header || page_type == pag_transactions);
 	    lock->lck_ast = blocking_ast_bdb;
 	    lock->lck_object = (BLK) bdb;
@@ -4706,7 +4705,7 @@ if (lock->lck_logical == LCK_none)
 	    }
 	return 1;
 	}
-    
+
     if (!lock->lck_ast)
     	{
 	assert (page_type == pag_header || page_type == pag_transactions);
@@ -4714,7 +4713,7 @@ if (lock->lck_logical == LCK_none)
     	lock->lck_object = (BLK) bdb;
 	}
 
-    /* Case: a timeout was specified, or the caller didn't want to wait, 
+    /* Case: a timeout was specified, or the caller didn't want to wait,
        return the error. */
 
     if ((wait == LCK_NO_WAIT) || ((wait < 0) && (status [1] == gds__lock_timeout)))
@@ -4723,7 +4722,7 @@ if (lock->lck_logical == LCK_none)
 	return -1;
 	}
 
-    /* Case: lock manager detected a deadlock, probably caused by locking the 
+    /* Case: lock manager detected a deadlock, probably caused by locking the
        bdb's in an unfortunate order.  Nothing we can do about it, return the
        error, and log it to interbase.log. */
 
@@ -4759,7 +4758,7 @@ memcpy (tdbb->tdbb_status_vector, alt_status, sizeof (alt_status));
 if (PAGE_LOCK (lock, lock_type, wait))
     return 1;
 
-/* Case: a timeout was specified, or the caller didn't want to wait, 
+/* Case: a timeout was specified, or the caller didn't want to wait,
    return the error. */
 
 if ((wait < 0) && (status [1] == gds__lock_timeout))
@@ -4768,7 +4767,7 @@ if ((wait < 0) && (status [1] == gds__lock_timeout))
     return -1;
     }
 
-/* Case: lock manager detected a deadlock, probably caused by locking the 
+/* Case: lock manager detected a deadlock, probably caused by locking the
    bdb's in an unfortunate order.  Nothing we can do about it, return the
    error, and log it to interbase.log. */
 
@@ -4840,7 +4839,7 @@ for (tail = bcb->bcb_rpt, end = tail + number; tail < end; tail++)
 	   of the page size (rather the physical sector size.) This
 	   is a necessary condition to support raw I/O interfaces. */
 #ifndef _CRAY
-    	memory = (UCHAR*) (((U_IPTR) memory + page_size - 1) & 
+    	memory = (UCHAR*) (((U_IPTR) memory + page_size - 1) &
 			    ~((int) page_size - 1));
 #endif
 	old_tail = tail;
@@ -4856,7 +4855,7 @@ for (tail = bcb->bcb_rpt, end = tail + number; tail < end; tail++)
 	   a new number that takes into account the page buffer
 	   overhead. Reduce this number by a 25% fudge factor to
 	   leave some memory for useful work. */
-         
+
 	ALL_sys_free ((SCHAR *) LLS_POP (&bcb->bcb_memory));
 	memory = NULL_PTR;
 	for (tail2 = old_tail ; tail2 < tail; tail2++)
@@ -4873,7 +4872,7 @@ for (tail = bcb->bcb_rpt, end = tail + number; tail < end; tail++)
     number--;	/* Remaining buffers */
 
     /* Check if memory segment has been exhausted. */
-	
+
     if (memory + page_size > memory_end)
 	memory = NULL_PTR;
     }
@@ -4919,15 +4918,15 @@ if (num_per_seg > SEGBUFFS)
 
 for (tail = bcb->bcb_rpt, end = tail + number; tail < end; tail++)
     {
-    /* if current segment is exhausted, allocate another */    
-    
+    /* if current segment is exhausted, allocate another */
+
     if (!num_in_seg)
 	{
 	memory = ALL_sys_alloc (((SLONG) dbb->dbb_page_size *
 					  (num_per_seg + 1)), ERR_jmp);
 	LLS_PUSH (memory, &bcb->bcb_memory);
 #ifndef _CRAY
-	memory = (UCHAR*) (((U_IPTR) memory + dbb->dbb_page_size - 1) & 
+	memory = (UCHAR*) (((U_IPTR) memory + dbb->dbb_page_size - 1) &
 				~((int) dbb->dbb_page_size - 1));
 #endif
 	num_in_seg = num_per_seg;
@@ -4940,7 +4939,7 @@ for (tail = bcb->bcb_rpt, end = tail + number; tail < end; tail++)
 	}
     QUE_INIT (tail->bcb_page_mod);
     tail->bcb_bdb = alloc_bdb (tdbb, bcb, &memory);
-    num_in_seg--;    
+    num_in_seg--;
     }
 
 return number;
@@ -4974,7 +4973,7 @@ SET_TDBB (tdbb);
 bdb = window->win_bdb;
 page = bdb->bdb_buffer;
 
-IBERR_build_status (tdbb->tdbb_status_vector, 
+IBERR_build_status (tdbb->tdbb_status_vector,
 		    gds__db_corrupt,
 		    gds_arg_string, "",
 		    gds_arg_gds, gds__page_type_err,
@@ -4999,7 +4998,7 @@ static void prefetch_epilogue (
  *
  * Functional description
  *	Stall on asynchronous I/O completion.
- *	Move data from prefetch buffer to database 
+ *	Move data from prefetch buffer to database
  *	buffers, compute the checksum, and release
  *	the latch.
  *
@@ -5041,7 +5040,7 @@ if (status == FALSE)
 
 next_buffer = prefetch->prf_io_buffer;
 next_bdb = prefetch->prf_bdbs;
-		
+
 for (i = 0; i < prefetch->prf_max_prefetch; i++)
     {
     if (*next_bdb)
@@ -5050,7 +5049,7 @@ for (i = 0; i < prefetch->prf_max_prefetch; i++)
 	if (next_buffer != page)
 	    MOVE_FASTER (next_buffer, (SCHAR*) page, (ULONG) dbb->dbb_page_size);
 	if (page->pag_checksum == CCH_checksum (*next_bdb))
-	    { 
+	    {
 	    (*next_bdb)->bdb_flags &= ~(BDB_read_pending | BDB_not_valid);
 	    (*next_bdb)->bdb_flags |= BDB_prefetch;
 	    }
@@ -5165,7 +5164,7 @@ tdbb = prefetch->prf_tdbb;
 dbb = tdbb->tdbb_database;
 bcb = dbb->dbb_bcb;
 
-prefetch->prf_start_page = *start_page;	    
+prefetch->prf_start_page = *start_page;
 prefetch->prf_page_count = 0;
 prefetch->prf_flags |= PRF_active;
 
@@ -5307,8 +5306,8 @@ else
 if (bdb->bdb_exclusive == tdbb)
     {
     --bdb->bdb_use_count;
-    if (!bdb->bdb_use_count) 
-        { /* All latches are released */	 
+    if (!bdb->bdb_use_count)
+        { /* All latches are released */
         bdb->bdb_exclusive = bdb->bdb_io = NULL_PTR;
         for (i=0; i < BDB_max_shared; bdb->bdb_shared[i++] = NULL_PTR);
     	}
@@ -5316,7 +5315,7 @@ if (bdb->bdb_exclusive == tdbb)
 	{ /* This is a release for an io or an exclusive latch */
 	if (bdb->bdb_io == tdbb)
 	    { /* We have an io latch */
-	    
+
 	    /* The BDB_must_write flag causes the system to latch for io, in addition
 	       to the already owned latches.  Make sure not to disturb an already existing
 	       exclusive latch. */
@@ -5390,7 +5389,7 @@ for (que = wait_que->que_forward; que != wait_que; que = que->que_forward)
 		    granted = TRUE;
 		    break;
 		    }
-		   
+
 	    case (LATCH_mark):
 		if (bdb->bdb_exclusive != lwt->lwt_tdbb)
 		    cache_bugcheck (298); /* missing exclusive latch */
@@ -5404,7 +5403,7 @@ for (que = wait_que->que_forward; que != wait_que; que = que->que_forward)
 		    granted = TRUE;
 		    break;
 		    }
-		   
+
 	    case (LATCH_shared):
 		if (bdb->bdb_exclusive)
 		    {
@@ -5478,13 +5477,13 @@ else
    ail.c does: exclusive - mark - exclusive */
 if (bdb->bdb_exclusive == tdbb)
     {
-    if (!--bdb->bdb_use_count) 
+    if (!--bdb->bdb_use_count)
         bdb->bdb_exclusive = bdb->bdb_io = NULL_PTR;
     else if (bdb->bdb_io)
 	{ /* This is a release for an io or an exclusive latch */
 	if (bdb->bdb_io == tdbb)
 	    { /* We have an io latch */
-	    
+
 	    /* The BDB_must_write flag causes the system to latch for io, in addition
 	       to the already owned latches.  Make sure not to disturb an already existing
 	       exclusive latch. */
@@ -5540,7 +5539,7 @@ for (que = bdb->bdb_higher.que_forward; que != &bdb->bdb_higher;
      que = que->que_forward)
     {
     precedence = BLOCK (que, PRE, pre_higher);
-    if (!(precedence->pre_flags & PRE_cleared) && 
+    if (!(precedence->pre_flags & PRE_cleared) &&
 	!writeable (precedence->pre_hi))
 	return FALSE;
     }
@@ -5566,21 +5565,21 @@ static int write_buffer (
  *	Write a dirty buffer.  This may recurse due to
  *	precedence problems.
  *
- * input:  write_this_page 
+ * input:  write_this_page
  *		= true if the input page needs to be written
  *			before returning.  (normal case)
- *		= false if the input page is being written 
+ *		= false if the input page is being written
  *			because of precedence.  Only write
  *			one page and return so that the caller
  *			can re-establish the need to write this
  *			page.
- *			
+ *
  * return: 0 = Write failed.
  *         1 = Page is written.  Page was written by this
  *     		call, or was written by someone else, or the
  *		cache buffer is already reassigned.
  *	   2 = Only possible if write_this_page is FALSE.
- *		This input page is not written.  One 
+ *		This input page is not written.  One
  *		page higher in precedence is written
  *		though.  Probable action: re-establich the
  * 		need to write this page and retry write.
@@ -5720,7 +5719,7 @@ if (bdb->bdb_flags & BDB_not_valid)
     }
 
 result = TRUE;
-dbb = bdb->bdb_dbb; 
+dbb = bdb->bdb_dbb;
 page = bdb->bdb_buffer;
 
 /* Before writing db header page, make sure that the next_transaction > oldest_active
@@ -5759,14 +5758,14 @@ if (!dbb->dbb_wal || write_thru)
         WAL_flush (status, dbb->dbb_wal, &page->pag_seqno, &page->pag_offset, TRUE);
 #endif
 
-#ifdef DEBUG_SAVE_BDB_PAGE 
+#ifdef DEBUG_SAVE_BDB_PAGE
     /* Save page number into page->pag_offset before computing the checksum */
     page->pag_offset = bdb->bdb_page;
-#endif 
+#endif
 
-    /* write out page to main database file, and to any 
+    /* write out page to main database file, and to any
        shadows, making a special case of the header page */
- 
+
     if (bdb->bdb_page >= 0)
     	{
 #ifdef SUPERSERVER
@@ -5845,7 +5844,7 @@ else
     }
 
 return result;
-}             
+}
 
 static void unmark (
     TDBB	tdbb,

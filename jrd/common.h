@@ -20,7 +20,11 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * Added TCP_NO_DELAY option for superserver on Linux
- * FSG 16.03.2001 
+ * FSG 16.03.2001
+ *
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 /*
 $Id$
@@ -29,9 +33,9 @@ $Id$
 #ifndef _JRD_COMMON_H_
 #define _JRD_COMMON_H_
 
-/* 
+/*
   do not use links in source code to maintain platform neutraility
-*/ 
+*/
 
 #undef LINKS_EXIST
 
@@ -47,12 +51,12 @@ $Id$
 #define CANCEL_OPERATION
 #endif
 
-/* this define indicates places where code was merged in 
+/* this define indicates places where code was merged in
    from the Harbor Software contract to do the Windows 3.1 port */
 
 #ifndef HARBOR_MERGE
 #define HARBOR_MERGE
-#endif 
+#endif
 
 
 /* Linux for Intel platforms*/
@@ -92,7 +96,7 @@ $Id$
 /* Darwin Platforms */
 #ifdef DARWIN
 #define ALIGNMENT       4
-#define DOUBLE_ALIGN    4 
+#define DOUBLE_ALIGN    4
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define SETPGRP         setpgrp (0, 0)
 #define BSD_UNIX        1
@@ -110,7 +114,7 @@ $Id$
 #define INTL
 #define SIGACTION_SUPPORTED
 
-#define MEMMOVE(from,to,length)     memmove ((void *)to, (void *)from, (size_t)length) 
+#define MEMMOVE(from,to,length)     memmove ((void *)to, (void *)from, (size_t)length)
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
 #define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
 #define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
@@ -219,9 +223,9 @@ $Id$
 
 /* Defined KILLER_SIGNALS for Sun - as we were getting lots of lockups
  * using pipe server.
- * 1995-February-24 David Schnepper 
+ * 1995-February-24 David Schnepper
  */
-#define KILLER_SIGNALS  
+#define KILLER_SIGNALS
 
 #ifdef SOLARIS
 
@@ -274,7 +278,7 @@ $Id$
 
      For maximum portability, memmove should be used when the memory areas
      indicated by s1 and s2 may overlap, and memcpy used for faster copying
-     between non-overlapping areas. 
+     between non-overlapping areas.
 
 **********/
 
@@ -333,7 +337,7 @@ $Id$
 #endif /* sun */
 
 
-/* MAC AUX--this port was never completed */ 
+/* MAC AUX--this port was never completed */
 
 #ifdef MAC
 #define NO_PYXIS
@@ -469,8 +473,8 @@ $Id$
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~((ULONG)(b) - 1))
 #define ROUNDUP(n,b)    (((n) + (b) - 1) & ~((ULONG)(b) - 1))
 
-#define SPACE_IN_SEG(a)         ( 65536L - (ULONG)( FP_OFF( a))) 
-#define CROSSES_SEG(a,s)        (( 65536L - (ULONG)( FP_OFF( a))) < (s)) 
+#define SPACE_IN_SEG(a)         ( 65536L - (ULONG)( FP_OFF( a)))
+#define CROSSES_SEG(a,s)        (( 65536L - (ULONG)( FP_OFF( a))) < (s))
 
 #define MOVE_FAST(from,to,length)       SEG_move( to, from, (ULONG)(length))
 #define MOVE_FASTER(from,to,length)     SEG_move( to, from, (ULONG)(length))
@@ -486,7 +490,7 @@ $Id$
 #define GUI_TOOLS
 
 #include <windows.h>
-/* 
+/*
 ** In win16, memory is owned by the calling app and not the DLL unless
 ** the GMEM_DDESHARE flag is used.  This means that any memory which
 ** is meant to persist for the life of the DLL must be allocated with
@@ -503,10 +507,10 @@ $Id$
 
 #define FREE_LIB_MEMORY(block)  gds__free (block)
 
-/* for Windows, turn on stack reduction methods in all cases, 
+/* for Windows, turn on stack reduction methods in all cases,
    whether routines are commonly used or not */
 
-#define STACK_REDUCTION  
+#define STACK_REDUCTION
 #define STACK_EFFICIENT
 
 #define BLOB_PTR        UCHAR HUGE_PTR
@@ -528,13 +532,13 @@ $Id$
 #define INTERNAL_API_ROUTINE	API_ROUTINE
 
 #ifndef DLL_EXPORT
-#define DLL_EXPORT      API_ROUTINE     
+#define DLL_EXPORT      API_ROUTINE
 #endif
 
 #endif  /* ifndef NETWARE_386 */
 
 
-/* DOS does not compare the high order word of far pointers, 
+/* DOS does not compare the high order word of far pointers,
    so we must cast them to huge in comparions; also, for routines
    which return a double, they must be given a pascal type so that
    they will work in a multithreaded environment */
@@ -683,7 +687,7 @@ typedef unsigned int64	UATOM;
 #define NO_PYXIS
 #define NOINITGROUPS
 #define NO_NFS
-#define VAX             
+#define VAX
 #undef LINKS_EXIST
 
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
@@ -712,10 +716,10 @@ typedef unsigned __int64 UINT64;
 #define QUADCONST(n) (n)
 
 #ifdef _X86_
-#define i386            
+#define i386
 #ifndef I386
 #define I386
-#endif            
+#endif
 #define IMPLEMENTATION  50
 #endif
 
@@ -876,8 +880,8 @@ typedef unsigned char   BOOLEAN;
 #define UNIX            1
 #define VAX             1
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
-#define ALIGNMENT       8   
-#define DOUBLE_ALIGN    8  
+#define ALIGNMENT       8
+#define DOUBLE_ALIGN    8
 #define IMPLEMENTATION  52
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
@@ -1015,7 +1019,7 @@ typedef unsigned long       DWORD;
 #define OLD_ALIGNMENT
 #define NO_NFS
 #define SETPGRP
-#define IMPLEMENTATION 54 
+#define IMPLEMENTATION 54
 #undef LINKS_EXIST
 #define VA_START(list,parmN)    va_start (list, parmN)
 #define CHAR_DEFINED
@@ -1027,11 +1031,11 @@ typedef unsigned char   UCHAR;
 #define INTL_BACKEND
 #define SYNC_WRITE_DEFAULT      1
 
-/* turn on stack reduction methods for only those routines 
-   which are not commonly used; since this is a server, we 
+/* turn on stack reduction methods for only those routines
+   which are not commonly used; since this is a server, we
    want to allocate buffers on the stack for oft-used routines */
 
-#define STACK_REDUCTION 
+#define STACK_REDUCTION
 
 #endif /* NETWARE_386 */
 
@@ -1078,8 +1082,8 @@ typedef unsigned char   UCHAR;
 #define UNIX            1
 #define CURSES_KEYPAD   1
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
-#define ALIGNMENT       8   
-#define DOUBLE_ALIGN    8  
+#define ALIGNMENT       8
+#define DOUBLE_ALIGN    8
 #define IMPLEMENTATION  48
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
@@ -1217,7 +1221,7 @@ typedef unsigned char   UCHAR;
 /* various declaration modifiers */
 
 #ifndef HUGE_PTR
-#define HUGE_PTR        
+#define HUGE_PTR
 #endif
 
 #ifndef FAR_VARIABLE
@@ -1347,11 +1351,6 @@ typedef struct {
 }			SQUAD;
 #endif
 
-/* Enable support for READONLY databases in InterBase, IB 6.0 (Kinobi) project */
-#ifndef READONLY_DATABASE
-#define READONLY_DATABASE
-#endif
-
 #ifndef ATOM_DEFINED			/* 32 or 64 bit */
 typedef long		SATOM;
 typedef unsigned long	UATOM;
@@ -1473,7 +1472,7 @@ typedef USHORT		FLD_LENGTH;
 #endif
 #define ROUNDUP_LONG(len)       ROUNDUP (len, sizeof (SLONG))
 
-#define JRD_BUGCHK 15           /* facility code for bugcheck messages */               
+#define JRD_BUGCHK 15           /* facility code for bugcheck messages */
 #ifndef OFFSET
 #define OFFSET(struct,fld)      ((int) &((struct) 0)->fld)
 #define OFFSETA(struct,fld)     ((int) ((struct) 0)->fld)
@@ -1526,7 +1525,7 @@ typedef USHORT		FLD_LENGTH;
 #define MOVE_CLEAR(to,length)           MOV_fill (to, (ULONG) (length))
 #endif
 
-#ifndef ALLOC_LIB_MEMORY        
+#ifndef ALLOC_LIB_MEMORY
 #define ALLOC_LIB_MEMORY(size)          gds__alloc (size)
 #endif
 
@@ -1537,7 +1536,7 @@ typedef USHORT		FLD_LENGTH;
 
 #ifdef DEV_BUILD
 
-/* Define any debugging symbols and macros here.  This 
+/* Define any debugging symbols and macros here.  This
    ifdef will be executed during development builds. */
 
 #ifdef NETWARE_386
@@ -1587,7 +1586,7 @@ typedef USHORT		FLD_LENGTH;
 #endif
 
 #ifndef DLL_EXPORT
-#define DLL_EXPORT              
+#define DLL_EXPORT
 #endif
 
 
@@ -1635,7 +1634,7 @@ typedef struct in_sw_tab_t {
     USHORT      in_sw_msg;
     USHORT      in_sw_min_length;
     TEXT	*in_sw_text;
-    
+
     } *IN_SW_TAB;
 
 #endif /* _JRD_COMMON_H_ */

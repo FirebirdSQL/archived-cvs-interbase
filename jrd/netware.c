@@ -15,6 +15,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 #include "../jrd/ib_stdio.h"
 #include <fcntl.h>
@@ -105,7 +108,7 @@ PIO_add_file (dbb, main_file, file_name, start)
 
  return sequence;
 }
- 
+
 PIO_close (main_file)
     FIL		main_file;
 {
@@ -123,7 +126,7 @@ PIO_close (main_file)
  **************************************/
  FIL		file;
  USHORT		i;
- 
+
  for (file = main_file; file; file = file->fil_next)
   if (file->fil_desc)
    NWDFS_close(file);
@@ -162,8 +165,8 @@ FIL PIO_create (dbb, string, length, overwrite)
  }
 
  if ((desc = NWDFS_open(file_name, O_CREAT|(overwrite ? O_TRUNC : O_EXCL) |O_BINARY|O_RDWR)) == -1)
-     ERR_post (isc_io_error, 
-         gds_arg_string, "open O_CREAT", 
+     ERR_post (isc_io_error,
+         gds_arg_string, "open O_CREAT",
          gds_arg_cstring, length, ERR_string (string, length),
          isc_arg_gds, isc_io_create_err,
     	 gds_arg_netware, errno, 0);
@@ -278,7 +281,7 @@ if (dbb->dbb_encrypt_key)
     if ((NWDFS_read (file, length, spare_buffer)) == 0)
         netware_error ("read", file, isc_io_read_err, NULL_PTR);
 
-     (*dbb->dbb_decrypt) (dbb->dbb_encrypt_key->str_data, spare_buffer, 
+     (*dbb->dbb_decrypt) (dbb->dbb_encrypt_key->str_data, spare_buffer,
     			  length, address);
     }
 else
@@ -343,7 +346,7 @@ FIL PIO_open (dbb, string, length, trace_flag, connection, file_name, file_lengt
     DBB		dbb;
     TEXT	*string;
     SSHORT	length, trace_flag;
-    BLK		connection;    
+    BLK		connection;
     TEXT	*file_name;
     USHORT	file_length;
 {
@@ -387,19 +390,16 @@ for (i = 0; i < IO_RETRY; i++)
 
 if (desc == -1)
     {
-#ifdef READONLY_DATABASE
     /* Try opening the database file in ReadOnly mode. The database file could
      * be on a RO medium (CD-ROM etc.). If this fileopen fails, return error.
      */
     if ((desc = NWDFS_open(ptr, O_RDONLY)) == -1)
 	{
-#endif  /* READONLY_DATABASE */
 	ERR_post (isc_io_error,
 	    gds_arg_string,	"open",
 	    gds_arg_cstring, file_length, ERR_string (file_name, file_length),
 	    isc_arg_gds, isc_io_open_err,
 	    gds_arg_netware, errno, 0);
-#ifdef READONLY_DATABASE
 	}
     else
 	{
@@ -411,8 +411,6 @@ if (desc == -1)
 	if (!dbb->dbb_file)
 	    dbb->dbb_flags |= DBB_being_opened_read_only;
 	}
-#endif  /* READONLY_DATABASE */
-    }
 
 return dfs_setup_file (dbb, string, length, desc);
 }
@@ -638,13 +636,13 @@ static FIL dfs_setup_file (dbb, file_name, file_length, desc)
  /* fill in dfs info */
  file->dfs_volume = statistics.st_dev;
  DFSReturnVolumeMappingInformation(file->dfs_volume, &vol_info);
- file->dfs_block_size = vol_info.VolumeAllocationUnitSizeInBytes; 
+ file->dfs_block_size = vol_info.VolumeAllocationUnitSizeInBytes;
  file->dfs_position = 0;
- file->dfs_size = filelength(desc); 
- len = filelength(desc); 
+ file->dfs_size = filelength(desc);
+ len = filelength(desc);
  file->dfs_last_block = file->dfs_size / file->dfs_block_size;
- if ((file->dfs_size % file->dfs_block_size) == 0) 
-  file->dfs_last_block--;		  
+ if ((file->dfs_size % file->dfs_block_size) == 0)
+  file->dfs_last_block--;
  file->dfs_buffer = malloc (dbb->dbb_page_size);
 
  /* If this isn't the primary file, we're done */
@@ -671,7 +669,7 @@ static FIL dfs_setup_file (dbb, file_name, file_length, desc)
  lock->lck_dbb = dbb;
  lock->lck_ast = CCH_down_grade_dbb;
  MOVE_FAST (lock_string, lock->lck_key.lck_string, l);
- 
+
  /* Try to get an exclusive lock on database.  If this fails, insist
     on at least a shared lock */
  dbb->dbb_flags |= DBB_exclusive;
@@ -734,7 +732,7 @@ else
 int NWDFS_open(SCHAR *file_name, int access)
 /**************************************
  *
- * N W D F S _ o p e n 
+ * N W D F S _ o p e n
  *
  **************************************
  *
@@ -747,12 +745,12 @@ int NWDFS_open(SCHAR *file_name, int access)
 
  if ((desc = DFSsopen(file_name, access, SH_COMPAT, S_IREAD|S_IWRITE,
 								    NO_RIGHTS_CHECK_ON_OPEN_BIT,
-								    DOSNameSpace)) == -1)	
+								    DOSNameSpace)) == -1)
    {
 	nerr(1);
    return -1;
 	}
- return(desc);	  
+ return(desc);
 }
 
 int NWDFS_lseek(FIL fil, int pos, int whence)
@@ -771,19 +769,19 @@ int NWDFS_lseek(FIL fil, int pos, int whence)
 
  switch (whence)
  {
-  case 0 :	 
+  case 0 :
 	fil->dfs_position = pos;
    break;
 
-  case 1 :	 
+  case 1 :
    fil->dfs_position += pos;
    break;
 
-  case 2 :		  
+  case 2 :
 	fil->dfs_position = fil->dfs_size - pos;
    break;
 
-  default :		
+  default :
    break;
  }
  return(fil->dfs_position);
@@ -802,18 +800,18 @@ int NWDFS_write(FIL fil, int length, SCHAR *buffer)
  **************************************/
 {
  int starting_sector;
- int new_position;	
- int ccode;	
- int bytes_left_in_sector;	 
- int number_of_sectors; 
+ int new_position;
+ int ccode;
+ int bytes_left_in_sector;
+ int number_of_sectors;
  int bytes_to_copy;
  int bytes_written;
  int offset_in_sector;
  int total_written;
-  
+
  total_written = length;
 
- new_position = fil->dfs_position + length;  
+ new_position = fil->dfs_position + length;
 
  if (new_position > fil->dfs_size)
   if (dfs_expand_file(fil, new_position) != 0)
@@ -821,15 +819,15 @@ int NWDFS_write(FIL fil, int length, SCHAR *buffer)
 	nerr(2);
    return(0);
   }
- starting_sector = fil->dfs_position / BYTES_PER_SECTOR; 
+ starting_sector = fil->dfs_position / BYTES_PER_SECTOR;
  offset_in_sector = fil->dfs_position % BYTES_PER_SECTOR;
 
- /* if we are not at sector boundary : 
+ /* if we are not at sector boundary :
     1) read entire sector into temporary buffer
-    2) copy as many bytes as we can from original buffer to temporary buf 
+    2) copy as many bytes as we can from original buffer to temporary buf
     3) re-write sector */
 
- if (offset_in_sector != 0)	
+ if (offset_in_sector != 0)
  {
   if (ccode = DFSRead(fil->fil_desc, starting_sector, 1, fil->dfs_buffer))
   {
@@ -839,33 +837,33 @@ int NWDFS_write(FIL fil, int length, SCHAR *buffer)
 
   bytes_left_in_sector = BYTES_PER_SECTOR - offset_in_sector;
 
-  if (bytes_left_in_sector > length)	
-   bytes_to_copy = length;	  
+  if (bytes_left_in_sector > length)
+   bytes_to_copy = length;
   else
-   bytes_to_copy = bytes_left_in_sector;	  
+   bytes_to_copy = bytes_left_in_sector;
 
-  memcpy(fil->dfs_buffer + offset_in_sector, buffer, bytes_to_copy); 	
+  memcpy(fil->dfs_buffer + offset_in_sector, buffer, bytes_to_copy);
 
   ccode = dfs_write(fil, starting_sector, 1, fil->dfs_buffer);
   if (ccode == -1)
    return(0);
- 
+
   if (ccode)
   {
 	nerr(4);
    return(0);
   }
 
-  length -= bytes_to_copy;			
+  length -= bytes_to_copy;
   buffer += bytes_to_copy;
-  starting_sector++;		
+  starting_sector++;
  }
 
  /* we are now at start of new sector:
     1) if it will take of more that on sector
         write out rest of sectors */
 
- number_of_sectors = length / BYTES_PER_SECTOR;	  
+ number_of_sectors = length / BYTES_PER_SECTOR;
 
  if (number_of_sectors > 0)
  {
@@ -880,25 +878,25 @@ int NWDFS_write(FIL fil, int length, SCHAR *buffer)
    return(0);
   }
 
-  starting_sector += number_of_sectors;	  
-  bytes_written = BYTES_PER_SECTOR * number_of_sectors; 
-  buffer += bytes_written; 
+  starting_sector += number_of_sectors;
+  bytes_written = BYTES_PER_SECTOR * number_of_sectors;
+  buffer += bytes_written;
   length -= bytes_written;
  }
 
- /* if last bit spills out of last sector 
+ /* if last bit spills out of last sector
      1) read sector into temp buffer
      2) copy last bit to temporary buffer
      2) re-write sector */
 
- if (length)	 
+ if (length)
  {
-  if (ccode = DFSRead(fil->fil_desc, starting_sector, 1, fil->dfs_buffer)) 
+  if (ccode = DFSRead(fil->fil_desc, starting_sector, 1, fil->dfs_buffer))
   {
 	nerr(7);
    return(0);
   }
-  memcpy(fil->dfs_buffer, buffer, length);  
+  memcpy(fil->dfs_buffer, buffer, length);
 
   ccode = dfs_write(fil, starting_sector, 1, fil->dfs_buffer);
   if (ccode == -1)
@@ -911,7 +909,7 @@ int NWDFS_write(FIL fil, int length, SCHAR *buffer)
   }
  }
 
- fil->dfs_position = new_position; 
+ fil->dfs_position = new_position;
  return(total_written);
 }
 
@@ -928,16 +926,16 @@ int NWDFS_read(FIL fil, int length, SCHAR *buffer)
  **************************************/
 {
  int starting_sector;
- int new_position;	
- int ccode;	
- int bytes_left_in_sector;	 
- int number_of_sectors; 
+ int new_position;
+ int ccode;
+ int bytes_left_in_sector;
+ int number_of_sectors;
  int bytes_to_copy;
  int bytes_read;
  int offset_in_sector;
  int total_bytes = 0;
 
- new_position = fil->dfs_position + length;  
+ new_position = fil->dfs_position + length;
  if (new_position > fil->dfs_size)
   if (dfs_expand_file(fil, new_position) == -1)
    {
@@ -945,69 +943,69 @@ int NWDFS_read(FIL fil, int length, SCHAR *buffer)
    return(0);
 	}
 
- starting_sector = fil->dfs_position / BYTES_PER_SECTOR;  
- offset_in_sector = fil->dfs_position % BYTES_PER_SECTOR;	
+ starting_sector = fil->dfs_position / BYTES_PER_SECTOR;
+ offset_in_sector = fil->dfs_position % BYTES_PER_SECTOR;
 
- /* if we are not at sector boundary : 
+ /* if we are not at sector boundary :
     1) read entire sector into temporary buffer
     2) copy bytes from current position to end of sector into buffer */
 
  if (offset_in_sector != 0)
  {
-  if (ccode = DFSRead(fil->fil_desc, starting_sector, 1, fil->dfs_buffer)) 
+  if (ccode = DFSRead(fil->fil_desc, starting_sector, 1, fil->dfs_buffer))
   {
    nerr(10);
    return(0);
   }
-  bytes_left_in_sector = BYTES_PER_SECTOR - offset_in_sector;	
+  bytes_left_in_sector = BYTES_PER_SECTOR - offset_in_sector;
 
-  if (bytes_left_in_sector > length)	
-   bytes_to_copy = length;	  
+  if (bytes_left_in_sector > length)
+   bytes_to_copy = length;
   else
-   bytes_to_copy = bytes_left_in_sector;	  
+   bytes_to_copy = bytes_left_in_sector;
 
-  memcpy(buffer, fil->dfs_buffer + offset_in_sector, bytes_to_copy); 
+  memcpy(buffer, fil->dfs_buffer + offset_in_sector, bytes_to_copy);
 
   total_bytes += bytes_to_copy;
-  length -= bytes_to_copy; 
-  buffer += bytes_to_copy;  
-  starting_sector++;	
+  length -= bytes_to_copy;
+  buffer += bytes_to_copy;
+  starting_sector++;
  }
 
- /* if more than one sector left to read, read all sectors up to last 
+ /* if more than one sector left to read, read all sectors up to last
     sector */
 
- number_of_sectors = length / BYTES_PER_SECTOR;	
+ number_of_sectors = length / BYTES_PER_SECTOR;
 
- if (number_of_sectors > 0)	
+ if (number_of_sectors > 0)
  {
-  ccode = DFSRead(fil->fil_desc, starting_sector, number_of_sectors, buffer);	
-  if (ccode)	
+  ccode = DFSRead(fil->fil_desc, starting_sector, number_of_sectors, buffer);
+  if (ccode)
   {
    nerr(11);
    return(0);
   }
   starting_sector += number_of_sectors;
 
-  bytes_read = BYTES_PER_SECTOR * number_of_sectors;	
+  bytes_read = BYTES_PER_SECTOR * number_of_sectors;
   total_bytes += bytes_read;
-  buffer += bytes_read; 
-  length -= bytes_read;		 
+  buffer += bytes_read;
+  length -= bytes_read;
  }
 
  /* if still some bytes spilling into last sector read them */
- if (length > 0)			  
+ if (length > 0)
  {
   if (ccode = DFSRead(fil->fil_desc, starting_sector, 1, fil->dfs_buffer))
   {
    nerr(12);
    return(0);
   }
-  memcpy(buffer, fil->dfs_buffer, length);  
+  memcpy(buffer, fil->dfs_buffer, length);
   total_bytes += length;
  }
 
- fil->dfs_position = new_position; 	
+ fil->dfs_position = new_position;
  return total_bytes;
 }
 
@@ -1024,7 +1022,7 @@ int NWDFS_close(FIL fil)
  **************************************/
 {
  free(fil->dfs_buffer);
- return(DFSclose(fil->fil_desc));  
+ return(DFSclose(fil->fil_desc));
 }
 
 int NWDFS_get_file_size(FIL fil)
@@ -1039,14 +1037,14 @@ int NWDFS_get_file_size(FIL fil)
  *
  **************************************/
 {
- return (fil->dfs_size); 	
+ return (fil->dfs_size);
 }
 
-int dfs_write(FIL fil, int starting_sector, int number_of_sectors, 
+int dfs_write(FIL fil, int starting_sector, int number_of_sectors,
 				  SCHAR *buffer)
 /**************************************
  *
- * d f s _ w r i t e 
+ * d f s _ w r i t e
  *
  **************************************
  *
@@ -1056,9 +1054,9 @@ int dfs_write(FIL fil, int starting_sector, int number_of_sectors,
  **************************************/
 {
  int	    ccode;
- int	    starting_block;	 
- int	    byte_offset_in_file;	  
- int	    bytes_to_expand;	  
+ int	    starting_block;
+ int	    byte_offset_in_file;
+ int	    bytes_to_expand;
 
  /* try to write all sectors sequentially */
  ccode = DFSWrite(fil->fil_desc, starting_sector, number_of_sectors, buffer);
@@ -1068,18 +1066,18 @@ int dfs_write(FIL fil, int starting_sector, int number_of_sectors,
   return(0);
 
  /* could not write all sectors sequentially because there is a hole */
- if (ccode == DFSHoleInFileError)  
+ if (ccode == DFSHoleInFileError)
  {
   byte_offset_in_file = starting_sector * BYTES_PER_SECTOR;
   starting_block = byte_offset_in_file / fil->dfs_block_size;
 
-  /* if it is on a block boundary and it is not block zero 
+  /* if it is on a block boundary and it is not block zero
      start at previous block */
   if ((byte_offset_in_file % fil->dfs_block_size) == 0)
-   if (byte_offset_in_file > 0)	 
+   if (byte_offset_in_file > 0)
     starting_block--;
 
-  bytes_to_expand = number_of_sectors * BYTES_PER_SECTOR;  
+  bytes_to_expand = number_of_sectors * BYTES_PER_SECTOR;
   ccode = dfs_expand(fil, bytes_to_expand, starting_block);
   if (ccode)
   {
@@ -1108,7 +1106,7 @@ int dfs_expand_file(FIL fil, int length)
  *
  **************************************/
 {
- int bytes_to_expand; 
+ int bytes_to_expand;
  int starting_block;
  int ccode;
  int number_of_blocks_expanded;
@@ -1124,7 +1122,7 @@ int dfs_expand_file(FIL fil, int length)
 
  starting_block = fil->dfs_last_block + 1;
 
- ccode = dfs_expand(fil, bytes_to_expand, starting_block);	
+ ccode = dfs_expand(fil, bytes_to_expand, starting_block);
  if (ccode)
  {
   nerr(19);
@@ -1135,7 +1133,7 @@ int dfs_expand_file(FIL fil, int length)
  number_of_blocks_expanded = (bytes_to_expand + fil->dfs_block_size - 1) /
 								      fil->dfs_block_size;
  fil->dfs_last_block += number_of_blocks_expanded;
- 
+
  return(0);
 }
 
@@ -1170,7 +1168,7 @@ void read_back_and_check(PAG page, BDB bdb, FIL file)
 
  if (read_checksum != written_checksum)
  {
-// ConsolePrintf("read = %d write = %d page = %d\n", 
+// ConsolePrintf("read = %d write = %d page = %d\n",
 //                read_checksum, written_checksum, page_no);
   Breakpoint(1);
  }
@@ -1194,7 +1192,7 @@ int dfs_expand(FIL fil, int bytes_to_expand, int starting_block)
  int blocks_to_expand;
  int ccode;
 
- blocks_to_try = (bytes_to_expand + fil->dfs_block_size - 1) / 
+ blocks_to_try = (bytes_to_expand + fil->dfs_block_size - 1) /
 						fil->dfs_block_size;
 
  blocks_to_expand = blocks_to_try;
@@ -1268,7 +1266,7 @@ int expand_it(FIL fil, int blocks_to_expand, int starting_block)
 
  DFSFreeLimboVolumeSpace(fil->dfs_volume, blocks_to_expand);
 
- ccode = DFSExpandFile(fil->fil_desc, starting_block, 
+ ccode = DFSExpandFile(fil->fil_desc, starting_block,
 							  blocks_to_expand, -1, -1);
 
  return(ccode);

@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #ifdef SHLIB_DEFS
@@ -335,7 +338,7 @@ static ULONG    num_attached = 0;
 #endif /* GOVERNOR */
 
 /* check whether we need to perform an autocommit;
-   do it here to prevent committing every record update 
+   do it here to prevent committing every record update
    in a statement */
 
 #define CHECK_AUTOCOMMIT	if (request->req_transaction->tra_flags & TRA_perform_autocommit)\
@@ -541,7 +544,7 @@ initing_security = FALSE;
 
 attachment = *(&attachment);
 
-if (SETJMP (env)) 
+if (SETJMP (env))
     {
 #ifdef _PPC_
     tdbb->tdbb_setjmp = (UCHAR*) env1;
@@ -643,7 +646,7 @@ attachment->att_charset = options.dpb_interp;
 if (options.dpb_lc_messages) {
     attachment->att_lc_messages =
         copy_string (options.dpb_lc_messages,
-                     (USHORT)strlen (options.dpb_lc_messages)); 
+                     (USHORT)strlen (options.dpb_lc_messages));
 }
 
 if (options.dpb_no_garbage)
@@ -691,7 +694,7 @@ if (!dbb->dbb_filename)
     CCH_init (tdbb, (ULONG) options.dpb_buffers);
     PAG_init2 (0);
     if (options.dpb_disable_wal)
-	{ /* Forcibly disable WAL before the next step.  
+	{ /* Forcibly disable WAL before the next step.
 	     We have an exclusive access to the database. */
 #ifndef WINDOWS_ONLY
 	AIL_drop_log_force();
@@ -721,11 +724,9 @@ if (!dbb->dbb_filename)
     INI_update_database();
     }
 
-#ifdef READONLY_DATABASE
 /* Attachments to a ReadOnly database need NOT do garbage collection */
 if (dbb->dbb_flags & DBB_read_only)
     attachment->att_flags |= ATT_no_cleanup;
-#endif  /* READONLY_DATABASE */
 
 if (options.dpb_disable_wal)
     ERR_post (gds__lock_timeout, gds_arg_gds, gds__obj_in_use,
@@ -744,7 +745,7 @@ initing_security = TRUE;
 
 if (invalid_client_SQL_dialect)
     ERR_post (isc_inv_client_dialect_specified, isc_arg_number,
-					    options.dpb_sql_dialect, 
+					    options.dpb_sql_dialect,
 	      isc_arg_gds, isc_valid_client_dialects,
 					    isc_arg_string, "1, or 3", 0);
 invalid_client_SQL_dialect = FALSE;
@@ -807,7 +808,7 @@ if (options.dpb_role_name)
 	case SQL_DIALECT_V6_TRANSITION:
 	case SQL_DIALECT_V6:
 	    {
-	    if (*options.dpb_role_name == DBL_QUOTE || 
+	    if (*options.dpb_role_name == DBL_QUOTE ||
 		*options.dpb_role_name == SINGLE_QUOTE)
 		{
 		p1 = options.dpb_role_name;
@@ -816,9 +817,9 @@ if (options.dpb_role_name)
 		delimited_done = FALSE;
 		end_quote = *p1;
 		*p1++;
-		/* 
-		** remove the delimited quotes and escape quote 
-		** from ROLE name 
+		/*
+		** remove the delimited quotes and escape quote
+		** from ROLE name
 		*/
 		while (*p1 && !delimited_done && cnt < BUFFER_LENGTH128-1)
 		    {
@@ -843,7 +844,7 @@ if (options.dpb_role_name)
 		*p2 = '\0';
 		strcpy (options.dpb_role_name, local_role_name);
 		}
-	    else 
+	    else
 		{
 		strcpy (local_role_name, options.dpb_role_name);
 		len = strlen (local_role_name);
@@ -885,7 +886,7 @@ if (options.dpb_shutdown || options.dpb_online)
     {
     /* By releasing the DBB_MUTX_init_fini mutex here, we would be allowing
        other threads to proceed with their detachments, so that shutdown does
-       not timeout for exclusive access and other threads don't have to wait 
+       not timeout for exclusive access and other threads don't have to wait
        behind shutdown */
 
     V4_JRD_MUTEX_UNLOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
@@ -907,9 +908,9 @@ if (options.dpb_shutdown || options.dpb_online)
     }
 
 #ifdef SUPERSERVER
-/* Check if another attachment has or is requesting exclusive database access. 
+/* Check if another attachment has or is requesting exclusive database access.
    If this is an implicit attachment for the security (password) database, don't
-   try to get exclusive attachment to avoid a deadlock condition which happens 
+   try to get exclusive attachment to avoid a deadlock condition which happens
    when a client tries to connect to the security database itself. */
 
 if (!options.dpb_sec_attach)
@@ -977,7 +978,7 @@ if (options.dpb_journal)
 	if (options.dpb_wal_backup_dir)
 	    ISC_expand_filename (options.dpb_wal_backup_dir, 0, archive_name);
 
-	make_jrn_data (data, &d_len, expanded_filename, length_expanded, 
+	make_jrn_data (data, &d_len, expanded_filename, length_expanded,
 	    archive_name, (USHORT)strlen (archive_name));
 
 	ISC_expand_filename (options.dpb_journal, 0, journal_name);
@@ -987,7 +988,7 @@ if (options.dpb_journal)
 		    data, d_len, (SSHORT)strlen (archive_name));
 #endif
 	}
-    else 
+    else
 	ERR_post (gds__bad_dpb_content, gds_arg_gds, gds__cant_start_journal, 0);
 
 if (options.dpb_wal_action)
@@ -1019,24 +1020,24 @@ if (options.dpb_wal_action)
 
 if (((attachment->att_flags & ATT_gbak_attachment) ||
      (attachment->att_flags & ATT_gfix_attachment) ||
-     (attachment->att_flags & ATT_gstat_attachment)) && 
+     (attachment->att_flags & ATT_gstat_attachment)) &&
     !(attachment->att_user->usr_flags & (USR_locksmith | USR_owner)))
     {
     ERR_post (isc_adm_task_denied, 0);
     }
-		    
+
 if (options.dpb_online_dump)
     {
     CCH_release_exclusive (tdbb);
 
 #ifndef WINDOWS_ONLY
-    OLD_dump (expanded_filename, length_expanded, 
+    OLD_dump (expanded_filename, length_expanded,
 	    options.dpb_old_dump_id,
 	    options.dpb_old_file_size,
-	    options.dpb_old_start_page, 
-	    options.dpb_old_start_seqno, 
-	    options.dpb_old_start_file, 
-	    options.dpb_old_num_files, 
+	    options.dpb_old_start_page,
+	    options.dpb_old_start_seqno,
+	    options.dpb_old_start_file,
+	    options.dpb_old_num_files,
 	    options.dpb_old_file);
 #endif
     }
@@ -1050,7 +1051,7 @@ if (options.dpb_log)
 	        gds_arg_string, ERR_string (file_name, fl), 0);
 	LOG_enable (options.dpb_log, strlen (options.dpb_log));
 	}
-    else 
+    else
 	ERR_post (gds__bad_dpb_content, gds_arg_gds, gds__cant_start_logging, 0);
 #endif
 
@@ -1074,7 +1075,6 @@ if (options.dpb_set_no_reserve)
 if (options.dpb_set_page_buffers)
     PAG_set_page_buffers (options.dpb_page_buffers);
 
-#ifdef READONLY_DATABASE
 if (options.dpb_set_db_readonly)
     {
     if (!CCH_exclusive (tdbb, LCK_EX, WAIT_PERIOD))
@@ -1083,7 +1083,6 @@ if (options.dpb_set_db_readonly)
 
     PAG_set_db_readonly (dbb, options.dpb_db_readonly);
     }
-#endif
 
 #ifdef REPLAY_OSRI_API_CALLS_SUBSYSTEM
 /* don't record the attach until now in case the log is added during the attach */
@@ -1098,7 +1097,7 @@ VIO_init (tdbb);
 CCH_release_exclusive (tdbb);
 
 #ifdef GOVERNOR
-if (!options.dpb_sec_attach) 
+if (!options.dpb_sec_attach)
     {
     if (JRD_max_users)
         {
@@ -1295,7 +1294,7 @@ attachment = *handle;
 /* Check out the database handle.  This is mostly code from
    the routine "check_database" */
 
-if (!attachment || 
+if (!attachment ||
     (attachment->att_header.blk_type != (UCHAR) type_att) ||
     !(dbb = attachment->att_database) ||
     dbb->dbb_header.blk_type != (UCHAR) type_dbb)
@@ -1609,7 +1608,7 @@ tdbb->tdbb_transaction = NULL;
 initing_security = FALSE;
 #endif
 
-if (SETJMP (env)) 
+if (SETJMP (env))
     {
 #ifdef _PPC_
     tdbb->tdbb_setjmp = (UCHAR*) env1;
@@ -1715,7 +1714,7 @@ switch (options.dpb_sql_dialect)
 
 attachment->att_charset = options.dpb_interp;
 if (options.dpb_lc_messages)
-    attachment->att_lc_messages = copy_string (options.dpb_lc_messages, (USHORT)strlen (options.dpb_lc_messages)); 
+    attachment->att_lc_messages = copy_string (options.dpb_lc_messages, (USHORT)strlen (options.dpb_lc_messages));
 
 if (!options.dpb_page_size)
     options.dpb_page_size = DEFAULT_PAGE_SIZE;
@@ -1780,7 +1779,7 @@ if (options.dpb_shutdown || options.dpb_online)
     {
     /* By releasing the DBB_MUTX_init_fini mutex here, we would be allowing
        other threads to proceed with their detachments, so that shutdown does
-       not timeout for exclusive access and other threads don't have to wait 
+       not timeout for exclusive access and other threads don't have to wait
        behind shutdown */
 
     V4_JRD_MUTEX_UNLOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
@@ -1822,6 +1821,15 @@ AIL_set_log_options (
 VIO_init (tdbb);
 #endif
 
+if (options.dpb_set_db_readonly)
+     {
+     if (!CCH_exclusive (tdbb, LCK_EX, WAIT_PERIOD))
+         ERR_post (gds__lock_timeout, gds_arg_gds, gds__obj_in_use,
+             gds_arg_string, ERR_string (file_name, fl), 0);
+
+     PAG_set_db_readonly (dbb, options.dpb_db_readonly);
+     }
+
 CCH_release_exclusive (tdbb);
 
 /* Figure out what character set & collation this attachment prefers */
@@ -1831,7 +1839,7 @@ find_intl_charset (tdbb, attachment, &options);
 dbb->dbb_filename = copy_string (expanded_name, length);
 
 #ifdef GOVERNOR
-if (!options.dpb_sec_attach) 
+if (!options.dpb_sec_attach)
     {
     if (JRD_max_users)
         {
@@ -1946,12 +1954,12 @@ transaction = find_transaction (tdbb, *tra_handle, gds__segstr_wrong_db);
 
 DYN_ddl (attachment, transaction, ddl_length, ddl);
 
-/* 
+/*
  * Perform an auto commit for autocommit transactions.
  * This is slightly tricky.  If the commit retain works,
  * all is well.  If TRA_commit () fails, we perform
  * a rollback_retain ().  This will backout the
- * effects of the transaction, mark it dead and 
+ * effects of the transaction, mark it dead and
  * start a new transaction.
 
  * For now only ExpressLink will use this feature.  Later
@@ -1963,7 +1971,7 @@ if (transaction->tra_flags & TRA_perform_autocommit)
     transaction->tra_flags &= ~TRA_perform_autocommit;
     tdbb->tdbb_setjmp = (UCHAR*) rollback_env;
 
-    if (SETJMP (rollback_env)) 
+    if (SETJMP (rollback_env))
 	{
 	tdbb->tdbb_setjmp = (UCHAR*) env;
 	tdbb->tdbb_status_vector = temp_status;
@@ -2012,7 +2020,7 @@ attachment = *handle;
 /* Check out the database handle.  This is mostly code from
    the routine "check_database" */
 
-if (!attachment || 
+if (!attachment ||
     (attachment->att_header.blk_type != (UCHAR) type_att) ||
     !(dbb = attachment->att_database) ||
     dbb->dbb_header.blk_type != (UCHAR) type_dbb)
@@ -2127,7 +2135,7 @@ attachment = *handle;
 /* Check out the database handle.  This is mostly code from
    the routine "check_database" */
 
-if (!attachment || 
+if (!attachment ||
     (attachment->att_header.blk_type != (UCHAR) type_att) ||
     !(dbb = attachment->att_database) ||
     dbb->dbb_header.blk_type != (UCHAR) type_dbb)
@@ -2176,7 +2184,7 @@ JRD_SS_MUTEX_LOCK;
 V4_JRD_MUTEX_LOCK (databases_mutex);
 V4_JRD_MUTEX_LOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
 
-if (SETJMP (env)) 
+if (SETJMP (env))
     {
     V4_JRD_MUTEX_UNLOCK (databases_mutex);
     V4_JRD_MUTEX_UNLOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
@@ -2207,7 +2215,7 @@ header->hdr_ods_version = 0;
 CCH_RELEASE (tdbb, &window);
 
 /* A default catch all */
-if (SETJMP (env)) 
+if (SETJMP (env))
     {
     JRD_SS_MUTEX_UNLOCK;
     return error (user_status);
@@ -2263,7 +2271,7 @@ if (err)
     {
     user_status [0] = gds_arg_gds;
     user_status [1] = gds__drdb_completed_with_errs;
-    user_status [2] = gds_arg_end; 
+    user_status [2] = gds_arg_end;
     return user_status [1];
     }
 
@@ -2313,13 +2321,13 @@ if (blob->blb_flags & BLB_eof)
     {
     RESTORE_THREAD_DATA;
     --dbb->dbb_use_count;
-    return (user_status [1] = gds__segstr_eof); 
+    return (user_status [1] = gds__segstr_eof);
     }
 else if (blob->blb_fragment_size)
     {
     RESTORE_THREAD_DATA;
     --dbb->dbb_use_count;
-    return (user_status [1] = gds__segment); 
+    return (user_status [1] = gds__segment);
     }
 
 RETURN_SUCCESS;
@@ -2593,7 +2601,7 @@ if (!attachment->att_event_session &&
     !(attachment->att_event_session = EVENT_create_session (user_status)))
     return error (user_status);
 
-*id = EVENT_que (user_status, 
+*id = EVENT_que (user_status,
 	attachment->att_event_session,
 	lock->lck_length,
 	(TEXT*) &lock->lck_key,
@@ -2624,8 +2632,8 @@ STATUS DLL_EXPORT GDS_RECEIVE (
     SCHAR	*msg,
     SSHORT	level
 #ifdef SCROLLABLE_CURSORS
-    , 
-    USHORT	direction, 
+    ,
+    USHORT	direction,
     ULONG	offset
 #endif
     )
@@ -2669,8 +2677,8 @@ if (lev = level)
 	ERR_post (gds__req_sync, 0);
 
 #ifdef SCROLLABLE_CURSORS
-if (direction) 
-    EXE_seek (tdbb, request, direction, offset); 
+if (direction)
+    EXE_seek (tdbb, request, direction, offset);
 #endif
 
 EXE_receive (tdbb, request, msg_type, msg_length, msg);
@@ -2987,7 +2995,7 @@ if (lev = level)
 
 EXE_send (tdbb, request, msg_type, msg_length, msg);
 
-CHECK_AUTOCOMMIT;        
+CHECK_AUTOCOMMIT;
 
 if (request->req_flags & req_warning)
     {
@@ -3092,7 +3100,7 @@ STATUS DLL_EXPORT GDS_SERVICE_QUERY (
  *	NOTE: The parameter RESERVED must not be used
  *	for any purpose as there are networking issues
  *	involved (as with any handle that goes over the
- *	network).  This parameter will be implemented at 
+ *	network).  This parameter will be implemented at
  *	a later date.
  *
  **************************************/
@@ -3115,7 +3123,7 @@ if (service->svc_spb_version == isc_spb_version1)
     SVC_query (service, send_item_length, send_items, recv_item_length, recv_items, buffer_length, buffer);
 else
     {
-    /* For SVC_query2, we are going to completly dismantle user_status (since at this point it is 
+    /* For SVC_query2, we are going to completly dismantle user_status (since at this point it is
      * meaningless anyway).  The status vector returned by this function can hold information about
      * the call to query the service manager and/or a service thread that may have been running.
      */
@@ -3157,7 +3165,7 @@ STATUS DLL_EXPORT GDS_SERVICE_START (
  *	NOTE: The parameter RESERVED must not be used
  *	for any purpose as there are networking issues
  *  	involved (as with any handle that goes over the
- *   	network).  This parameter will be implemented at 
+ *   	network).  This parameter will be implemented at
  * 	a later date.
  **************************************/
 SVC         service;
@@ -3180,7 +3188,7 @@ if (service->svc_status[1])
     {
     STATUS *svc_status = service->svc_status,
            *tdbb_status = tdbb->tdbb_status_vector;
-    
+
     while (*svc_status)
         *tdbb_status++ = *svc_status++;
     *tdbb_status = isc_arg_end;
@@ -3295,7 +3303,7 @@ if (level)
 EXE_unwind (tdbb, request);
 EXE_start (tdbb, request, transaction);
 
-CHECK_AUTOCOMMIT;        
+CHECK_AUTOCOMMIT;
 
 if (request->req_flags & req_warning)
     {
@@ -3562,7 +3570,7 @@ if (out_msg_length)
     else
 	MOVE_FASTER ((SCHAR*) request + out_message->nod_impure, out_msg, out_msg_length);
 
-CHECK_AUTOCOMMIT;        
+CHECK_AUTOCOMMIT;
 
 CMP_release (tdbb, request);
 
@@ -3645,7 +3653,7 @@ request = *req_handle;
 
 /* Make sure blocks look and feel kosher */
 
-if (!(attachment = request->req_attachment) || 
+if (!(attachment = request->req_attachment) ||
     (attachment->att_header.blk_type != (UCHAR) type_att) ||
     !(dbb = attachment->att_database) ||
     dbb->dbb_header.blk_type != (UCHAR) type_dbb)
@@ -3672,7 +3680,7 @@ tdbb->tdbb_setjmp = (UCHAR*) env;
 tdbb->tdbb_status_vector = user_status;
 tdbb->tdbb_attachment = attachment;
 
-if (SETJMP (env)) 
+if (SETJMP (env))
     {
     RESTORE_THREAD_DATA;
     return user_status [1];
@@ -3765,9 +3773,9 @@ USHORT JRD_getdir (
  *
  * Functional description
  *	Current working directory is cached in the attachment
- *	block.  get it out. This function could be called before 
+ *	block.  get it out. This function could be called before
  *	an attachment is created. In such a case thread specific
- *	data (t_data) will hold the user name which will be used 
+ *	data (t_data) will hold the user name which will be used
  *	to get the users home directory.
  *
  **************************************/
@@ -3816,15 +3824,15 @@ else
    else
        return 0;
 
-   /** 
+   /**
     An older version of client will not be sending isc_dpb_working directory
-    so in all probabilities attachment->att_working_directory will be null. 
+    so in all probabilities attachment->att_working_directory will be null.
     return 0 so that ISC_expand_filename will create the file in ibserver's dir
    **/
-   if (!attachment->att_working_directory || 
+   if (!attachment->att_working_directory ||
 	len - 1 < attachment->att_working_directory->str_length)
        return 0;
-   memcpy (buf, attachment->att_working_directory->str_data, 
+   memcpy (buf, attachment->att_working_directory->str_data,
 		attachment->att_working_directory->str_length);
    buf [attachment->att_working_directory->str_length] = 0;
    }
@@ -3875,7 +3883,7 @@ INUSE_remove (&tdbb->tdbb_mutexes, (void*) mutex, FALSE);
 THD_MUTEX_UNLOCK (mutex);
 }
 
-#ifdef SUPERSERVER 
+#ifdef SUPERSERVER
 void JRD_print_all_counters (
     char 	*fname)
 {
@@ -3926,7 +3934,7 @@ void JRD_print_procedure_info (
  *****************************************************
  *
  * Functional description
- *	print name , use_count of all procedures in  
+ *	print name , use_count of all procedures in
  *      cache
  *
  ******************************************************/
@@ -3954,9 +3962,9 @@ V4_JRD_MUTEX_LOCK (databases_mutex);
 	for (ptr=(PRC*)procedures->vec_object, end=ptr+procedures->vec_count;
 	                         ptr < end; ptr++)
 	    if (procedure = *ptr)
-		ib_fprintf (fptr, "%s  ,  %d,  %X,  %d, %d\n", 
-		(procedure->prc_name) ? (char*)procedure->prc_name->str_data : "NULL", 
-		procedure->prc_id, procedure->prc_flags, 
+		ib_fprintf (fptr, "%s  ,  %d,  %X,  %d, %d\n",
+		(procedure->prc_name) ? (char*)procedure->prc_name->str_data : "NULL",
+		procedure->prc_id, procedure->prc_flags,
 		procedure->prc_use_count,procedure->prc_alter_count);
 	}
     else
@@ -4028,7 +4036,7 @@ if (attachment = tdbb->tdbb_attachment)
 	    *status++ = isc_arg_end;
 	    return TRUE;
 	    }
-	}   
+	}
 #ifdef CANCEL_OPERATION
 
     /* If a cancel has been raised, defer its acknowledgement
@@ -4156,7 +4164,7 @@ while (block = *que)
     dbb->dbb_free_btbs = block;
     }
 }
-#endif 
+#endif
 
 void jrd_vtof (
     SCHAR	*string,
@@ -4259,7 +4267,7 @@ TRA	transaction;
 SET_TDBB (tdbb);
 blob = *blob_handle;
 
-if (!blob || 
+if (!blob ||
     (blob->blb_header.blk_type != (UCHAR) type_blb) ||
     check_database (tdbb, blob->blb_attachment, user_status) ||
     !(transaction = blob->blb_transaction) ||
@@ -4302,7 +4310,7 @@ SET_TDBB (tdbb);
 
 /* Make sure blocks look and feel kosher */
 
-if (!attachment || 
+if (!attachment ||
     (attachment->att_header.blk_type != (UCHAR) type_att) ||
     !(dbb = attachment->att_database) ||
     dbb->dbb_header.blk_type != (UCHAR) type_dbb)
@@ -4430,11 +4438,11 @@ LOG_call ((retaining_flag) ? log_commit_retaining : log_commit, *tra_handle);
 
 ptr = user_status;
 
-if (transaction->tra_sibling && 
+if (transaction->tra_sibling &&
     !(transaction->tra_flags & TRA_prepared) &&
     prepare (tdbb, transaction, ptr, 0, NULL))
     return error (user_status);
-    
+
 if (SETJMP (env))
     {
     dbb = tdbb->tdbb_database;
@@ -4503,8 +4511,8 @@ status [1] = SUCCESS;
 for (; file; file = file->fil_next)
     if (unlink (file->fil_string))
 	{
- 	IBERR_build_status (status, isc_io_error, 
-	    gds_arg_string, "unlink", 
+ 	IBERR_build_status (status, isc_io_error,
+	    gds_arg_string, "unlink",
 	    gds_arg_string, ERR_cstring (file->fil_string),
         isc_arg_gds, isc_io_delete_err,
 	    SYS_ERR, errno, 0);
@@ -4632,7 +4640,7 @@ else
     {
     /* Report an error - we can't do what user has requested */
 
-    ERR_post (gds__bad_dpb_content, gds_arg_gds, gds__charset_not_found, 
+    ERR_post (gds__bad_dpb_content, gds_arg_gds, gds__charset_not_found,
 	gds_arg_string, ERR_cstring (options->dpb_lc_ctype), 0);
     }
 }
@@ -4688,7 +4696,7 @@ while (p < end_dpb)
             t_data=NULL;
 	    THD_getspecific_data((void**)&t_data);
 
-	    /* 
+	    /*
 	       Null value for working_directory implies remote database. So get
 	       the users HOME directory
 	    */
@@ -4987,7 +4995,7 @@ while (p < end_dpb)
 
         case isc_dpb_sql_dialect:
 	    options->dpb_sql_dialect = (USHORT)get_parameter (&p);
-	    if (options->dpb_sql_dialect < 0 || 
+	    if (options->dpb_sql_dialect < 0 ||
 		options->dpb_sql_dialect > SQL_DIALECT_V6)
 		invalid_client_SQL_dialect = TRUE;
 	    break;
@@ -4995,13 +5003,11 @@ while (p < end_dpb)
         case isc_dpb_set_db_sql_dialect:
 	    options->dpb_set_db_sql_dialect = (USHORT)get_parameter (&p);
 	    break;
-	    
-#ifdef READONLY_DATABASE
+
 	case isc_dpb_set_db_readonly:
 	    options->dpb_set_db_readonly = TRUE;
 	    options->dpb_db_readonly = (SSHORT)get_parameter (&p);
 	    break;
-#endif
 
 	default:
 	    l = *p++;
@@ -5192,11 +5198,11 @@ V4_JRD_MUTEX_LOCK (databases_mutex);
 /* Check to see if the database is already actively attached */
 
 for (dbb = databases; dbb; dbb = dbb->dbb_next)
-    if (!(dbb->dbb_flags & (DBB_bugcheck | DBB_not_in_use)) && 
+    if (!(dbb->dbb_flags & (DBB_bugcheck | DBB_not_in_use)) &&
 #ifndef SUPERSERVER
-        !(dbb->dbb_ast_flags & DBB_shutdown && dbb->dbb_ast_flags & DBB_shutdown_locks) && 
+        !(dbb->dbb_ast_flags & DBB_shutdown && dbb->dbb_ast_flags & DBB_shutdown_locks) &&
 #endif
-	(string = dbb->dbb_filename) && 
+	(string = dbb->dbb_filename) &&
 	!strcmp (string->str_data, expanded_filename))
 	return (attach_flag) ? dbb : NULL;
 
@@ -5205,8 +5211,8 @@ for (dbb = databases; dbb; dbb = dbb->dbb_next)
 MOVE_CLEAR (&temp, (SLONG) sizeof (struct dbb));
 THD_MUTEX_INIT_N (temp_mutx, DBB_MUTX_max);
 V4_RW_LOCK_INIT_N (temp_wlck, DBB_WLCK_max);
-                                    
-/* set up the temporary database block with fields that are 
+
+/* set up the temporary database block with fields that are
    required for doing the ALL_init() */
 
 temp.dbb_header.blk_type = type_dbb;
@@ -5255,7 +5261,7 @@ TRA_init (tdbb);
 #ifndef WINDOWS_ONLY
 if (dbb->dbb_encrypt = ISC_lookup_entrypoint (ENCRYPT_IMAGE, ENCRYPT, NULL))
     dbb->dbb_decrypt = ISC_lookup_entrypoint (ENCRYPT_IMAGE, DECRYPT, NULL);
-#endif 
+#endif
 #endif
 
 INTL_init (tdbb);
@@ -5429,9 +5435,9 @@ if (lock_vector = attachment->att_relation_locks)
 
 for (record_lock = attachment->att_record_locks; record_lock; record_lock = record_lock->lck_att_next)
     LCK_release (tdbb, record_lock);
-        
-/* bug #7781, need to null out the attachment pointer of all locks which 
-   were hung off this attachment block, to ensure that the attachment 
+
+/* bug #7781, need to null out the attachment pointer of all locks which
+   were hung off this attachment block, to ensure that the attachment
    block doesn't get dereferenced after it is released */
 
 for (record_lock = attachment->att_long_locks; record_lock; record_lock = record_lock->lck_next)
@@ -5484,8 +5490,8 @@ if (dbb = tdbb->tdbb_database)
 
 p = user_status = tdbb->tdbb_status_vector;
 
-/* If the status vector has not been initialized, then 
-   initilalize the status vector to indicate success.  
+/* If the status vector has not been initialized, then
+   initilalize the status vector to indicate success.
    Else pass the status vector along at it stands.  */
 if (p [0] != gds_arg_gds ||
     p [1] != SUCCESS ||
@@ -5811,7 +5817,7 @@ for (dbb = databases; dbb; dbb = dbb->dbb_next)
 	    ExtractDriveLetter(files->fil_string, &drive_mask);
 #endif
 
-    if (!(dbb->dbb_flags & (DBB_bugcheck | DBB_not_in_use)) && 
+    if (!(dbb->dbb_flags & (DBB_bugcheck | DBB_not_in_use)) &&
 	!(dbb->dbb_ast_flags & DBB_shutdown && dbb->dbb_ast_flags & DBB_shutdown_locks))
 	{
 	num_dbs++;
@@ -5840,7 +5846,7 @@ for (dbb = databases; dbb; dbb = dbb->dbb_next)
 	    else
 		flag = 0;
 	    }
-	    
+
 	for (att = dbb->dbb_attachments; att; att = att->att_next)
 	    {
 	    num_att++;
@@ -5891,7 +5897,7 @@ if (dbf)
 		last db name length
 		last db name
 	    */
-		
+
 	    lbufp += sizeof(USHORT);
 	    total = 0;
 	    for (dbfp = dbf; dbfp; dbfp = dbfp->dbf_next)
@@ -5984,7 +5990,7 @@ if ( initialized)
 for (dbb = databases; dbb; dbb = dbb_next)
     {
     dbb_next = dbb->dbb_next;
-    if (!(dbb->dbb_flags & (DBB_bugcheck | DBB_not_in_use)) && 
+    if (!(dbb->dbb_flags & (DBB_bugcheck | DBB_not_in_use)) &&
 	!(dbb->dbb_ast_flags & DBB_shutdown && dbb->dbb_ast_flags & DBB_shutdown_locks))
 	{
 	for (att = dbb->dbb_attachments; att; att = att_next)
@@ -6063,7 +6069,7 @@ if (!(dbb->dbb_flags & DBB_bugcheck))
 
     count = 0;
 
-    for (transaction = attachment->att_transactions; transaction; 
+    for (transaction = attachment->att_transactions; transaction;
 	 transaction = next)
 	{
 	next = transaction->tra_next;

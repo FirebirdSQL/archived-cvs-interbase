@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #include <string.h>
@@ -59,7 +62,7 @@
  * the change to Firebird this number could no longer be used.
  * The DBSERVER_BASE_LEVEL for firebird starts at 6 which is the base level
  * of InterBase(r) from which Firebird was derived.
- * It is expected that this value will increase as changes are added to 
+ * It is expected that this value will increase as changes are added to
  * Firebird
  */
 
@@ -117,7 +120,7 @@ while (items < end_items && *items != gds__info_end)
 	    buffer [0] = (blob->blb_flags & BLB_stream) ? 1 : 0;
 	    length = 1;
 	    break;
-	    
+
 	default:
 	    buffer [0] = item;
 	    item = gds__info_error;
@@ -215,7 +218,7 @@ CHECK_DBB (dbb);
 #ifndef WINDOWS_ONLY
 if (dbb->dbb_wal)
     WAL_segment = dbb->dbb_wal->wal_segment;
-else 
+else
     WAL_segment = NULL;
 #endif
 transaction = NULL;
@@ -474,7 +477,7 @@ while (items < end_items && *items != gds__info_end)
 	case gds__info_base_level:
 	    /* info_base_level is used by the client to represent
 	     * what the server is capable of.  It is equivalent to the
-	     * ods version of a database.  For example, 
+	     * ods version of a database.  For example,
 	     * ods_version represents what the database 'knows'
 	     * base_level represents what the server 'knows'
 	     */
@@ -524,7 +527,7 @@ while (items < end_items && *items != gds__info_end)
 	case gds__info_limbo:
 	    if (!transaction)
 		transaction = TRA_start (tdbb, 0, NULL);
-	    for (id = transaction->tra_oldest; 
+	    for (id = transaction->tra_oldest;
 		 id < transaction->tra_number; id++)
 		if (TRA_snapshot_state (tdbb, transaction, id) == tra_limbo &&
 		    TRA_wait (tdbb, transaction, id, TRUE) == tra_limbo)
@@ -558,14 +561,14 @@ while (items < end_items && *items != gds__info_end)
 			return FALSE;
 			}
 		    }
-		}	
+		}
 	    continue;
 
 	case isc_info_page_errors:
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_PAG_WRONG_TYPE]
 		    + err_att->att_val_errors->vcl_long [VAL_PAG_CHECKSUM_ERR]
 		    + err_att->att_val_errors->vcl_long [VAL_PAG_DOUBLE_ALLOC]
@@ -582,7 +585,7 @@ while (items < end_items && *items != gds__info_end)
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_BLOB_INCONSISTENT]
 		    + err_att->att_val_errors->vcl_long [VAL_BLOB_CORRUPT]
 		    + err_att->att_val_errors->vcl_long [VAL_BLOB_TRUNCATED];
@@ -597,7 +600,7 @@ while (items < end_items && *items != gds__info_end)
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_REC_CHAIN_BROKEN]
 		    + err_att->att_val_errors->vcl_long [VAL_REC_DAMAGED]
 		    + err_att->att_val_errors->vcl_long [VAL_REC_BAD_TID]
@@ -615,7 +618,7 @@ while (items < end_items && *items != gds__info_end)
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_DATA_PAGE_CONFUSED]
 		    + err_att->att_val_errors->vcl_long [VAL_DATA_PAGE_LINE_ERR];
 		}
@@ -629,7 +632,7 @@ while (items < end_items && *items != gds__info_end)
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_INDEX_PAGE_CORRUPT]
 		    + err_att->att_val_errors->vcl_long [VAL_INDEX_ROOT_MISSING]
 		    + err_att->att_val_errors->vcl_long [VAL_INDEX_MISSING_ROWS]
@@ -645,7 +648,7 @@ while (items < end_items && *items != gds__info_end)
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_P_PAGE_LOST]
 		    + err_att->att_val_errors->vcl_long [VAL_P_PAGE_INCONSISTENT];
 		}
@@ -659,7 +662,7 @@ while (items < end_items && *items != gds__info_end)
 	    err_att = tdbb->tdbb_attachment;
 	    if (err_att->att_val_errors)
 		{
-		err_val = 
+		err_val =
 		    err_att->att_val_errors->vcl_long [VAL_TIP_LOST]
 		    + err_att->att_val_errors->vcl_long [VAL_TIP_LOST_SEQUENCE]
 		    + err_att->att_val_errors->vcl_long [VAL_TIP_CONFUSED];
@@ -675,27 +678,27 @@ while (items < end_items && *items != gds__info_end)
 	    **
 	    ** there are 3 types of databases:
 	    **
-	    **   1. a DB that is created before V6.0. This DB only speak SQL 
+	    **   1. a DB that is created before V6.0. This DB only speak SQL
 	    **        dialect 1 and 2.
 	    **
 	    **   2. a non ODS 10 DB is backed up/restored in IB V6.0. Since
 	    **        this DB contained some old SQL dialect, therefore it
 	    **        speaks SQL dialect 1, 2, and 3
 	    **
-	    **   3. a DB that is created in V6.0. This DB speak SQL 
+	    **   3. a DB that is created in V6.0. This DB speak SQL
 	    **        dialect 1, 2 or 3 depending the DB was created
 	    **        under which SQL dialect.
 	    **
 	    */
-	    if (ENCODE_ODS(dbb->dbb_ods_version, dbb->dbb_minor_original) 
+	    if (ENCODE_ODS(dbb->dbb_ods_version, dbb->dbb_minor_original)
 		    >= ODS_10_0)
 		if ( dbb->dbb_flags & DBB_DB_SQL_dialect_3)
-		/* 
-		** DB created in IB V6.0 by client SQL dialect 3 
+		/*
+		** DB created in IB V6.0 by client SQL dialect 3
 		*/
 		    *p++ = SQL_DIALECT_V6;
 		else
-		    /* 
+		    /*
 		    ** old DB was gbaked in IB V6.0
 		    */
 		    *p++ = SQL_DIALECT_V5;
@@ -705,13 +708,11 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
-#ifdef READONLY_DATABASE
 	case isc_info_db_read_only:
 	    *p++ = (dbb->dbb_flags & DBB_read_only) ? 1 : 0;
 	    length = p - buffer;
 
 	    break;
-#endif  /* READONLY_DATABASE */
 
 	case isc_info_db_size_in_pages:
 	    CCH_flush (tdbb, (USHORT) FLUSH_ALL, 0L);
@@ -990,9 +991,9 @@ while (items < end_items && *items != gds__info_end)
 
 	case gds__info_access_path:
 
-	    /* the access path has the potential to be large, so if the default 
-	       buffer is not big enough, allocate a really large one--don't 
-	       continue to allocate larger and larger, because of the potential 
+	    /* the access path has the potential to be large, so if the default
+	       buffer is not big enough, allocate a really large one--don't
+	       continue to allocate larger and larger, because of the potential
 	       for a bug which would bring the server to its knees */
 
 	    if (!OPT_access_path (request, buffer_ptr, sizeof (buffer), &length))

@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 /*
@@ -147,7 +150,7 @@ CHECK_DBB (dbb);
 if (debug_flag > DEBUG_WRITES)
     ib_printf ("DPM_backout (rpb %d)\n", rpb->rpb_number);
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -201,7 +204,7 @@ int DPM_chain (
  **************************************
  *
  * Functional description
- *	Start here with a plausible, but non-active RPB. 
+ *	Start here with a plausible, but non-active RPB.
  *
  *	We need to create a new version of a record.  If the new version
  *	fits on the same page as the old record, things are simple and
@@ -209,9 +212,9 @@ int DPM_chain (
  *
  *	Note that we also return FALSE if the record fetched doesn't
  *	match the state of the input rpb, or if there is no record for
- *	that record number.  The caller has to check the results to 
+ *	that record number.  The caller has to check the results to
  *	see what failed if FALSE is returned.  At the moment, there is
- *	only one caller, VIO_erase. 
+ *	only one caller, VIO_erase.
  *
  **************************************/
 DBB		dbb;
@@ -234,12 +237,12 @@ if (debug_flag > DEBUG_WRITES)
     ib_printf ("DPM_chain (org_rpb %d, new_rpb %d)\n", org_rpb->rpb_number, new_rpb ? new_rpb->rpb_number : 0);
 if (debug_flag > DEBUG_WRITES_INFO)
     {
-    ib_printf ("    org record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    org record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	org_rpb->rpb_page, org_rpb->rpb_line, org_rpb->rpb_transaction, org_rpb->rpb_b_page,
 	org_rpb->rpb_b_line, org_rpb->rpb_f_page, org_rpb->rpb_f_line, org_rpb->rpb_flags);
 
     if (new_rpb)
-	ib_printf ("    new record length %d transaction %d flags %d\n", 
+	ib_printf ("    new record length %d transaction %d flags %d\n",
 	    new_rpb->rpb_length, new_rpb->rpb_transaction, new_rpb->rpb_flags);
     }
 #endif
@@ -251,7 +254,7 @@ if (!DPM_get (tdbb, org_rpb, LCK_write))
     {
 #ifdef VIO_DEBUG
     if (debug_flag > DEBUG_WRITES_INFO)
-	ib_printf ("    record not found in DPM_chain\n"); 
+	ib_printf ("    record not found in DPM_chain\n");
 #endif
     release_dcc (dcc.dcc_next);
     return FALSE;
@@ -266,7 +269,7 @@ if (temp.rpb_transaction != org_rpb->rpb_transaction ||
     CCH_RELEASE (tdbb, &org_rpb->rpb_window);
 #ifdef VIO_DEBUG
     if (debug_flag > DEBUG_WRITES_INFO)
-	ib_printf ("    record changed in DPM_chain\n"); 
+	ib_printf ("    record changed in DPM_chain\n");
 #endif
     release_dcc (dcc.dcc_next);
     return FALSE;
@@ -280,11 +283,11 @@ else if (org_rpb->rpb_flags & rpb_delta)
     CCH_RELEASE (tdbb, &org_rpb->rpb_window);
 #ifdef VIO_DEBUG
     if (debug_flag > DEBUG_WRITES_INFO)
-	ib_printf ("    record delta state changed\n"); 
+	ib_printf ("    record delta state changed\n");
 #endif
     release_dcc (dcc.dcc_next);
     return FALSE;
-    }  
+    }
 
 page = (DPG) org_rpb->rpb_window.win_buffer;
 
@@ -295,7 +298,7 @@ if (size > dbb->dbb_page_size - (sizeof (struct dpg) + RHD_SIZE))
     CCH_RELEASE (tdbb, &org_rpb->rpb_window);
 #ifdef VIO_DEBUG
     if (debug_flag > DEBUG_WRITES_INFO)
-	ib_printf ("    insufficient room found in DPM_chain\n"); 
+	ib_printf ("    insufficient room found in DPM_chain\n");
 #endif
     release_dcc (dcc.dcc_next);
     return FALSE;
@@ -343,7 +346,7 @@ if (length > available)
     CCH_RELEASE (tdbb, &org_rpb->rpb_window);
 #ifdef VIO_DEBUG
     if (debug_flag > DEBUG_WRITES_INFO)
-	ib_printf ("    compressed page doesn't have room in DPM_chain\n"); 
+	ib_printf ("    compressed page doesn't have room in DPM_chain\n");
 #endif
     release_dcc (dcc.dcc_next);
     return FALSE;
@@ -468,7 +471,7 @@ for (index = page->dpg_rpt; index < end; index++)
 	index->dpg_offset = space;
 	}
 
-MOVE_FASTER (temp_page + space, 
+MOVE_FASTER (temp_page + space,
     (UCHAR*) page + space,
     dbb->dbb_page_size - space);
 
@@ -617,7 +620,7 @@ if (!(pages = relation->rel_data_pages))
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_TRACE_ALL)
     ib_printf ("    returned pages: %d\n", pages);
-#endif                                       
+#endif
 
 return pages;
 }
@@ -661,7 +664,7 @@ CHECK_DBB (dbb);
 if (debug_flag > DEBUG_WRITES)
     ib_printf ("DPM_delete (rpb %d, prior_page %d)\n", rpb->rpb_number, prior_page);
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -774,9 +777,9 @@ if (page->dpg_count)
 /* Data page is still empty and still in the relation.  Eliminate the
    pointer to the data page then release the page. */
 
-#ifdef VIO_DEBUG 
+#ifdef VIO_DEBUG
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("\tDPM_delete:  page %d is empty and about to be released from relation %d\n", 
+    ib_printf ("\tDPM_delete:  page %d is empty and about to be released from relation %d\n",
 	window->win_page, rpb->rpb_relation->rel_id);
 #endif
 
@@ -816,7 +819,7 @@ CCH_RELEASE (tdbb, window);
 
 /* Make sure that the page inventory page is written after the pointer page.
    Earlier, we make sure that the pointer page is written after the data
-   page being released. */ 
+   page being released. */
 PAG_release_page (window->win_page, pwindow.win_page);
 }
 
@@ -904,7 +907,7 @@ relation->rel_index_root = 0;
 
 handle = NULL;
 
-FOR (REQUEST_HANDLE handle) X IN RDB$PAGES WITH 
+FOR (REQUEST_HANDLE handle) X IN RDB$PAGES WITH
 	X.RDB$RELATION_ID EQ relation->rel_id
     ERASE X;
 END_FOR;
@@ -955,7 +958,7 @@ if (!get_header (&rpb->rpb_window, rpb->rpb_line, rpb))
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_READS_INFO)
-    ib_printf ("    record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -1002,7 +1005,7 @@ SET_TDBB (tdbb);
 if (debug_flag > DEBUG_READS)
     ib_printf ("DPM_fetch_back (rpb %d, lock %d)\n", rpb->rpb_number, lock);
 if (debug_flag > DEBUG_READS_INFO)
-    ib_printf ("    record  %d:%d transaction %d back %d:%d\n", 
+    ib_printf ("    record  %d:%d transaction %d back %d:%d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line);
 #endif
@@ -1023,7 +1026,7 @@ if (!get_header (&rpb->rpb_window, rpb->rpb_line, rpb))
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_READS_INFO)
-    ib_printf ("    record fetched  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record fetched  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -1057,7 +1060,7 @@ SET_TDBB (tdbb);
 if (debug_flag > DEBUG_READS)
     ib_printf ("DPM_fetch_fragment (rpb %d, lock %d)\n", rpb->rpb_number, lock);
 if (debug_flag > DEBUG_READS_INFO)
-    ib_printf ("    record  %d:%d transaction %d back %d:%d\n", 
+    ib_printf ("    record  %d:%d transaction %d back %d:%d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line);
 #endif
@@ -1075,7 +1078,7 @@ if (!get_header (&rpb->rpb_window, rpb->rpb_line, rpb))
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_READS_INFO)
-    ib_printf ("    record fetched  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record fetched  %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -1096,8 +1099,8 @@ SINT64 DPM_gen_id (
  *
  * Functional description
  *	Generate relation specific value.
- *      If initialize is set then value of generator is made 
- *      equal to val else generator is incremented by val. 
+ *      If initialize is set then value of generator is made
+ *      equal to val else generator is incremented by val.
  *      The resulting value is the result of the function.
  **************************************/
 DBB	dbb;
@@ -1151,14 +1154,13 @@ if (!(vector = dbb->dbb_gen_id_pages) ||
 
 window.win_page = vector->vcl_long [sequence];
 window.win_flags = 0;
-#ifdef READONLY_DATABASE
+
 if (dbb->dbb_flags & DBB_read_only)
     page = (GPG) CCH_FETCH (tdbb, &window, LCK_read, pag_ids);
 else
     page = (GPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
 #else
 page = (GPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
-#endif  /* READONLY_DATABASE */
 
 /*  If we are in ODS >= 10, then we have a pointer to an int64 value in the
  *  generator page: if earlier than 10, it's a pointer to a long value.
@@ -1174,10 +1176,9 @@ else
 
 if (val || initialize)
     {
-#ifdef READONLY_DATABASE
     if (dbb->dbb_flags & DBB_read_only)
 	ERR_post (isc_read_only_database, 0);
-#endif  /* READONLY_DATABASE */
+
     CCH_MARK (tdbb, &window);
 
     /* Initialize or increment the quad value in an ODS 10 or later
@@ -1272,7 +1273,7 @@ DECOMPOSE (sequence, dbb->dbb_dp_per_pp, pp_sequence, slot);
 
 if ((slot < 0) || (line < 0))
     return FALSE;
-    
+
 /* Find the next pointer page, data page, and record */
 
 if (!(page = get_pointer_page (tdbb, rpb->rpb_relation, window, pp_sequence, LCK_read)))
@@ -1290,7 +1291,7 @@ if (page_number = page->ppg_page [slot])
 	!(rpb->rpb_flags & (rpb_blob | rpb_chained | rpb_fragment)))
 	return TRUE;
     }
-	    
+
 CCH_RELEASE (tdbb, window);
 
 return FALSE;
@@ -1311,7 +1312,7 @@ ULONG DPM_get_blob (
  *
  * Functional description
  *	Given a blob block, find the associated blob.  If blob is level 0,
- *	get the data clump, otherwise get the vector of pointers.  
+ *	get the data clump, otherwise get the vector of pointers.
  *
  *	If the delete flag is set, delete the blob header after access
  *	and return the page number.  This is a kludge, but less code
@@ -1338,7 +1339,7 @@ rpb.rpb_window.win_flags = WIN_secondary;
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_READS)
-    ib_printf ("DPM_get_blob (blob, record_number %d, delete_flag %d, prior_page %d)\n", 
+    ib_printf ("DPM_get_blob (blob, record_number %d, delete_flag %d, prior_page %d)\n",
 	    record_number, delete_flag, prior_page);
 #endif
 
@@ -1351,7 +1352,7 @@ DECOMPOSE (sequence, dbb->dbb_dp_per_pp, pp_sequence, slot);
    record doesn't exist, or the record isn't a blob, give up and
    let somebody else complain.  */
 
-if (!(ppage = get_pointer_page (tdbb, blob->blb_relation, &rpb.rpb_window, 
+if (!(ppage = get_pointer_page (tdbb, blob->blb_relation, &rpb.rpb_window,
 	pp_sequence, LCK_read)))
     {
     blob->blb_flags |= BLB_damaged;
@@ -1361,7 +1362,7 @@ if (!(ppage = get_pointer_page (tdbb, blob->blb_relation, &rpb.rpb_window,
 if (!(page_number = ppage->ppg_page [slot]))
     goto punt;
 
-page = (DPG) CCH_HANDOFF (tdbb, &rpb.rpb_window, page_number, 
+page = (DPG) CCH_HANDOFF (tdbb, &rpb.rpb_window, page_number,
 	(delete_flag) ? LCK_write : LCK_read, pag_data);
 if (line >= page->dpg_count)
     goto punt;
@@ -1507,27 +1508,27 @@ rpb->rpb_prior = NULL;
 /* Find starting point */
 
 if (backwards)
-    {   
+    {
     if (rpb->rpb_number > 0)
 	rpb->rpb_number--;
     else if (rpb->rpb_number < 0)
 	{
 	/*  if the stream was just opened, assume we want to start
-	    at the end of the stream, so compute the last theoretically 
+	    at the end of the stream, so compute the last theoretically
 	    possible rpb_number and go down from there */
 	/** for now, we must force a scan to make sure that we get
 	    the last pointer page: this should be changed to use
 	    a coordination mechanism (probably using a shared lock)
 	    to keep apprised of when a pointer page gets added **/
 
-	DPM_scan_pages (tdbb);   
+	DPM_scan_pages (tdbb);
 	if (!(vector = rpb->rpb_relation->rel_pages))
 	    return FALSE;
 	pp_sequence = vector->vcl_count;
         rpb->rpb_number = (((SLONG) (pp_sequence * dbb->dbb_dp_per_pp) * dbb->dbb_max_records) - 1);
         line = dbb->dbb_max_records - 1;
 	}
-    else 
+    else
 	return FALSE;
     }
 else
@@ -1556,7 +1557,7 @@ while (TRUE)
 #ifdef SUPERSERVER_V2
 	    /* Perform sequential prefetch of relation's data pages.
 	       This may need more work for scrollable cursors. */
-	       
+
 	    if (!onepage && !line && !backwards)
 		{
 		USHORT	slot2, i;
@@ -1569,7 +1570,7 @@ while (TRUE)
 			pages [i++] = ppage->ppg_page [slot2++];
 
 		    /* If no more data pages, piggyback next pointer page. */
-		    
+
 		    if (slot2 >= ppage->ppg_count)
 			pages [i++] = ppage->ppg_next;
 
@@ -1597,7 +1598,7 @@ while (TRUE)
 	    	CCH_RELEASE_TAIL (tdbb, window);
 	    else if (window->win_flags & WIN_garbage_collector &&
 		     window->win_flags & WIN_garbage_collect)
-		{    
+		{
 		CCH_RELEASE_TAIL (tdbb, window);
 		window->win_flags &= ~WIN_garbage_collect;
 		}
@@ -1636,7 +1637,7 @@ while (TRUE)
 	slot = ppage->ppg_count - 1;
         line = dbb->dbb_max_records - 1;
 	}
-    else 
+    else
 	{
 	pp_sequence++;
 	slot = 0;
@@ -1741,7 +1742,7 @@ for (i = 0; i < dbb->dbb_prefetch_pages; )
         BUGCHECK (249); /* msg 249 pointer page vanished from DPM_prefetch_bitmap */
     pages [i] = (slot >= 0 && slot < ppage->ppg_count) ? ppage->ppg_page [slot] : 0;
     CCH_RELEASE (tdbb, &window);
-	
+
     if (i++ < dbb->dbb_prefetch_sequence)
 	prefetch_number = number;
     number = ((dp_sequence + 1) * dbb->dbb_max_records) - 1;
@@ -1786,7 +1787,7 @@ if (debug_flag > DEBUG_TRACE_ALL)
 /* Special case update of RDB$PAGES pointer page vector to avoid
    infinite recursion from this internal request when RDB$PAGES
    has been extended with another pointer page. */
-   
+
 relation = MET_relation (tdbb, 0);
 address = &relation->rel_pages;
 vector = *address;
@@ -1840,7 +1841,7 @@ FOR (REQUEST_HANDLE request) X IN RDB$PAGES
 	vector = *address = (VCL) ALLOCPV (type_vcl, n);
 	vector->vcl_count = n;
 	}
-    else 
+    else
 	if (sequence >= vector->vcl_count)
 	    vector = (VCL) ALL_extend (address, n);
     vector->vcl_long [sequence] = X.RDB$PAGE_NUMBER;
@@ -1882,7 +1883,7 @@ CHECK_DBB (dbb);
 if (debug_flag > DEBUG_WRITES)
     ib_printf ("DPM_store (rpb %d, stack, type %d)\n", rpb->rpb_number, type);
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record to store %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record to store %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -1904,7 +1905,7 @@ if (fill < 0)
 
 length = RHD_SIZE + size + fill;
 header = locate_space (tdbb, rpb, length, stack, NULL_PTR, type);
- 
+
 header->rhd_flags = rpb->rpb_flags;
 header->rhd_transaction = rpb->rpb_transaction;
 header->rhd_format = rpb->rpb_format_number;
@@ -1916,8 +1917,8 @@ release_dcc (dcc.dcc_next);
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record %d:%d, length %d, rpb_flags %d, f_page %d:%d, b_page %d:%d\n", 
-		rpb->rpb_page, rpb->rpb_line, length, rpb->rpb_flags, 
+    ib_printf ("    record %d:%d, length %d, rpb_flags %d, f_page %d:%d, b_page %d:%d\n",
+		rpb->rpb_page, rpb->rpb_line, length, rpb->rpb_flags,
 		rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_b_page, rpb->rpb_b_line);
 #endif
 
@@ -2073,7 +2074,7 @@ if (debug_flag > DEBUG_WRITES_INFO)
  	header->rhd_b_line);
     ib_printf ("    new flags %d, new transaction %d, new format %d, new back record %d:%d\n",
 	rpb->rpb_flags, rpb->rpb_transaction, rpb->rpb_format_number, rpb->rpb_b_page,
-	rpb->rpb_b_line); 
+	rpb->rpb_b_line);
     }
 #endif
 
@@ -2120,11 +2121,11 @@ CHECK_DBB (dbb);
 if (debug_flag > DEBUG_WRITES)
     ib_printf ("DPM_update (rpb %d, stack, transaction %d)\n", rpb->rpb_number, transaction ? transaction->tra_number : 0);
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
-                
+
 /* Mark the page as modified, then figure out the compressed length of the
    replacement record. */
 
@@ -2189,7 +2190,7 @@ release_dcc (dcc.dcc_next);
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record %d:%d, dpg_length %d, rpb_flags %d, rpb_f record %d:%d, rpb_b record %d:%d\n", 
+    ib_printf ("    record %d:%d, dpg_length %d, rpb_flags %d, rpb_f record %d:%d, rpb_b record %d:%d\n",
 	rpb->rpb_page, rpb->rpb_line,  page->dpg_rpt[slot].dpg_length,
 	rpb->rpb_flags, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_b_page, rpb->rpb_b_line);
 #endif
@@ -2206,7 +2207,7 @@ if (dbb->dbb_wal)
 CCH_RELEASE (tdbb, &rpb->rpb_window);
 }
 
-static void delete_tail ( 
+static void delete_tail (
     TDBB	tdbb,
     RHDF	header,
     USHORT	length)
@@ -2235,7 +2236,7 @@ SET_TDBB (tdbb);
 if (debug_flag > DEBUG_WRITES)
     ib_printf ("delete_tail (header, length)\n");
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    transaction %d flags %d fragment %d:%d back %d:%d\n", 
+    ib_printf ("    transaction %d flags %d fragment %d:%d back %d:%d\n",
 	header->rhdf_transaction, header->rhdf_flags, header->rhdf_f_page,
 	header->rhdf_f_line, header->rhdf_b_page, header->rhdf_b_line);
 #endif
@@ -2285,7 +2286,7 @@ for (; page1 < end1; page1++)
     }
 }
 
-static void fragment ( 
+static void fragment (
     TDBB	tdbb,
     RPB		*rpb,
     SSHORT	available_space,
@@ -2314,7 +2315,7 @@ static void fragment (
  *	messing with the head until we get back, and, if possible, we'd
  *	like to keep as much space on the original page as we can get.
  *	Making matters worse, we may be storing a new version of the
- *	record or we may be backing out an old one and replacing it 
+ *	record or we may be backing out an old one and replacing it
  *	with one older still (replacing a dead rolled back record with
  *	the preceding version).
  *
@@ -2332,7 +2333,7 @@ static void fragment (
  *	id.  Applying deltas to the expanded form of the same version of the
  *	record is a no-op -- but it doesn't cost much and the case is rare.
  *
- *	If we're backing out a rolled back version, we've got another 
+ *	If we're backing out a rolled back version, we've got another
  *	problem.  The rpb we've got is for record version n - 1, not version
  *	n + 1.  (e.g. I'm transaction 32 removing the rolled back record
  *	created by transaction 28 and reinstating the committed version
@@ -2356,7 +2357,7 @@ RPB	tail_rpb;
 SSHORT	line,  space;
 USHORT	pre_header_length, post_header_length;
 RHDF	header;
-LLS	stack;                                              
+LLS	stack;
 
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
@@ -2366,7 +2367,7 @@ CHECK_DBB (dbb);
 if (debug_flag > DEBUG_WRITES)
     ib_printf ("fragment (rpb %d, available_space %d, dcc, length %d, transaction %d)\n", rpb->rpb_number, available_space, length, transaction ? transaction->tra_number : 0);
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    record %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n", 
+    ib_printf ("    record %d:%d transaction %d back %d:%d fragment %d:%d flags %d\n",
 	rpb->rpb_page, rpb->rpb_line, rpb->rpb_transaction, rpb->rpb_b_page,
 	rpb->rpb_b_line, rpb->rpb_f_page, rpb->rpb_f_line, rpb->rpb_flags);
 #endif
@@ -2391,8 +2392,8 @@ if (transaction->tra_number != rpb->rpb_transaction)
     page->dpg_rpt [line].dpg_length = available_space = length;
     }
 else
-    { 
-    if (rpb->rpb_flags & rpb_delta) 
+    {
+    if (rpb->rpb_flags & rpb_delta)
 	{
 	header = (RHDF) ((SCHAR*) page + page->dpg_rpt [line].dpg_offset);
 	header->rhdf_flags |= rpb_delta;
@@ -2409,7 +2410,7 @@ else
 	}
     header->rhdf_transaction = rpb->rpb_transaction;
     header->rhdf_b_page = rpb->rpb_b_page;
-    header->rhdf_b_line = rpb->rpb_b_line; 
+    header->rhdf_b_line = rpb->rpb_b_line;
     }
 
 if (dbb->dbb_wal)
@@ -2417,7 +2418,7 @@ if (dbb->dbb_wal)
 
 #ifdef VIO_DEBUG
 if (debug_flag > DEBUG_WRITES_INFO)
-    ib_printf ("    rhdf_transaction %d, window record %d:%d, available_space %d, rhdf_flags %d, rhdf_f record %d:%d, rhdf_b record %d:%d\n", 
+    ib_printf ("    rhdf_transaction %d, window record %d:%d, available_space %d, rhdf_flags %d, rhdf_f record %d:%d, rhdf_b record %d:%d\n",
 	header->rhdf_transaction, window->win_page, line, available_space,
 	header->rhdf_flags, header->rhdf_f_page, header->rhdf_f_line, header->rhdf_b_page, header->rhdf_b_line);
 #endif
@@ -2467,7 +2468,7 @@ header->rhdf_f_line = tail_rpb.rpb_line;
 if (transaction->tra_number != rpb->rpb_transaction)
     {
     header->rhdf_b_page = rpb->rpb_b_page;
-    header->rhdf_b_line = rpb->rpb_b_line; 
+    header->rhdf_b_line = rpb->rpb_b_line;
     }
 
 
@@ -2479,9 +2480,9 @@ post_header_length = SQZ_compress (
 if (debug_flag > DEBUG_WRITES_INFO)
     {
     ib_printf ("    fragment head \n");
-    ib_printf ("    rhdf_trans %d, window record %d:%d, dpg_length %d\n\trhdf_flags %d, rhdf_f record %d:%d, rhdf_b record %d:%d\n", 
-	header->rhdf_transaction, window->win_page, line, 
-	page->dpg_rpt [line].dpg_length, header->rhdf_flags, header->rhdf_f_page, 
+    ib_printf ("    rhdf_trans %d, window record %d:%d, dpg_length %d\n\trhdf_flags %d, rhdf_f record %d:%d, rhdf_b record %d:%d\n",
+	header->rhdf_transaction, window->win_page, line,
+	page->dpg_rpt [line].dpg_length, header->rhdf_flags, header->rhdf_f_page,
 	header->rhdf_f_line, header->rhdf_b_page, header->rhdf_b_line);
     }
 #endif
@@ -2500,7 +2501,7 @@ release_dcc (dcc->dcc_next);
 CCH_RELEASE (tdbb, window);
 }
 
-static void extend_relation ( 
+static void extend_relation (
     TDBB	tdbb,
     REL		relation,
     WIN		*window)
@@ -2514,7 +2515,7 @@ static void extend_relation (
  * Functional description
  *	Extend a relation with a given page.  The window points to an
  *	already allocated, fetched, and marked data page to be inserted
- *	into the pointer pages for a given relation. 
+ *	into the pointer pages for a given relation.
  *	This routine returns a window on the datapage locked for write
  *
  **************************************/
@@ -2542,7 +2543,7 @@ if (debug_flag > DEBUG_WRITES_INFO)
    a problem for multi-threaded servers using internal latches. The faked page may be
    dirty from its previous incarnation and involved in a precedence relationship. This
    special case may need a more general solution. */
-   
+
 CCH_RELEASE (tdbb, window);
 
 /* Search pointer pages for an empty slot.
@@ -2580,13 +2581,13 @@ for (pp_sequence = relation->rel_slot_space;; pp_sequence++)
 	ppage->ppg_relation = relation->rel_id;
 	ppage->ppg_sequence = ++pp_sequence;
 	slot = 0;
-	CCH_must_write (&new_pp_window);	
+	CCH_must_write (&new_pp_window);
 	CCH_RELEASE (tdbb, &new_pp_window);
 
 	vector = (VCL) ALL_extend (&relation->rel_pages, pp_sequence + 1);
 	vector->vcl_long [pp_sequence] = new_pp_window.win_page;
 	if (relation->rel_id)
-	    DPM_pages (tdbb, relation->rel_id, pag_pointer, (SLONG) pp_sequence, 
+	    DPM_pages (tdbb, relation->rel_id, pag_pointer, (SLONG) pp_sequence,
 		       new_pp_window.win_page);
         relation->rel_slot_space = pp_sequence;
 
@@ -2682,7 +2683,7 @@ static UCHAR *find_space (
  *	data page, and return a pointer to the space.
  *
  *	To maintain page precedence when objects point to objects, a stack
- *	of pages of high precedence may be passed in.  
+ *	of pages of high precedence may be passed in.
  *
  **************************************/
 DBB			dbb;
@@ -2716,7 +2717,7 @@ for (i = 0, index = page->dpg_rpt; i < page->dpg_count; i++, index++)
 	    {
 	    header = (RHD) ((SCHAR*) page + index->dpg_offset);
 	    if (!header->rhd_b_page &&
-		!(header->rhd_flags & (rhd_chain   | rhd_blob | 
+		!(header->rhd_flags & (rhd_chain   | rhd_blob |
 				       rhd_deleted | rhd_fragment)))
 		used += SPACE_FUDGE;
 	    }
@@ -2798,7 +2799,7 @@ header = (RHDF) ((SCHAR*) page + index->dpg_offset);
 rpb->rpb_page = window->win_page;
 rpb->rpb_line = line;
 rpb->rpb_flags = header->rhdf_flags;
-	
+
 if (!(rpb->rpb_flags & rpb_fragment))
     {
     rpb->rpb_b_page = header->rhdf_b_page;
@@ -2868,7 +2869,7 @@ if (!(vector = relation->rel_pages) || sequence >= vector->vcl_count)
 	DPM_pages (tdbb, relation->rel_id,  pag_pointer, vector->vcl_count, next_ppg);
 	}
     }
-    
+
 window->win_page = vector->vcl_long [sequence];
 page = (PPG) CCH_FETCH (tdbb, window, lock, pag_pointer);
 
@@ -2907,7 +2908,7 @@ journal.jrnp_type = JRNP_DATA_SEGMENT;
 journal.jrnp_index = slot;
 journal.jrnp_length = index->dpg_length;
 
-CCH_journal_record (tdbb, window, &journal, JRNP_SIZE, 
+CCH_journal_record (tdbb, window, &journal, JRNP_SIZE,
 	(UCHAR*) page + index->dpg_offset, index->dpg_length);
 }
 
@@ -2952,7 +2953,7 @@ if (type == DPM_secondary)
     {
     DECOMPOSE_QUOTIENT (rpb->rpb_number, dbb->dbb_max_records, sequence);
     DECOMPOSE (sequence, dbb->dbb_dp_per_pp, pp_sequence, slot);
-    if (ppage = get_pointer_page (tdbb, relation, window, pp_sequence, LCK_read)) 
+    if (ppage = get_pointer_page (tdbb, relation, window, pp_sequence, LCK_read))
 	if (slot < ppage->ppg_count && (dp_number = ppage->ppg_page [slot]))
 	    {
 	    CCH_HANDOFF (tdbb, window, dp_number, LCK_write, pag_data);
@@ -2989,8 +2990,8 @@ for (pp_sequence = relation->rel_data_space;; pp_sequence++)
     }
 
 /* Sigh.  No space.  Extend relation. Try for a while
-   in case someone grabs the page before we can get it 
-   locked, then give up on the assumption that things 
+   in case someone grabs the page before we can get it
+   locked, then give up on the assumption that things
    are really screwed up. */
 
 for (i = 0; i < 20; i++)
@@ -3061,7 +3062,7 @@ relation = rpb->rpb_relation;
 DECOMPOSE (sequence, dbb->dbb_dp_per_pp, pp_sequence, slot);
 
 /* Fetch the pointer page, then the data page.  Since this is a case of
-   fetching a second page after having fetched the first page with an 
+   fetching a second page after having fetched the first page with an
    exclusive latch, care has to be taken to prevent a deadlock.  This
    is accomplished by timing out the second latch request and retrying
    the whole thing. */
@@ -3211,7 +3212,7 @@ while (size > max_data)
     header = (RHDF) &page->dpg_rpt [1];
     page->dpg_rpt [0].dpg_offset = (UCHAR*) header - (UCHAR*) page;
     page->dpg_rpt [0].dpg_length = max_data + RHDF_SIZE;
-    header->rhdf_flags = (prior) ? 
+    header->rhdf_flags = (prior) ?
 		rhd_fragment | rhd_incomplete : rhd_fragment;
     header->rhdf_f_page = prior;
     length = max_data;
@@ -3267,9 +3268,9 @@ while (size > max_data)
     if (debug_flag > DEBUG_WRITES_INFO)
 	{
 	ib_printf ("    back portion\n");
-	ib_printf ("    rpb_window page %d, max_data %d, \n\trhdf_flags %d, prior %d\n", 
-	    rpb->rpb_window.win_page, max_data, 
-	    header->rhdf_flags, prior); 
+	ib_printf ("    rpb_window page %d, max_data %d, \n\trhdf_flags %d, prior %d\n",
+	    rpb->rpb_window.win_page, max_data,
+	    header->rhdf_flags, prior);
 	}
 #endif
 
@@ -3306,9 +3307,9 @@ page = (DPG) rpb->rpb_window.win_buffer;
 if (debug_flag > DEBUG_WRITES_INFO)
     {
     ib_printf ("    front part\n");
-    ib_printf ("    rhdf_trans %d, rpb_window record %d:%d, dpg_length %d \n\trhdf_flags %d, rhdf_f record %d:%d, rhdf_b record %d:%d\n", 
-	header->rhdf_transaction, rpb->rpb_window.win_page, rpb->rpb_line, 
-	page->dpg_rpt[rpb->rpb_line].dpg_length, header->rhdf_flags, 
+    ib_printf ("    rhdf_trans %d, rpb_window record %d:%d, dpg_length %d \n\trhdf_flags %d, rhdf_f record %d:%d, rhdf_b record %d:%d\n",
+	header->rhdf_transaction, rpb->rpb_window.win_page, rpb->rpb_line,
+	page->dpg_rpt[rpb->rpb_line].dpg_length, header->rhdf_flags,
 	header->rhdf_f_page, header->rhdf_f_line, header->rhdf_b_page, header->rhdf_b_line);
     }
 #endif

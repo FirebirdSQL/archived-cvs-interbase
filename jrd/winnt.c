@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #ifdef _MSC_VER
@@ -219,7 +222,7 @@ if (length)
 
 	if (desc == INVALID_HANDLE_VALUE)
 	{
-    ERR_post (isc_io_error, 
+    ERR_post (isc_io_error,
 	gds_arg_string, "CreateFile (create)",
 					gds_arg_cstring,
 					length,
@@ -402,7 +405,7 @@ if (dbb->dbb_encrypt_key)
 	    THD_MUTEX_UNLOCK (file->fil_mutex);
 	nt_error ("ReadFile", file, isc_io_read_err, NULL_PTR);
 	}
-    
+
     (*dbb->dbb_decrypt) (dbb->dbb_encrypt_key->str_data,
 			 spare_buffer, length, address);
     }
@@ -559,7 +562,6 @@ else
 
 	if (desc == INVALID_HANDLE_VALUE)
     {
-#ifdef READONLY_DATABASE
 		/* Try opening the database file in ReadOnly mode.
 		 * The database file could be on a RO medium (CD-ROM etc.).
 		 * If this fileopen fails, return error.
@@ -575,8 +577,7 @@ else
 
 		if (desc == INVALID_HANDLE_VALUE)
 	{
-#endif  /* READONLY_DATABASE */
-	ERR_post (isc_io_error, 
+	ERR_post (isc_io_error,
 						gds_arg_string,
 						"CreateFile (open)",
 						gds_arg_cstring,
@@ -587,7 +588,6 @@ else
 						gds_arg_win32,
 						GetLastError(),
 						0);
-#ifdef READONLY_DATABASE
 	}
     else
 	{
@@ -598,8 +598,6 @@ else
 	 */
 	if (!dbb->dbb_file)
 	    dbb->dbb_flags |= DBB_being_opened_read_only;
-	}
-#endif  /* READONLY_DATABASE */
     }
 
 return setup_file (dbb, string, length, desc);
@@ -650,7 +648,7 @@ if (dbb->dbb_encrypt_key)
 	    THD_MUTEX_UNLOCK (file->fil_mutex);
 	return nt_error ("ReadFile", file, isc_io_read_err, status_vector);
 	}
-    
+
     (*dbb->dbb_decrypt) (dbb->dbb_encrypt_key->str_data,
 			 spare_buffer, size, page);
     }
@@ -735,7 +733,7 @@ else
 while (pages)
     {
     /* Setup up a dummy buffer descriptor block for seeking file. */
-       
+
     bdb.bdb_dbb = dbb;
     bdb.bdb_page = start_page;
 
@@ -747,7 +745,7 @@ while (pages)
 
     /* Check that every page within the set resides in the same database
        file. If not read what you can and loop back for the rest. */
-    
+
     segmented_length = 0;
     while (pages && start_page >= file->fil_min_page && start_page <= file->fil_max_page)
 	{
@@ -869,7 +867,7 @@ if (dbb->dbb_encrypt_key)
 
     (*dbb->dbb_encrypt) (dbb->dbb_encrypt_key->str_data,
 			 page, size, spare_buffer);
-    
+
     if (!WriteFile (desc, spare_buffer, size, &actual_length, overlapped_ptr) ||
 	actual_length != size)
 	{
@@ -1164,12 +1162,11 @@ if (status_vector)
     return FALSE;
     }
 
-    ERR_post (isc_io_error, 
-	gds_arg_string, string, 
+    ERR_post (isc_io_error,
+	gds_arg_string, string,
         gds_arg_string, ERR_string (file->fil_string, file->fil_length),
         isc_arg_gds, operation,
     	gds_arg_win32, GetLastError(), 0);
 
 	return TRUE;
 }
-

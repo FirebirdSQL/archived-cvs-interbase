@@ -21,6 +21,10 @@
  * Contributor(s): ______________________________________.
  * 2001.6.25 Claudio Valderrama: Finish MET_lookup_generator_id() by
  *	assigning it a number in the compiled requests table.
+ *
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 /*
 $Id$
@@ -112,11 +116,11 @@ typedef ENUM rids {
 #define	BLANK			'\040'
 
 DATABASE
-    DB = FILENAME "ODS.RDB"; 
+    DB = FILENAME "ODS.RDB";
 
 static void     blocking_ast_procedure (PRC);
 static void     blocking_ast_relation (REL);
-static void     get_trigger (TDBB, REL, SLONG [2], VEC *, TEXT *, BOOLEAN, 
+static void     get_trigger (TDBB, REL, SLONG [2], VEC *, TEXT *, BOOLEAN,
 				    USHORT);
 static BOOLEAN  get_type		(TDBB, SSHORT *, UCHAR *,
 						UCHAR *);
@@ -183,7 +187,7 @@ dbb  = tdbb->tdbb_database;
 
 /* Erase any secondary files of the primary database of the
    shadow being activated. */
-   
+
 handle = NULL;
 FOR (REQUEST_HANDLE handle) X IN RDB$FILES
      WITH X.RDB$SHADOW_NUMBER NOT MISSING
@@ -198,7 +202,7 @@ dbb_file_name = dbb->dbb_file->fil_string;
 /* go through files looking for any that expand to the current database name */
 
 handle = handle2 = NULL;
-FOR (REQUEST_HANDLE handle) X IN RDB$FILES 
+FOR (REQUEST_HANDLE handle) X IN RDB$FILES
       WITH X.RDB$SHADOW_NUMBER NOT MISSING
       AND X.RDB$SHADOW_NUMBER NE 0
     PIO_expand (X.RDB$FILE_NAME, strlen (X.RDB$FILE_NAME), expanded_name);
@@ -214,19 +218,19 @@ FOR (REQUEST_HANDLE handle) X IN RDB$FILES
 	ERASE X;
 	}
 END_FOR;
-    
+
 if (handle2)
     CMP_release (tdbb, handle2);
 CMP_release (tdbb, handle);
 
 /* Get rid of WAL after activation.  For V4.0, we are not allowing
    WAL and Shadowing to be configured together.  So the following
-   (commented out) code should be re-visited when we do allow 
+   (commented out) code should be re-visited when we do allow
    such configuration. */
 
 /***********************
 handle = 0;
-FOR (REQUEST_HANDLE handle) X IN RDB$LOG_FILES 
+FOR (REQUEST_HANDLE handle) X IN RDB$LOG_FILES
     ERASE X;
 END_FOR;
 CMP_release (tdbb, handle);
@@ -259,7 +263,7 @@ switch (desc->dsc_dtype)
     case dtype_text:
     case dtype_cstring:
 	return value;
-    
+
     case dtype_varying:
 	alignment = sizeof (USHORT);
 	break;
@@ -295,8 +299,8 @@ dbb  = tdbb->tdbb_database;
 
 request = (BLK) CMP_find_request (tdbb, irq_m_fields, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
-    X IN RDB$RELATION_FIELDS WITH 
+FOR (REQUEST_HANDLE request)
+    X IN RDB$RELATION_FIELDS WITH
 	X.RDB$FIELD_SOURCE EQ field_source->dsc_address
     if (!REQUEST (irq_m_fields))
 	REQUEST (irq_m_fields) = request;
@@ -348,7 +352,7 @@ void MET_delete_dependencies (
  **************************************
  *
  * Functional description
- *      Delete all dependencies for the specified 
+ *      Delete all dependencies for the specified
  *      object of given type.
  *
  **************************************/
@@ -363,7 +367,7 @@ if (!object_name)
 
 request = (BLK) CMP_find_request (tdbb, irq_d_deps, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
 	DEP IN RDB$DEPENDENCIES
 	WITH DEP.RDB$DEPENDENT_NAME = object_name
 	AND DEP.RDB$DEPENDENT_TYPE = dependency_type
@@ -386,7 +390,7 @@ void MET_delete_shadow (
  *
  **************************************
  *
- * Functional description 
+ * Functional description
  *      When any of the shadows in RDB$FILES for a particular
  *      shadow are deleted, stop shadowing to that file and
  *      remove all other files from the same shadow.
@@ -400,13 +404,13 @@ SET_TDBB (tdbb);
 dbb  = tdbb->tdbb_database;
 
 handle = NULL;
-FOR (REQUEST_HANDLE handle) 
+FOR (REQUEST_HANDLE handle)
       X IN RDB$FILES
       WITH X.RDB$SHADOW_NUMBER EQ shadow_number
-    ERASE X;    
+    ERASE X;
 END_FOR;
 CMP_release (tdbb, handle);
-       
+
 for (shadow = dbb->dbb_shadow; shadow; shadow = shadow->sdw_next)
     if (shadow->sdw_number == shadow_number)
 	shadow->sdw_flags |= SDW_shutdown;
@@ -549,7 +553,7 @@ BOOLEAN MET_get_char_subtype (
 {
 /**************************************
  *
- *      M E T _ g e t _ c h a r _ s u b t y p e 
+ *      M E T _ g e t _ c h a r _ s u b t y p e
  *
  **************************************
  *
@@ -587,7 +591,7 @@ end_name = name + length;
 /* At the same time, search for the first period in the string (if any) */
 
 for (p = buffer;
-      name < end_name && p < buffer + sizeof (buffer) - 1; 
+      name < end_name && p < buffer + sizeof (buffer) - 1;
       p++, name++)
     {
     *p = UPPER7 (*name);
@@ -635,7 +639,7 @@ NOD MET_get_dependencies (
  **************************************
  *
  * Functional description
- *      Get dependencies for an object by parsing 
+ *      Get dependencies for an object by parsing
  *      the blr used in its definition.
  *
  **************************************/
@@ -670,7 +674,7 @@ if (type == (USHORT) obj_computed)
 	object_name = FLD.RDB$FIELD_NAME;
     END_FOR;
     CMP_release (tdbb, handle);
-    }   
+    }
 
 store_dependencies (tdbb, csb, object_name, type);
 
@@ -719,7 +723,7 @@ void MET_get_shadow_files (
  *
  * Functional description
  *      Check the shadows found in the database against
- *      our in-memory list: if any new shadow files have 
+ *      our in-memory list: if any new shadow files have
  *      been defined since the last time we looked, start
  *      shadowing to them; if any have been deleted, stop
  *      shadowing to them.
@@ -729,12 +733,12 @@ DBB     dbb;
 BLK     handle;
 USHORT  file_flags;
 SDW     shadow;
- 
+
 SET_TDBB (tdbb);
 dbb  = tdbb->tdbb_database;
 
 handle = NULL;
-FOR (REQUEST_HANDLE handle) X IN RDB$FILES 
+FOR (REQUEST_HANDLE handle) X IN RDB$FILES
       WITH X.RDB$SHADOW_NUMBER NOT MISSING
       AND X.RDB$SHADOW_NUMBER NE 0
       AND X.RDB$FILE_SEQUENCE EQ 0
@@ -744,7 +748,7 @@ FOR (REQUEST_HANDLE handle) X IN RDB$FILES
 	file_flags = X.RDB$FILE_FLAGS;
 	SDW_start (X.RDB$FILE_NAME, X.RDB$SHADOW_NUMBER, file_flags, delete);
 
-	/* if the shadow exists, mark the appropriate shadow 
+	/* if the shadow exists, mark the appropriate shadow
 	   block as found for the purposes of this routine;
 	   if the shadow was conditional and is no longer, note it */
 
@@ -761,7 +765,7 @@ FOR (REQUEST_HANDLE handle) X IN RDB$FILES
 END_FOR;
 CMP_release (tdbb, handle);
 
-/* if any current shadows were not defined in database, mark 
+/* if any current shadows were not defined in database, mark
    them to be shutdown since they don't exist anymore */
 
 for (shadow = dbb->dbb_shadow; shadow; shadow = shadow->sdw_next)
@@ -769,7 +773,7 @@ for (shadow = dbb->dbb_shadow; shadow; shadow = shadow->sdw_next)
 	shadow->sdw_flags |= SDW_shutdown;
     else
 	shadow->sdw_flags &= ~SDW_found;
-     
+
 SDW_check ();
 }
 
@@ -862,12 +866,10 @@ CHECK_DBB (dbb);
 if (relation->rel_flags & REL_sys_trigs_being_loaded)
     return;
 
-#ifdef READONLY_DATABASE
 /* No need to load triggers for ReadOnly databases,
    since INSERT/DELETE/UPDATE statements are not going to be allowed */
 if (dbb->dbb_flags & DBB_read_only)
     return;
-#endif  /* READONLY_DATABASE */
 
 /* Scan RDB$TRIGGERS next */
 
@@ -887,7 +889,7 @@ FOR (REQUEST_HANDLE trigger_request)
 	trig_flags = (USHORT)TRG.RDB$FLAGS;
 
         /* if there is an ignore permission flag, see if it is legit */
-	if ((TRG.RDB$FLAGS & TRG_ignore_perm) && 
+	if ((TRG.RDB$FLAGS & TRG_ignore_perm) &&
             !verify_TRG_ignore_perm (tdbb, trigger_name))
 	    {
 	    gds__msg_format (NULL_PTR, JRD_BUGCHK, 304, sizeof (errmsg),
@@ -954,7 +956,7 @@ void MET_lookup_cnstrt_for_trigger (
 {
 /**************************************
  *
- *      M E T _ l o o k u p _ c n s t r t _ f o r _ t r i g g e r 
+ *      M E T _ l o o k u p _ c n s t r t _ f o r _ t r i g g e r
  *
  **************************************
  *
@@ -974,9 +976,9 @@ relation_name [0] = 0;
 request = (BLK) CMP_find_request (tdbb, irq_l_check, IRQ_REQUESTS);
 request2 = (BLK) CMP_find_request (tdbb, irq_l_check2, IRQ_REQUESTS);
 
-/* utilize two requests rather than one so that we 
+/* utilize two requests rather than one so that we
    guarantee we always return the name of the relation
-   that the trigger is defined on, even if we don't 
+   that the trigger is defined on, even if we don't
    have a check constraint defined for that trigger */
 
 FOR (REQUEST_HANDLE request)
@@ -985,8 +987,8 @@ FOR (REQUEST_HANDLE request)
 
     if (!REQUEST (irq_l_check))
 	REQUEST (irq_l_check) = request;
-      
-    FOR (REQUEST_HANDLE request2) 
+
+    FOR (REQUEST_HANDLE request2)
 	X IN RDB$CHECK_CONSTRAINTS WITH
 	X.RDB$TRIGGER_NAME EQ Y.RDB$TRIGGER_NAME
 
@@ -1032,7 +1034,7 @@ SCHAR   *p;
 
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
- 
+
 /* We need to look up exception in RDB$EXCEPTIONS */
 
 request = (BLK) CMP_find_request (tdbb, irq_l_exception, IRQ_REQUESTS);
@@ -1041,7 +1043,7 @@ request = (BLK) CMP_find_request (tdbb, irq_l_exception, IRQ_REQUESTS);
 if (message)
     *message = 0;
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$EXCEPTIONS WITH X.RDB$EXCEPTION_NUMBER = number
 
     if (!REQUEST (irq_l_exception))
@@ -1073,17 +1075,17 @@ SLONG MET_lookup_exception_number (
 DBB     dbb;
 BLK     request;
 SLONG   number;
- 
+
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
- 
+
 /* We need to look up exception in RDB$EXCEPTIONS */
 
 request = (BLK) CMP_find_request (tdbb, irq_l_except_no, IRQ_REQUESTS);
 
 number = 0;
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$EXCEPTIONS WITH X.RDB$EXCEPTION_NAME = name
 
     if (!REQUEST (irq_l_except_no))
@@ -1131,7 +1133,7 @@ if (vector = relation->rel_fields)
     length = strlen (name);
     for (field = (FLD*) vector->vec_object, id = 0, end = field + vector->vec_count;
 	 field < end; field++, id++)
-	if (*field && (*field)->fld_length == length && (p = (*field)->fld_name)) 
+	if (*field && (*field)->fld_length == length && (p = (*field)->fld_name))
 	    {
 	    q = name;
 	    while (*p++ == *q)
@@ -1143,7 +1145,7 @@ if (vector = relation->rel_fields)
 /* Not found.  Next, try system relations directly */
 
 id = -1;
- 
+
 if (!relation->rel_name)
     return id;
 
@@ -1195,7 +1197,7 @@ blf = NULL;
 
 request = (BLK) CMP_find_request (tdbb, irq_r_filters, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$FILTERS WITH X.RDB$INPUT_SUB_TYPE EQ from AND X.RDB$OUTPUT_SUB_TYPE EQ to
     if (!REQUEST (irq_r_filters))
 	REQUEST (irq_r_filters) = request;
@@ -1209,8 +1211,8 @@ FOR (REQUEST_HANDLE request)
 	blf->blf_from = from;
 	blf->blf_to = to;
 	blf->blf_filter = filter;
-	exception_msg = (STR) ALLOCPV (type_str, strlen (EXCEPTION_MESSAGE) + 
-						 strlen (X.RDB$FUNCTION_NAME) + 
+	exception_msg = (STR) ALLOCPV (type_str, strlen (EXCEPTION_MESSAGE) +
+						 strlen (X.RDB$FUNCTION_NAME) +
 						 strlen (X.RDB$ENTRYPOINT) +
 						 strlen (X.RDB$MODULE_NAME) + 1 );
 	sprintf (exception_msg->str_data, EXCEPTION_MESSAGE, X.RDB$FUNCTION_NAME, X.RDB$ENTRYPOINT, X.RDB$MODULE_NAME);
@@ -1279,7 +1281,7 @@ gen_id = -1;
 
 request = (BLK) CMP_find_request (tdbb, irq_r_gen_id, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$GENERATORS WITH X.RDB$GENERATOR_NAME EQ name
     if (!REQUEST (irq_r_gen_id))
 	REQUEST (irq_r_gen_id) = request;
@@ -1362,7 +1364,7 @@ index_name [0] = 0;
 
 request = (BLK) CMP_find_request (tdbb, irq_l_index, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$INDICES WITH X.RDB$RELATION_NAME EQ relation_name
     AND X.RDB$INDEX_ID EQ number
 
@@ -1406,8 +1408,8 @@ request = (BLK) CMP_find_request (tdbb, irq_l_index_name, IRQ_REQUESTS);
 
 *status = MET_object_unknown;
 
-FOR (REQUEST_HANDLE request) 
-    X IN RDB$INDICES WITH 
+FOR (REQUEST_HANDLE request)
+    X IN RDB$INDICES WITH
 	X.RDB$INDEX_NAME EQ index_name
 
     if (!REQUEST (irq_l_index_name))
@@ -1461,7 +1463,7 @@ if (relation->rel_flags & REL_check_partners)
     {
     /* Prepare for rescan of foreign references on other relations'
        primary keys and release stale vectors. */
-       
+
     request = (BLK) CMP_find_request (tdbb, irq_foreign1, IRQ_REQUESTS);
     references = &relation->rel_foreign_refs;
     index_number = 0;
@@ -1481,15 +1483,15 @@ if (relation->rel_flags & REL_check_partners)
 	ALL_release (references->frgn_indexes);
 	references->frgn_indexes = (VEC) NULL_PTR;
 	}
-	
-    FOR (REQUEST_HANDLE request) 
+
+    FOR (REQUEST_HANDLE request)
 	IDX IN RDB$INDICES CROSS
 	IND IN RDB$INDICES WITH
 	IDX.RDB$INDEX_NAME STARTING WITH "RDB$FOREIGN" AND
 	IDX.RDB$RELATION_NAME EQ relation->rel_name AND
 	IND.RDB$INDEX_NAME EQ IDX.RDB$FOREIGN_KEY AND
 	IND.RDB$UNIQUE_FLAG NOT MISSING
-				    
+
 	if (!REQUEST (irq_foreign1))
 	    REQUEST (irq_foreign1) = request;
 
@@ -1501,7 +1503,7 @@ if (relation->rel_flags & REL_check_partners)
 	    references->frgn_relations->vec_object [index_number] = (BLK) partner_relation->rel_id;
 	    ALL_vector (dbb->dbb_permanent, &references->frgn_indexes, index_number);
 	    references->frgn_indexes->vec_object [index_number] = (BLK) (IND.RDB$INDEX_ID - 1);
-		
+
 	    index_number++;
 	    }
     END_FOR;
@@ -1511,11 +1513,11 @@ if (relation->rel_flags & REL_check_partners)
 
     /* Prepare for rescan of primary dependencies on relation's primary
        key and stale vectors. */
-       
+
     request = (BLK) CMP_find_request (tdbb, irq_foreign2, IRQ_REQUESTS);
     dependencies = &relation->rel_primary_dpnds;
     index_number = 0;
-    
+
     if (dependencies->prim_reference_ids)
 	{
 	ALL_release (dependencies->prim_reference_ids);
@@ -1531,7 +1533,7 @@ if (relation->rel_flags & REL_check_partners)
 	ALL_release (dependencies->prim_indexes);
 	dependencies->prim_indexes = (VEC) NULL_PTR;
 	}
-    
+
 /*
 ** ============================================================
 ** ==
@@ -1547,13 +1549,13 @@ if (relation->rel_flags & REL_check_partners)
 ** ============================================================
 */
 
-    FOR (REQUEST_HANDLE request)              
+    FOR (REQUEST_HANDLE request)
 	IDX IN RDB$INDICES CROSS
 	IND IN RDB$INDICES WITH
 	IDX.RDB$UNIQUE_FLAG = 1 AND
 	IDX.RDB$RELATION_NAME EQ relation->rel_name AND
 	IND.RDB$FOREIGN_KEY EQ IDX.RDB$INDEX_NAME
-				    
+
 	if (!REQUEST (irq_foreign2))
 	    REQUEST (irq_foreign2) = request;
 
@@ -1572,7 +1574,7 @@ if (relation->rel_flags & REL_check_partners)
 
     if (!REQUEST (irq_foreign2))
 	REQUEST (irq_foreign2) = request;
-	
+
     relation->rel_flags &= ~REL_check_partners;
     }
 
@@ -1583,11 +1585,11 @@ if (idx->idx_flags & idx_foreign)
 	/* Since primary key index names aren't being cached, do a long
 	   hard lookup. This is only called during index create for foreign
 	   keys. */
-	   
+
 	found = FALSE;
 	request = NULL_PTR;
-	   
-	FOR (REQUEST_HANDLE request) 
+
+	FOR (REQUEST_HANDLE request)
 	    IDX IN RDB$INDICES CROSS
 	    IND IN RDB$INDICES WITH
 	    IDX.RDB$RELATION_NAME EQ relation->rel_name AND
@@ -1595,7 +1597,7 @@ if (idx->idx_flags & idx_foreign)
 	      IDX.RDB$INDEX_NAME EQ index_name)       AND
 	    IND.RDB$INDEX_NAME EQ IDX.RDB$FOREIGN_KEY AND
 	    IND.RDB$UNIQUE_FLAG NOT MISSING
-				    
+
 	if (partner_relation = MET_lookup_relation (tdbb, IND.RDB$RELATION_NAME))
 	    {
 	    idx->idx_primary_relation = partner_relation->rel_id;
@@ -1603,11 +1605,11 @@ if (idx->idx_flags & idx_foreign)
 	    found = TRUE;
 	    }
 	END_FOR;
-    
+
 	CMP_release (tdbb, request);
 	return found;
 	}
-	
+
     references = &relation->rel_foreign_refs;
     if (references->frgn_reference_ids)
 	for (index_number = 0; index_number < references->frgn_reference_ids->vec_count; index_number++)
@@ -1657,12 +1659,12 @@ BLK     request;
 PRC     procedure, *ptr, *end;
 VEC     procedures;
 SCHAR   *p, *q;
- 
+
 SET_TDBB (tdbb);
 dbb  = tdbb->tdbb_database;
- 
+
 /* See if we already know the relation by name */
- 
+
 if (procedures = dbb->dbb_procedures)
     for (ptr = (PRC*) procedures->vec_object, end = ptr + procedures->vec_count; ptr < end; ptr++)
 	{
@@ -1683,7 +1685,7 @@ procedure = NULL;
 
 request = (BLK) CMP_find_request (tdbb, irq_l_procedure, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ name
 
     if (!REQUEST (irq_l_procedure))
@@ -1718,12 +1720,12 @@ DBB     dbb;
 BLK     request;
 PRC     procedure, *ptr, *end;
 VEC     procedures;
- 
+
 SET_TDBB (tdbb);
 dbb  = tdbb->tdbb_database;
- 
+
 /* See if we already know the relation by name */
- 
+
 if (procedures = dbb->dbb_procedures)
     for (ptr = (PRC*) procedures->vec_object, end = ptr + procedures->vec_count; ptr < end; ptr++)
 	{
@@ -1742,7 +1744,7 @@ procedure = NULL;
 
 request = (BLK) CMP_find_request (tdbb, irq_l_proc_id, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_ID EQ id
 
     if (!REQUEST (irq_l_proc_id))
@@ -1814,7 +1816,7 @@ relation = NULL;
 
 request = (BLK) CMP_find_request (tdbb, irq_l_relation, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$RELATIONS WITH X.RDB$RELATION_NAME EQ name
     if (!REQUEST (irq_l_relation))
 	REQUEST (irq_l_relation) = request;
@@ -1897,7 +1899,7 @@ relation = NULL;
 
 request = (BLK) CMP_find_request (tdbb, irq_l_rel_id, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     X IN RDB$RELATIONS WITH X.RDB$RELATION_ID EQ id
     if (!REQUEST (irq_l_rel_id))
 	REQUEST (irq_l_rel_id) = request;
@@ -2012,13 +2014,10 @@ if (relation->rel_pre_modify)
 if (relation->rel_post_modify)
     MET_release_triggers (tdbb, &relation->rel_post_modify);
 
-#ifdef READONLY_DATABASE
 /* No need to load triggers for ReadOnly databases, since
    INSERT/DELETE/UPDATE statements are not going to be allowed */
-
 if (dbb->dbb_flags & DBB_read_only)
     return;
-#endif  /* READONLY_DATABASE */
 
 relation->rel_flags |= REL_sys_trigs_being_loaded;
 
@@ -2089,7 +2088,7 @@ void MET_prepare (
 {
 /**************************************
  *
- *      M E T _ p r e p a r e 
+ *      M E T _ p r e p a r e
  *
  **************************************
  *
@@ -2186,18 +2185,18 @@ if (procedure = (PRC) vector->vec_object [id])
     /* To avoid scanning recursive procedure's blr recursively let's
        make use of PRC_being_scanned bit. Because this bit is set
        later in the code, it is not set when we are here first time.
-       If (in case of rec. procedure) we get here second time it is 
+       If (in case of rec. procedure) we get here second time it is
        already set and we return half baked procedure.
          In case of superserver this code is under the rec. mutex
        protection, thus the only guy (thread) who can get here and see
        PRC_being_scanned bit set is the guy which started procedure scan
        and currently holds the mutex.
-         In case of classic, there is always only one guy and if it 
+         In case of classic, there is always only one guy and if it
        sees PRC_being_scanned bit set it is safe to assume it is here
        second time.
 
        If procedure has already been scanned - return. This condition
-       is for those threads that did not find procedure in cach and 
+       is for those threads that did not find procedure in cach and
        came here to get it from disk. But only one was able to lock
        the mutex and do the scanning, others were waiting. As soon as
        the first thread releases the mutex another thread gets in and
@@ -2249,7 +2248,7 @@ LCK_lock (tdbb, procedure->prc_existence_lock, LCK_SR, TRUE);
 request = (BLK) CMP_find_request (tdbb, irq_r_procedure, IRQ_REQUESTS);
 request2 = (BLK) CMP_find_request (tdbb, irq_r_params, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
     P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_ID EQ procedure->prc_id
 
     if (!REQUEST (irq_r_procedure))
@@ -2323,7 +2322,7 @@ FOR (REQUEST_HANDLE request)
 	    }
 	format->fmt_length = length;
 	}
-    
+
     old_pool = tdbb->tdbb_default;
     tdbb->tdbb_default = ALL_pool();
     csb = (CSB) ALLOCDV (type_csb, 5);
@@ -2397,7 +2396,7 @@ if (relation = (REL) vector->vec_object[id])
 major_version  = (SSHORT) dbb->dbb_ods_version;
 minor_original = (SSHORT) dbb->dbb_minor_original;
 
-/* From ODS 9 onwards, the first 128 relation IDS have been 
+/* From ODS 9 onwards, the first 128 relation IDS have been
    reserved for system relations */
 if (ENCODE_ODS(major_version, minor_original) < ODS_9_0)
     max_sys_rel = (USHORT) USER_REL_INIT_ID_ODS8 - 1;
@@ -2483,7 +2482,7 @@ if (!procedure)
 
 /* Procedure that is being altered may have references
    to it by other procedures via pointer to current meta
-   data structure, so don't loose the structure or the pointer. 
+   data structure, so don't loose the structure or the pointer.
 if (!(procedure->prc_flags & PRC_being_altered))
     vector->vec_object [id] = (BLK) NULL_PTR;
 */
@@ -2523,13 +2522,13 @@ if ((procedure->prc_outputs) && (vector = procedure->prc_output_fields))
 
 if (procedure->prc_format)
     ALL_release (procedure->prc_format);
-    
+
 if (!(procedure->prc_flags & PRC_being_altered))
     ALL_release (procedure);
 else
     {
     save_proc_flags = procedure->prc_flags;
-    memset (((SCHAR *) procedure) + sizeof (struct blk), 0, 
+    memset (((SCHAR *) procedure) + sizeof (struct blk), 0,
 				sizeof (struct prc) - sizeof (struct blk));
     procedure->prc_flags = save_proc_flags;
     }
@@ -2567,7 +2566,7 @@ count = 0;
 
 request = (BLK) CMP_find_request (tdbb, irq_revoke1, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request TRANSACTION_HANDLE transaction) 
+FOR (REQUEST_HANDLE request TRANSACTION_HANDLE transaction)
     FIRST 1 P IN RDB$USER_PRIVILEGES WITH
 	P.RDB$RELATION_NAME EQ relation AND
 	P.RDB$PRIVILEGE EQ privilege AND
@@ -2721,16 +2720,16 @@ if (SETJMP (env))
 request = (BLK) CMP_find_request (tdbb, irq_r_fields, IRQ_REQUESTS);
 csb = NULL;
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
 	REL IN RDB$RELATIONS
-	WITH REL.RDB$RELATION_ID EQ relation->rel_id 
+	WITH REL.RDB$RELATION_ID EQ relation->rel_id
 
     /* Pick up relation level stuff */
 
     if (!REQUEST (irq_r_fields))
 	REQUEST (irq_r_fields) = request;
     relation->rel_current_fmt = REL.RDB$FORMAT;
-    vector = ALL_vector (dbb->dbb_permanent, &relation->rel_fields, REL.RDB$FIELD_ID);  
+    vector = ALL_vector (dbb->dbb_permanent, &relation->rel_fields, REL.RDB$FIELD_ID);
     if (!REL.RDB$SECURITY_CLASS.NULL)
 	relation->rel_security_name = MET_save_name (tdbb, REL.RDB$SECURITY_CLASS);
     if (!relation->rel_name)
@@ -2747,20 +2746,20 @@ FOR (REQUEST_HANDLE request)
 	/* parse the view blr, getting dependencies on relations, etc. at the same time */
 
 	relation->rel_view_rse = (dependencies) ?
-	    (RSE) MET_get_dependencies (tdbb, relation, 
-			NULL_PTR, 
-			NULL_PTR, 
-			&REL.RDB$VIEW_BLR, 
-			NULL_PTR, 
-			&csb, 
-			REL.RDB$RELATION_NAME, 
+	    (RSE) MET_get_dependencies (tdbb, relation,
+			NULL_PTR,
+			NULL_PTR,
+			&REL.RDB$VIEW_BLR,
+			NULL_PTR,
+			&csb,
+			REL.RDB$RELATION_NAME,
 			obj_view) :
 	    (RSE) MET_parse_blob (tdbb, relation, &REL.RDB$VIEW_BLR, &csb, NULL_PTR,
 			FALSE, FALSE);
 
 
 	/* retrieve the view context names */
- 
+
 	lookup_view_contexts (tdbb, relation);
 	}
 
@@ -2799,7 +2798,7 @@ FOR (REQUEST_HANDLE request)
 		field = (FLD) vector->vec_object [field_id];
 		array = NULL;
 		break;
-	    
+
 	    case RSR_field_name:
 		if (field)
 		    {
@@ -2821,22 +2820,22 @@ FOR (REQUEST_HANDLE request)
 		strcpy (field->fld_name, p);
 		field->fld_length = strlen (field->fld_name);
 		break;
-	    
+
 	    case RSR_view_context:
 		view_context = n;
 		break;
-	    
+
 	    case RSR_base_field:
 		field->fld_source = PAR_make_field (tdbb, csb, view_context, p);
 		break;
-	    
+
 	    case RSR_computed_blr:
 		field->fld_computation = (dependencies) ?
-		    MET_get_dependencies (tdbb, relation, 
-			p, 
-			csb, 
-			NULL_PTR, 
-			NULL_PTR, 
+		    MET_get_dependencies (tdbb, relation,
+			p,
+			csb,
+			NULL_PTR,
+			NULL_PTR,
 			NULL_PTR,
 			field->fld_name,
 			obj_computed) :
@@ -2854,7 +2853,7 @@ FOR (REQUEST_HANDLE request)
 	    case RSR_validation_blr:
 		field->fld_validation = PAR_blr (tdbb, relation, p, csb, NULL_PTR, NULL_PTR, FALSE, csb_validation);
 		break;
-	   
+
 	   case RSR_field_not_null:
 		field->fld_not_null = PAR_blr (tdbb, relation, p, csb, NULL_PTR,
 			   NULL_PTR, FALSE, csb_validation);
@@ -2872,7 +2871,7 @@ FOR (REQUEST_HANDLE request)
 		field->fld_array = array = (ARR) ALLOCPV (type_arr, n);
 		array->arr_desc.ads_dimensions = n;
 		break;
-		
+
 	    case RSR_array_desc:
 		if (array)
 		    MOVE_FAST (p, &array->arr_desc, length);
@@ -2888,12 +2887,12 @@ END_FOR;
 if (csb)
     ALL_release (csb);
 
-/* release any triggers in case of a rescan, but not if the rescan 
+/* release any triggers in case of a rescan, but not if the rescan
    hapenned while system triggers were being loaded. */
 
 if (!(relation->rel_flags & REL_sys_trigs_being_loaded))
     {
-    /* if we are scanning a system relation during loading the system 
+    /* if we are scanning a system relation during loading the system
        triggers, (during parsing its blr actually), we must not release the
        existing system triggers; because we have already set the
        relation->rel_flag to not have REL_sys_trig, so these
@@ -2901,7 +2900,7 @@ if (!(relation->rel_flags & REL_sys_trigs_being_loaded))
 
     /* We have just loaded the triggers onto the local vector triggers.
        Its now time to place them at their rightful place ie the relation
-       block. 
+       block.
     */
     tmp_vector = relation->rel_pre_store;
     relation->rel_pre_store = triggers [TRIGGER_PRE_STORE];
@@ -2927,7 +2926,7 @@ if (!(relation->rel_flags & REL_sys_trigs_being_loaded))
     relation->rel_post_modify = triggers [TRIGGER_POST_MODIFY];
     MET_release_triggers (tdbb, &tmp_vector);
     }
-		     
+
 relation->rel_flags &= ~REL_being_scanned;
 #ifdef SUPERSERVER
 THD_rec_mutex_unlock (&dbb->dbb_sp_rec_mutex);
@@ -2963,8 +2962,8 @@ msg = NULL;
 request = (BLK) CMP_find_request (tdbb, irq_s_msgs, IRQ_REQUESTS);
 
 FOR (REQUEST_HANDLE request)
-	MSG IN RDB$TRIGGER_MESSAGES WITH 
-	MSG.RDB$TRIGGER_NAME EQ name AND 
+	MSG IN RDB$TRIGGER_MESSAGES WITH
+	MSG.RDB$TRIGGER_NAME EQ name AND
 	MSG.RDB$MESSAGE_NUMBER EQ number
     if (!REQUEST (irq_s_msgs))
 	REQUEST (irq_s_msgs) = request;
@@ -2994,7 +2993,7 @@ void MET_update_shadow (
  **************************************/
 DBB     dbb;
 BLK     handle;
- 
+
 SET_TDBB (tdbb);
 dbb  = tdbb->tdbb_database;
 
@@ -3032,7 +3031,7 @@ dbb  = tdbb->tdbb_database;
 
 request = (BLK) CMP_find_request (tdbb, irq_m_trans, IRQ_REQUESTS);
 
-FOR (REQUEST_HANDLE request) 
+FOR (REQUEST_HANDLE request)
 	X IN RDB$TRANSACTIONS WITH X.RDB$TRANSACTION_ID EQ transaction->tra_number
     if (!REQUEST (irq_m_trans))
 	REQUEST (irq_m_trans) = request;
@@ -3228,7 +3227,7 @@ for (p = buffer; *name && p < buffer + sizeof (buffer) - 1; p++, name++)
 found = FALSE;
 
 handle = NULL;
-FOR (REQUEST_HANDLE handle) 
+FOR (REQUEST_HANDLE handle)
 	FIRST 1 T IN RDB$TYPES WITH
 	T.RDB$FIELD_NAME EQ field AND
 	T.RDB$TYPE_NAME EQ buffer
@@ -3251,9 +3250,9 @@ static void lookup_view_contexts (
  **************************************
  *
  * Functional description
- *      Lookup view contexts and store in a linked 
+ *      Lookup view contexts and store in a linked
  *      list on the relation block.
- *                                       
+ *
  **************************************/
 DBB     dbb;
 BLK     request;
@@ -3267,8 +3266,8 @@ request = (BLK) CMP_find_request (tdbb, irq_view_context, IRQ_REQUESTS);
 
 vcx_ptr = &view->rel_view_contexts;
 
-FOR (REQUEST_HANDLE request) 
-    V IN RDB$VIEW_RELATIONS WITH 
+FOR (REQUEST_HANDLE request)
+    V IN RDB$VIEW_RELATIONS WITH
     V.RDB$VIEW_NAME EQ view->rel_name
     SORTED BY V.RDB$VIEW_CONTEXT
 
@@ -3285,7 +3284,7 @@ FOR (REQUEST_HANDLE request)
     view_context->vcx_context = V.RDB$VIEW_CONTEXT;
 
     /* allocate a string block for the context name */
-	       
+
     length = name_length (V.RDB$CONTEXT_NAME);
     alias = (STR) ALLOCDV (type_str, length + 1);
     V.RDB$CONTEXT_NAME [length] = 0;
@@ -3295,7 +3294,7 @@ FOR (REQUEST_HANDLE request)
     view_context->vcx_context_name = alias;
 
     /* allocate a string block for the relation name */
-	       
+
     length = name_length (V.RDB$RELATION_NAME);
     alias = (STR) ALLOCDV (type_str, length + 1);
     V.RDB$RELATION_NAME [length] = 0;
@@ -3420,7 +3419,7 @@ USHORT  count, offset, align, msg_number;
 SSHORT  version;
 
 (*csb)->csb_running = blr;
-version = BLR_BYTE; 
+version = BLR_BYTE;
 if (version != blr_version4 && version != blr_version5)
     return FALSE;
 
@@ -3526,7 +3525,7 @@ static BOOLEAN resolve_charset_and_collation (
  *              NULL means use the default collation for (charset).
  *
  * Outputs:
- *      (*id)   
+ *      (*id)
  *              Set to character set specified by this name.
  *
  * Return:
@@ -3563,8 +3562,8 @@ if (collation == NULL)
     /* Charset name not found in the alias table - before giving up
        try the character_set table */
 
-    FOR (REQUEST_HANDLE handle) 
-	FIRST 1 CS IN RDB$CHARACTER_SETS  
+    FOR (REQUEST_HANDLE handle)
+	FIRST 1 CS IN RDB$CHARACTER_SETS
 	WITH CS.RDB$CHARACTER_SET_NAME EQ charset
 
 	found = TRUE;
@@ -3577,8 +3576,8 @@ if (collation == NULL)
     }
 else if (charset == NULL)
     {
-    FOR (REQUEST_HANDLE handle) 
-	FIRST 1 COL IN RDB$COLLATIONS 
+    FOR (REQUEST_HANDLE handle)
+	FIRST 1 COL IN RDB$COLLATIONS
 	WITH COL.RDB$COLLATION_NAME EQ collation
 
 	found = TRUE;
@@ -3590,8 +3589,8 @@ else if (charset == NULL)
     return found;
     }
 
-FOR (REQUEST_HANDLE handle) 
-    FIRST 1 CS  IN RDB$CHARACTER_SETS CROSS 
+FOR (REQUEST_HANDLE handle)
+    FIRST 1 CS  IN RDB$CHARACTER_SETS CROSS
 	    COL IN RDB$COLLATIONS     OVER   RDB$CHARACTER_SET_ID CROSS
 	    AL1 IN RDB$TYPES
 	WITH AL1.RDB$FIELD_NAME EQ "RDB$CHARACTER_SET_NAME"
@@ -3679,7 +3678,7 @@ static void store_dependencies (
  *
  * Functional description
  *      Store records in RDB$DEPENDENCIES
- *      corresponding to the objects found during 
+ *      corresponding to the objects found during
  *      compilation of blr for a trigger, view, etc.
  *
  **************************************/
@@ -3688,7 +3687,7 @@ BLK     request;
 REL     relation;
 PRC     procedure;
 FLD     field;
-NOD     node, field_node;  
+NOD     node, field_node;
 SSHORT  fld_id, dpdo_type;
 SLONG   number;
 BOOLEAN found;
@@ -3827,7 +3826,7 @@ static void terminate (TEXT *str, USHORT len)
 SSHORT i;
 assert (len >0);
 
-for (i=len-1; i>=0 && ( (isspace(str[i])) || (str[i] == 0)); i--) 
+for (i=len-1; i>=0 && ( (isspace(str[i])) || (str[i] == 0)); i--)
     /* do nothing */ ;
 str[i+1] = 0;
 }
@@ -3845,9 +3844,9 @@ static BOOLEAN verify_TRG_ignore_perm (
  * Functional description
  *      Return TRUE if this trigger can go through without any permission
  *      checks. Currently, the only class of triggers that can go
- *      through without permission checks are 
+ *      through without permission checks are
  *      (a) two system triggers (RDB$TRIGGERS_34 and RDB$TRIGGERS_35)
- *      (b) those defined for referential integrity actions such as, 
+ *      (b) those defined for referential integrity actions such as,
  *      set null, set default, and cascade.
  *
  **************************************/
@@ -3892,4 +3891,3 @@ if (!REQUEST (irq_c_trg_perm))
 
 return (FALSE);
 }
-

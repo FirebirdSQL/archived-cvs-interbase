@@ -22,6 +22,10 @@
  * 2001.6.3 Claudio Valderrama: fixed a bad behaved loop in get_plan_info()
  * and get_rsb_item() that caused a crash when plan info was requested.
  * 2001.6.9 Claudio Valderrama: Added nod_del_view, nod_current_role and nod_breakleave.
+ *
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 /*
 $Id$
@@ -40,7 +44,7 @@ V4 Multi-threading changes.
 the following protocol will be used.  Care should be taken if
 nested FOR loops are added.
 
-    THREAD_EXIT;                // last statment before FOR loop 
+    THREAD_EXIT;                // last statment before FOR loop
 
     FOR ...............
 
@@ -51,7 +55,7 @@ nested FOR loops are added.
 
     END_FOR;
 
-    THREAD_ENTER;               // First statment after FOR loop 
+    THREAD_ENTER;               // First statment after FOR loop
 ***************************************************************/
 
 #define DSQL_MAIN
@@ -160,19 +164,17 @@ static USHORT   init_flag;
 static DBB      databases;
 static OPN	open_cursors;
 static CONST SCHAR	db_hdr_info_items [] = {
-	                    isc_info_db_sql_dialect, 
-			    gds__info_ods_version, 
+	                    isc_info_db_sql_dialect,
+			    gds__info_ods_version,
 			    gds__info_base_level,
-#ifdef READONLY_DATABASE
 			    isc_info_db_read_only,
-#endif  /* READONLY_DATABASE */
 			    frb_info_att_charset,
-			    gds__info_end 
+			    gds__info_end
 			};
 static CONST SCHAR 	explain_info [] = {
 	gds__info_access_path };
 static CONST SCHAR 	record_info [] = {
-	gds__info_req_update_count, gds__info_req_delete_count, 
+	gds__info_req_update_count, gds__info_req_delete_count,
 	gds__info_req_select_count, gds__info_req_insert_count };
 static CONST SCHAR	sql_records_info [] = {
 	gds__info_sql_records };
@@ -304,8 +306,8 @@ if (request->req_type == REQ_SELECT ||
     request->req_type == REQ_PUT_SEGMENT)
     if (request->req_flags & REQ_cursor_open)
 	{
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502, 
-            gds_arg_gds, gds__dsql_cursor_open_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502,
+            gds_arg_gds, gds__dsql_cursor_open_err,
 	    0);
 	}
 
@@ -323,7 +325,7 @@ if (request->req_type != REQ_EMBED_SELECT)
 
 /* If the output message length is zero on a REQ_SELECT then we must
  * be doing an OPEN cursor operation.
- * If we do have an output message length, then we're doing 
+ * If we do have an output message length, then we're doing
  * a singleton SELECT.  In that event, we don't add the cursor
  * to the list of open cursors (it's not really open).
  */
@@ -377,7 +379,7 @@ STATUS DLL_EXPORT GDS_DSQL_EXECUTE_IMMED (
 {
 /**************************************
  *
- *	d s q l _ e x e c u t e _ i m m e d i a t e 
+ *	d s q l _ e x e c u t e _ i m m e d i a t e
  *
  **************************************
  *
@@ -437,7 +439,7 @@ if (!length)
  *  parser = (combined) %10 == 1
  *  dialect = (combined) / 19 == 1
  *
- * If the parser version is not part of the dialect, then assume that the 
+ * If the parser version is not part of the dialect, then assume that the
  * connection being made is a local classic connection.
  */
 
@@ -471,7 +473,7 @@ STATUS DLL_EXPORT GDS_DSQL_FETCH (
     UCHAR	*msg
 #ifdef SCROLLABLE_CURSORS
     ,
-    USHORT	direction, 
+    USHORT	direction,
     SLONG	offset)
 #else
     )
@@ -511,15 +513,15 @@ if (request->req_type == REQ_SELECT ||
     request->req_type == REQ_EMBED_SELECT ||
     request->req_type == REQ_GET_SEGMENT)
     if (!(request->req_flags & REQ_cursor_open))
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -504, 
-            gds_arg_gds, gds__dsql_cursor_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -504,
+            gds_arg_gds, gds__dsql_cursor_err,
             0);
 
 #ifdef SCROLLABLE_CURSORS
 
-/* check whether we need to send an asynchronous scrolling message 
-   to the engine; the engine will automatically advance one record 
-   in the same direction as before, so optimize out messages of that 
+/* check whether we need to send an asynchronous scrolling message
+   to the engine; the engine will automatically advance one record
+   in the same direction as before, so optimize out messages of that
    type */
 
 if (request->req_type == REQ_SELECT &&
@@ -573,7 +575,7 @@ if (request->req_type == REQ_SELECT &&
 	        offset = -offset;
                 request->req_flags |= REQ_backwards;
 	        }
-	    else 
+	    else
 	        {
 	        direction = blr_forward;
 	        request->req_flags &= ~REQ_backwards;
@@ -581,7 +583,7 @@ if (request->req_type == REQ_SELECT &&
 	    break;
 
         default:
-	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
+	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
         	    gds_arg_gds, gds__dsql_sqlda_err, 0);
         }
 
@@ -616,8 +618,8 @@ if (request->req_type == REQ_SELECT &&
 	    message->msg_number,
 	    message->msg_length,
 	    GDS_VAL (message->msg_buffer),
-	    0, 
-	    direction, 
+	    0,
+	    direction,
 	    offset);
         THREAD_ENTER;
 
@@ -732,8 +734,8 @@ else if (option & DSQL_close)
     /* Just close the cursor associated with the request. */
 
     if (!(request->req_flags & REQ_cursor_open))
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -501, 
-            gds_arg_gds, gds__dsql_cursor_close_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -501,
+            gds_arg_gds, gds__dsql_cursor_close_err,
 	    0);
 
     close_cursor (request);
@@ -781,8 +783,8 @@ tdsql->tsql_default = request->req_pool;
 
 if (request->req_type == REQ_PUT_SEGMENT)
     if (!(request->req_flags & REQ_cursor_open))
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -504, 
-            gds_arg_gds, gds__dsql_cursor_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -504,
+            gds_arg_gds, gds__dsql_cursor_err,
             0);
 
 message = (MSG) request->req_receive;
@@ -853,8 +855,8 @@ database = old_request->req_dbb;
 
 if (old_request && (old_request->req_flags & REQ_cursor_open))
     {
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -519, 
-	gds_arg_gds, gds__dsql_open_cursor_request, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -519,
+	gds_arg_gds, gds__dsql_open_cursor_request,
 	0);
     }
 
@@ -902,7 +904,7 @@ if (!length)
  *  parser = (combined) %10 == 1
  *  dialect = (combined) / 19 == 1
  *
- * If the parser version is not part of the dialect, then assume that the 
+ * If the parser version is not part of the dialect, then assume that the
  * connection being made is a local classic connection.
  */
 
@@ -922,8 +924,8 @@ request = prepare (request, length, string, dialect, parser_version);
 
 if ((request->req_type == REQ_DDL) &&
 	(request->req_ddl_node->nod_type == nod_def_database))
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -530, 
-        gds_arg_gds, gds__dsql_crdb_prepare_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -530,
+        gds_arg_gds, gds__dsql_crdb_prepare_err,
         0);
 
 request->req_flags |= REQ_prepared;
@@ -978,7 +980,7 @@ request = *req_handle;
 tdsql->tsql_default = request->req_pool;
 if (input_cursor[0] == '\"')
     {
-    /** Quoted cursor names eh? Strip'em. 
+    /** Quoted cursor names eh? Strip'em.
 	Note that "" will be replaced with ".
     **/
     int ij;
@@ -988,7 +990,7 @@ if (input_cursor[0] == '\"')
 	        input_cursor++;
 	cursor [ij++] = *input_cursor;
 	}
-    cursor[ij] = 0;  
+    cursor[ij] = 0;
     }
 else
     {
@@ -1002,8 +1004,8 @@ else
 length = name_length (cursor);
 
 if (length == 0)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502, 
-        gds_arg_gds, gds__dsql_decl_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502,
+        gds_arg_gds, gds__dsql_decl_err,
 	0);
 
 /* If there already is a different cursor by the same name, bitch */
@@ -1013,12 +1015,12 @@ if (symbol = HSHD_lookup (request->req_dbb, cursor, length, SYM_cursor, 0))
     if (request->req_cursor == symbol)
 	RETURN_SUCCESS;
     else
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502, 
-	    gds_arg_gds, gds__dsql_decl_err, 
+	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502,
+	    gds_arg_gds, gds__dsql_decl_err,
 	    0);
     }
 
-/* If there already is a cursor and its name isn't the same, ditto. 
+/* If there already is a cursor and its name isn't the same, ditto.
    We already know there is no cursor by this name in the hash table */
 
 if (!request->req_cursor)
@@ -1027,8 +1029,8 @@ if (!request->req_cursor)
 else
     {
     assert (request->req_cursor != symbol);
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502, 
-        gds_arg_gds, gds__dsql_decl_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -502,
+        gds_arg_gds, gds__dsql_decl_err,
 	0);
     };
 
@@ -1150,7 +1152,7 @@ while (items < end_items && *items != gds__info_end)
 	length = *items++;
 	first_index = gds__vax_integer (items, length);
 	items += length;
-	}   
+	}
     else if (item == isc_info_sql_batch_fetch)
 	{
 	if (request->req_flags & REQ_no_batch)
@@ -1173,12 +1175,12 @@ while (items < end_items && *items != gds__info_end)
 	}
     else if (item == gds__info_sql_get_plan)
 	{
-	/* be careful, get_plan_info() will reallocate the buffer to a 
+	/* be careful, get_plan_info() will reallocate the buffer to a
 	   larger size if it is not big enough */
 
 	buffer_ptr = buffer;
         length = get_plan_info (request, (SSHORT) sizeof (buffer), &buffer_ptr);
-	
+
 	if (length)
 	    info = put_item (item, length, buffer_ptr, info, end_info);
 
@@ -1210,7 +1212,7 @@ while (items < end_items && *items != gds__info_end)
 	if (item == gds__info_sql_num_variables)
 	    continue;
 
-	end_describe = items; 
+	end_describe = items;
 	while (end_describe < end_items &&
 	    *end_describe != gds__info_end &&
 	    *end_describe != gds__info_sql_describe_end)
@@ -1347,12 +1349,11 @@ switch (node->nod_type)
     case nod_def_filter:        verb = "define filter";         break;
     case nod_def_index:		verb = "define index"; 		break;
     case nod_def_relation:	verb = "define relation"; 	break;
-    case nod_redef_relation:	verb = "redefine relation";	break;
     case nod_def_view:		verb = "define view"; 		break;
     case nod_delete:		verb = "delete";		break;
     case nod_del_field:		verb = "delete field";		break;
     case nod_del_filter:        verb = "delete filter";         break;
-    case nod_del_generator:     verb = "delete generator";      break; 
+    case nod_del_generator:     verb = "delete generator";      break;
     case nod_del_index:		verb = "delete index";		break;
     case nod_del_relation:	verb = "delete relation";	break;
 
@@ -1458,7 +1459,7 @@ switch (node->nod_type)
 
     case nod_aggregate:
 	verb = "aggregate";
-	PRINTF ("%s%s\n", buffer, verb); 
+	PRINTF ("%s%s\n", buffer, verb);
 	context = (CTX) node->nod_arg [e_agg_context];
 	PRINTF ("%s   context %d\n", buffer, context->ctx_context);
 	if ((map = context->ctx_map) != NULL)
@@ -1489,7 +1490,7 @@ switch (node->nod_type)
 	context = (CTX) node->nod_arg [e_fld_context];
 	relation = context->ctx_relation;
 	field = (FLD) node->nod_arg [e_fld_field];
-	PRINTF ("%sfield %s.%s, context %d\n", buffer, 
+	PRINTF ("%sfield %s.%s, context %d\n", buffer,
 		relation->rel_name, field->fld_name, context->ctx_context);
 	FREE_MEM_RETURN;
 
@@ -1504,7 +1505,7 @@ switch (node->nod_type)
 
     case nod_map:
 	verb = "map";
-	PRINTF ("%s%s\n", buffer, verb); 
+	PRINTF ("%s%s\n", buffer, verb);
 	context = (CTX) node->nod_arg [e_map_context];
 	PRINTF ("%s   context %d\n", buffer, context->ctx_context);
 	for (map = (MAP) node->nod_arg [e_map_map]; map; map = map->map_next)
@@ -1521,7 +1522,7 @@ switch (node->nod_type)
     case nod_relation:
 	context = (CTX) node->nod_arg [e_rel_context];
 	relation = context->ctx_relation;
-	PRINTF ("%srelation %s, context %d\n", 
+	PRINTF ("%srelation %s, context %d\n",
 		buffer, relation->rel_name, context->ctx_context);
 	FREE_MEM_RETURN;
 
@@ -1548,13 +1549,13 @@ switch (node->nod_type)
     }
 
 if (node->nod_desc.dsc_dtype)
-    PRINTF ("%s%s (%d,%d,%x)\n", 
-	buffer, verb, 
+    PRINTF ("%s%s (%d,%d,%x)\n",
+	buffer, verb,
 	node->nod_desc.dsc_dtype,
 	node->nod_desc.dsc_length,
 	node->nod_desc.dsc_address);
 else
-    PRINTF ("%s%s\n", buffer, verb); 
+    PRINTF ("%s%s\n", buffer, verb);
 ++column;
 
 while (ptr < end)
@@ -1587,7 +1588,7 @@ static void cleanup (
 {
 /**************************************
  *
- *	c l e a n u p 
+ *	c l e a n u p
  *
  **************************************
  *
@@ -1616,7 +1617,7 @@ static void cleanup_database (
  **************************************
  *
  * Functional description
- *	Clean up DSQL globals.  
+ *	Clean up DSQL globals.
  *
  * N.B., the cleanup handlers (registered with gds__database_cleanup)
  * are called outside of the ISC thread mechanism...
@@ -1694,11 +1695,11 @@ while (open_cursor = *open_cursor_ptr)
 	   The close routine will have done that. */
 
 	THD_MUTEX_UNLOCK (&cursors_mutex);
-	/* 
+	/*
 	 * we are expected to be within the subsystem when we do this
-	 * cleanup, for now do a thread_enter/thread_exit here. 
+	 * cleanup, for now do a thread_enter/thread_exit here.
 	 * Note that the function GDS_DSQL_FREE() calls the local function.
-	 * Over the long run, it might be better to move the subsystem_exit() 
+	 * Over the long run, it might be better to move the subsystem_exit()
 	 * call in why.c below the cleanup handlers. smistry 9-27-98
 	 */
 	THREAD_ENTER;
@@ -2011,7 +2012,7 @@ switch (request->req_type)
 	    in_blr_length, in_blr, in_msg_length, in_msg,
 	    out_blr_length, out_blr, out_msg_length, out_msg);
 	return SUCCESS;
-    
+
     case REQ_EXEC_PROCEDURE:
 	if (message = (MSG) request->req_send)
 	    {
@@ -2177,22 +2178,22 @@ if (!(request->req_dbb->dbb_flags & DBB_v3))
     {
     if (request->req_type == REQ_UPDATE_CURSOR)
 	{
-	GDS_DSQL_SQL_INFO (local_status, &request, sizeof (sql_records_info), 
+	GDS_DSQL_SQL_INFO (local_status, &request, sizeof (sql_records_info),
 	    sql_records_info, sizeof (buffer), buffer);
 	if (!request->req_updates)
-	    ERRD_post (isc_sqlerr, isc_arg_number, (SLONG) -913, 
+	    ERRD_post (isc_sqlerr, isc_arg_number, (SLONG) -913,
 		    isc_arg_gds, isc_deadlock,
-		    isc_arg_gds, isc_update_conflict, 
+		    isc_arg_gds, isc_update_conflict,
 		    0);
 	}
     else if (request->req_type == REQ_DELETE_CURSOR)
 	{
-	GDS_DSQL_SQL_INFO (local_status, &request, sizeof (sql_records_info), 
+	GDS_DSQL_SQL_INFO (local_status, &request, sizeof (sql_records_info),
 	    sql_records_info, sizeof (buffer), buffer);
 	if (!request->req_deletes)
-	    ERRD_post (isc_sqlerr, isc_arg_number, (SLONG) -913, 
+	    ERRD_post (isc_sqlerr, isc_arg_number, (SLONG) -913,
 		    isc_arg_gds, isc_deadlock,
-		    isc_arg_gds, isc_update_conflict, 
+		    isc_arg_gds, isc_update_conflict,
 		    0);
 	}
     }
@@ -2240,7 +2241,7 @@ static BOOLEAN get_indices (
  **************************************
  *
  * Functional description
- *	Retrieve the indices from the index tree in 
+ *	Retrieve the indices from the index tree in
  *	the request info buffer, and print them out
  *	in the plan buffer.
  *
@@ -2270,7 +2271,7 @@ switch (*explain++)
 
     case gds__info_rsb_dbkey:
         break;
-            
+
     case gds__info_rsb_index:
 	explain_length--;
 	length = *explain++;
@@ -2295,8 +2296,8 @@ switch (*explain++)
 
     default:
         return FAILURE;
-    }          
-          
+    }
+
 *explain_length_ptr = explain_length;
 *explain_ptr = explain;
 *plan_length_ptr = plan_length;
@@ -2371,13 +2372,13 @@ if (*explain == gds__info_truncated)
 
 for (i = 0; i < 2; i++)
     {
-    explain = explain_ptr; 
+    explain = explain_ptr;
     if (*explain++ != gds__info_access_path)
         return 0;
 
     explain_length = (UCHAR) *explain++;
     explain_length += (UCHAR) (*explain++) << 8;
-           
+
     plan = buffer_ptr;
 
 	/* CVC: What if we need to do 2nd pass? Those variables were only initialized
@@ -2399,7 +2400,7 @@ for (i = 0; i < 2; i++)
     if (buffer_ptr == *buffer)
     	break;
     }
-	
+
 
 if (explain_ptr != explain_buffer)
     gds__free (explain_ptr);
@@ -2446,7 +2447,7 @@ THREAD_ENTER;
 
 if (s)
     return 0;
-        
+
 data = buffer;
 
 request->req_updates = request->req_deletes = 0;
@@ -2539,8 +2540,8 @@ switch (*explain++)
 	break;
 
     case gds__info_rsb_relation:
-                        
-	/* for the single relation case, initiate 
+
+	/* for the single relation case, initiate
 	   the relation with a parenthesis */
 
 	if (!*parent_join_count)
@@ -2560,12 +2561,12 @@ switch (*explain++)
 	    }
 
 	/* put out the relation name */
-		
+
         explain_length--;
         explain_length -= (length = (UCHAR) *explain++);
         if ((plan_length -= length) < 0)
   	    return FAILURE;
-	while (length--) 
+	while (length--)
 	    *plan++ = *explain++;
 	break;
 
@@ -2580,7 +2581,7 @@ switch (*explain++)
 	    case gds__info_rsb_union:
 
 		/* put out all the substreams of the join */
-		
+
 		explain_length--;
 		union_count = (USHORT) *explain++ - 1;
 
@@ -2620,7 +2621,7 @@ switch (*explain++)
 	    case gds__info_rsb_left_cross:
 	    case gds__info_rsb_merge:
 
-		/* if this join is itself part of a join list, 
+		/* if this join is itself part of a join list,
                    but not the first item, then put out a comma */
 
 		if (*parent_join_count && plan [-1] != '(')
@@ -2644,12 +2645,12 @@ switch (*explain++)
 		    *plan++ = *p++;
 
 		/* put out all the substreams of the join */
-		
+
 		explain_length--;
 		join_count = (USHORT) *explain++;
         while (join_count)
 		{
-	        if (get_rsb_item (&explain_length, &explain, &plan_length, 
+	        if (get_rsb_item (&explain_length, &explain, &plan_length,
 	                              &plan, &join_count, level_ptr))
 				return FAILURE;
 			/* CVC: Here's the additional stop condition. */
@@ -2664,7 +2665,7 @@ switch (*explain++)
 		else
 		    *plan++ = ')';
 
-		/* this qualifies as a stream, so decrement the join count */                                         
+		/* this qualifies as a stream, so decrement the join count */
 
 		if (*parent_join_count)
 		    --*parent_join_count;
@@ -2705,7 +2706,7 @@ switch (*explain++)
 			return FAILURE;
 		    *plan++ = ')';
 		    }
-                    
+
 		/* detect the end of a single relation and put out a final parenthesis */
 
 		if (!*parent_join_count)
@@ -2714,7 +2715,7 @@ switch (*explain++)
 		    else
 		        *plan++ = ')';
 
-		/* this also qualifies as a stream, so decrement the join count */                                         
+		/* this also qualifies as a stream, so decrement the join count */
 
 		if (*parent_join_count)
 		    --*parent_join_count;
@@ -2722,14 +2723,14 @@ switch (*explain++)
 
 	    case gds__info_rsb_sort:
 
-		/* if this sort is on behalf of a union, don't bother to 
-		   print out the sort, because unions handle the sort on all 
-		   substreams at once, and a plan maps to each substream 
+		/* if this sort is on behalf of a union, don't bother to
+		   print out the sort, because unions handle the sort on all
+		   substreams at once, and a plan maps to each substream
 		   in the union, so the sort doesn't really apply to a particular plan */
 
-		if (explain_length > 2 && 
+		if (explain_length > 2 &&
 		    (explain [0] == gds__info_rsb_begin) &&
-		    (explain [1] == gds__info_rsb_type) && 
+		    (explain [1] == gds__info_rsb_type) &&
 		    (explain [2] == gds__info_rsb_union))
 		    break;
 
@@ -2749,13 +2750,13 @@ switch (*explain++)
 		while (*p)
 		    *plan++ = *p++;
 
-		/* the rsb_sort should always be followed by a begin...end block, 
+		/* the rsb_sort should always be followed by a begin...end block,
 		   allowing us to include everything inside the sort in parentheses */
 
 		save_level = *level_ptr;
 		while (explain_length > 0 && plan_length > 0)
 		{
-	        if (get_rsb_item (&explain_length, &explain, &plan_length, 
+	        if (get_rsb_item (&explain_length, &explain, &plan_length,
 	                              &plan, parent_join_count, level_ptr))
 		        return FAILURE;
 		    if (*level_ptr == save_level)
@@ -2864,8 +2865,8 @@ database->dbb_flags |= DBB_v3;
 THREAD_EXIT;
 s = isc_database_info (user_status, db_handle,
 	sizeof (db_hdr_info_items),
-	db_hdr_info_items, 
-	sizeof (buffer), 
+	db_hdr_info_items,
+	sizeof (buffer),
 	buffer);
 THREAD_ENTER;
 
@@ -2893,19 +2894,19 @@ while ((p = *data++) != gds__info_end)
 	        database->dbb_flags &= ~DBB_v3;
 	    break;
 
-	/* This flag indicates the version level of the engine  
-           itself, so we can tell what capabilities the engine 
+	/* This flag indicates the version level of the engine
+           itself, so we can tell what capabilities the engine
            code itself (as opposed to the on-disk structure).
-           Apparently the base level up to now indicated the major 
-           version number, but for 4.1 the base level is being 
-           incremented, so the base level indicates an engine version 
+           Apparently the base level up to now indicated the major
+           version number, but for 4.1 the base level is being
+           incremented, so the base level indicates an engine version
            as follows:
              1 == v1.x
              2 == v2.x
              3 == v3.x
              4 == v4.0 only
              5 == v4.1
-           Note: this info item is so old it apparently uses an 
+           Note: this info item is so old it apparently uses an
            archaic format, not a standard vax integer format.
         */
 
@@ -2913,14 +2914,12 @@ while ((p = *data++) != gds__info_end)
 	    database->dbb_base_level = (USHORT) data [1];
 	    break;
 
-#ifdef READONLY_DATABASE
 	case isc_info_db_read_only:
 	    if ((USHORT) data [0])
 		database->dbb_flags |= DBB_read_only;
 	    else
 		database->dbb_flags &= ~DBB_read_only;
 	    break;
-#endif  /* READONLY_DATABASE */
 
 	case frb_info_att_charset:
 	    database->dbb_att_charset = gds__vax_integer (data, 2);
@@ -3011,8 +3010,8 @@ for (parameter = message->msg_parameters; parameter;
    message given to us hasn't been used, complain. */
 
 if (parameter || count)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-        gds_arg_gds, gds__dsql_sqlda_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+        gds_arg_gds, gds__dsql_sqlda_err,
         0);
 
 if (request &&
@@ -3099,14 +3098,14 @@ if (!blr_length)
     }
 
 if (*blr != blr_version4 && *blr != blr_version5)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-        gds_arg_gds, gds__dsql_sqlda_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+        gds_arg_gds, gds__dsql_sqlda_err,
         0);
 blr++;		/* skip the blr_version */
 if (*blr++ != blr_begin ||
     *blr++ != blr_message)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-        gds_arg_gds, gds__dsql_sqlda_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+        gds_arg_gds, gds__dsql_sqlda_err,
         0);
 
 blr++;		/* skip the message number */
@@ -3200,20 +3199,20 @@ for (index = 1; index <= count; index++)
 	    desc.dsc_dtype = dtype_timestamp;
 	    desc.dsc_length = sizeof (SLONG) * 2;
 	    break;
-	    
+
 	case blr_sql_date:
 	    desc.dsc_dtype = dtype_sql_date;
 	    desc.dsc_length = sizeof (SLONG);
 	    break;
-	    
+
 	case blr_sql_time:
 	    desc.dsc_dtype = dtype_sql_time;
 	    desc.dsc_length = sizeof (SLONG);
 	    break;
-	    
+
 	default:
-            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-                gds_arg_gds, gds__dsql_sqlda_err, 
+            ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+                gds_arg_gds, gds__dsql_sqlda_err,
                 0);
 	}
 
@@ -3225,8 +3224,8 @@ for (index = 1; index <= count; index++)
 
     if (*blr++ != blr_short ||
 	*blr++ != 0)
-        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-            gds_arg_gds, gds__dsql_sqlda_err, 
+        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+            gds_arg_gds, gds__dsql_sqlda_err,
             0);
 
     align = type_alignments [dtype_short];
@@ -3250,8 +3249,8 @@ for (index = 1; index <= count; index++)
     }
 
 if (*blr++ != (UCHAR) blr_end || offset != msg_length)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-        gds_arg_gds, gds__dsql_sqlda_err, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+        gds_arg_gds, gds__dsql_sqlda_err,
         0);
 
 return count;
@@ -3289,8 +3288,8 @@ tdsql = GET_THREAD_DATA;
 MOVE_CLEAR(local_status, sizeof (STATUS) * ISC_STATUS_LENGTH);
 
 if (client_dialect > SQL_DIALECT_CURRENT)
-    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -901, 
-	gds_arg_gds, gds__wish_list, 
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -901,
+	gds_arg_gds, gds__wish_list,
         0);
 
 if (!string_length)
@@ -3329,7 +3328,7 @@ message->msg_number = 1;
 #ifdef SCROLLABLE_CURSORS
 if (request->req_dbb->dbb_base_level >= 5)
     {
-    /* allocate a message in which to send scrolling information 
+    /* allocate a message in which to send scrolling information
        outside of the normal send/receive protocol */
 
     request->req_async = message = (MSG) ALLOCD (type_msg);
@@ -3340,7 +3339,7 @@ if (request->req_dbb->dbb_base_level >= 5)
 request->req_type = REQ_SELECT;
 request->req_flags &= ~(REQ_cursor_open | REQ_embedded_sql_cursor);
 
-/* 
+/*
  * No work is done during pass1 for set transaction - like
  * checking for valid table names.  This is because that will
  * require a valid transaction handle.
@@ -3353,7 +3352,7 @@ if (!node)
 
 /* stop here for requests not requiring code generation */
 
-if (request->req_type == REQ_DDL && stmt_ambiguous && 
+if (request->req_type == REQ_DDL && stmt_ambiguous &&
     request->req_dbb->dbb_db_SQL_dialect != client_dialect)
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -817,
 		gds_arg_gds, isc_ddl_not_allowed_by_db_sql_dial,
@@ -3397,7 +3396,7 @@ request->req_blr_string->str_length = 980;
 request->req_blr = request->req_blr_string->str_data;
 request->req_blr_yellow = request->req_blr + request->req_blr_string->str_length;
 
-/* Start transactions takes parameters via a parameter block. 
+/* Start transactions takes parameters via a parameter block.
    The request blr string is used for that. */
 
 if (request->req_type == REQ_START_TRANS)
@@ -3408,7 +3407,7 @@ if (request->req_type == REQ_START_TRANS)
 
 if (client_dialect > SQL_DIALECT_V5)
     request->req_flags |= REQ_blr_version5;
-else 
+else
     request->req_flags |= REQ_blr_version4;
 GEN_request (request, node);
 length = request->req_blr - request->req_blr_string->str_data;
@@ -3682,8 +3681,8 @@ for (par = message->msg_par_ordered; par; par = par->par_ordered)
 	    case dtype_sql_date:	sql_type = SQL_TYPE_DATE; break;
 	    case dtype_sql_time:	sql_type = SQL_TYPE_TIME; break;
 
-	    case dtype_double:	
-		sql_type = SQL_DOUBLE;	
+	    case dtype_double:
+		sql_type = SQL_DOUBLE;
 		sql_scale = par->par_desc.dsc_scale;
 		break;
 
@@ -3710,7 +3709,7 @@ for (par = message->msg_par_ordered; par; par = par->par_ordered)
 		    sql_type = SQL_SHORT;
 		else if (par->par_desc.dsc_dtype == dtype_long)
 		    sql_type = SQL_LONG;
-		else 
+		else
 		    sql_type = SQL_INT64;
 		sql_scale = par->par_desc.dsc_scale;
 		if (par->par_desc.dsc_sub_type)
@@ -3723,8 +3722,8 @@ for (par = message->msg_par_ordered; par; par = par->par_ordered)
 		break;
 
 	    default:
-                ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804, 
-                    gds_arg_gds, gds__dsql_datatype_err, 
+                ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -804,
+                    gds_arg_gds, gds__dsql_datatype_err,
                     0);
 	    }
 

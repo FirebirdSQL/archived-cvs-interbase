@@ -22,6 +22,10 @@
  * 2001.6.23 Claudio Valderrama: BLB_move_from_string to accept assignments
  * from string to blob field. First use was to allow inserting a literal string
  * in a blob field without requiring an UDF.
+ *
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 /*
 $Id$
@@ -123,7 +127,7 @@ void BLB_close (
  **************************************
  *
  * Functional description
- *      Close a blob.  If the blob is open for retrieval, release the 
+ *      Close a blob.  If the blob is open for retrieval, release the
  *      blob block.  If it's a temporary blob, flush out the last page
  *      (if necessary) in preparation for materialization.
  *
@@ -198,10 +202,8 @@ SET_TDBB (tdbb);
 dbb =  tdbb->tdbb_database;
 CHECK_DBB (dbb);
 
-#ifdef READONLY_DATABASE
 if (dbb->dbb_flags & DBB_read_only)
     ERR_post (isc_read_only_database, 0);
-#endif  /* READONLY_DATABASE */
 
 /* Create a blob large enough to hold a single data page */
 
@@ -227,7 +229,7 @@ else if (to == BLOB_text && (from_charset != to_charset))
 	from_charset = tdbb->tdbb_attachment->att_charset;
     if (to_charset == CS_dynamic)
 	to_charset = tdbb->tdbb_attachment->att_charset;
-    if ((to_charset != CS_NONE) && (from_charset != to_charset)) 
+    if ((to_charset != CS_NONE) && (from_charset != to_charset))
 	{
 	filter = (BLF) ALLOCP (type_blf);
 	filter->blf_filter = filter_transliterate_text;
@@ -237,7 +239,7 @@ else if (to == BLOB_text && (from_charset != to_charset))
 
 if (filter_required)
     {
-    if (BLF_create_blob (tdbb, transaction, &blob->blb_filter, 
+    if (BLF_create_blob (tdbb, transaction, &blob->blb_filter,
 			 blob_id, bpb_length, bpb, blob_filter, filter))
 	ERR_punt();
     blob->blb_flags |= BLB_temporary;
@@ -328,7 +330,7 @@ for (stack1 = going; stack1; stack1 = stack1->lls_next)
 		blob->bid_stuff.bid_number == blob2->bid_stuff.bid_number)
 		SET_NULL (rec2, id);
 	    }
-	
+
 	/* Make sure the blob doesn't stack in any record remaining */
 
 	for (stack2 = staying; stack2; stack2 = stack2->lls_next)
@@ -343,7 +345,7 @@ for (stack1 = going; stack1; stack1 = stack1->lls_next)
 	    }
 	if (stack2)
 	    continue;
-	
+
 	/* Get rid of blob */
 
 	delete_blob_id (tdbb, blob, prior_page, relation);
@@ -359,7 +361,7 @@ BLB BLB_get_array (
 {
 /**************************************
  *
- *      B L B _ g e t _ a r r a y 
+ *      B L B _ g e t _ a r r a y
  *
  **************************************
  *
@@ -416,7 +418,7 @@ p = (BLOB_PTR *)buffer;
 while (length > 0)
     {
     /* I have no idea why this limit is 32768 instead of 32767
-     * 1994-August-12 David Schnepper 
+     * 1994-August-12 David Schnepper
      */
     n = (USHORT) MIN (length, (SLONG) 32768);
     n = BLB_get_segment (tdbb, blob, p, n);
@@ -543,7 +545,7 @@ while (TRUE)
 
     /* If the blob is segmented, and this isn't a fragment, pick up
        the length of the next segment. */
-    
+
     if (SEGMENTED && !blob->blb_fragment_size)
 	{
 	while (length < 2)
@@ -575,7 +577,7 @@ while (TRUE)
 #endif
 	length -= 2;
 	}
-    
+
     /* Figure out how much data can be moved.  Then account for the
        space, and move the data */
 
@@ -595,7 +597,7 @@ while (TRUE)
 	MOVE_FASTER (from, to, l);
     to += l;
     from += l;
-    
+
     /* If we ran out of space in the data clump, and there is a next
        clump, get it. */
 
@@ -621,7 +623,7 @@ while (TRUE)
 
     /* If either the buffer or the fragment is exhausted, we're
        done. */
-    
+
     if (!buffer_length || (SEGMENTED && !blob->blb_fragment_size))
 	break;
     }
@@ -814,15 +816,15 @@ void DLL_EXPORT BLB_map_blobs (
  *
  * Functional description
  *      Form a mapping between two blobs.
- *      Since the blobs have been newly created 
+ *      Since the blobs have been newly created
  *      in this session, only the second part of
- *      the blob id is significant.  At the moment 
- *      this is intended solely for REPLAY, when 
+ *      the blob id is significant.  At the moment
+ *      this is intended solely for REPLAY, when
  *      replaying a log.
  *
  **************************************/
 DBB     dbb;
-MAP     new_map;          
+MAP     new_map;
 
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
@@ -834,7 +836,7 @@ new_map->map_new_blob = new_blob;
 
 new_map->map_next = dbb->dbb_blob_map;
 dbb->dbb_blob_map = new_map;
-}            
+}
 #endif
 
 void BLB_move (
@@ -926,7 +928,7 @@ if (relation->rel_view_rse)
 get_replay_blob (tdbb, source);
 #endif
 
-/* If the source is a permanent blob, then the blob must be copied. 
+/* If the source is a permanent blob, then the blob must be copied.
    Otherwise find the temporary blob referenced.  */
 
 array = NULL_PTR;
@@ -951,7 +953,7 @@ do {
 		break;
 		}
 
-    if (!blob || 
+    if (!blob ||
 	blob->blb_header.blk_type != (UCHAR) type_blb ||
 	blob->blb_attachment != tdbb->tdbb_attachment ||
 	!(blob->blb_flags & BLB_closed) ||
@@ -1096,7 +1098,7 @@ blob = allocate_blob (tdbb, transaction);
 
 #ifdef REPLAY_OSRI_API_CALLS_SUBSYSTEM
 /* for REPLAY, map blob id's from the original session */
-		   
+
 get_replay_blob (tdbb, blob_id);
 #endif
 
@@ -1125,7 +1127,7 @@ else if (to == BLOB_text && (from_charset != to_charset))
 
 if (filter_required)
     {
-    if (BLF_open_blob (tdbb, transaction, &control, 
+    if (BLF_open_blob (tdbb, transaction, &control,
 		blob_id, bpb_length, bpb, blob_filter, filter))
 	ERR_punt();
     blob->blb_filter = control;
@@ -1188,7 +1190,7 @@ if (!blob_id->bid_relation_id)
 	}
 
 /* Ordinarily, we would call MET_relation to get the relation id.
-   However, since the blob id must be consider suspect, this is 
+   However, since the blob id must be consider suspect, this is
    not a good idea.  On the other hand, if we don't already
    know about the relation, the blob id has got to be invalid
    anyway. */
@@ -1310,7 +1312,7 @@ if (length_flag && blob->blb_space_remaining >= 2)
     *p++ = segment_length >> 8;
 #else
     q = (UCHAR*) &segment_length;
-    *p++ = *q++; 
+    *p++ = *q++;
     *p++ = *q++;
 #endif
     blob->blb_space_remaining -= 2;
@@ -1374,7 +1376,7 @@ while (length_flag || segment_length)
     if (length_flag)
 	{
 	q = (UCHAR*) &segment_length;
-	*p++ = *q++; 
+	*p++ = *q++;
 	*p++ = *q++;
 	blob->blb_space_remaining -= 2;
 	length_flag = FALSE;
@@ -1423,7 +1425,7 @@ if (SDL_info (tdbb->tdbb_status_vector, sdl, &info, NULL_PTR))
 
 if (info.sdl_info_relation [0])
     relation = MET_lookup_relation (tdbb, info.sdl_info_relation);
-else 
+else
     relation = MET_relation (tdbb, info.sdl_info_rid);
 
 if (!relation)
@@ -1501,7 +1503,7 @@ arg.slice_direction = TRUE;                     /* storing INTO array */
 arg.slice_base = (BLOB_PTR *)array->arr_data;
 MOVE_FAST (param, variables, MIN (sizeof (variables), param_length));
 
-if (SDL_walk (tdbb->tdbb_status_vector, sdl, TRUE, array->arr_data, 
+if (SDL_walk (tdbb->tdbb_status_vector, sdl, TRUE, array->arr_data,
 	      &array_desc->arr_desc, variables, slice_callback, (void*) &arg))
     ERR_punt();
 
@@ -1718,7 +1720,7 @@ TDBB	tdbb;
    blob filter routines */
 
 tdbb = GET_THREAD_DATA;
-				     
+
 transaction = (TRA) control->ctl_internal[1];
 blob_id = (SLONG*) control->ctl_internal[2];
 
@@ -1736,7 +1738,7 @@ switch (action)
 	control->ctl_max_segment = blob->blb_max_segment;
 	control->ctl_number_segments = blob->blb_count;
 	return SUCCESS;
-    
+
     case ACTION_get_segment:
 	blob = (BLB) control->ctl_source_handle;
 	control->ctl_segment_length = BLB_get_segment (tdbb, blob, control->ctl_buffer, control->ctl_buffer_length);
@@ -1749,7 +1751,7 @@ switch (action)
     case ACTION_create:
 	control->ctl_source_handle = (CTL) BLB_create2 (tdbb, transaction, blob_id, 0, (UCHAR*) 0);
 	return SUCCESS;
-    
+
     case ACTION_put_segment:
 	blob = (BLB) control->ctl_source_handle;
 	BLB_put_segment (tdbb, blob, control->ctl_buffer, control->ctl_buffer_length);
@@ -1811,7 +1813,7 @@ static void check_BID_validity (
  *
  **************************************/
 
-if (!blob || 
+if (!blob ||
      blob->blb_header.blk_type != (UCHAR) type_blb ||
      blob->blb_attachment != tdbb->tdbb_attachment ||
      blob->blb_level > 2 ||
@@ -1925,10 +1927,8 @@ SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
 CHECK_DBB (dbb);
 
-#ifdef READONLY_DATABASE
 if (dbb->dbb_flags & DBB_read_only)
     ERR_post (isc_read_only_database, 0);
-#endif  /* READONLY_DATABASE */
 
 /* Level 0 blobs don't need cleanup */
 
@@ -2125,7 +2125,7 @@ if (blob->blb_level == 1)
     {
 #ifdef SUPERSERVER_V2
     /* Perform prefetch of blob level 1 data pages. */
-	       
+
     if (!(blob->blb_sequence % dbb->dbb_prefetch_sequence))
 	{
 	sequence = blob->blb_sequence;
@@ -2140,12 +2140,12 @@ if (blob->blb_level == 1)
     }
 else
     {
-    window->win_page = 
+    window->win_page =
 	vector->vcl_long [blob->blb_sequence / blob->blb_pointers];
     page = (BLP) CCH_FETCH (tdbb, window, LCK_read, pag_blob);
 #ifdef SUPERSERVER_V2
     /* Perform prefetch of blob level 2 data pages. */
-	       
+
     sequence = blob->blb_sequence % blob->blb_pointers;
     if (!(sequence % dbb->dbb_prefetch_sequence))
 	{
@@ -2161,7 +2161,7 @@ else
 	CCH_PREFETCH (tdbb, pages, i);
 	}
 #endif
-    page = (BLP) CCH_HANDOFF (tdbb, window, 
+    page = (BLP) CCH_HANDOFF (tdbb, window,
 	page->blp_page [blob->blb_sequence % blob->blb_pointers],
 	LCK_read, pag_blob);
     }
@@ -2205,7 +2205,7 @@ if (blob_id->bid_relation_id != 0)
 /* search the linked list for the old blob id */
 
 for (map_ptr = dbb->dbb_blob_map; map_ptr; map_ptr = map_ptr->map_next)
-    {   
+    {
 #ifndef DECOSF
     if (blob_id->bid_stuff.bid_blob == map_ptr->map_old_blob)
 #else
@@ -2220,7 +2220,7 @@ for (map_ptr = dbb->dbb_blob_map; map_ptr; map_ptr = map_ptr->map_next)
 	break;
 	}
     }
-}            
+}
 #endif
 
 static void insert_page (
@@ -2428,7 +2428,7 @@ if (arg->slice_direction)
 	USHORT  tmp_len;
 	TDBB    tdbb;
 
-	/* Note: cannot remove this GET_THREAD_DATA without api change 
+	/* Note: cannot remove this GET_THREAD_DATA without api change
 	   to slice callback routines */
 	tdbb = GET_THREAD_DATA;
 
@@ -2452,7 +2452,7 @@ else
     /* FROM array_desc TO slice_desc */
 
     /* If the element is under the high-water mark, fetch it,
-     * otherwise just zero it 
+     * otherwise just zero it
      */
     if ((BLOB_PTR *)array_desc->dsc_address < (BLOB_PTR *)arg->slice_high_water)
 	{

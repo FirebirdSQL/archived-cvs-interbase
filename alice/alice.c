@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -32,7 +35,7 @@
 #include "../jrd/msg_encode.h"
 #include "../alice/alice.h"
 #include "../alice/aliceswi.h"
-#include "../alice/all.h" 
+#include "../alice/all.h"
 #include "../alice/alice_proto.h"
 #include "../alice/all_proto.h"
 #include "../alice/exe_proto.h"
@@ -256,7 +259,7 @@ if (SETJMP (env))
 
     /* All calls to EXIT(), normal and error exits, wind up here */
 
-    SVC_STARTED(tdgbl->service_blk); 
+    SVC_STARTED(tdgbl->service_blk);
     tdgbl->alice_env = NULL;
     exit_code = tdgbl->exit_code;
 
@@ -392,7 +395,7 @@ while (--argc > 0)
 	}
     if (error)
 	break;
-    if (*table->in_sw_name == 'x')                                          
+    if (*table->in_sw_name == 'x')
 	tdgbl->ALICE_data.ua_debug++;
     if (table->in_sw_value == sw_z)
 	ALICE_print (3, GDS_VERSION, 0,0,0,0); /* msg 3: gfix version %s */
@@ -441,12 +444,12 @@ while (--argc > 0)
 
 	ALICE_down_case (*argv++, string);
 
-        if ((!(tdgbl->ALICE_data.ua_db_SQL_dialect = atoi (string))) && 
+        if ((!(tdgbl->ALICE_data.ua_db_SQL_dialect = atoi (string))) &&
 	    (strcmp (string, "0")))
             ALICE_error (7,0,0,0,0,0); /* msg 7: numeric value required */
 
         if (tdgbl->ALICE_data.ua_db_SQL_dialect < 0)
-            ALICE_error (8,0,0,0,0,0); /* msg 8: positive numeric value 
+            ALICE_error (8,0,0,0,0,0); /* msg 8: positive numeric value
 								required */
 	}
 
@@ -522,7 +525,6 @@ while (--argc > 0)
             ALICE_error (18,0,0,0,0,0); /* msg 18: numeric value between 0 and 32767 inclusive required */
 	}
 
-#ifdef READONLY_DATABASE
     if (table->in_sw_value & sw_mode)
 	{
 	if (--argc <= 0)
@@ -535,9 +537,6 @@ while (--argc > 0)
 	else
 	    ALICE_error (110,0,0,0,0,0); /* msg 110: "read_only" or "read_write" required */
 	}
-#endif
-
-    }
 
 /* put this here since to put it above overly complicates the parsing */
 /* can't use tbl_requires since it only looks backwards on command line */
@@ -603,7 +602,7 @@ else
 
 	for (i = 0; i < MAX_VAL_ERRORS; i++)
 	    if (tdgbl->ALICE_data.ua_val_errors [i])
-		ALICE_print (val_err_table [i], 
+		ALICE_print (val_err_table [i],
 			     tdgbl->ALICE_data.ua_val_errors [i],
 			     0,0,0,0);
 	}
@@ -613,7 +612,7 @@ if (ret == FINI_ERROR)
     ALICE_print_status (tdgbl->status);
 
 EXIT (FINI_OK);
-}  
+}
 
 void ALICE_down_case (
     TEXT	*in,
@@ -633,7 +632,7 @@ TEXT	c;
 
 while (c = *in++)
     *out++ = (c >= 'A' && c <= 'Z') ? c - 'A' + 'a' : c;
-    
+
 *out = 0;
 }
 
@@ -661,7 +660,7 @@ gds__msg_format (NULL_PTR, ALICE_MSG_FAC, number, sizeof (buffer), buffer, arg1,
 		 arg2, arg3, arg4, arg5);
 TRANSLATE_CP(buffer);
 alice_output ("%s\n", buffer);
-}  
+}
 
 void ALICE_print_status (
     STATUS	*status_vector)
@@ -755,7 +754,7 @@ gds__msg_format (NULL_PTR, ALICE_MSG_FAC, number, sizeof (buffer), buffer, arg1,
 TRANSLATE_CP(buffer);
 alice_output ("%s\n", buffer);
 EXIT (FINI_ERROR);
-}  
+}
 
 static void alice_output (
     CONST SCHAR *format,

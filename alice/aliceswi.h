@@ -15,6 +15,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 #ifndef	_ALICE_ALICESWI_H_
 #define	_ALICE_ALICESWI_H_
@@ -25,37 +28,37 @@
 /* switch definitions */
 
 #define sw_list		       0x1L		/* Byte 0, Bit 0 */
-#define sw_prompt	       0x2L		
-#define sw_commit	       0x4L		
-#define sw_rollback	       0x8L		
-#define sw_sweep	      0x10L		
-#define sw_validate	      0x20L		
-#define sw_no_update	      0x40L		
-#define sw_full		      0x80L		
+#define sw_prompt	       0x2L
+#define sw_commit	       0x4L
+#define sw_rollback	       0x8L
+#define sw_sweep	      0x10L
+#define sw_validate	      0x20L
+#define sw_no_update	      0x40L
+#define sw_full		      0x80L
 #define sw_mend		     0x100L		/* Byte 1, Bit 0 */
-#define sw_all		     0x200L		
-#define sw_enable	     0x400L		
-#define sw_disable	     0x800L		
-#define sw_ignore	    0x1000L		
-#define sw_activate	    0x2000L		
-#define sw_two_phase	    0x4000L		
-#define sw_housekeeping	    0x8000L		
+#define sw_all		     0x200L
+#define sw_enable	     0x400L
+#define sw_disable	     0x800L
+#define sw_ignore	    0x1000L
+#define sw_activate	    0x2000L
+#define sw_two_phase	    0x4000L
+#define sw_housekeeping	    0x8000L
 #define sw_kill		   0x10000L		/* Byte 2, Bit 0 */
-#define sw_begin_log	   0x20000L		
-#define sw_quit_log	   0x40000L		
-#define sw_write	   0x80000L		
-#define sw_use		  0x100000L		
-#define sw_user		  0x200000L		
-#define sw_password	  0x400000L		
-#define sw_shut		  0x800000L		
+#define sw_begin_log	   0x20000L
+#define sw_quit_log	   0x40000L
+#define sw_write	   0x80000L
+#define sw_use		  0x100000L
+#define sw_user		  0x200000L
+#define sw_password	  0x400000L
+#define sw_shut		  0x800000L
 #define sw_online	 0x1000000L		/* Byte 3, Bit 0 */
-#define sw_cache	 0x2000000L		
-#define sw_attach	 0x4000000L		
-#define sw_force	 0x8000000L		
-#define sw_tran		0x10000000L		
-#define sw_buffers	0x20000000L		
-#define sw_mode		0x40000000L		
-#define sw_set_db_dialect	0x80000000L		
+#define sw_cache	 0x2000000L
+#define sw_attach	 0x4000000L
+#define sw_force	 0x8000000L
+#define sw_tran		0x10000000L
+#define sw_buffers	0x20000000L
+#define sw_mode		0x40000000L
+#define sw_set_db_dialect	0x80000000L
 #define sw_z		       0x0L
 
 #define SW_MEND         sw_mend | sw_validate | sw_full
@@ -158,12 +161,12 @@ static struct in_sw_tab_t alice_in_sw_table [] = {
     IN_SW_ALICE_MEND,		isc_spb_rpr_mend_db,	"mend", 	SW_MEND,
 	0,	 	~sw_no_update, 	FALSE,	38, 0, NULL,
 	/* msg 38: \t-mend\t\tprepare corrupt database for backup */
-#ifdef READONLY_DATABASE
-    IN_SW_ALICE_MODE,	0,		"mode",		sw_mode,
+
+    IN_SW_ALICE_MODE,   0,      "mode",     sw_mode,
 	0,		~sw_mode,	FALSE,	109, 0, NULL,
 	/* msg 109: \t-mode\t\tread_only or read_write */
-#endif  /* READONLY_DATABASE */
-    IN_SW_ALICE_NO_UPDATE,	isc_spb_rpr_check_db,	"no_update",	sw_no_update,
+
+    IN_SW_ALICE_NO_UPDATE,  isc_spb_rpr_check_db,   "no_update",    sw_no_update,
 	sw_validate,	0,		FALSE,	39, 0, NULL,
 	/* msg 39: \t-no_update\tread-only validation (-v) */
     IN_SW_ALICE_ONLINE,		isc_spb_prp_db_online,	"online",	sw_online,
@@ -190,8 +193,8 @@ static struct in_sw_tab_t alice_in_sw_table [] = {
 	0,
 	0,
 	FALSE,
-	111, 
-	0, 
+	111,
+	0,
 	NULL,
 	/* msg 111: \t-SQL_dialect\t\set dataabse dialect n */
     IN_SW_ALICE_SWEEP,		isc_spb_rpr_sweep_db,	"sweep", 	sw_sweep,
@@ -243,10 +246,8 @@ static struct in_sw_tab_t alice_in_sw_table [] = {
     IN_SW_ALICE_HIDDEN_FORCE,	isc_spb_prp_shutdown_db,	"shut -force",	0,	0,	0,	FALSE,	0,	0,	NULL,
     IN_SW_ALICE_HIDDEN_TRAN,	isc_spb_prp_deny_new_transactions,	"shut -tran",	0,	0,	0,	FALSE,	0,	0,	NULL,
     IN_SW_ALICE_HIDDEN_ATTACH,	isc_spb_prp_deny_new_attachments,	"shut -attach",	0,	0,	0,	FALSE,	0,	0,	NULL,
-#ifdef READONLY_DATABASE
     IN_SW_ALICE_HIDDEN_RDONLY,	isc_spb_prp_am_readonly,	"mode read_only",	0,	0,	0,	FALSE,	0,	0,	NULL,
     IN_SW_ALICE_HIDDEN_RDWRITE,	isc_spb_prp_am_readwrite,	"mode read_write",	0,	0,	0,	FALSE,	0,	0,	NULL,
-#endif  /* READONLY_DATABASE */
 /************************************************************************/
     IN_SW_ALICE_0,		0,	NULL,		0,
 	0,		0,		FALSE,	0, 0, NULL

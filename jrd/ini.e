@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #include <stdio.h>
@@ -35,7 +38,7 @@
 #include "../jrd/intl.h"
 #include "../jrd/dflt.h"
 #include "../jrd/constants.h"
-#include "../jrd/ini.h" 
+#include "../jrd/ini.h"
 #include "../jrd/idx.h"
 #include "../jrd/gdsassert.h"
 #include "../jrd/all_proto.h"
@@ -462,7 +465,7 @@ DBB     dbb;
 
 tdbb = GET_THREAD_DATA;
 dbb  = tdbb->tdbb_database;
- 
+
 major_version  = (SSHORT) dbb->dbb_ods_version;
 minor_original = (SSHORT) dbb->dbb_minor_original;
 vector         = dbb->dbb_relations;
@@ -580,10 +583,10 @@ void INI_update_database (void)
  **************************************
  *
  * Functional description
- *	Perform changes to ODS that were required 
+ *	Perform changes to ODS that were required
  *	since ODS 8 and are dynamically updatable.
  *
- * %% Note %% Update the switch() statement to reflect new major ODS 
+ * %% Note %% Update the switch() statement to reflect new major ODS
  *            addition
  **************************************/
 DBB	dbb;
@@ -596,11 +599,9 @@ tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 CHECK_DBB (dbb);
 
-#ifdef READONLY_DATABASE
 /* If database is ReadOnly, return without upgrading ODS */
 if (dbb->dbb_flags & DBB_read_only)
     return;
-#endif
 
 /* check out the update version to see if we have work to do */
 
@@ -616,7 +617,7 @@ if (ENCODE_ODS (major_version, minor_version) >= ODS_CURRENT_VERSION)
     return;
 
 /*******************************************************************
-** when new engine is attaching an older ODS database 
+** when new engine is attaching an older ODS database
 **   perform the necessary modifications
 ********************************************************************/
 
@@ -649,23 +650,23 @@ window.win_flags = 0;
 header= (HDR) CCH_FETCH (tdbb, &window, LCK_write, pag_header);
 CCH_MARK (tdbb, &window);
 
-/* Only minor upgrades can occur within a major ODS, define which one   
+/* Only minor upgrades can occur within a major ODS, define which one
    occured here. */
-switch (major_version) 
+switch (major_version)
     {
-    case ODS_VERSION8: 
-        header->hdr_ods_minor = ODS_CURRENT8; 
+    case ODS_VERSION8:
+        header->hdr_ods_minor = ODS_CURRENT8;
         break;
-    case ODS_VERSION9: 
-        header->hdr_ods_minor = ODS_CURRENT9; 
+    case ODS_VERSION9:
+        header->hdr_ods_minor = ODS_CURRENT9;
         break;
-    case ODS_VERSION10: 
-        header->hdr_ods_minor = ODS_CURRENT10; 
+    case ODS_VERSION10:
+        header->hdr_ods_minor = ODS_CURRENT10;
         break;
-    default: 
+    default:
         /* Make sure we add a new case per new major ODS. Look at code above */
         assert (FALSE);
-        header->hdr_ods_minor = minor_version; 
+        header->hdr_ods_minor = minor_version;
         break;
     }
 
@@ -701,7 +702,7 @@ tdbb = GET_THREAD_DATA;
 
 for (generator = generators; strcmp (generator->gen_name, generator_name); generator++)
     ;
- 
+
 store_generator (tdbb, generator, handle);
 }
 
@@ -781,12 +782,12 @@ for (n = 0; n < SYSTEM_INDEX_COUNT; n++)
     index = &indices [n];
 
     /* For minor ODS updates, only add indices newer than on-disk ODS */
-    if (update_ods && 
-	  ((index->ini_idx_version_flag 
+    if (update_ods &&
+	  ((index->ini_idx_version_flag
 		<= ENCODE_ODS (major_version, minor_version)) ||
 	   (index->ini_idx_version_flag > ODS_CURRENT_VERSION) ||
 	   (((USHORT) DECODE_ODS_MAJOR(index->ini_idx_version_flag)) != major_version)))
-	/* The DECODE_ODS_MAJOR() is used (in this case) to instruct the server 
+	/* The DECODE_ODS_MAJOR() is used (in this case) to instruct the server
 	   to perform updates for minor ODS versions only within a major ODS */
 	continue;
 
@@ -803,7 +804,7 @@ for (n = 0; n < SYSTEM_INDEX_COUNT; n++)
 	 /* Store each segment for the index */
 
 	for (position = 0, tail = idx.idx_rpt;
-	     position < index->ini_idx_segment_count; 
+	     position < index->ini_idx_segment_count;
 	     position++, tail++)
 	    {
 	    segment = &index->ini_idx_segment [position];
@@ -840,9 +841,9 @@ static void add_new_triggers (
  **************************************
  *
  * Functional description
- *	Store all new ODS 8.x (x > 0) triggers. 
+ *	Store all new ODS 8.x (x > 0) triggers.
  *      The major and minor_version passed in are the ODS versions
- *      before the ODS is upgraded. 
+ *      before the ODS is upgraded.
  *	This routine is used to upgrade ODS versions.
  *
  **************************************/
@@ -941,7 +942,7 @@ static void add_security_to_sys_rel (
  *
  * Functional description
  *
- *      Add security to system relations. Only the owner of the 
+ *      Add security to system relations. Only the owner of the
  *      database has SELECT/INSERT/UPDATE/DELETE privileges on
  *      any system relations. Any other users only has SELECT
  *      privilege.
@@ -1091,7 +1092,7 @@ tdbb = GET_THREAD_DATA;
 
 for (trigger = triggers; strcmp (trigger->trg_name, trigger_name); trigger++)
     ;
- 
+
 store_trigger (tdbb, trigger, handle1);
 
 /* Look for any related trigger messages */
@@ -1114,7 +1115,7 @@ static void modify_relation_field (
  **************************************
  *
  * Functional description
- *	Modify a local field according to the 
+ *	Modify a local field according to the
  *	passed information.  Note that the field id and
  *	field position do not change.
  *
@@ -1148,7 +1149,7 @@ static void store_generator (
  **************************************
  *
  * Functional description
- *	Store the passed generator according to 
+ *	Store the passed generator according to
  *	the information in the generator block.
  *
  **************************************/
@@ -1176,7 +1177,7 @@ static void store_global_field (
  **************************************
  *
  * Functional description
- *	Store a global field according to the 
+ *	Store a global field according to the
  *	passed information.
  *
  **************************************/
@@ -1228,9 +1229,9 @@ STORE (REQUEST_HANDLE *handle) X IN RDB$FIELDS
 		X.RDB$FIELD_TYPE = (int) blr_short;
 	    else if (gfield->gfld_dtype == dtype_long)
 		X.RDB$FIELD_TYPE = (int) blr_long;
-	    else 
+	    else
 		X.RDB$FIELD_TYPE = (int) blr_int64;
-	    if ((gfield->gfld_sub_type == dsc_num_type_numeric) || 
+	    if ((gfield->gfld_sub_type == dsc_num_type_numeric) ||
 		(gfield->gfld_sub_type == dsc_num_type_decimal))
 		{
 	        X.RDB$FIELD_SUB_TYPE.NULL = FALSE;
@@ -1296,7 +1297,7 @@ static void store_intlnames (
 {
 /**************************************
  *
- *	s t o r e _ i n t l n a m e s 
+ *	s t o r e _ i n t l n a m e s
  *
  **************************************
  *
@@ -1329,7 +1330,7 @@ handle = NULL;
 for (collptr = coll_types; collptr->init_collation_name; collptr++)
     {
     STORE (REQUEST_HANDLE handle) X IN RDB$COLLATIONS USING
-	PAD (collptr->init_collation_name, X.RDB$COLLATION_NAME); 
+	PAD (collptr->init_collation_name, X.RDB$COLLATION_NAME);
 	X.RDB$CHARACTER_SET_ID = collptr->init_collation_charset;
 	X.RDB$COLLATION_ID     = collptr->init_collation_id;
 	X.RDB$SYSTEM_FLAG = RDB_system;
@@ -1365,7 +1366,7 @@ dbb = tdbb->tdbb_database;
 STORE (REQUEST_HANDLE *handle) X IN RDB$TRIGGER_MESSAGES
    PAD (message->trigmsg_name, X.RDB$TRIGGER_NAME);
    X.RDB$MESSAGE_NUMBER = message->trigmsg_number;
-   PAD (message->trigmsg_text, X.RDB$MESSAGE);   
+   PAD (message->trigmsg_text, X.RDB$MESSAGE);
 END_STORE;
 }
 
@@ -1384,7 +1385,7 @@ static void store_relation_field (
  **************************************
  *
  * Functional description
- *	Store a local field according to the 
+ *	Store a local field according to the
  *	passed information.
  *
  **************************************/
@@ -1419,7 +1420,7 @@ static void store_trigger (
  **************************************
  *
  * Functional description
- *	Store the trigger according to the 
+ *	Store the trigger according to the
  *	information in the trigger block.
  *
  **************************************/

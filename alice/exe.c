@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -29,7 +32,7 @@
 #include "../jrd/ibsetjmp.h"
 #include "../alice/alice.h"
 #include "../alice/aliceswi.h"
-#include "../alice/all.h" 
+#include "../alice/all.h"
 #include "../alice/all_proto.h"
 #include "../alice/met_proto.h"
 #include "../alice/tdr_proto.h"
@@ -48,10 +51,10 @@
 static USHORT build_dpb (UCHAR *, ULONG);
 static void extract_db_info (UCHAR *);
 
-static TEXT             val_errors [] = { 
+static TEXT             val_errors [] = {
 	isc_info_page_errors, isc_info_record_errors, isc_info_bpage_errors,
 	isc_info_dpage_errors, isc_info_ipage_errors, isc_info_ppage_errors,
-	isc_info_tpage_errors, gds__info_end 
+	isc_info_tpage_errors, gds__info_end
 	};
 
 #ifndef MAXPATHLEN
@@ -85,7 +88,7 @@ TGBL	tdgbl;
 tdgbl = GET_THREAD_DATA;
 
 ALLA_init();
-        
+
 for (i = 0; i < MAX_VAL_ERRORS; i++)
     tdgbl->ALICE_data.ua_val_errors [i] = 0;
 
@@ -95,7 +98,7 @@ for (i = 0; i < MAX_VAL_ERRORS; i++)
 dpb_length = build_dpb (dpb, switches);
 
 error = FALSE;
-handle = NULL;                               
+handle = NULL;
 gds__attach_database (tdgbl->status,
 	0,
 	GDS_VAL (database),
@@ -105,7 +108,7 @@ gds__attach_database (tdgbl->status,
 
 SVC_STARTED(tdgbl->service_blk);
 
-if (tdgbl->status [1]) 
+if (tdgbl->status [1])
     error = TRUE;
 
 if (tdgbl->status[2] == isc_arg_warning)
@@ -127,14 +130,14 @@ if (handle != NULL)
 
     if (switches & sw_disable)
 	MET_disable_wal (tdgbl->status, handle);
-   
+
     gds__detach_database (tdgbl->status, GDS_REF (handle));
     }
 
 ALLA_fini();
 
 return ((error) ? FINI_ERROR : FINI_OK);
-}  
+}
 
 #ifndef GUI_TOOLS
 int EXE_two_phase (
@@ -159,7 +162,7 @@ TGBL	tdgbl;
 tdgbl = GET_THREAD_DATA;
 
 ALLA_init();
-        
+
 for (i = 0; i < MAX_VAL_ERRORS; i++)
     tdgbl->ALICE_data.ua_val_errors [i] = 0;
 
@@ -169,7 +172,7 @@ for (i = 0; i < MAX_VAL_ERRORS; i++)
 dpb_length = build_dpb (dpb, switches);
 
 error = FALSE;
-handle = NULL;                               
+handle = NULL;
 gds__attach_database (tdgbl->status,
 	0,
 	GDS_VAL (database),
@@ -179,7 +182,7 @@ gds__attach_database (tdgbl->status,
 
 SVC_STARTED(tdgbl->service_blk);
 
-if (tdgbl->status [1]) 
+if (tdgbl->status [1])
     error = TRUE;
 else if (switches & sw_list)
     TDR_list_limbo (handle, database, switches);
@@ -192,7 +195,7 @@ if (handle)
 ALLA_fini();
 
 return ((error) ? FINI_ERROR : FINI_OK);
-}  
+}
 #endif  /* GUI_TOOLS */
 
 
@@ -208,8 +211,8 @@ static USHORT build_dpb (
  *
  * Functional description
  *
- * generate the database parameter block for the attach, 
- * based on the various switches 
+ * generate the database parameter block for the attach,
+ * based on the various switches
  *
  **************************************/
 UCHAR	*d;
@@ -226,7 +229,7 @@ d = dpb;
 *d++ = 0;
 
 if (switches & sw_sweep)
-    {                            
+    {
     *d++ = gds__dpb_sweep;
     *d++ = 1;
     *d++ = gds__dpb_records;
@@ -293,19 +296,17 @@ else if (switches & sw_write)
     *d++ = tdgbl->ALICE_data.ua_force;
     }
 else if (switches & sw_use)
-    {   
+    {
     *d++ = gds__dpb_no_reserve;
     *d++ = 1;
     *d++ = tdgbl->ALICE_data.ua_use;
     }
-#ifdef READONLY_DATABASE
 else if (switches & sw_mode)
-    {   
+    {
     *d++ = isc_dpb_set_db_readonly;
     *d++ = 1;
     *d++ = tdgbl->ALICE_data.ua_read_only;
     }
-#endif  /* READONLY_DATABASE */
 else if (switches & sw_shut)
     {
     *d++ = gds__dpb_shutdown;
@@ -338,12 +339,12 @@ else if (switches & sw_disable)
     *d++ = isc_dpb_disable_wal;
     *d++ = 0;
     }
-else if (switches & (sw_list | sw_commit | sw_rollback | sw_two_phase)) 
+else if (switches & (sw_list | sw_commit | sw_rollback | sw_two_phase))
     {
     *d++ = gds__dpb_no_garbage_collect;
     *d++ = 0;
     }
-else if (switches & sw_set_db_dialect ) 
+else if (switches & sw_set_db_dialect )
     {
     STUFF_DPB (isc_dpb_set_db_sql_dialect);
     STUFF_DPB (4);
@@ -374,7 +375,7 @@ if (dpb_length == 1)
     dpb_length = 0;
 
 return dpb_length;
-}  
+}
 
 static void extract_db_info (
     UCHAR	*db_info_buffer)

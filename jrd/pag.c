@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 /*
@@ -70,11 +73,7 @@
 static void	find_clump_space (SLONG, WIN *, PAG *, USHORT, SSHORT, UCHAR *, USHORT);
 static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR **);
 
-#ifdef READONLY_DATABASE
 #define ERR_POST_IF_DATABASE_IS_READONLY(dbb)	{if (dbb->dbb_flags & DBB_read_only) ERR_post (isc_read_only_database, 0);}
-#else
-#define ERR_POST_IF_DATABASE_IS_READONLY
-#endif  /* READONLY_DATABASE */
 
 /*  This macro enables the ability of the engine to connect to databases
  *  from ODS 8 up to the latest.  If this macro is undefined, the engine
@@ -107,7 +106,7 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
 	   21             FreeBSD/i386
 	   22             NetBSD/i386
        23		Darwin on PowerPC
-       
+
 */
 
 #ifdef APOLLO
@@ -310,7 +309,7 @@ else
 
 while (mode != CLUMP_ADD)
     {
-    found = find_type (page_num, &window, &page, LCK_write, type, 
+    found = find_type (page_num, &window, &page, LCK_write, type,
 		       &entry_p, &clump_end);
 
     /* If we did'nt find it and it is REPLACE_ONLY, return */
@@ -340,14 +339,14 @@ while (mode != CLUMP_ADD)
 		CCH_MARK (tdbb, &window);
 	    do *entry_p++ = *r++; while (--l);
 
-	    if (dbb->dbb_wal) 
+	    if (dbb->dbb_wal)
 		CCH_journal_page (tdbb, &window);
 	    }
 	CCH_RELEASE (tdbb, &window);
 	return TRUE;
 	}
 
-    /* delete the entry 
+    /* delete the entry
 
      * Page is marked must write because of precedence problems.  Later
      * on we may allocate a new page and set up a precedence relationship.
@@ -364,7 +363,7 @@ while (mode != CLUMP_ADD)
     if (l)
 	do *entry_p++ = *r++; while (--l);
 
-    if (dbb->dbb_wal) 
+    if (dbb->dbb_wal)
 	CCH_journal_page (tdbb, &window);
 
     CCH_RELEASE (tdbb, &window);
@@ -476,20 +475,20 @@ else
 
 if (file->fil_min_page)
     {
-    PAG_add_header_entry (header, HDR_file, strlen (file_name), 
+    PAG_add_header_entry (header, HDR_file, strlen (file_name),
 						(UCHAR *) file_name);
     PAG_add_header_entry (header, HDR_last_page, sizeof (SLONG),
 						 (UCHAR *) &start);
     }
 else
     {
-    PAG_add_clump (HEADER_PAGE, HDR_file, strlen (file_name), 
+    PAG_add_clump (HEADER_PAGE, HDR_file, strlen (file_name),
 		  (UCHAR *) file_name, CLUMP_REPLACE, 1);
     PAG_add_clump (HEADER_PAGE, HDR_last_page, sizeof (SLONG),
 		  (UCHAR *) &start, CLUMP_REPLACE, 1);
     }
 
-if (dbb->dbb_wal) 
+if (dbb->dbb_wal)
     {
     if (!(file->fil_min_page))
         CCH_journal_page (tdbb, &window);
@@ -501,7 +500,7 @@ if (dbb->dbb_wal)
     journal.jrnf_length = strlen (file_name);
     tdbb->tdbb_status_vector [1] = 0;
 
-    AIL_put (dbb, tdbb->tdbb_status_vector, &journal, JRNF_SIZE, file_name, 
+    AIL_put (dbb, tdbb->tdbb_status_vector, &journal, JRNF_SIZE, file_name,
 	     journal.jrnf_length, 0, 0, &seqno, &offset);
 #endif
     if (tdbb->tdbb_status_vector [1])
@@ -556,7 +555,7 @@ q = entry;
 for (p = header->hdr_data; ((*p != HDR_end) && (*p != type)); p += 2 + p [1])
     ;
 
-if (*p != HDR_end) 
+if (*p != HDR_end)
     return FALSE;
 
 /* We are at HDR_end, add the entry */
@@ -566,7 +565,7 @@ free_space = dbb->dbb_page_size - header->hdr_end;
 if (free_space > (2 + len))
     {
     *p++ = type;
-    *p++ = len; 
+    *p++ = len;
 
     if (len)
 	{
@@ -625,7 +624,7 @@ pip_window.win_flags = 0;
 
 for (sequence = control->pgc_high_water;; sequence++)
     {
-    pip_window.win_page = (sequence == 0) ? 
+    pip_window.win_page = (sequence == 0) ?
 	control->pgc_pip : sequence * control->pgc_ppp - 1;
     pip_page = (PIP) CCH_FETCH (tdbb, &pip_window, LCK_write, pag_pages);
     end = (UCHAR*) pip_page + dbb->dbb_page_size;
@@ -671,7 +670,7 @@ if (relative_bit != control->pgc_ppp - 1)
     {
     CCH_RELEASE (tdbb, &pip_window);
     CCH_precedence (tdbb, window, pip_window.win_page);
-#ifdef VIO_DEBUG 
+#ifdef VIO_DEBUG
 if (debug_flag > DEBUG_WRITES_INFO)
     ib_printf ("\tPAG_allocate:  allocated page %d\n", window->win_page);
 #endif
@@ -732,14 +731,12 @@ if (attachment->att_id_lock)
 
 /* Get new attachment id */
 
-#ifdef READONLY_DATABASE
 if (dbb->dbb_flags & DBB_read_only)
     {
     attachment->att_attachment_id = ++dbb->dbb_attachment_id;
     }
 else
     {
-#endif  /* READONLY_DATABASE */
     window.win_page = HEADER_PAGE;
     header= (HDR) CCH_FETCH (tdbb, &window, LCK_write, pag_header);
     CCH_MARK (tdbb, &window);
@@ -747,15 +744,13 @@ else
 
     /* If journalling is enabled, journal the change */
     if (dbb->dbb_wal)
-	{
-	record.jrnda_type   = JRNP_DB_ATTACHMENT;
-	record.jrnda_data   = header->hdr_attachment_id;
-	CCH_journal_record (tdbb, &window, &record, JRNDA_SIZE, NULL_PTR, 0);
-	}
+        {
+        record.jrnda_type   = JRNP_DB_ATTACHMENT;
+        record.jrnda_data   = header->hdr_attachment_id;
+        CCH_journal_record (tdbb, &window, &record, JRNDA_SIZE, NULL_PTR, 0);
+        }
     CCH_RELEASE (tdbb, &window);
-#ifdef READONLY_DATABASE
     }
-#endif  /* READONLY_DATABASE */
 
 /* Take out lock on attachment id */
 
@@ -981,7 +976,7 @@ int PAG_get_clump (
  *		TRUE  - Found it
  *		FALSE - Not present
  *	RETURNS
- *		value of clump in entry 
+ *		value of clump in entry
  *		length in len
  *
  **************************************/
@@ -1049,7 +1044,7 @@ dbb = tdbb->tdbb_database;
    and set up to release it in case of error; note
    that dbb_page_size has not been set yet, so we
    can't depend on this.
-   
+
    Make sure that buffer is aligned on a page boundary
    and unit of transfer is a multiple of physical disk
    sector for raw disk access. */
@@ -1071,41 +1066,41 @@ PIO_header (dbb, temp_page, MIN_PAGE_SIZE);
 
 if (header->hdr_header.pag_type != pag_header ||
     header->hdr_sequence)
-    ERR_post (gds__bad_db_format, 
+    ERR_post (gds__bad_db_format,
 	gds_arg_cstring, file_length, ERR_string(file_name, file_length), 0);
 
 #ifdef ODS_8_TO_CURRENT
-/* This Server understands ODS greater than 8 *ONLY* upto current major 
+/* This Server understands ODS greater than 8 *ONLY* upto current major
    ODS_VERSION defined in ods.h, Refuse connections to older or newer ODS's */
-if ((header->hdr_ods_version < ODS_VERSION8) || (header->hdr_ods_version > ODS_VERSION)) 
+if ((header->hdr_ods_version < ODS_VERSION8) || (header->hdr_ods_version > ODS_VERSION))
 #else
 if (header->hdr_ods_version != ODS_VERSION)
 #endif
-    ERR_post (gds__wrong_ods, 
+    ERR_post (gds__wrong_ods,
 	gds_arg_cstring, file_length,  ERR_string(file_name, file_length),
 	gds_arg_number, (SLONG) header->hdr_ods_version,
 	gds_arg_number, (SLONG) ODS_VERSION, 0);
 
-/****           
-Note that if this check is turned on, it should be recoded in order that 
-the Intel platforms can share databases.  At present (Feb 95) it is possible 
-to share databases between Windows and NT, but not with NetWare.  Sharing 
-databases with OS/2 is unknown and needs to be investigated.  The CLASS was 
-initially 8 for all Intel platforms, but was changed after 4.0 was released 
-in order to allow differentiation between databases created on various 
-platforms.  This should allow us in future to identify where databases were 
-created.  Even when we get to the stage where databases created on PC platforms 
-are sharable between all platforms, it would be useful to identify where they 
+/****
+Note that if this check is turned on, it should be recoded in order that
+the Intel platforms can share databases.  At present (Feb 95) it is possible
+to share databases between Windows and NT, but not with NetWare.  Sharing
+databases with OS/2 is unknown and needs to be investigated.  The CLASS was
+initially 8 for all Intel platforms, but was changed after 4.0 was released
+in order to allow differentiation between databases created on various
+platforms.  This should allow us in future to identify where databases were
+created.  Even when we get to the stage where databases created on PC platforms
+are sharable between all platforms, it would be useful to identify where they
 were created for debugging purposes.  - Deej 2/6/95
 
 if (header->hdr_implementation && header->hdr_implementation != CLASS)
-    ERR_post (gds__bad_db_format, 
+    ERR_post (gds__bad_db_format,
 	gds_arg_cstring, file_length,  ERR_string(file_name, file_length), 0);
 ****/
 
 if (header->hdr_page_size < MIN_PAGE_SIZE ||
     header->hdr_page_size > MAX_PAGE_SIZE)
-    ERR_post (gds__bad_db_format, 
+    ERR_post (gds__bad_db_format,
 	gds_arg_cstring, file_length,  ERR_string(file_name, file_length), 0);
 
 if (header->hdr_next_transaction)
@@ -1136,7 +1131,6 @@ dbb->dbb_oldest_transaction = header->hdr_oldest_transaction;
 dbb->dbb_oldest_active = header->hdr_oldest_active;
 dbb->dbb_oldest_snapshot = header->hdr_oldest_snapshot;
 
-#ifdef READONLY_DATABASE
 dbb->dbb_attachment_id = header->hdr_attachment_id;
 
 if (header->hdr_flags & hdr_read_only)
@@ -1158,15 +1152,12 @@ if (!(header->hdr_flags & hdr_read_only) && (dbb->dbb_flags & DBB_being_opened_r
 	gds_arg_string, "database",
 	gds_arg_cstring, file_length, ERR_string (file_name, file_length), 0);
     }
-#endif
 
 if (header->hdr_flags & hdr_force_write)
     {
     dbb->dbb_flags |= DBB_force_write;
-#ifdef READONLY_DATABASE
     if (!(header->hdr_flags & hdr_read_only))
-#endif  /* READONLY_DATABASE */
-	PIO_force_write (dbb->dbb_file, TRUE);
+        PIO_force_write (dbb->dbb_file, TRUE);
     }
 
 if (header->hdr_flags & hdr_no_reserve)
@@ -1217,7 +1208,7 @@ else
 /* Compute the number of data pages per pointer page.  Each data page
    requires a 32 bit pointer and a 2 bit control field. */
 
-dbb->dbb_dp_per_pp = (dbb->dbb_page_size - OFFSETA (PPG, ppg_page)) * 8 / 
+dbb->dbb_dp_per_pp = (dbb->dbb_page_size - OFFSETA (PPG, ppg_page)) * 8 /
 	(BITS_PER_LONG + 2);
 dbb->dbb_max_records = (dbb->dbb_page_size - sizeof (struct dpg)) /
 	(sizeof (struct dpg_repeat) + OFFSETA (RHD, rhd_data));
@@ -1305,10 +1296,10 @@ for (;;)
     window.win_page = file->fil_min_page;
     do
 	{
-	/* note that we do not have to get a read lock on 
-	   the header page (except for header page 0) because 
-	   the only time it will be modified is when adding a file, 
-	   which must be done with an exclusive lock on the database -- 
+	/* note that we do not have to get a read lock on
+	   the header page (except for header page 0) because
+	   the only time it will be modified is when adding a file,
+	   which must be done with an exclusive lock on the database --
 	   if this changes, this policy will have to be reevaluated;
 	   at any rate there is a problem with getting a read lock
 	   because the corresponding page in the main database file
@@ -1342,9 +1333,7 @@ for (;;)
 		    break;
 
 		case HDR_sweep_interval:
-#ifdef READONLY_DATABASE
 		    if (!(dbb->dbb_flags & DBB_read_only))
-#endif
 		    	MOVE_FAST (p + 2, &dbb->dbb_sweep_interval, sizeof (SLONG));
 		    break;
 		}
@@ -1354,7 +1343,7 @@ for (;;)
 	if ((!shadow_number) && (!file->fil_min_page))
 	    CCH_RELEASE (tdbb, &window);
 
-	window.win_page = next_page; 
+	window.win_page = next_page;
 
 	/*
 	 * Make sure the header page and all the overflow header
@@ -1376,7 +1365,7 @@ for (;;)
 	PIO_force_write (file, TRUE);
     file->fil_min_page = last_page + 1;
     file->fil_sequence = sequence++;
-    }      
+    }
 
 if (temp_buffer)
     ALL_free (temp_buffer);
@@ -1511,7 +1500,7 @@ tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
 CHECK_DBB (dbb);
 
-#ifdef VIO_DEBUG 
+#ifdef VIO_DEBUG
 if (debug_flag > DEBUG_WRITES_INFO)
     ib_printf ("\tPAG_release_page:  about to release page %d\n", number);
 #endif
@@ -1520,14 +1509,14 @@ control = dbb->dbb_pcontrol;
 sequence = number / control->pgc_ppp;
 relative_bit = number % control->pgc_ppp;
 
-pip_window.win_page = (sequence == 0) ? 
-	control->pgc_pip : 
+pip_window.win_page = (sequence == 0) ?
+	control->pgc_pip :
 	sequence * control->pgc_ppp - 1;
 
 pip_window.win_flags = 0;
 
 /* if shared cache is being used, the page which is being freed up
- * may have a journal buffer which in no longer valid after the 
+ * may have a journal buffer which in no longer valid after the
  * page has been freed up.  Zero out the journal buffer.
  * It is possible that the shared cache manager will write out the
  * record as part of a scan.
@@ -1693,7 +1682,7 @@ header = (HDR) CCH_FETCH (tdbb, &window, LCK_write, pag_header);
 
 if (!flag)
     {
-    /* If the database is transitioning from RO to RW, reset the 
+    /* If the database is transitioning from RO to RW, reset the
      * in-memory DBB flag which indicates that the database is RO.
      * This will allow the CCH subsystem to allow pages to be MARK'ed
      * for WRITE operations
@@ -1746,7 +1735,7 @@ if ((flag) && (ENCODE_ODS(major_version, minor_original) >= ODS_10_0))
     switch (flag)
 	{
 	case SQL_DIALECT_V5:
-	
+
 	    if (dbb->dbb_flags & DBB_DB_SQL_dialect_3 ||
 	        header->hdr_flags & hdr_SQL_dialect_3)
 	        ERR_post_warning (isc_dialect_reset_warning, 0);
