@@ -1145,3 +1145,4 @@ LCK_release (NULL_TDBB, record_locking);
 ISC_ast_exit();
 }
 #endif
+

@@ -1638,3 +1638,4 @@ typedef struct in_sw_tab_t {
     } *IN_SW_TAB;
 
 #endif /* _JRD_COMMON_H_ */
+
