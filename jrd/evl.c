@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Id$ 
  */
 
 /*
@@ -31,6 +32,15 @@
  *            then the internal field never gets set.
  * Change:    Added an assignment process for the literal
  *            before the first fetch.
+ */
+/* 
+ * Modified by: Neil McCalden
+ * Date: 05 Jan 2001
+ * Problem:   Firebird bug: 127375
+ *            Group by on a calculated expression would cause segv
+ *            when it encountered a NULL value as the calculation
+ *            was trying reference a null pointer.
+ * Change:    Test the null flag before trying to expand the value.
  */
 
 #include <string.h>
@@ -1372,9 +1382,10 @@ if (group)
 	from = *ptr;
 	impure = (VLUX) ((SCHAR*) request + from->nod_impure);
 	desc = EVL_expr (tdbb, from);
-	EVL_make_value (tdbb, desc, impure);
 	if (request->req_flags & req_null)
 	    impure->vlu_desc.dsc_address = NULL;
+	else 
+	    EVL_make_value (tdbb, desc, impure);
 	}
 
 /* Loop thru records until either a value change or EOF */
@@ -1396,7 +1407,6 @@ while (state != 2)
 	    else
 		vtemp.vlu_desc.dsc_address = NULL;
 	    desc = EVL_expr (tdbb, from);
-	    EVL_make_value (tdbb, desc, impure);
 	    if (request->req_flags & req_null)
 		{
 		impure->vlu_desc.dsc_address = NULL;
@@ -1405,6 +1415,7 @@ while (state != 2)
 		}
 	    else
 		{
+		EVL_make_value (tdbb, desc, impure);
 		if (!vtemp.vlu_desc.dsc_address ||
 		    MOV_compare (&vtemp.vlu_desc, desc))
 		    goto break_out;
