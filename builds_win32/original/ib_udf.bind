@@ -51,6 +51,7 @@ EXPORTS
 	IB_UDF_sinh		@30
 	IB_UDF_sqrt		@31
 	IB_UDF_substr		@32
-	IB_UDF_strlen		@33
-	IB_UDF_tan		@34
-	IB_UDF_tanh		@35
+	IB_UDF_substrlen	@33
+	IB_UDF_strlen		@34
+	IB_UDF_tan		@35
+	IB_UDF_tanh		@36
