@@ -38,7 +38,7 @@ set BUILD_TYPE=T
 set MAJOR_VER=1
 set MINOR_VER=0
 set REV_NO=0
-set BUILD_SUFFIX=Firebird Release Candidate 2
+set BUILD_SUFFIX=Firebird 1.0
 
 set ISC_MAJOR_VER=6
 set ISC_MINOR_VER=2

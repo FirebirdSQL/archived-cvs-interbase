@@ -69,6 +69,10 @@
 #define FTN_BLK_DATA    1
 #endif
 
+#ifdef LINUX
+#define COBOL		1
+#endif
+
 #ifdef hpux
 #if (defined HP700 || defined HP10)
 #define ADA             1

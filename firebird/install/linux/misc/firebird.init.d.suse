@@ -31,8 +31,8 @@ link=${base#*[SK][0-9][0-9]}
 test $link = $base && START_FIREBIRD="yes"
 test "$START_FIREBIRD" = yes || exit 0
 
-INTERBASE:=/opt/interbase
-FBRunUser:=root
+INTERBASE=/opt/interbase
+FBRunUser=root
 
 export INTERBASE
 
