@@ -1,3 +1,21 @@
+2001-11-29 12:58  paul_reeves
+
+	* interbase/jrd/version_95.rc:
+	
+	version_95.rc - 'themslevs' may prefer to be known as 'themselves'.
+	Changed Special Build string to 'Post-release candidate 1'.
+
+2001-11-29 12:16  paul_reeves
+
+	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_Build_DBs.bat,
+	FB_Build_Win32_Build_No.bat, FB_Build_Win32_Readme.txt,
+	builds_win32/original/build_no.ksh, jrd/license.h,
+	jrd/version_95.rc:
+	
+	Moved isc_major_ver define to build_no.h. Updated platform build_no
+	scripts and Win32 versioning. Improved Win32 build process to
+	detect changed messages database.
+
 2001-11-28 21:19  awharrison
 
 	* interbase/jrd/inf.c:
