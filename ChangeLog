@@ -1,3 +1,15 @@
+2001-03-16 15:55  fsg
+
+	* interbase/: jrd/common.h, jrd/ibase.h, jrd/isc.c, jrd/isc.h,
+	lock/config_params, remote/inet.c, remote/inet_server.c,
+	remote/protocol.h, utilities/guard.c, utilities/ibmgr.c,
+	utilities/ibmgr.h, utilities/ibmgrswi.h, utilities/srvrmgr.c,
+	utilities/tcp_nd.h:
+	
+	Second attempt to enable TCP_NO_DELAY for superserver on linux
+	
+	fsg
+
 2001-02-04 06:35  bellardo
 
 	* interbase/builds/original/prefix.darwin:
