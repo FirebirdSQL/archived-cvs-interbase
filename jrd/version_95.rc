@@ -38,10 +38,13 @@ BEGIN
       VALUE "FileDescription", "Firebird Database Server\0"
       VALUE "FileVersion", FILE_VER_STRING
       VALUE "InternalName", "Firebird\0"
-      VALUE "LegalCopyright", "Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation."
+      VALUE "LegalCopyright", "Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation.\0"
+      VALUE "LegalTrademarks", "\0"
+      VALUE "OriginalFilename", "\0"
+      VALUE "PrivateBuild", "\0"
       VALUE "ProductName", "Firebird Database Server\0"
       VALUE "ProductVersion", PRODUCT_VER_STRING
-      VALUE "SpecialBuild", FB_BUILD_SUFFIX
+      VALUE "SpecialBuild", FB_BUILD_SUFFIX_RC
     END
   END
 
