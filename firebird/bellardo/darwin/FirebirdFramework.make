@@ -31,7 +31,7 @@ framework:
 		source/firebird/bellardo/darwin/license.html \
 		source/firebird/bellardo/darwin/license.txt \
 		$(FB_FW)/Resources/English.lproj/var
-	$(SH) -c 'unset INTERBASE; export DYLD_FRAMEWORK_PATH=$(FB_BUILD); sed "s/__VERSION__/`$(FB_BUILD)/bin/gpre -Z | sed \"s/gpre version //g\"`/g" source/firebird/bellardo/darwin/FrameworkInfo.plist > $(FB_FW)/Resources/Info.plist'
+	$(SH) -c 'unset INTERBASE; export DYLD_FRAMEWORK_PATH=$(FB_BUILD); sed "s/__VERSION__/`firebird/bellardo/darwin/fb_version.pl \"$(FB_BUILD)/bin/gpre -Z\"`/g" source/firebird/bellardo/darwin/FrameworkInfo.plist > $(FB_FW)/Resources/Info.plist'
 
 super_framework:
 	mkdir -p $(FB_FW)/Versions/A/Resources/English.lproj/var
@@ -61,7 +61,7 @@ super_framework:
 		source/firebird/bellardo/darwin/license.html \
 		source/firebird/bellardo/darwin/license.txt \
 		$(FB_FW)/Resources/English.lproj/var
-	$(SH) -c 'unset INTERBASE; export DYLD_FRAMEWORK_PATH=$(FB_BUILD); sed "s/__VERSION__/`$(FB_BUILD)/bin/gpre -Z | sed \"s/gpre version //g\"`/g" source/firebird/bellardo/darwin/FrameworkInfo.plist > $(FB_FW)/Resources/Info.plist'
+	$(SH) -c 'unset INTERBASE; export DYLD_FRAMEWORK_PATH=$(FB_BUILD); sed "s/__VERSION__/`firebird/bellardo/darwin/fb_version.pl \"$(FB_BUILD)/bin/gpre -Z\"`/g" source/firebird/bellardo/darwin/FrameworkInfo.plist > $(FB_FW)/Resources/Info.plist'
 
 
 force:
