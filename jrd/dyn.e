@@ -2136,7 +2136,7 @@ if (!DYN_REQUEST (drq_s_f_class))
 
 
 if (request2 && !DYN_REQUEST (drq_s_u_class))
-    DYN_REQUEST (drq_s_u_class) = request;
+    DYN_REQUEST (drq_s_u_class) = request2;
 }
 
 
