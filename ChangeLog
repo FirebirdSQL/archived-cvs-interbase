@@ -1,3 +1,68 @@
+2002-04-30 11:28  kkuznetsov
+
+	* interbase/: builds/original/prefix.solx86 (1.5), jrd/intl.c
+	(1.3):
+	
+	Fixed bug - Crashing server on Solaris Intel when passing "" to
+	nchar udf, and remove incrementing function argument from
+	pad_spaces in intl.c
+
+2002-04-30 11:28  kkuznetsov
+
+	* interbase/: this_build (1.823), this_build (1.822):
+	
+	inc_build_no
+
+2002-04-16 05:03  robocop
+
+	* interbase/firebird/robocop/isql_for_scripts/isql.e (1.3):
+	
+	Private commit: close a memory leak in isql when creating
+	databases.
+
+2002-04-16 05:03  robocop
+
+	* interbase/this_build (1.821):
+	
+	inc_build_no
+
+2002-04-13 05:26  robocop
+
+	* interbase/this_build (1.820):
+	
+	inc_build_no
+
+2002-04-13 05:26  robocop
+
+	* interbase/firebird/robocop/isql_for_scripts/isql.e (1.2):
+	
+	Private commit: isql's ADD_ROW's input validation.
+
+2002-04-13 05:02  robocop
+
+	* interbase/jrd/evl.c (1.13):
+	
+	Fixes Bug SF #538201
+
+2002-04-13 05:01  robocop
+
+	* interbase/: this_build (1.818), this_build (1.819):
+	
+	inc_build_no
+
+2002-04-13 05:01  robocop
+
+	* interbase/dsql/: parse.c (1.28), parse.y (1.27):
+	
+	Cosmetic change: RECREATE was included incorrectly among v5/v4
+	keywords
+
+2002-04-11 08:47  fsg
+
+	* interbase/this_build (1.817):
+	
+	inc_build_no
+
 2002-04-11 03:04  bellardo
 
 	* interbase/: this_build (1.812), this_build (1.811), this_build
