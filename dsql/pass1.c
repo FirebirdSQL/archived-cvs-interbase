@@ -73,6 +73,9 @@
  *
  * 2001.11.27 Ann Harrison:  Redo the amiguity checking so as to give better
  *   error messages, return warnings for dialect 1, and simplify.
+ *
+ * 2001.11.29 Claudio Valderrama: make the nice new ambiguity checking code do the
+ *   right thing instead of crashing the engine and restore fix from 2001.11.21.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -1014,8 +1017,7 @@ switch (sub->nod_type)
 }
 
 static BOOLEAN aggregate_in_list (
-    NOD		sub
-)
+    NOD		sub)
 {
 /**************************************
  *
@@ -1099,7 +1101,6 @@ static NOD ambiguity_check (
     FLD	    field,
     LLS	    relations,
     LLS	    procedures)
-
 {
 /**************************************
  *
@@ -1118,17 +1119,17 @@ static NOD ambiguity_check (
 TEXT   buffer[1024], *b, *p;
 DSQL_REL    relation;
 PRC	    procedure;
-BOOLEAN	    ambig;
+USHORT	loop;
 
 buffer[0] = 0;
 b = buffer;
 p = 0;
-ambig = FALSE;
+loop = 0;
 
 if ((relations && relations->lls_next)
     ||(procedures && procedures->lls_next)
     ||(procedures && relations))
-    ambig = TRUE;
+    /* nothing to do */;
 else
     {
     if (relations)
@@ -1142,6 +1143,8 @@ while ((relations) && (relation = (DSQL_REL) LLS_POP (&relations)))
     {
     if (strlen (b) > (sizeof (buffer) - 50))
 	continue;
+	if (++loop > 2)
+		strcat (buffer, "and ");
     if (!(relation->rel_flags & REL_view))
 	strcat (buffer, "table ");
     else
@@ -1156,6 +1159,8 @@ while ((procedures) && (procedure = (PRC) LLS_POP (&procedures)))
     {
     if (strlen (b) > (sizeof (buffer) - 50))
 	continue;
+	if (++loop > 2)
+		strcat (buffer, "and ");
     strcat (b, "procedure ");
     strcat (b, procedure->prc_name);
     strcat (b, " ");
@@ -1189,7 +1194,7 @@ ERRD_post_warning (isc_sqlwarn, gds_arg_number, (SLONG) 204,
 	gds_arg_string, field->fld_name,
 	0);
 
-return (node);
+return node;
 }
 
 
@@ -2671,10 +2676,43 @@ DEV_BLKCHK (qualifier, type_str);
 if (name && name->str_data)
 	pass_exact_name (name->str_data);
 
-/* Try to resolve field against various contexts;
-   if there is an alias, check only against the first matching */
+/* CVC: PLEASE READ THIS EXPLANATION IF YOU NEED TO CHANGE THIS CODE.
+You should ensure that this function:
+1.- Never returns NULL. In such case, it such fall back to an invocation
+to field_error() near the end of this function. None of the multiple callers
+of this function (inside this same module) expect a null pointer, hence they
+will crash the engine in such case.
+2.- Doesn't allocate more than one field in "node". Either you put a break,
+keep the current "continue" or call ALLD_release if you don't want nor the
+continue neither the break if node is already allocated. If it isn't evident,
+but this variable is initialized to zero in the declaration above. You
+may write an explicit line to set it to zero here, before the loop.
+3.- Doesn't waste cycles if qualifier is not null. The problem is not the cycles
+themselves, but the fact that you'll detect an ambiguity that doesn't exist: if
+the field appears in more than one context but it's always qualified, then
+there's no ambiguity. There's PASS1_make_context() that prevents a context's
+alias from being reused. However, other places in the code don't check that you
+don't create a join or subselect with the same context without disambiguating it
+with different aliases. This is the place where resolve_context() is called for
+that purpose. In the future, it will be fine if we force the use of the alias as
+the only allowed qualifier if the alias exists. Hopefully, we will eliminate
+some day this construction: "select table.field from table t" because it
+should be "t.field" instead.
+4.- Doesn't verify code derived automatically from check constraints. They are
+ill-formed by nature but making that code generation more orthodox is not a
+priority. Typically, they only check a field against a contant. The problem
+appears when they check a field against a subselect, for example. For now,
+allow the user to write ambiguous subselects in check() statements.
+5.- Doesn't attempt to use "relations" and "procedures" after ambiguity_check()
+has been called, because this function will POP() those stacks but they
+are passed as values, hence they aren't updated upon return.
+   Claudio Valderrama - 2001.1.29.
+*/
 
 relations = procedures = NULL;
+
+/* Try to resolve field against various contexts;
+   if there is an alias, check only against the first matching */
 
 for (stack = request->req_context; stack; stack = stack->lls_next)
     {
@@ -2697,10 +2735,13 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 	    {
 	    if (!strcmp (name->str_data, field->fld_name))
 		{
-		if (context->ctx_relation)
-		    LLS_PUSH (context->ctx_relation, &relations);
-		if (context->ctx_procedure)
-		    LLS_PUSH (context->ctx_procedure, &procedures);
+		if (!is_check_constraint && !qualifier)
+			{
+			if (context->ctx_relation)
+				LLS_PUSH (context->ctx_relation, &relations);
+			if (context->ctx_procedure)
+				LLS_PUSH (context->ctx_procedure, &procedures);
+			}
 		break;
 		}
 	    }
@@ -2729,6 +2770,11 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 		return NULL;
 		}
 
+	    /* CVC: Stop here if this is our second or third iteration.
+	    Anyway, we can't report more than one ambiguity to the status vector. */
+	    if (node)
+		continue;
+
 	    if (indices)
 		indices = PASS1_node (request, indices, FALSE);
 
@@ -2743,14 +2789,29 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 		else if (request->req_context != stack)
 		    request->req_outer_agg_context = context->ctx_parent;
 		}
+	    if (is_check_constraint || qualifier)
+		break;
 	    }
 	}
     }
 
-if (is_check_constraint)
-    return node;
-	
-node = ambiguity_check (node, request, field, relations, procedures);
+/* CVC: We can't return blindly if this is a check constraint, because there's
+the possibility of an invalid field that wasn't found. The multiple places that
+call this function pass1_field() don't expect a NULL pointer, hence will crash.
+*/
+
+if (!is_check_constraint && !qualifier)
+    node = ambiguity_check (node, request, field, relations, procedures);
+else
+	{
+	/* This else is superflous as we post none in the loop above
+	when there's a check constraint or qualifier, but be safe if
+	the code structure changes in the future. */
+	while (relations)
+		LLS_POP (&relations);
+	while (procedures)
+		LLS_POP (&procedures);
+	}
 
 if (node)
     return node;    
@@ -2758,6 +2819,8 @@ if (node)
 field_error (qualifier ? (TEXT *) qualifier->str_data : (TEXT *) NULL_PTR, 
 	     name ? (TEXT *) name->str_data : (TEXT *) NULL_PTR, input);
 
+/* CVC: field_error() calls ERRD_post() that never returns, so the next line
+is only to make the compiler happy. */
 return NULL;
 }
 
