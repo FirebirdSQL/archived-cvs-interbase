@@ -26,6 +26,8 @@
  *		and index names in plans.
  * 2001.5.29: Claudio Valderrama: handle DROP VIEW case in pass1_statement().
  * 2001.6.12: Claudio Valderrama: add basic BREAK capability to procedures.
+ * 2001.6.27: Claudio Valderrama: pass1_variable() now gives the name of the
+ * variable it can't find in the error message.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -3793,7 +3795,7 @@ node->nod_arg [e_mod_rse] = rse;
 LLS_POP (&request->req_context);
 return node;
 }
-
+
 static NOD pass1_variable (
     REQ		request,
     NOD		input)
@@ -3809,7 +3811,7 @@ static NOD pass1_variable (
  *
  **************************************/
 NOD	procedure_node, var_nodes, var_node, *ptr, *end;
-STR	var_name;
+STR	var_name = 0;
 VAR	var;
 SSHORT	position;
 
@@ -3882,11 +3884,14 @@ if ((procedure_node = request->req_ddl_node) &&
 
 /* field unresolved */
 
-field_error (NULL_PTR, NULL_PTR);
+/* CVC: That's all [the fix], folks! */
+if (var_name)
+	field_error (NULL_PTR, (TEXT *) var_name->str_data);
+else field_error (NULL_PTR, NULL_PTR);
 
 return NULL;
 }
-
+
 static NOD post_map (
     NOD		node,
     CTX		context)

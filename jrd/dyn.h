@@ -67,7 +67,7 @@ typedef struct dyn_fld {
     TEXT	dyn_fld_source[FLD_SRC_LEN];
     TEXT        dyn_rel_name[REL_NAME_LEN];
     TEXT	dyn_fld_name[FLD_NAME_LEN];
-
+    USHORT      dyn_charbytelen; /* Used to check modify operations on string types. */
 } *DYN_FLD;
 
 extern void	DYN_error (USHORT, USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);

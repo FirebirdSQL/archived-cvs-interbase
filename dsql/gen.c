@@ -2029,89 +2029,89 @@ constant_desc.dsc_address = (UCHAR*) &constant;
 
 list = rse->nod_arg [e_rse_items];
 for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
-    {
+{
     item = *ptr;
     parameter = MAKE_parameter (request->req_receive, TRUE, TRUE);
     parameter->par_node = item;
     MAKE_desc (&parameter->par_desc, item);
     if (item->nod_type == nod_field)
 	{
-	field = (FLD) item->nod_arg [e_fld_field];
-	parameter->par_name = parameter->par_alias = field->fld_name;
-	context = (CTX) item->nod_arg [e_fld_context];
-	if (context->ctx_relation)
-	    {
-	    parameter->par_rel_name = context->ctx_relation->rel_name;
-	    parameter->par_owner_name = context->ctx_relation->rel_owner;
-	    }
-	else if (context->ctx_procedure)
-	    {
-	    parameter->par_rel_name = context->ctx_procedure->prc_name;
-	    parameter->par_owner_name = context->ctx_procedure->prc_owner;
-	    }
+		field = (FLD) item->nod_arg [e_fld_field];
+		parameter->par_name = parameter->par_alias = field->fld_name;
+		context = (CTX) item->nod_arg [e_fld_context];
+		if (context->ctx_relation)
+		{
+			parameter->par_rel_name = context->ctx_relation->rel_name;
+			parameter->par_owner_name = context->ctx_relation->rel_owner;
+		}
+		else if (context->ctx_procedure)
+		{
+			parameter->par_rel_name = context->ctx_procedure->prc_name;
+			parameter->par_owner_name = context->ctx_procedure->prc_owner;
+		}
 	}
     else if (item->nod_type == nod_dbkey)
 	{
-	parameter->par_name = parameter->par_alias = db_key_name;
-	context = (CTX) item->nod_arg [0]->nod_arg [0];
-	parameter->par_rel_name = context->ctx_relation->rel_name;
-	parameter->par_owner_name = context->ctx_relation->rel_owner;
+		parameter->par_name = parameter->par_alias = db_key_name;
+		context = (CTX) item->nod_arg [0]->nod_arg [0];
+		parameter->par_rel_name = context->ctx_relation->rel_name;
+		parameter->par_owner_name = context->ctx_relation->rel_owner;
 	}
     else if (item->nod_type == nod_alias)
 	{
-	string = (STR) item->nod_arg [e_alias_alias];
-	parameter->par_alias = (TEXT*) string->str_data;
-	alias = item->nod_arg [e_alias_value];
-	if (alias->nod_type == nod_field)
-	    {
-	    field = (FLD) alias->nod_arg [e_fld_field];
-	    parameter->par_name = field->fld_name;
-	    context = (CTX) alias->nod_arg [e_fld_context];
-	    if (context->ctx_relation)
+		string = (STR) item->nod_arg [e_alias_alias];
+		parameter->par_alias = (TEXT*) string->str_data;
+		alias = item->nod_arg [e_alias_value];
+		if (alias->nod_type == nod_field)
 		{
-		parameter->par_rel_name = context->ctx_relation->rel_name;
-		parameter->par_owner_name = context->ctx_relation->rel_owner;
+			field = (FLD) alias->nod_arg [e_fld_field];
+			parameter->par_name = field->fld_name;
+			context = (CTX) alias->nod_arg [e_fld_context];
+			if (context->ctx_relation)
+			{
+				parameter->par_rel_name = context->ctx_relation->rel_name;
+				parameter->par_owner_name = context->ctx_relation->rel_owner;
+			}
+			else if (context->ctx_procedure)
+			{
+				parameter->par_rel_name = context->ctx_procedure->prc_name;
+				parameter->par_owner_name = context->ctx_procedure->prc_owner;
+			}
 		}
-	    else if (context->ctx_procedure)
+		else if (alias->nod_type == nod_dbkey)
 		{
-		parameter->par_rel_name = context->ctx_procedure->prc_name;
-		parameter->par_owner_name = context->ctx_procedure->prc_owner;
+			parameter->par_name = db_key_name;
+			context = (CTX) alias->nod_arg [0]->nod_arg[0];
+			parameter->par_rel_name = context->ctx_relation->rel_name;
+			parameter->par_owner_name = context->ctx_relation->rel_owner;
 		}
-	    }
-	else if (alias->nod_type == nod_dbkey)
-	    {
-	    parameter->par_name = db_key_name;
-	    context = (CTX) alias->nod_arg [0]->nod_arg[0];
-	    parameter->par_rel_name = context->ctx_relation->rel_name;
-	    parameter->par_owner_name = context->ctx_relation->rel_owner;
-	    }
 	}
     else if (item->nod_type == nod_map)
 	{
 	map = (MAP) item->nod_arg [e_map_map];
 	map_node = map->map_node;
 	while (map_node->nod_type == nod_map)
-	    {
-	    /* skip all the nod_map nodes */
-	    map = (MAP) map_node->nod_arg [e_map_map];
-	    map_node = map->map_node;
-	    }
+	{
+		/* skip all the nod_map nodes */
+		map = (MAP) map_node->nod_arg [e_map_map];
+		map_node = map->map_node;
+	}
 	if (map_node->nod_type == nod_field)
-	    {
-	    field = (FLD) map_node->nod_arg [e_fld_field];
-	    parameter->par_name = parameter->par_alias = field->fld_name;
-	    }
+	{
+		field = (FLD) map_node->nod_arg [e_fld_field];
+		parameter->par_name = parameter->par_alias = field->fld_name;
+	}
 	else if (map_node->nod_type == nod_alias)
-	    {
-	    string = (STR) map_node->nod_arg [e_alias_alias];
-	    parameter->par_alias = (TEXT*) string->str_data;
-	    alias = map_node->nod_arg [e_alias_value];
-	    if (alias->nod_type == nod_field)
+	{
+		string = (STR) map_node->nod_arg [e_alias_alias];
+		parameter->par_alias = (TEXT*) string->str_data;
+		alias = map_node->nod_arg [e_alias_value];
+		if (alias->nod_type == nod_field)
 		{
-		field = (FLD) alias->nod_arg [e_fld_field];
-		parameter->par_name = field->fld_name;
+			field = (FLD) alias->nod_arg [e_fld_field];
+			parameter->par_name = field->fld_name;
 		}
-	    }
+	}
 	else if (map_node->nod_type == nod_agg_count) 
 	    parameter->par_name = parameter->par_alias  = "COUNT";
 	else if (map_node->nod_type == nod_agg_total)
@@ -2129,25 +2129,28 @@ for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
 	}
     else if (item->nod_type == nod_udf)
 	{
-	udf = (UDF) item->nod_arg [0];
-	parameter->par_name = parameter->par_alias = udf->udf_name;
+		udf = (UDF) item->nod_arg [0];
+		parameter->par_name = parameter->par_alias = udf->udf_name;
 	}
     else if (item->nod_type == nod_gen_id)
-	parameter->par_name = parameter->par_alias  = "GEN_ID";
+		parameter->par_name = parameter->par_alias  = "GEN_ID";
     else if (item->nod_type == nod_gen_id2)
-	parameter->par_name = parameter->par_alias  = "GEN_ID";
+		parameter->par_name = parameter->par_alias  = "GEN_ID";
     else if (item->nod_type == nod_user_name)
-	parameter->par_name = parameter->par_alias  = "USER";
+		parameter->par_name = parameter->par_alias  = "USER";
     else if (item->nod_type == nod_current_role)
-	parameter->par_name = parameter->par_alias  = "ROLE";
+		parameter->par_name = parameter->par_alias  = "ROLE";
     else if (item->nod_type == nod_substr)
-		{
+	{
 		/* CVC: SQL starts at 1 but C starts at zero. */
 		NOD node = item->nod_arg [e_substr_start];
 		--(*(SLONG *) (node->nod_desc.dsc_address));
 		parameter->par_name = parameter->par_alias  = "SUBSTRING";
-		}
-    } /* for */
+	}
+	else if (item->nod_type == nod_cast)
+		parameter->par_name = parameter->par_alias	= "CAST";
+} /* for */
+
 
 /* Set up parameter to handle EOF */
 

@@ -1002,7 +1002,7 @@ void BLB_move_from_string (
  **************************************/
 SET_TDBB (tdbb);
 
-if (from_desc->dsc_dtype >= dtype_varying)
+if (from_desc->dsc_dtype > dtype_varying)
     ERR_post (gds__convert_error, gds_arg_string,
 	DSC_dtype_tostring (from_desc->dsc_dtype), 0);
 else

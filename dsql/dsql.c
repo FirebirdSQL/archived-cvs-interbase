@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.3 Claudio Valderrama: fixed a bad behaved loop in get_plan_info()
+ * and get_rsb_item() that caused a crash when plan info was requested.
+ * 2001.6.9 Claudio Valderrama: Added nod_del_view, nod_current_role and nod_breakleave.
  */
 /*
 $Id$
@@ -2648,6 +2651,7 @@ switch (*explain++)
 	        if (get_rsb_item (&explain_length, &explain, &plan_length, 
 	                              &plan, &join_count, level_ptr))
 				return FAILURE;
+			/* CVC: Here's the additional stop condition. */
 			if (!*level_ptr)
 		    	break;
 		}

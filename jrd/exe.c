@@ -20,6 +20,8 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.6.21 Claudio Valderrama: Allow inserting strings into blob fields.
+ * 2001.6.28 Claudio Valderrama: Move code to cleanup_rpb() as directed
+ * by Ann Harrison and cleanup of new record in store() routine.
  */
 /*
 $Id$
@@ -76,7 +78,8 @@ $Id$
 #ifdef SHLIB_DEFS
 #undef send
 #endif
-
+
+static void cleanup_rpb (TDBB, RPB *);
 static NOD	erase			(TDBB, NOD, SSHORT);
 static void 	execute_looper		(TDBB, REQ, TRA,
 						ENUM req_s);
@@ -247,7 +250,8 @@ if (!null)
 		lost as a result of this experimental implementation. */
 		if (from_desc->dsc_dtype <= dtype_varying)
 			BLB_move_from_string (tdbb, from_desc, to_desc, to);
-		else BLB_move (tdbb, from_desc, to_desc, to);
+		else 
+			BLB_move (tdbb, from_desc, to_desc, to);
 	}
 
     else if (!DSC_EQUIV (from_desc, to_desc))
@@ -959,7 +963,68 @@ FRGN_unwind (request);
 #endif
 }
 
-
+/* CVC: Moved to its own routine, originally in store(). */
+static void cleanup_rpb (
+    TDBB	tdbb,
+	RPB		*rpb)
+{
+/**************************************
+ *
+ *	c l e a n u p _ r p b
+ *
+ **************************************
+ *
+ * Functional description
+ *	Perform cleaning of rpb, zeroing unassigned fields and
+ * the impure tail of varying fields that we don't want to carry
+ * when the RLE algorithm is applied.
+ *
+ **************************************/
+	DSC *desc = 0;
+	SSHORT n;
+	USHORT length;
+	REC record = rpb->rpb_record;
+	FMT format = record->rec_format;
+	register UCHAR	*p;
+
+	SET_TDBB (tdbb); /* Is it necessary? */
+
+/*
+    Starting from the format, walk through its
+    array of descriptors.  If the descriptor has
+    no address, its a computed field and we shouldn't
+    try to fix it.  Get a pointer to the actual data
+    and see if that field is null by indexing into
+    the null flags between the record header and the
+    record data.
+*/
+
+	for (n = 0; n < format->fmt_count; n++)
+	{
+		desc = &format->fmt_desc [n];
+		if (!desc->dsc_address)
+			continue;
+		p = record->rec_data + (SLONG) desc->dsc_address;
+		if (TEST_NULL (record, n))
+		{
+			if (length = desc->dsc_length)
+				do *p++ = 0; while (--length);
+		}
+		else if (desc->dsc_dtype == dtype_varying)
+		{
+			VARY	*vary;
+			
+			vary = (VARY*) p;
+			if ((length = desc->dsc_length - sizeof (USHORT)) > vary->vary_length)
+			{
+				p = vary->vary_string + vary->vary_length;
+				length -= vary->vary_length;
+				do *p++ = 0; while (--length);
+			}
+		}
+	}
+}
+
 static NOD erase (
     TDBB	tdbb,
     NOD		node,
@@ -2532,6 +2597,10 @@ switch (request->req_operation)
 	    return node->nod_arg [e_mod_statement];
 	    }
 
+	/* CVC: This call made here to clear the record in each NULL field and
+	varchar field whose tail may contain garbage. */
+	cleanup_rpb (tdbb, new_rpb);
+
 #ifndef GATEWAY
 #ifdef PC_ENGINE
 	/* check to see if record locking has been initiated in this database;
@@ -3498,31 +3567,11 @@ switch (request->req_operation)
 	/* For optimum on-disk record compression, zero all unassigned
 	   fields. In addition, zero the tail of assigned varying fields
 	   so that previous remnants don't defeat compression efficiency. */
-	
-	for (n = 0; n < format->fmt_count; n++)
-	    {
-	    desc = &format->fmt_desc [n];
-	    if (!desc->dsc_address)
-		continue;
-	    p = record->rec_data + (SLONG) desc->dsc_address;
-	    if (TEST_NULL (record, n))
-	    	{
-		if (length = desc->dsc_length)
-		    do *p++ = 0; while (--length);
-		}
-	    else if (desc->dsc_dtype == dtype_varying)
-	    	{
-		VARY	*vary;
 
-		vary = (VARY*) p;
-		if ((length = desc->dsc_length - sizeof (USHORT)) > vary->vary_length)
-		    {
-		    p = vary->vary_string + vary->vary_length;
-		    length -= vary->vary_length;
-	    	    do *p++ = 0; while (--length);
-		    }
-		}
-	    }
+	cleanup_rpb (tdbb, rpb);
+
+	/* CVC: The code that was here was moved to its own routine: cleanup_rpb()
+	and replaced by the call shown above. */
 
 #ifndef GATEWAY
 	if (relation->rel_file)
@@ -3575,6 +3624,20 @@ rpb->rpb_address = record->rec_data;
 rpb->rpb_length = format->fmt_length;
 rpb->rpb_format_number = format->fmt_version;
 
+
+/* CVC: This small block added by Ann Harrison to
+start with a clean empty buffer and so avoid getting
+new record buffer with misleading information. Fixes
+bug with incorrect blob sharing during insertion in
+a stored procedure. */
+
+p = record->rec_data;
+{
+	UCHAR *data_end = p + rpb->rpb_length;
+	while (p < data_end)
+		*p++ = 0;
+}
+
 /* Initialize all fields to missing */
 
 #ifndef GATEWAY
@@ -3589,7 +3652,8 @@ EXE_set_fields_null (tdbb, record, format);
 
 return node->nod_arg [e_sto_statement];
 }
-
+
+
 #ifdef PC_ENGINE
 static NOD stream (
     TDBB		tdbb,

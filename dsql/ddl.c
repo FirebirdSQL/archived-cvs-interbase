@@ -29,6 +29,14 @@
  * accident and vice-versa.
  * 2001.5.30 Claudio Valderrama: alter column should use 1..N for the
  * position argument since the call comes from SQL DDL.
+ * 2001.6.27 Claudio Valderrama: DDL_resolve_intl_type() was adding 2 to the
+ * length of varchars instead of just checking that len+2<=MAX_COLUMN_SIZE.
+ * It required a minor change to put_field() where it was decremented, too.
+ * 2001.6.27 Claudio Valderrama: Finally stop users from invoking the same option
+ * several times when altering a domain. Specially dangerous with text data types.
+ * Ex: alter domain d type char(5) type varchar(5) default 'x' default 'y';
+ * Bear in mind that if DYN functions are addressed directly, this protection
+ * becomes a moot point.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -56,6 +64,7 @@
 static void	begin_blr (REQ, UCHAR);
 static USHORT	check_array_or_blob (NOD);
 static void	check_constraint (REQ, NOD, SSHORT);
+static void check_one_call (BOOLEAN *, SSHORT, TEXT *);
 static void	create_view_triggers (REQ, NOD, NOD);
 static void	define_computed (REQ, NOD, FLD, NOD);
 static void	define_constraint_trigger (REQ, NOD);
@@ -369,7 +378,6 @@ INTLSYM	resolved_charset;
 INTLSYM resolved_collation;
 STR	dfl_charset;
 SSHORT	blob_sub_type;
-ULONG	field_length;
 
 if ((field->fld_dtype > dtype_any_text) && field->fld_dtype != dtype_blob)
     {
@@ -432,7 +440,7 @@ if (!(field->fld_character_set ||
 
     if (dfl_charset = METD_get_default_charset (request))
 	{
-	field->fld_character_set = (NOD) dfl_charset;
+		field->fld_character_set = (NOD) dfl_charset;
 	}
     else
 	{
@@ -441,20 +449,24 @@ if (!(field->fld_character_set ||
          */
         if (field->fld_character_length)
 	    {
-            field_length = field->fld_character_length;
-	    if (field->fld_dtype == dtype_varying)
-		field_length += sizeof (USHORT);
-	    if (field_length > (ULONG) MAX_COLUMN_SIZE)
-		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-		    gds_arg_gds, gds__dsql_datatype_err,
-		    gds_arg_gds, gds__imp_exc, 
-		    gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
-		    0);
-	    field->fld_length = (USHORT) field_length;
+			ULONG field_length = field->fld_character_length, extra_len = 0;
+			/* CVC: Can't understand why some developer added to the size. This is a
+			low level difference that only matters EXE, CVT, MOV, VIO and the like.
+			Now the comparison is done without altering the field's length itself. */
+			if (field->fld_dtype == dtype_varying)
+				extra_len = sizeof (USHORT);
+			/*	field_length += sizeof (USHORT); */
+			if (field_length + extra_len > (ULONG) MAX_COLUMN_SIZE)
+				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
+				gds_arg_gds, gds__dsql_datatype_err,
+				gds_arg_gds, gds__imp_exc, 
+				gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
+				0);
+			field->fld_length = (USHORT) field_length;
 	    };
         field->fld_ttype = 0;
-	if (!collation_name)
-	    return;
+		if (!collation_name)
+			return;
 	}
     }
 
@@ -509,20 +521,23 @@ if (collation_name)
 
 
 if (field->fld_character_length)
-    {
-    field_length = (ULONG) resolved_type->intlsym_bytes_per_char * 
-    			field->fld_character_length;
+{
+	ULONG field_length = (ULONG) resolved_type->intlsym_bytes_per_char * 
+    			field->fld_character_length, extra_len = 0;
 
+	/* CVC: Same error again: the size of the length indicator shouldn't be
+	made a permanent addition to the field's length. */
     if (field->fld_dtype == dtype_varying)
-        field_length += sizeof (USHORT);
-    if (field_length > (ULONG) MAX_COLUMN_SIZE)
+		extra_len = sizeof (USHORT);
+    /*    field_length += sizeof (USHORT); */
+    if (field_length + extra_len > (ULONG) MAX_COLUMN_SIZE)
 	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
 		gds_arg_gds, gds__dsql_datatype_err,
 		gds_arg_gds, gds__imp_exc, 
 		gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
 		0);
     field->fld_length = (USHORT) field_length;
-    };
+};
 
 field->fld_ttype = resolved_type->intlsym_ttype;
 field->fld_character_set_id = resolved_type->intlsym_charset_id;
@@ -725,13 +740,36 @@ if (delete_trigger_required)
 
 STUFF (gds__dyn_end);  /* For CHECK constraint definition  */
 }
-
+
+static void check_one_call (
+	BOOLEAN *repetition_count,
+	SSHORT pos,
+	TEXT *error_msg)
+{
+/**************************************
+ *
+ *	c h e c k _ o n e _ c a l l
+ *
+ **************************************
+ *
+ * Function
+ *	Ensure that each option in modify_domain() is called only once.
+ *	This restriction cannot be enforced by the DSQL parser.
+ *
+ **************************************/
+	if (++repetition_count [pos] > 1)
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -637,
+			gds_arg_gds, gds__dsql_duplicate_spec,
+			gds_arg_string, error_msg,
+			0);
+}
+
 static void create_view_triggers (
     REQ		request,
     NOD		element,
     NOD		items)   /* Fields in the VIEW actually  */
 {
-/* *************************************
+/**************************************
  *
  *	c r e a t e _ v i e w _ t r i g g e r s 
  *
@@ -3590,7 +3628,7 @@ if (columns2 && (columns1->nod_count != columns2->nod_count))
 make_index_trg_ref_int (request, element, columns1, 
    element->nod_arg [e_for_refcolumns], relation2->str_data);
 }
-
+
 static void generate_dyn (
     REQ		request,   
     NOD		node)
@@ -3610,159 +3648,159 @@ STR	string;
 
 request->req_ddl_node = node;
 
-switch (node->nod_type)
-    {
-    case nod_def_domain:
-        define_domain (request);
-        break;
-
-    case nod_mod_domain:
-	modify_domain (request);
-        break;
-
-    case nod_def_index:
-	define_index (request);
-	break;
-
-    case nod_def_relation:
-	define_relation (request);
-	break;
-
-    case nod_def_view:
-	define_view (request);
-	break;
-
-    case nod_def_exception:
-    case nod_mod_exception:
-    case nod_del_exception:
-	define_exception (request, node->nod_type);
-	break;
-
-    case nod_def_procedure:
-    case nod_mod_procedure:
-	define_procedure (request, node->nod_type);
-	break;
-
-    case nod_def_constraint:
-	define_constraint_trigger (request, node);
-	break;
-
-    case nod_def_trigger:
-    case nod_mod_trigger:
-	define_trigger (request, node);
-	break;
-
-    case nod_mod_relation:
-	modify_relation (request);
-	break;
-
-    case nod_del_domain:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, gds__dyn_delete_global_fld, string->str_data);
-	STUFF (gds__dyn_end);
-	break;
-
-    case nod_del_index:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, gds__dyn_delete_idx, string->str_data);
-	STUFF (gds__dyn_end);
-	break;
-
+	switch (node->nod_type)
+	{
+	case nod_def_domain:
+		define_domain (request);
+		break;
+		
+	case nod_mod_domain:
+		modify_domain (request);
+		break;
+		
+	case nod_def_index:
+		define_index (request);
+		break;
+		
+	case nod_def_relation:
+		define_relation (request);
+		break;
+		
+	case nod_def_view:
+		define_view (request);
+		break;
+		
+	case nod_def_exception:
+	case nod_mod_exception:
+	case nod_del_exception:
+		define_exception (request, node->nod_type);
+		break;
+		
+	case nod_def_procedure:
+	case nod_mod_procedure:
+		define_procedure (request, node->nod_type);
+		break;
+		
+	case nod_def_constraint:
+		define_constraint_trigger (request, node);
+		break;
+		
+	case nod_def_trigger:
+	case nod_mod_trigger:
+		define_trigger (request, node);
+		break;
+		
+	case nod_mod_relation:
+		modify_relation (request);
+		break;
+		
+	case nod_del_domain:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, gds__dyn_delete_global_fld, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_del_index:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, gds__dyn_delete_idx, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
 	/* CVC: Handling drop table and drop view properly. */
-    case nod_del_relation:
+	case nod_del_relation:
 	case nod_del_view:
 		delete_relation_view (request, node);
-	break;
-
-    case nod_del_procedure:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, gds__dyn_delete_procedure, string->str_data);
-	STUFF (gds__dyn_end);
-	break;
-
-    case nod_del_trigger:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, gds__dyn_delete_trigger, string->str_data);
-	STUFF (gds__dyn_end);
-	break;
-
-    case nod_del_role:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, isc_dyn_del_sql_role, string->str_data);
-	STUFF (gds__dyn_end);
-	break;
-
-    case nod_grant:
-    case nod_revoke:
-	grant_revoke (request);
-	break;
-
-    case nod_def_generator:
-	define_generator (request);
-	break;
-
-    case nod_def_role:
-        define_role (request);
-        break;
-
-    case nod_def_filter:
-	define_filter (request);
-	break;
-
-    case nod_del_generator:
-	string = (STR) node->nod_arg [0];
-	/**********FIX -- nothing like delete_generator exists as yet
-	put_cstring (request, gds__dyn_def_generator, string->str_data);
-	STUFF (gds__dyn_end); */
-	break; 
-
-    case nod_del_filter:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, gds__dyn_delete_filter, string->str_data);
-	STUFF (gds__dyn_end);
-	break;
-
-    case nod_def_udf:
-	define_udf (request);
-        break;
-
-    case nod_del_udf:
-        string = (STR) node->nod_arg [0];
-        put_cstring (request, gds__dyn_delete_function, string->str_data);
-        STUFF (gds__dyn_end);
-        break;
-
-    case nod_def_shadow:
-	define_shadow (request);
-	break;
-
-    case nod_del_shadow:
-        put_number (request, gds__dyn_delete_shadow, 
+		break;
+		
+	case nod_del_procedure:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, gds__dyn_delete_procedure, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_del_trigger:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, gds__dyn_delete_trigger, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_del_role:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, isc_dyn_del_sql_role, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_grant:
+	case nod_revoke:
+		grant_revoke (request);
+		break;
+		
+	case nod_def_generator:
+		define_generator (request);
+		break;
+		
+	case nod_def_role:
+		define_role (request);
+		break;
+		
+	case nod_def_filter:
+		define_filter (request);
+		break;
+		
+	case nod_del_generator:
+		string = (STR) node->nod_arg [0];
+		/**********FIX -- nothing like delete_generator exists as yet
+		put_cstring (request, gds__dyn_def_generator, string->str_data);
+		STUFF (gds__dyn_end); */
+		break; 
+		
+	case nod_del_filter:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, gds__dyn_delete_filter, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_def_udf:
+		define_udf (request);
+		break;
+		
+	case nod_del_udf:
+		string = (STR) node->nod_arg [0];
+		put_cstring (request, gds__dyn_delete_function, string->str_data);
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_def_shadow:
+		define_shadow (request);
+		break;
+		
+	case nod_del_shadow:
+		put_number (request, gds__dyn_delete_shadow, 
 			(SSHORT) (node->nod_arg[0]));
-        STUFF (gds__dyn_end);
-        break;
-
-    case nod_mod_database:
-	modify_database (request);
-	break;
-
-    case nod_def_database:
-	define_database (request);
-	break;
-
-    case nod_mod_index:
-	modify_index (request);
-	break;
-
-    case nod_set_statistics:
-	set_statistics (request);
-	break;
-
+		STUFF (gds__dyn_end);
+		break;
+		
+	case nod_mod_database:
+		modify_database (request);
+		break;
+		
+	case nod_def_database:
+		define_database (request);
+		break;
+		
+	case nod_mod_index:
+		modify_index (request);
+		break;
+		
+	case nod_set_statistics:
+		set_statistics (request);
+		break;
+		
 	default:
 		break;
     }
 }
-
+
 static void grant_revoke (
     REQ		request)
 {
@@ -4190,6 +4228,9 @@ NOD	ddl_node, domain_node, ops, element, *ptr, *end;
 STR	string, domain_name;
 FLD	field;
 struct fld local_field;
+/* CVC: This array used with check_one_call to ensure each modification option
+is called only once. Enlarge it if the switch() below gets more cases. */
+BOOLEAN repetition_count [6];
 
 ddl_node = request->req_ddl_node;
 
@@ -4198,6 +4239,15 @@ domain_name = (STR) domain_node->nod_arg [e_fln_name];
 
 put_cstring (request, gds__dyn_mod_global_fld, domain_name->str_data);
 
+{
+	/* Is MOVE_CLEAR enough for all platforms?
+	MOVE_CLEAR (repetition_count, sizeof (repetition_count)); */
+	USHORT rtop = sizeof (repetition_count) / sizeof (repetition_count [0]);
+	BOOLEAN *p = repetition_count;
+	while (p < repetition_count + rtop)
+		*p++ = 0;
+}
+
 ops = ddl_node->nod_arg [e_alt_dom_ops];
 for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
     {
@@ -4205,91 +4255,97 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
     switch (element->nod_type)
 	{
 	case nod_def_default:
-			/* CVC: So do you want to crash me with ALTER DOMAIN dom SET; ??? */
-			if (!element->nod_arg[e_dft_default])
-			{
-				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
+		check_one_call (repetition_count, 0, "DOMAIN DEFAULT");
+		/* CVC: So do you want to crash me with ALTER DOMAIN dom SET; ??? */
+		if (!element->nod_arg[e_dft_default])
+		{
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104,
 				gds_arg_gds, gds__command_end_err,    /* Unexpected end of command */
 				0);
-			}
-			/* CVC End modification. */
-            element->nod_arg[e_dft_default] = PASS1_node (request, element->nod_arg[e_dft_default],0);
-    	    begin_blr (request, gds__dyn_fld_default_value);
-            GEN_expr (request, element->nod_arg[e_dft_default]);
-            end_blr (request);
-            if ((string = (STR) element->nod_arg [e_dft_default_source]) != NULL)
-                {
-                assert(string->str_length <= MAX_USHORT);
-                put_string (request, gds__dyn_fld_default_source, string->str_data,
-                              (USHORT)string->str_length);
-                }
-	    break;
-
+		}
+		/* CVC End modification. */
+		element->nod_arg[e_dft_default] = PASS1_node (request, element->nod_arg[e_dft_default],0);
+		begin_blr (request, gds__dyn_fld_default_value);
+		GEN_expr (request, element->nod_arg[e_dft_default]);
+		end_blr (request);
+		if ((string = (STR) element->nod_arg [e_dft_default_source]) != NULL)
+		{
+			assert(string->str_length <= MAX_USHORT);
+			put_string (request, gds__dyn_fld_default_source, string->str_data,
+				(USHORT)string->str_length);
+		}
+		break;
+		
 	case nod_def_constraint:
-            STUFF (gds__dyn_single_validation);
-            begin_blr (request, gds__dyn_fld_validation_blr);
-            
-	    /* Get the attributes of the domain, and set any occurances of
+		check_one_call (repetition_count, 1, "DOMAIN CONSTRAINT");
+		STUFF (gds__dyn_single_validation);
+		begin_blr (request, gds__dyn_fld_validation_blr);
+		
+		/* Get the attributes of the domain, and set any occurances of
 	       nod_dom_value (corresponding to the keyword VALUE) to the
 	       correct type, length, scale, etc. */
-	    if (! METD_get_domain (request, &local_field,
-				   domain_name->str_data))
-	        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
-			   gds_arg_gds, gds__dsql_command_err, 
-			   gds_arg_gds, gds__dsql_domain_not_found,
-			   gds_arg_string, ERR_cstring (domain_name->str_data),
-		      /* Specified domain or source field does not exist */
-			   0);
-	    if(element->nod_arg [e_cnstr_condition])
-	        set_nod_value_attributes (element->nod_arg [e_cnstr_condition],
-					  &local_field);
-	    
-	    /* Increment the context level for this request, so that
-	       the context number for any RSE generated for a SELECT
-	       within the CHECK clause will be greater than 0.  In the
-	       environment of a domain check constraint, context
-	       number 0 is reserved for the "blr_fid, 0, 0,0," which
-	       is emitted for a nod_dom_value, corresponding to an
-	       occurance of the VALUE keyword in the body of the check
+		if (! METD_get_domain (request, &local_field,
+			domain_name->str_data))
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+			gds_arg_gds, gds__dsql_command_err, 
+			gds_arg_gds, gds__dsql_domain_not_found,
+			gds_arg_string, ERR_cstring (domain_name->str_data),
+			/* Specified domain or source field does not exist */
+			0);
+		if(element->nod_arg [e_cnstr_condition])
+			set_nod_value_attributes (element->nod_arg [e_cnstr_condition],
+			&local_field);
+		
+			/* Increment the context level for this request, so that
+			the context number for any RSE generated for a SELECT
+			within the CHECK clause will be greater than 0.  In the
+			environment of a domain check constraint, context
+			number 0 is reserved for the "blr_fid, 0, 0,0," which
+			is emitted for a nod_dom_value, corresponding to an
+			occurance of the VALUE keyword in the body of the check
 	       constraint.  -- chrisj 1999-08-20 */
-	    
-	    request->req_context_number++;
-
-	    GEN_expr (request,
+		
+		request->req_context_number++;
+		
+		GEN_expr (request,
             PASS1_node (request, element->nod_arg [e_cnstr_condition], 0));
-	    
-            end_blr (request);
-            if ((string = (STR) element->nod_arg [e_cnstr_source]) != NULL)
-                 {
-                 assert(string->str_length <= MAX_USHORT);
-                 put_string (request, gds__dyn_fld_validation_source,
-                             string->str_data, (USHORT)string->str_length);
-                 }
-	    break;
-
+		
+		end_blr (request);
+		if ((string = (STR) element->nod_arg [e_cnstr_source]) != NULL)
+		{
+			assert(string->str_length <= MAX_USHORT);
+			put_string (request, gds__dyn_fld_validation_source,
+				string->str_data, (USHORT)string->str_length);
+		}
+		break;
+		
 	case nod_mod_domain_type:
-	    field = (FLD) element->nod_arg[e_mod_dom_new_dom_type];
-    	    DDL_resolve_intl_type (request, field, NULL);
-            put_field (request, field, FALSE);
-	    break;
-
+		check_one_call (repetition_count, 2, "DOMAIN DATA TYPE");
+		field = (FLD) element->nod_arg[e_mod_dom_new_dom_type];
+		DDL_resolve_intl_type (request, field, NULL);
+		put_field (request, field, FALSE);
+		break;
+		
 	case nod_field_name:
-           {
-	    STR new_dom_name;
-
-	    new_dom_name =  (STR) element->nod_arg [e_fln_name];
-	    put_cstring (request, gds__dyn_fld_name, new_dom_name->str_data);
-	    break;
-            }
-
+		check_one_call (repetition_count, 3, "DOMAIN NAME");
+		{
+			STR new_dom_name;
+			
+			new_dom_name =  (STR) element->nod_arg [e_fln_name];
+			put_cstring (request, gds__dyn_fld_name, new_dom_name->str_data);
+			break;
+		}
+		
 	case nod_delete_rel_constraint:
-            STUFF (gds__dyn_del_validation);
-	    break;
-
+		check_one_call (repetition_count, 4, "DOMAIN DROP CONSTRAINT");
+		STUFF (gds__dyn_del_validation);
+		break;
+		
 	case nod_del_default:
-           STUFF (gds__dyn_del_default);
-	   break;
-
+		check_one_call (repetition_count, 5, "DOMAIN DROP DEFAULT");
+		STUFF (gds__dyn_del_default);
+		break;
+		
 	default:
 		break;
 	}
@@ -4782,52 +4838,57 @@ static void put_field (
 
 put_number (request, gds__dyn_fld_type, blr_dtypes [field->fld_dtype]);
 if (field->fld_dtype == dtype_blob)
-    {
+{
     put_number (request, gds__dyn_fld_sub_type, field->fld_sub_type);
     put_number (request, gds__dyn_fld_scale, 0);
     if (!udf_flag)
 	{
-	if (!field->fld_seg_length)
-	    field->fld_seg_length = DEFAULT_BLOB_SEGMENT_SIZE;
-    	put_number (request, gds__dyn_fld_segment_length, field->fld_seg_length);
+		if (!field->fld_seg_length)
+			field->fld_seg_length = DEFAULT_BLOB_SEGMENT_SIZE;
+		put_number (request, gds__dyn_fld_segment_length, field->fld_seg_length);
 	}
     if (!(request->req_dbb->dbb_flags & DBB_v3))
         if (field->fld_sub_type == BLOB_text)
             put_number (request, gds__dyn_fld_character_set, field->fld_character_set_id);
-    }
+}
 else if (field->fld_dtype <= dtype_any_text)
-    {
+{
     if (field->fld_sub_type)
         put_number (request, gds__dyn_fld_sub_type, field->fld_sub_type);
     put_number (request, gds__dyn_fld_scale, 0);
     if (field->fld_dtype == dtype_varying)
 	{
-	assert((field->fld_length - sizeof (USHORT)) <= MAX_SSHORT);
-	put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length - sizeof (USHORT)));
+		/* CVC: Fix the assertion and the field length. It's no longer growth
+		by DDL_resolve_intl_type(), so nothing to decrement here.
+		Anyway, the assertion was flawed when run against the old code, too.
+		Here comes the compensation for DDL_resolve_intl_type(), since the field
+		length itself wasn't altered if it's varying. */
+		assert((field->fld_length + sizeof (USHORT)) <= MAX_SSHORT);
+		put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length /* - sizeof (USHORT)*/));
 	}
     else
         put_number (request, gds__dyn_fld_length, field->fld_length);
     if (!(request->req_dbb->dbb_flags & DBB_v3))
 	{
-	put_number (request, gds__dyn_fld_char_length, field->fld_character_length);
-	put_number (request, gds__dyn_fld_character_set, field->fld_character_set_id);
-	if (!udf_flag)
-	    put_number (request, gds__dyn_fld_collation, field->fld_collation_id);
+		put_number (request, gds__dyn_fld_char_length, field->fld_character_length);
+		put_number (request, gds__dyn_fld_character_set, field->fld_character_set_id);
+		if (!udf_flag)
+			put_number (request, gds__dyn_fld_collation, field->fld_collation_id);
 	}
-    }
+}
 else
-    {
+{
     put_number (request, gds__dyn_fld_scale, field->fld_scale);
     put_number (request, gds__dyn_fld_length, field->fld_length);
     if (DTYPE_IS_EXACT(field->fld_dtype))
 	{
-	put_number (request, isc_dyn_fld_precision, field->fld_precision);
-	if (field->fld_sub_type)
-	    put_number (request, isc_dyn_fld_sub_type, field->fld_sub_type);
+		put_number (request, isc_dyn_fld_precision, field->fld_precision);
+		if (field->fld_sub_type)
+			put_number (request, isc_dyn_fld_sub_type, field->fld_sub_type);
 	}
-    }
 }
-
+}
+
 static void put_local_variable (
     REQ	request,
     VAR variable)

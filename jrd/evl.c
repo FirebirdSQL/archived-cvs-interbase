@@ -19,7 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
-  * $Id$ 
+ * $Id$
  */
 
 /*
@@ -4848,9 +4848,10 @@ static DSC* substring (
  *      Perform substring function.
  *
  **************************************/
-DSC     desc;
-UCHAR   temp [32];
-USHORT  ttype;
+DSC			desc;
+UCHAR		temp [32];
+USHORT		ttype;
+TEXTTYPE    obj1 = 0;
 /* CVC: I didn't bother to define a larger buffer because:
 - Native types when converted to string don't reach 31 bytes plus terminator.
 - String types do not need and do not use the buffer ("temp") to be pulled.
@@ -4863,7 +4864,9 @@ SET_TDBB (tdbb);
 desc.dsc_dtype = dtype_text;
 
 if (dtype_blob == value->dsc_dtype && (BLOB_text != value->dsc_sub_type
-	|| value->dsc_scale == ttype_ascii || value->dsc_scale == ttype_none))
+	|| value->dsc_scale == ttype_ascii || value->dsc_scale == ttype_none
+	|| ((obj1 = INTL_obj_lookup (tdbb, type_texttype, ttype, (FPTR_VOID) ERR_post, NULL) != 0)
+		&& 1 == obj1->texttype_bytes_per_char)))
 {
     /* Source string is a blob, things get interesting */
 

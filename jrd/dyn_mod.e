@@ -21,8 +21,15 @@
  * Contributor(s): ______________________________________.
  * 2001.5.20: Claudio Valderrama: when changing a domain's name,
  * if it has dimensions, rdb$field_dimensions should be updated, too.
- *    23-May-2001 Claudio Valderrama - Forbid zero length identifiers,
+ * 2001.5.23: Claudio Valderrama: Forbid zero length identifiers,
  *                                   they are not ANSI SQL compliant.
+ * 2001.5.27 Claudio Valderrama: Prevent rdb$field_length from going
+ * out of sync when toggling between char and varchar data types.
+ * This caused check_update_fld_type() to lose ability to detect potentially
+ * dangerous changes. For example, you could alter a field or a domain and
+ * be able to change char(10) to varchar(8).
+ * Unfortunately, Borland chose to have DYN_modify_global_field() and add to the
+ * party DYN_modify_sql_field(); therefore bug fixes should be done twice.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -49,6 +56,7 @@
 #include "../jrd/dyn_proto.h"
 #include "../jrd/dyn_md_proto.h"
 #include "../jrd/dyn_ut_proto.h"
+#include "../jrd/dyn_df_proto.h"
 #include "../jrd/err_proto.h"
 #include "../jrd/exe_proto.h"
 #include "../jrd/gds_proto.h"
@@ -373,6 +381,8 @@ TEXT	*qryname, *qryhdr, *qryhdr2, *edtstr, *edtstr2, *missingval, *singvald,
 BOOLEAN bqryname, bqryhdr, bqryhdr2, bedtstr, bedtstr2, bmissingval, bsingvald,
 	bfldvald, bfldvaldsrc, bfldvaldsrc2, bdesc, bdesc2,bdelvald, bdeldflt, bflddftval, bflddfltsrc;
 BOOLEAN has_dimensions = FALSE;
+SSHORT field_adjusted_count = 0;
+TEXT *err_one_type_change_only = "Only one data type change to the domain allowed at a time";
 
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
@@ -432,6 +442,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			 FLD.RDB$CHARACTER_SET_ID,
 			 FLD.RDB$COLLATION_ID);
 
+	orig_dom->dyn_charbytelen = FLD.RDB$FIELD_LENGTH;
     orig_dom->dyn_dtype = FLD.RDB$FIELD_TYPE;
     orig_dom->dyn_precision = FLD.RDB$FIELD_PRECISION;
     orig_dom->dyn_charlen = FLD.RDB$CHARACTER_LENGTH;
@@ -450,68 +461,95 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	    switch (verb)
 		{
 		case gds__dyn_fld_name:
-		    {
+		{
 		    char newfld[32];
 
 		    if (GET_STRING (ptr, newfld))
-                        {
+            {
 			if (!domain_exists (tdbb, dbb, gbl, newfld))
-			    {
-		            MODIFY FLD USING
-			        strcpy (FLD.RDB$FIELD_NAME, newfld);
-			        FLD.RDB$FIELD_NAME.NULL = FALSE;
-				old_request = request;
-				request = NULL;
-				/* CVC: Let's update the dimensions, too. */
-				if (has_dimensions)
-				{
-					FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
-						DIM_DOM IN RDB$FIELD_DIMENSIONS WITH DIM_DOM.RDB$FIELD_NAME EQ orig_dom->dyn_fld_name
+			{
+				MODIFY FLD USING
+					strcpy (FLD.RDB$FIELD_NAME, newfld);
+					FLD.RDB$FIELD_NAME.NULL = FALSE;
+					old_request = request;
+					request = NULL;
+					/* CVC: Let's update the dimensions, too. */
+					if (has_dimensions)
+					{
+						FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+							DIM_DOM IN RDB$FIELD_DIMENSIONS WITH DIM_DOM.RDB$FIELD_NAME EQ orig_dom->dyn_fld_name
 							MODIFY DIM_DOM USING
 								strcpy (DIM_DOM.RDB$FIELD_NAME, newfld);
 								DIM_DOM.RDB$FIELD_NAME.NULL = FALSE;
 							END_MODIFY;
+						END_FOR;
+						CMP_release (tdbb, request);
+						request = NULL;
+					}
+					/* CVC: End modification. */
+					FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+						DOM IN RDB$RELATION_FIELDS WITH DOM.RDB$FIELD_SOURCE EQ orig_dom->dyn_fld_name
+						MODIFY DOM USING
+							strcpy (DOM.RDB$FIELD_SOURCE, newfld);
+							DOM.RDB$FIELD_SOURCE.NULL = FALSE;
+						END_MODIFY;
+						modify_lfield_index (tdbb, dbb, gbl, DOM.RDB$RELATION_NAME,
+						DOM.RDB$FIELD_NAME, DOM.RDB$FIELD_NAME);	
 					END_FOR;
 					CMP_release (tdbb, request);
-					request = NULL;
-				}
-				/* CVC: End modification. */
-    			FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
-					DOM IN RDB$RELATION_FIELDS WITH DOM.RDB$FIELD_SOURCE EQ orig_dom->dyn_fld_name
-			            MODIFY DOM USING
-			                strcpy (DOM.RDB$FIELD_SOURCE, newfld);
-			                DOM.RDB$FIELD_SOURCE.NULL = FALSE;
-			            END_MODIFY;
-				    modify_lfield_index (tdbb, dbb, gbl, DOM.RDB$RELATION_NAME,
-						DOM.RDB$FIELD_NAME, DOM.RDB$FIELD_NAME);	
-			    END_FOR;
-				CMP_release (tdbb, request);
-				request = old_request;
-			    END_MODIFY;
-			    }
+					request = old_request;
+				END_MODIFY;
+			}
 			else
-			    {
-                            DYN_error_punt (FALSE, 204, orig_dom->dyn_fld_name, newfld, NULL, NULL, NULL);
-                            /* msg 204: Cannot rename domain %s to %s.  A domain with that name already exists. */
-			    }
+			{
+				DYN_error_punt (FALSE, 204, orig_dom->dyn_fld_name, newfld, NULL, NULL, NULL);
+				/* msg 204: Cannot rename domain %s to %s.  A domain with that name already exists. */
+			}
  			}
-			else DYN_error_punt (TRUE, 212, NULL, NULL, NULL, NULL, NULL);
+			else DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 				/* msg 212: "Zero length identifiers not allowed" */
 		    break;
-		    }
+		}
 
 		case gds__dyn_rel_name:
 		    GET_STRING (ptr, new_dom->dyn_rel_name);
 		    break;
 
+			/* CVC: The syntax for DDL alter domain was accepting multiple
+			changes in one command even to the same features, IE two length alterations.
+			This repetitive type change will cause havoc so it should be stopped in the future. */
 		case gds__dyn_fld_length:
 		    fldlen = TRUE;
 		    new_dom->dyn_dsc.dsc_length = DYN_get_number (ptr);
+			if (++field_adjusted_count > 2)
+			{
+				EXE_unwind (tdbb, request);
+				DYN_error_punt (FALSE, 5, err_one_type_change_only, NULL, NULL, NULL, NULL);
+			}
+			switch (new_dom->dyn_dtype)
+			{
+            case blr_text:
+            case blr_text2:
+            case blr_varying:
+            case blr_varying2:
+            case blr_cstring:
+            case blr_cstring2:
+				new_dom->dyn_charbytelen = new_dom->dyn_dsc.dsc_length;
+                break;
+			default:
+				new_dom->dyn_charbytelen = 0; /* It won't be used, anyway. */
+				break;
+			}
 		    break;
 
 		case gds__dyn_fld_type:
 		    dtype = TRUE;
-                    new_dom->dyn_dtype = DYN_get_number (ptr);
+            new_dom->dyn_dtype = DYN_get_number (ptr);
+			if (++field_adjusted_count > 2)
+			{
+				EXE_unwind (tdbb, request);
+				DYN_error_punt (FALSE, 5, err_one_type_change_only, NULL, NULL, NULL, NULL);
+			}
 
 		    switch (new_dom->dyn_dtype)
 			{
@@ -522,8 +560,11 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
             case blr_varying2:
             case blr_cstring:
             case blr_cstring2:
-                new_dom->dyn_dsc.dsc_length = DSC_string_length (new_dom);
-                break; 
+				if (new_dom->dyn_dsc.dsc_length && !new_dom->dyn_charbytelen)
+					new_dom->dyn_charbytelen = new_dom->dyn_dsc.dsc_length;
+				new_dom->dyn_dsc.dsc_length = DSC_string_length (&new_dom->dyn_dsc);
+                break;
+
 			case blr_short :	
 			    new_dom->dyn_dsc.dsc_length = 2; 
 			    break;
@@ -548,34 +589,34 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		    break;
 
 		case gds__dyn_fld_scale:
-		    scale = TRUE;
-                    new_dom->dyn_dsc.dsc_scale = DYN_get_number (ptr);
-		    break;
-
-                case isc_dyn_fld_precision:
-                    prec = TRUE;
-                    new_dom->dyn_precision = DYN_get_number (ptr);
-                    break;
+			scale = TRUE;
+			new_dom->dyn_dsc.dsc_scale = DYN_get_number (ptr);
+			break;
+			
+		case isc_dyn_fld_precision:
+			prec = TRUE;
+			new_dom->dyn_precision = DYN_get_number (ptr);
+			break;
 
 		case gds__dyn_fld_sub_type:
-                    subtype = TRUE;
-		    new_dom->dyn_dsc.dsc_sub_type = DYN_get_number (ptr);
-		    break;
-
-	    	case gds__dyn_fld_char_length:
-                    charlen = TRUE; 
-                    new_dom->dyn_charlen = DYN_get_number (ptr);
-		    break;
-
-	    	case gds__dyn_fld_collation:
-                    collation = TRUE;
-		    new_dom->dyn_collation = DYN_get_number (ptr);
-		    break;
-
-                case gds__dyn_fld_character_set:
-                    charset = TRUE;
-                    new_dom->dyn_charset = DYN_get_number (ptr);
-		    break;
+			subtype = TRUE;
+			new_dom->dyn_dsc.dsc_sub_type = DYN_get_number (ptr);
+			break;
+			
+		case gds__dyn_fld_char_length:
+			charlen = TRUE; 
+			new_dom->dyn_charlen = DYN_get_number (ptr);
+			break;
+			
+		case gds__dyn_fld_collation:
+			collation = TRUE;
+			new_dom->dyn_collation = DYN_get_number (ptr);
+			break;
+			
+		case gds__dyn_fld_character_set:
+			charset = TRUE;
+			new_dom->dyn_charset = DYN_get_number (ptr);
+			break;
 
 		case gds__dyn_fld_not_null:
 		    nullflg = TRUE;
@@ -622,32 +663,32 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		    break;
 
 		case gds__dyn_single_validation:
-		    if (single_validate)
+			if (single_validate)
 			{
-			EXE_unwind (tdbb, request);
-			DYN_error_punt (FALSE, 160, NULL, NULL, NULL, NULL, NULL);
-			/* msg 160: "Only one constraint allowed for a domain" */
-			break;
+				EXE_unwind (tdbb, request);
+				DYN_error_punt (FALSE, 160, NULL, NULL, NULL, NULL, NULL);
+				/* msg 160: "Only one constraint allowed for a domain" */
+				break;
 			}
-		    else	
-			single_validate = TRUE;
-		    break;
-
+			else	
+				single_validate = TRUE;
+			break;
+			
 		case gds__dyn_fld_validation_blr:
-		    if (single_validate && (!FLD.RDB$VALIDATION_BLR.NULL))
+			if (single_validate && (!FLD.RDB$VALIDATION_BLR.NULL))
 			{
-			EXE_unwind (tdbb, request);
-			DYN_error_punt (FALSE, 160, NULL, NULL, NULL, NULL, NULL);
-			/* msg 160: "Only one constraint allowed for a domain" */
-			break;
+				EXE_unwind (tdbb, request);
+				DYN_error_punt (FALSE, 160, NULL, NULL, NULL, NULL, NULL);
+				/* msg 160: "Only one constraint allowed for a domain" */
+				break;
 			}
-		    else 
-			single_validate = TRUE;
-
-		    fldvald = (TEXT*) *ptr;
-	    	    bfldvald = TRUE;
-		    DYN_skip_attribute (ptr);
-		    break;
+			else 
+				single_validate = TRUE;
+			
+			fldvald = (TEXT*) *ptr;
+			bfldvald = TRUE;
+			DYN_skip_attribute (ptr);
+			break;
 
 		case gds__dyn_fld_validation_source:
 		    fldvaldsrc = (TEXT*) *ptr;
@@ -715,23 +756,23 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		}
     
 			 
-    /* Now that we have all of the information needed, let's check to see if the field type can be modifed.  Only
-     * do this, however, if we are actually modifying the datatype of the domain.
+    /* Now that we have all of the information needed, let's check to see if the field type can be modifed.
+	 * Only do this, however, if we are actually modifying the datatype of the domain.
      */
 
     if (dtype)
-        {
-	ULONG retval;
-
+	{
+		ULONG retval;
+		
         DSC_make_descriptor (&new_dom->dyn_dsc,
-    			 new_dom->dyn_dtype,
-			 new_dom->dyn_dsc.dsc_scale,
-			 new_dom->dyn_dsc.dsc_length,
-			 new_dom->dyn_dsc.dsc_sub_type,
-			 new_dom->dyn_charset,
-			 new_dom->dyn_collation);
+			new_dom->dyn_dtype,
+			new_dom->dyn_dsc.dsc_scale,
+			new_dom->dyn_dsc.dsc_length,
+			new_dom->dyn_dsc.dsc_sub_type,
+			new_dom->dyn_charset,
+			new_dom->dyn_collation);
         if ((retval = check_update_fld_type (orig_dom, new_dom)) != SUCCESS)
-	    modify_err_punt (tdbb, retval, orig_dom, new_dom);
+			modify_err_punt (tdbb, retval, orig_dom, new_dom);
 	}
 
     MODIFY FLD USING
@@ -779,7 +820,10 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 	if (fldlen)
 	    {
-	    FLD.RDB$FIELD_LENGTH = new_dom->dyn_dsc.dsc_length;
+		/* CVC: Rescue from the wrong field_length with a helper. */
+		if (new_dom->dyn_dsc.dsc_dtype <= dtype_varying && new_dom->dyn_charbytelen)
+			FLD.RDB$FIELD_LENGTH = new_dom->dyn_charbytelen;
+	    else FLD.RDB$FIELD_LENGTH = new_dom->dyn_dsc.dsc_length;
 	    FLD.RDB$FIELD_LENGTH.NULL = FALSE;
 	    }
 
@@ -1178,7 +1222,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		new_fld[0] = 0;
         GET_STRING (&new_name, new_fld);
 		if (!new_fld[0])
-			DYN_error_punt (TRUE, 212, NULL, NULL, NULL, NULL, NULL);
+			DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 			/* msg 212: "Zero length identifiers not allowed" */
 
 	    check_view_dependency (tdbb, dbb, gbl, r, f);
@@ -1538,7 +1582,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			/* GET_STRING (ptr, X.RDB$TRIGGER_NAME); */
 			GET_STRING (ptr, new_trigger_name);
 			if (!new_trigger_name[0])
-			DYN_error_punt (TRUE, 212, NULL, NULL, NULL, NULL, NULL);
+			DYN_error_punt (FALSE, 212, NULL, NULL, NULL, NULL, NULL);
 			/* msg 212: "Zero length identifiers not allowed" */
 
 		    strcpy (X.RDB$TRIGGER_NAME, new_trigger_name);
@@ -2103,7 +2147,7 @@ void DYN_modify_sql_field (
 {
 /**************************************
  *
- *	D Y N _ m o d i f y _ sql _ f i e l d
+ *	D Y N _ m o d i f y _ s q l _ f i e l d
  *
  **************************************
  *
@@ -2151,6 +2195,9 @@ BOOLEAN dtype, scale, prec, subtype, charlen, collation, fldlen, nullflg, charse
 DYN_FLD orig_fld,
 	new_fld,
 	dom_fld;
+BOOLEAN has_dimensions = FALSE;
+SSHORT field_adjusted_count = 0;
+TEXT *err_one_type_change_only = "Only one data type change to the field allowed at a time";
 
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
@@ -2217,7 +2264,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
          * the two datatypes, error.
          */
         
-	DSC_make_descriptor (&orig_fld->dyn_dsc,
+		DSC_make_descriptor (&orig_fld->dyn_dsc,
 			     FLD.RDB$FIELD_TYPE,
 			     FLD.RDB$FIELD_SCALE,
 			     FLD.RDB$FIELD_LENGTH,
@@ -2225,17 +2272,21 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			     FLD.RDB$CHARACTER_SET_ID,
 			     FLD.RDB$COLLATION_ID);
 
+        orig_fld->dyn_charbytelen = FLD.RDB$FIELD_LENGTH; 
         orig_fld->dyn_dtype = FLD.RDB$FIELD_TYPE;
-	orig_fld->dyn_precision = FLD.RDB$FIELD_PRECISION;
-	orig_fld->dyn_charlen = FLD.RDB$CHARACTER_LENGTH;
-	orig_fld->dyn_collation = FLD.RDB$COLLATION_ID;
-	orig_fld->dyn_null_flag = FLD.RDB$NULL_FLAG;
+		orig_fld->dyn_precision = FLD.RDB$FIELD_PRECISION;
+		orig_fld->dyn_charlen = FLD.RDB$CHARACTER_LENGTH;
+		orig_fld->dyn_collation = FLD.RDB$COLLATION_ID;
+		orig_fld->dyn_null_flag = FLD.RDB$NULL_FLAG;
 
         strcpy (orig_fld->dyn_fld_source, RFR.RDB$FIELD_SOURCE);
 
         /* If the original field type is an array, force its blr type to blr_blob */
         if (FLD.RDB$DIMENSIONS != 0)
-   	    orig_fld->dyn_dtype = blr_blob;
+		{
+			orig_fld->dyn_dtype = blr_blob;
+			has_dimensions = TRUE;
+		}
 
 	while ((verb = *(*ptr)++) != gds__dyn_end)
 	    {
@@ -2254,11 +2305,29 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		case gds__dyn_fld_length:
 		    fldlen = TRUE;
 		    new_fld->dyn_dsc.dsc_length = DYN_get_number (ptr);
+			if (++field_adjusted_count > 2)
+				DYN_error_punt (FALSE, 5, err_one_type_change_only, NULL, NULL, NULL, NULL);
+			switch (new_fld->dyn_dtype)
+			{
+            case blr_text:
+            case blr_text2:
+            case blr_varying:
+            case blr_varying2:
+            case blr_cstring:
+            case blr_cstring2:
+				new_fld->dyn_charbytelen = new_fld->dyn_dsc.dsc_length;
+                break;
+			default:
+				new_fld->dyn_charbytelen = 0; /* It won't be used, anyway. */
+				break;
+			}
 		    break;
 
 		case gds__dyn_fld_type:
 		    dtype = TRUE;
             new_fld->dyn_dtype = DYN_get_number (ptr);
+			if (++field_adjusted_count > 2)
+				DYN_error_punt (FALSE, 5, err_one_type_change_only, NULL, NULL, NULL, NULL);
 
 		    switch (new_fld->dyn_dtype)
 			{
@@ -2268,7 +2337,9 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
             case blr_varying2:
             case blr_cstring:
             case blr_cstring2:
-                new_fld->dyn_dsc.dsc_length = DSC_string_length (new_fld);
+				if (new_fld->dyn_dsc.dsc_length && !new_fld->dyn_charbytelen)
+					new_fld->dyn_charbytelen = new_fld->dyn_dsc.dsc_length;
+				new_fld->dyn_dsc.dsc_length = DSC_string_length (&new_fld->dyn_dsc);
                 break; 
 
 			case blr_short :	
@@ -2296,33 +2367,33 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 		case gds__dyn_fld_scale:
 		    scale = TRUE;
-                    new_fld->dyn_dsc.dsc_scale = DYN_get_number (ptr);
+            new_fld->dyn_dsc.dsc_scale = DYN_get_number (ptr);
 		    break;
 
-                case isc_dyn_fld_precision:
-		    prec = TRUE;
-                    new_fld->dyn_precision = DYN_get_number (ptr);
-                    break;
+		case isc_dyn_fld_precision:
+			prec = TRUE;
+			new_fld->dyn_precision = DYN_get_number (ptr);
+			break;
 
 		case gds__dyn_fld_sub_type:
 		    subtype = TRUE;
 		    new_fld->dyn_dsc.dsc_sub_type = DYN_get_number (ptr);
 		    break;
 
-	    	case gds__dyn_fld_char_length:
-		    charlen = TRUE;
-                    new_fld->dyn_charlen = DYN_get_number (ptr);
-		    break;
-
-	    	case gds__dyn_fld_collation:
-		    collation = TRUE;
-		    new_fld->dyn_collation = DYN_get_number (ptr);
-		    break;
-
-                case gds__dyn_fld_character_set:
-		    charset = TRUE;
-                    new_fld->dyn_charset = DYN_get_number (ptr);
-		    break;
+		case gds__dyn_fld_char_length:
+			charlen = TRUE;
+			new_fld->dyn_charlen = DYN_get_number (ptr);
+			break;
+			
+		case gds__dyn_fld_collation:
+			collation = TRUE;
+			new_fld->dyn_collation = DYN_get_number (ptr);
+			break;
+			
+		case gds__dyn_fld_character_set:
+			charset = TRUE;
+			new_fld->dyn_charset = DYN_get_number (ptr);
+			break;
 
 		case gds__dyn_fld_not_null:
 		    nullflg = TRUE;
@@ -2358,6 +2429,9 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	{
 	ULONG retval;
 
+	/* CVC: Since get_domain_type() called above already called DSC_make_descriptor,
+	there's no point in calling it again, since it will increment AGAIN the length
+	of varchar fields! This bug detected thanks to new check field dyn_charbytelen.
 	DSC_make_descriptor (&dom_fld->dyn_dsc,
 			 dom_fld->dyn_dtype,
 			 dom_fld->dyn_dsc.dsc_scale,
@@ -2365,16 +2439,17 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			 dom_fld->dyn_dsc.dsc_sub_type,
 			 dom_fld->dyn_charset,
 			 dom_fld->dyn_collation);
+	*/
 
         if ((retval = check_update_fld_type (orig_fld, dom_fld)) != SUCCESS)
-	    modify_err_punt (tdbb, retval, orig_fld, dom_fld);
+			modify_err_punt (tdbb, retval, orig_fld, dom_fld);
 
 	/* if the original definition was a base field type, remove the entries from RDB$FIELDS */
 	if (!strncmp(orig_fld->dyn_fld_source, "RDB$", 4))
 	    {
 	    FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		FLD IN RDB$FIELDS WITH FLD.RDB$FIELD_NAME = RFR.RDB$FIELD_SOURCE
-		ERASE FLD;
+			ERASE FLD;
 	    END_FOR;
 
 	    CMP_release (tdbb, request);
@@ -2400,7 +2475,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			 new_fld->dyn_collation);
 
         if ((retval = check_update_fld_type (orig_fld, new_fld)) != SUCCESS)
-	    modify_err_punt (tdbb, retval, orig_fld, new_fld);
+			modify_err_punt (tdbb, retval, orig_fld, new_fld);
 
 	    /* check to see if the original data type for the field was based on a domain.  If it
 	     * was (and now it isn't), remove the domain information and replace it with a generated
@@ -2469,8 +2544,11 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 		if (fldlen)
 		    {
-		    FLD.RDB$FIELD_LENGTH = new_fld->dyn_dsc.dsc_length;
-		    FLD.RDB$FIELD_LENGTH.NULL = FALSE;
+			/* CVC: Rescue from the wrong field_length with a helper. */
+			if (new_fld->dyn_dsc.dsc_dtype <= dtype_varying && new_fld->dyn_charbytelen)
+				FLD.RDB$FIELD_LENGTH = new_fld->dyn_charbytelen;
+			else FLD.RDB$FIELD_LENGTH = new_fld->dyn_dsc.dsc_length;
+			FLD.RDB$FIELD_LENGTH.NULL = FALSE;
 		    }
 
 		/* Copy the field name into RDB$FIELDS */
@@ -2518,8 +2596,11 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
 		if (fldlen)
 		    {
-		    FLD.RDB$FIELD_LENGTH = new_fld->dyn_dsc.dsc_length;
-		    FLD.RDB$FIELD_LENGTH.NULL = FALSE;
+			/* CVC: Rescue from the wrong field_length with a helper. */
+			if (new_fld->dyn_dsc.dsc_dtype <= dtype_varying && new_fld->dyn_charbytelen)
+				FLD.RDB$FIELD_LENGTH = new_fld->dyn_charbytelen;
+			else FLD.RDB$FIELD_LENGTH = new_fld->dyn_dsc.dsc_length;
+			FLD.RDB$FIELD_LENGTH.NULL = FALSE;
 		    }
 
 		END_MODIFY;
@@ -2583,6 +2664,7 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			 FLD.RDB$CHARACTER_SET_ID,
 			 FLD.RDB$COLLATION_ID);
 
+	dom_fld->dyn_charbytelen = FLD.RDB$FIELD_LENGTH;
     dom_fld->dyn_dtype = FLD.RDB$FIELD_TYPE;
     dom_fld->dyn_precision = FLD.RDB$FIELD_PRECISION;
     dom_fld->dyn_charlen = FLD.RDB$CHARACTER_LENGTH;
@@ -2655,14 +2737,21 @@ switch (orig_fld->dyn_dtype)
             case blr_varying:
             case blr_cstring:
                 {
-                USHORT maxflen = 0;
-
-		maxflen = DSC_string_length (&orig_fld->dyn_dsc);
-
-		if (new_fld->dyn_dsc.dsc_length < maxflen)
-                    return isc_dyn_char_fld_too_small;
-	            /* New size specified for column %s must be greater than %d characters. */
-		}
+					USHORT maxflen = 0;
+					/* CVC: Because our caller invoked DSC_make_descriptor() on new_fld previously,
+					we should have the added bytes for varchar. For cstring, we are used, since
+					DSC_make_descriptor(DSC_string_length) != DSC_string_length(DSC_make_descriptor). */
+					
+					maxflen = DSC_string_length (&orig_fld->dyn_dsc);
+					
+					/* We can have this assertion since this case is for both string fields. */
+					assert (DSC_string_length (&new_fld->dyn_dsc) - maxflen
+						== new_fld->dyn_charbytelen - orig_fld->dyn_charbytelen);
+					/* if (new_fld->dyn_dsc.dsc_length < maxflen) */
+					if (DSC_string_length (&new_fld->dyn_dsc) < maxflen)
+						return isc_dyn_char_fld_too_small;
+					/* New size specified for column %s must be greater than %d characters. */
+				}
                 break;
 
             default:
