@@ -6990,9 +6990,9 @@ else
 		TEXT	*buff2 = ISQL_ALLOC (2*var->sqllen+1);
 		/* Convert the string to hex digits */
 		for (i = 0; i < var->sqllen; i++)
-		    {
-		    sprintf (&buff2[i*2], "%02X", string [i]);
-		    }
+			{
+			sprintf(&buff2[i * 2], "%02X", (UCHAR)string[i]);
+			}
 		buff2 [(2*var->sqllen+1)-1] = 0;
 		if (List)
 		    {
