@@ -72,7 +72,20 @@ static FIL	setup_file (DBB, TEXT *, USHORT, HANDLE);
 static BOOLEAN	nt_error (TEXT *, FIL, STATUS, STATUS *);
 
 static USHORT	ostype;
-
+
+#ifdef SUPERSERVER_V2
+static const DWORD g_dwShareFlags = 0;	// no sharing
+static const DWORD g_dwExtraFlags = FILE_FLAG_OVERLAPPED |
+									FILE_FLAG_NO_BUFFERING |
+									FILE_FLAG_RANDOM_ACCESS;
+#elif SUPERSERVER
+static const DWORD g_dwShareFlags = 0;	// no sharing
+static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
+#else
+static const DWORD g_dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
+static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
+#endif
+
 
 /**************************************
  *
@@ -107,7 +120,8 @@ file->fil_next = new_file;
 
 return sequence;
 }
-
+
+
 void PIO_close(FIL main_file)
 {
 /**************************************
@@ -141,7 +155,8 @@ for (file = main_file; file; file = file->fil_next)
 	}
 }
 }
-
+
+
 int PIO_connection (
     TEXT	*file_name,
     USHORT	*file_length)
@@ -163,7 +178,8 @@ int PIO_connection (
 
 return 0;
 }
-
+
+
 
 /**************************************
  *
@@ -180,14 +196,6 @@ FIL	file;
 	TEXT	workspace[MAXPATHLEN];
 	TEXT*	file_name;
 
-#ifdef SUPERSERVER_V2
-	const DWORD dwShareFlags = 0;	/* no sharing */
-	const DWORD dwExtraFlags = FILE_FLAG_OVERLAPPED | FILE_FLAG_NO_BUFFERING;
-#else
-	const DWORD dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
-	const DWORD dwExtraFlags = 0;
-#endif
-
 file_name = string;
 
 if (length)
@@ -199,12 +207,11 @@ if (length)
 
 	desc = CreateFile(	file_name,
 	GENERIC_READ | GENERIC_WRITE,
-						dwShareFlags,
+						g_dwShareFlags,
 	NULL,
 	(overwrite ? CREATE_ALWAYS : CREATE_NEW) ,
 	FILE_ATTRIBUTE_NORMAL |
-						FILE_FLAG_RANDOM_ACCESS |
-						dwExtraFlags,
+						g_dwExtraFlags,
 						0);
 
 	if (desc == INVALID_HANDLE_VALUE)
@@ -229,7 +236,8 @@ file = setup_file (dbb, workspace, length, desc);
 
 return file;
 }
-
+
+
 int PIO_expand (
     TEXT	*file_name,
     USHORT	file_length,
@@ -249,7 +257,8 @@ int PIO_expand (
 
 return ISC_expand_filename (file_name, file_length, expanded_name);
 }
-
+
+
 void PIO_flush (
     FIL		main_file)
 {
@@ -274,7 +283,8 @@ for (file = main_file; file; file = file->fil_next)
 	THD_MUTEX_UNLOCK (file->fil_mutex);
     }
 }
-
+
+
 void PIO_force_write (
     FIL		file,
     USHORT	flag)
@@ -291,27 +301,18 @@ void PIO_force_write (
  **************************************/
 HANDLE	desc;
 
-#ifdef SUPERSERVER_V2
-	const DWORD dwShareFlags = 0;	/* no sharing */
-	const DWORD dwExtraFlags = FILE_FLAG_OVERLAPPED | FILE_FLAG_NO_BUFFERING;
-#else
-	const DWORD dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
-	const DWORD dwExtraFlags = 0;
-#endif
-
 if (flag)
     {
     if (!(file->fil_flags & FIL_force_write_init))
 	{
 	desc = CreateFile (file->fil_string,
 	    GENERIC_READ | GENERIC_WRITE,
-								dwShareFlags,
+								g_dwShareFlags,
 	    NULL,
 	    OPEN_EXISTING,
 	    FILE_ATTRIBUTE_NORMAL |
 	    FILE_FLAG_WRITE_THROUGH |
-								FILE_FLAG_RANDOM_ACCESS |
-								dwExtraFlags,
+								g_dwExtraFlags,
 	    0);
 
 	if (desc == INVALID_HANDLE_VALUE)
@@ -338,7 +339,8 @@ else
     file->fil_flags &= ~FIL_force_write;
 }
 }
-
+
+
 void PIO_header (
     DBB		dbb,
     SCHAR	*address,
@@ -432,7 +434,8 @@ CloseHandle (overlapped.hEvent);
 }
 }
 
-
+
+
 /**************************************
  *
  *	Compute number of pages in file, based only on file size.
@@ -456,7 +459,8 @@ static ULONG private_PIO_get_number_of_pages(
 	ullFileSize = (((ULONGLONG)dwFileSizeHigh) << 32) + dwFileSizeLow;
 	return (ULONG)((ullFileSize + pagesize - 1) / pagesize);
 }
-
+
+
 /**************************************
  *
  *	Compute last physically allocated page of database.
@@ -499,7 +503,8 @@ for (file = dbb->dbb_file; file != NULL; file = file->fil_next)
 
 return tot_pages;
 }
-
+
+
 
 /**************************************
  *
@@ -518,14 +523,6 @@ FIL PIO_open (
 {
 TEXT	temp [MAXPATHLEN], *ptr;
 HANDLE	desc;
-
-#ifdef SUPERSERVER_V2
-	const DWORD dwShareFlags = 0;	/* no sharing */
-	const DWORD dwExtraFlags = FILE_FLAG_OVERLAPPED | FILE_FLAG_NO_BUFFERING;
-#else
-	const DWORD dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
-	const DWORD dwExtraFlags = 0;
-#endif
 
 if (string)
     {
@@ -550,12 +547,11 @@ else
 
 	desc = CreateFile(	ptr,
 	GENERIC_READ | GENERIC_WRITE,
-						dwShareFlags,
+						g_dwShareFlags,
 	NULL,
 	OPEN_EXISTING,
 	FILE_ATTRIBUTE_NORMAL |
-						FILE_FLAG_RANDOM_ACCESS |
-						dwExtraFlags,
+						g_dwExtraFlags,
 						0);
 
 	if (desc == INVALID_HANDLE_VALUE)
@@ -571,8 +567,7 @@ else
 	    NULL,
 	    OPEN_EXISTING,
 	    FILE_ATTRIBUTE_NORMAL |
-							FILE_FLAG_RANDOM_ACCESS |
-							dwExtraFlags,
+							g_dwExtraFlags,
 							0);
 
 		if (desc == INVALID_HANDLE_VALUE)
@@ -606,7 +601,8 @@ else
 
 return setup_file (dbb, string, length, desc);
 }
-
+
+
 int PIO_read (
     FIL		file,
     BDB		bdb,
@@ -691,7 +687,8 @@ if (ostype == OS_CHICAGO)
 
 return TRUE;
 }
-
+
+
 #ifdef SUPERSERVER_V2
 int PIO_read_ahead (
     DBB		dbb,
@@ -790,7 +787,8 @@ while (pages)
 return TRUE;
 }
 #endif
-
+
+
 #ifdef SUPERSERVER_V2
 int PIO_status (
     PIOB	piob,
@@ -829,7 +827,8 @@ release_io_event (piob->piob_file, (OVERLAPPED *) &piob->piob_io_event);
 return TRUE;
 }
 #endif
-
+
+
 int PIO_write (
     FIL		file,
     BDB		bdb,
@@ -907,7 +906,8 @@ if (ostype == OS_CHICAGO)
 
 return TRUE;
 }
-
+
+
 #ifdef SUPERSERVER_V2
 static void release_io_event (
     FIL		file,
@@ -943,7 +943,8 @@ if (overlapped->hEvent)
     CloseHandle (overlapped->hEvent);
 }
 #endif
-
+
+
 
 static FIL seek_file (
     FIL		file,
@@ -1038,7 +1039,8 @@ else
 
 return file;
 }
-
+
+
 static FIL setup_file (
     DBB		dbb,
     TEXT	*file_name,
@@ -1123,7 +1125,8 @@ if (!LCK_lock (NULL_TDBB, lock, LCK_EX, LCK_NO_WAIT))
 
 return file;
 }
-
+
+
 static BOOLEAN nt_error (
     TEXT	*string,
     FIL		file,
