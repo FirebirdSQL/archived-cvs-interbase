@@ -21,6 +21,18 @@
  * Contributor(s): ______________________________________.
  */
 
+/*
+ * Modified by: Patrick J. P. Griffin
+ * Date: 11/24/2000
+ * Problem:   select count(0)+1 from rdb$relations where 0=1; returns 0
+ *            In the EVL_group processing, the internal assigment for 
+ *            the literal in the computation is being done on every 
+ *            statement fetch, so if there are no statements fetched
+ *            then the internal field never gets set.
+ * Change:    Added an assignment process for the literal
+ *            before the first fetch.
+ */
+
 #include <string.h>
 #include "../jrd/jrd.h"
 #include "../jrd/val.h"
@@ -1329,6 +1341,10 @@ for (ptr = map->nod_arg, end = ptr + map->nod_count; ptr < end; ptr++)
 	    if (from->nod_type == nod_agg_count_distinct)
 		/* Initialize a sort to reject duplicate values */
 		init_agg_distinct (tdbb, from);
+	    break;
+		
+	case nod_literal: /* pjpg 20001124 */
+	    EXE_assignment (tdbb, *ptr);
 	    break;
 	}
     }
