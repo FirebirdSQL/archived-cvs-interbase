@@ -106,7 +106,7 @@
 #define TEMP_DIR "/tmp"
 #define CHANGE_DIR chdir
 #endif
-#define INTERBASE_USER          "interbase"
+#define INTERBASE_USER_NAME     "interbase"
 #define INTERBASE_USER_SHORT    "interbas"
 #define FIREBIRD_USER_NAME	"firebird"
 #endif
@@ -331,7 +331,7 @@ if (standalone)
             {
             /* invalid user -- bail out */
             ib_fprintf (ib_stderr, "%s: Invalid user (must be %s, %s, %s or root).\n",
-                "ibserver", FIREBIRD_USER, INTERBASE_USER, INTERBASE_USER_SHORT);
+                "ibserver", FIREBIRD_USER_NAME, INTERBASE_USER_NAME, INTERBASE_USER_SHORT);
             exit (STARTUP_ERROR);
             }
 #else
