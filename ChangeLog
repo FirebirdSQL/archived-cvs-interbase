@@ -1,3 +1,12 @@
+2001-12-05 02:14  nmcc
+
+	* interbase/firebird/nmcc/solaris-64bitio.patch:
+	
+	A patch to enable 64bit io on Solaris Sparc using Sun compiler. 
+	Known problems with patch as at this version: Classic:	fails to
+	restore databases > 2Gb.  Super: none but less well tested.  This
+	patch is against cvs versions as of around 1.0.0.575 RC1.
+
 2001-12-04 16:31  paul_reeves
 
 	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_Build_No.bat,
