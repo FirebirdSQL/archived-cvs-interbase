@@ -34,7 +34,9 @@
 ::
 ::
 ::  Changelog
-::  o Warnings are now turned off by default.   - 04-12-2001   - PR
+::  o BUILDER automatically deleted             - 05-Mar-2002  - PR
+::    from isc4.gdb on completion
+::  o Warnings are now turned off by default.   - 04-Dec-2001  - PR
 ::    See :SET_WARNING_LEVEL for details of how
 ::    to turn them on again.
 ::  o Log files now include the build number in - 29-Nov-2001  - PR
@@ -177,7 +179,7 @@ if exist %DOS_DB_PATH% (
   (@xcopy /L /D msgs\msg.gbak %DOS_DB_PATH%\msgs | find "1" >nul && ((@echo:) & (@echo    ERROR: The Messages database is not up-to-date.) & (goto :HELP_BUILD_DBS)))
   (@echo Messages Database is up-to-date)
   ) else (
-  (@echo: )& (@echo   WARNING: Cannot test for messages database) & (@echo   You may wish to manually check if it is up-to-date.  ) & (@echo: )
+  (@echo: )& (@echo   WARNING: Cannot test for messages database) & (@echo   You may wish to manually check if it is up-to-date.  ) & (@echo: ) & (pause)
   )
 
 
@@ -481,8 +483,12 @@ goto :EOF
 
 
 ::=====================================
-
 :END_COMPLETED
+
+::DEL BUILDER
+gsec -delete BUILDER 2>nul
+
+
 if exist BUILD_OK (
   if "%BUILDTYPE%"=="DEV" (call FB_Build_Win32_BSCMake.bat)
 ) else (goto :END_FAIL)

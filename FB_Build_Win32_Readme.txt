@@ -86,6 +86,12 @@ o Compiler
   compiler optimisations not found in the standard version. However,
   in all other respects the standard version is fine.
 
+  NOTE: If you are using VC5 you need to add this line near the 
+  top of jrd/winnt.c:
+
+    #define ULONGLONG unsigned __int64
+
+
 o Other tools
 
   The build requires the Borland Make, available with all their
