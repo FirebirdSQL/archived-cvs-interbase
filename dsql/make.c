@@ -22,6 +22,8 @@
  * 2001.11.21 Claudio Valderrama: Finally solved the mystery of DSQL
  * not recognizing when a UDF returns NULL. This fixes SF bug #484399.
  * See case nod_udf in MAKE_desc().
+ * 2001.02.23 Claudio Valderrama: Fix SF bug #518350 with substring()
+ * and text blobs containing charsets other than ASCII/NONE/BINARY.
  */
 
 #include <ctype.h>
@@ -386,7 +388,7 @@ switch (node->nod_type)
 	return;	
 
     case nod_upcase:
-	case nod_substr:
+    case nod_substr:
 	MAKE_desc (&desc1, node->nod_arg [0]);
 	if (desc1.dsc_dtype <= dtype_any_text)
 	    {
@@ -395,8 +397,33 @@ switch (node->nod_type)
 	    }
 	desc->dsc_dtype = dtype_varying;
 	desc->dsc_scale = 0;
-	desc->dsc_ttype = ttype_ascii;
-	desc->dsc_length = sizeof (USHORT) + DSC_string_length (&desc1);
+	/* Beware that JRD treats substring() always as returning CHAR
+	instead	of VARCHAR for historical reasons. */
+	if (node->nod_type == nod_substr && desc1.dsc_dtype == dtype_blob)
+		{
+		SLONG len = 0;
+		NOD for_node = node->nod_arg [e_substr_length];
+		assert (for_node->nod_desc.dsc_dtype == dtype_long);
+		/* Migrate the charset from the blob to the string. */
+		desc->dsc_ttype = desc1.dsc_scale;
+		len = *(SLONG *) for_node->nod_desc.dsc_address;
+		/* For now, our substring() doesn't handle MBCS blobs,
+		neither at the DSQL layer nor at the JRD layer. */
+		if (len <= (ULONG) MAX_COLUMN_SIZE - sizeof (USHORT) || len >= 0)
+			desc->dsc_length = sizeof (USHORT) + len;
+		else
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
+				gds_arg_gds, gds__dsql_datatype_err,
+				gds_arg_gds, gds__imp_exc, 
+				gds_arg_gds, gds__field_name,
+				gds_arg_string, "substring()", /* field->fld_name,*/
+				0);
+		}
+	else
+		{
+		desc->dsc_ttype = ttype_ascii;
+		desc->dsc_length = sizeof (USHORT) + DSC_string_length (&desc1);
+		}
         desc->dsc_flags = desc1.dsc_flags & DSC_nullable;
 	return;
 
