@@ -19,10 +19,10 @@
  * files.
  */
 SET SQL DIALECT 1;
-CONNECT '../metadata.gdb';
+CONNECT 'metadata.gdb';
 DROP DATABASE;
 
-CREATE DATABASE '../metadata.gdb' PAGE_SIZE 1024;
+CREATE DATABASE 'metadata.gdb' PAGE_SIZE 1024;
 
 /* Domain definitions */
 CREATE DOMAIN QLI$PROCEDURE_NAME AS CHAR(31);
