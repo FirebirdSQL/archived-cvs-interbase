@@ -2275,6 +2275,7 @@ TEXT	buffer [3];
 #endif
 IB_FILE	*file;
 #if defined FREEBSD || defined NETBSD
+
 int  fd;
 #endif
 
@@ -2288,8 +2289,6 @@ for (p = buffer; *q && p < buffer + sizeof (buffer) - 1; q++)
     else
 	*p++ = LOWER7 (*q);
 *p = 0;
-
-sprintf (file_name, "%s.XXX", buffer);
 #else
 for (p = buffer; *q && p < buffer + sizeof (buffer) - 1; q++)
     if (*q == '$' || *q == '_')
@@ -2297,9 +2296,14 @@ for (p = buffer; *q && p < buffer + sizeof (buffer) - 1; q++)
     else
 	*p++ = LOWER7 (*q);
 *p = 0;
-
-sprintf (file_name, "%sXXXXXX", buffer);
 #endif
+
+/* Moved this out of #ifndef mpexl to get mktemp/mkstemp to work for Linux
+   This has been done in the inprise tree some days ago.
+   Would have saved me a lot of time, if I had seen this earlier :-(
+   FSG 15.Oct.2000
+*/
+sprintf (file_name, "%sXXXXXX", buffer);
 
 #if defined FREEBSD || defined NETBSD
 fd = mkstemp(file_name);

@@ -46,5 +46,12 @@ typedef struct stk {
 #define MKTEMP(fname, prefix)	MISC_mktemp (fname, prefix)
 extern  SCHAR*	MISC_mktemp ();
 #else
+#ifdef LINUX
+/* use mkstemp instead of mktemp for linux
+   FSG 15.Oct.2000
+*/
+#define MKTEMP(fname, prefix)	mkstemp(fname)
+#else
 #define MKTEMP(fname, prefix)	mktemp(fname)
+#endif
 #endif
