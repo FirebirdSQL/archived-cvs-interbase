@@ -7772,8 +7772,8 @@ if (Sqlda_display)
     }
 #endif
 
-
-nullind = (SSHORT*) ISQL_ALLOC ((SLONG) (n_cols * sizeof(SSHORT)));
+if (n_cols)
+	nullind = (SSHORT*) ISQL_ALLOC ((SLONG) (n_cols * sizeof(SSHORT)));
 #ifdef DEBUG_GDS_ALLOC
 if (n_cols && nullind)
 	gds_alloc_flag_unfreed ((void *) nullind);
@@ -7816,12 +7816,14 @@ for (nullp = nullind, var = sqlda->sqlvar, end = var + sqlda->sqld; var < end; v
 
 /* Buffer for reading data from the fetch */
 
-buffer = (SLONG*) ISQL_ALLOC ((SLONG) bufsize);
-memset (buffer, NULL, (unsigned int) bufsize);
-
+if (bufsize) {
+	buffer = (SLONG*) ISQL_ALLOC ((SLONG) bufsize);
+	memset (buffer, NULL, (unsigned int) bufsize);
+}
 /* Pad is an array of lengths to be passed to the print_item */
 
-pad = (SLONG*) ISQL_ALLOC ((SLONG) (sqlda->sqld * sizeof (SLONG)));
+if (sqlda->sqld)
+	pad = (SLONG*) ISQL_ALLOC ((SLONG) (sqlda->sqld * sizeof (SLONG)));
 
 offset = 0;
 
@@ -7983,16 +7985,19 @@ if (statement_type == isc_info_sql_stmt_exec_procedure)
 	}
     else
 	{
-	ISQL_printf (Out, NEWLINE);
-	if (!List)
-	    {
-	    ISQL_printf (Out, header);
-	    ISQL_printf (Out, NEWLINE);
-	    ISQL_printf (Out, header2);
-	    ISQL_printf (Out, NEWLINE);
-	    }
-	print_line (sqlda, pad, line);
-	ISQL_printf (Out, NEWLINE);
+		if (sqlda->sqld)			/* do not output unnecessary white text */
+		{
+			ISQL_printf (Out, NEWLINE);
+			if (!List)
+	    		{
+	    		ISQL_printf (Out, header);
+	    		ISQL_printf (Out, NEWLINE);
+	    		ISQL_printf (Out, header2);
+	    		ISQL_printf (Out, NEWLINE);
+	    		}
+			print_line (sqlda, pad, line);
+			ISQL_printf (Out, NEWLINE);
+		}
 	}
     }
 
