@@ -1,3 +1,21 @@
+2003-06-13 14:09  stryqx
+
+	* interbase/jrd/gds.c:
+	
+	Back out bogus fix for INTERBASE environment variable overflow. 
+	The fix for INTERBASE_MSG is still valid however.  Bounds checking
+	needs to be done on the strcat functions performed on string in
+	gds__prefix.
+
+2003-06-13 12:28  stryqx
+
+	* interbase/jrd/gds.c:
+	
+	Close exploit found at: 
+	http://packetstormsecurity.nl/0305-exploits/dsr-adv001.txt.  Also,
+	pre-emptive strike on INTERBASE_MSG environment variable, which
+	would be the next logical target.
+
 2003-06-12 12:10  paul_reeves
 
 	* interbase/builds_win32/install/FirebirdInstall.iss:
