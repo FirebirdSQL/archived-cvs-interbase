@@ -64,16 +64,16 @@ else
     sed -e "s/\$(SYSTEM)/$SYSTEM/g" -e "s/\$(VERSION)/$VERSION/g" edit_makes | sh
 fi
 if [ $SYS_TYPE != 'NOLINK_OS' ]; then
-    edit_make $SYSTEM $VERSION refresh ../refresh
-    edit_make $SYSTEM $VERSION refresh.all ../refresh.all
+    ./edit_make $SYSTEM $VERSION refresh ../refresh
+    ./edit_make $SYSTEM $VERSION refresh.all ../refresh.all
     chmod +x ../refresh*
-    edit_make $SYSTEM $VERSION special_opt ../special_opt
+    ./edit_make $SYSTEM $VERSION special_opt ../special_opt
     chmod +x ../special_opt
     if [ $SYSTEM = 'DELTA' ]; then
-        edit_make $SYSTEM $VERSION expand_dbs ../expand_dbs
-        edit_make $SYSTEM $VERSION compress_dbs ../compress_dbs
-        edit_make $SYSTEM $VERSION expand.sed ../expand.sed
-        edit_make $SYSTEM $VERSION compress.sed ../compress.sed
+        ./edit_make $SYSTEM $VERSION expand_dbs ../expand_dbs
+        ./edit_make $SYSTEM $VERSION compress_dbs ../compress_dbs
+        ./edit_make $SYSTEM $VERSION expand.sed ../expand.sed
+        ./edit_make $SYSTEM $VERSION compress.sed ../compress.sed
         chmod +x ../expand_dbs
         chmod +x ../compress_dbs
     fi
@@ -95,32 +95,32 @@ else
         edit_make $SYSTEM $VERSION fetch_comp ../../fetch_comp.ksh
         edit_make $SYSTEM $VERSION special_opt ../../special_opt.ksh
     else
-        edit_make $SYSTEM $VERSION refresh ../../refresh
-        edit_make $SYSTEM $VERSION refresh.all ../../refresh.all
+        ./edit_make $SYSTEM $VERSION refresh ../../refresh
+        ./edit_make $SYSTEM $VERSION refresh.all ../../refresh.all
         chmod +x ../../refresh*
-        edit_make $SYSTEM $VERSION expand_dbs ../../expand_dbs
-        edit_make $SYSTEM $VERSION compress_dbs ../../compress_dbs
+        ./edit_make $SYSTEM $VERSION expand_dbs ../../expand_dbs
+        ./edit_make $SYSTEM $VERSION compress_dbs ../../compress_dbs
         chmod +x ../../expand_dbs
         chmod +x ../../compress_dbs
-        edit_make $SYSTEM $VERSION copy_makes ../../copy_makes
+        ./edit_make $SYSTEM $VERSION copy_makes ../../copy_makes
         chmod +x ../../copy_makes
-        edit_make $SYSTEM $VERSION fetch_comp ../../fetch_comp
+        ./edit_make $SYSTEM $VERSION fetch_comp ../../fetch_comp
         chmod +x ../../fetch_comp
-        edit_make $SYSTEM $VERSION build_kit ../../build_kit
+        ./edit_make $SYSTEM $VERSION build_kit ../../build_kit
         chmod +x ../../build_kit
-        edit_make $SYSTEM $VERSION special_opt ../../special_opt
+        ./edit_make $SYSTEM $VERSION special_opt ../../special_opt
         chmod +x ../../special_opt
-        edit_make $SYSTEM $VERSION set_prot ../../set_prot
+        ./edit_make $SYSTEM $VERSION set_prot ../../set_prot
         chmod +x ../../set_prot
-        edit_make $SYSTEM $VERSION unset_prot ../../unset_prot
+        ./edit_make $SYSTEM $VERSION unset_prot ../../unset_prot
         chmod +x ../../unset_prot
     fi
-    edit_make $SYSTEM $VERSION expand.sed ../expand.sed
-    edit_make $SYSTEM $VERSION compress.sed ../compress.sed
-    edit_make $SYSTEM $VERSION add_template ../../add_template
-    edit_make $SYSTEM $VERSION mpm_template ../../mpm_template
-    edit_make $SYSTEM $VERSION mpp_template ../../mpp_template
-    edit_make $SYSTEM $VERSION put_template ../../put_template
+    ./edit_make $SYSTEM $VERSION expand.sed ../expand.sed
+    ./edit_make $SYSTEM $VERSION compress.sed ../compress.sed
+    ./edit_make $SYSTEM $VERSION add_template ../../add_template
+    ./edit_make $SYSTEM $VERSION mpm_template ../../mpm_template
+    ./edit_make $SYSTEM $VERSION mpp_template ../../mpp_template
+    ./edit_make $SYSTEM $VERSION put_template ../../put_template
     chmod +x ../../add_template
     chmod +x ../../mpm_template
     chmod +x ../../mpp_template
