@@ -28,6 +28,7 @@ extern void	METD_drop_function (struct req *, struct str *);
 extern void	METD_drop_procedure (struct req *, struct str *);
 extern void	METD_drop_relation (struct req *, struct str *);
 extern INTLSYM	METD_get_charset (struct req *, USHORT, UCHAR *);
+extern USHORT	METD_get_charset_bpc (struct req *, SSHORT);
 extern INTLSYM	METD_get_collation (struct req *, struct str *);
 extern void     METD_get_col_default (REQ, TEXT *, TEXT *, BOOLEAN *, TEXT *, USHORT);
 extern STR	METD_get_default_charset (struct req *);

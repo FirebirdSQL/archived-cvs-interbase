@@ -54,6 +54,8 @@
  *   non-system triggers so DFW can recognize them easily.
  * 2001.10.26 Claudio Valderrama: added a call to the new METD_drop_function()
  *   in DDL_execute() so the metadata cache for udfs can be refreshed.
+ * 2001.12.06 Claudio Valderrama: DDL_resolve_intl_type should calculate field length
+ *   based on the original field's charset bytes per char if we're modifying.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -78,16 +80,17 @@
 
 #define BLOB_BUFFER_SIZE   4096   /* to read in blr blob for default values */
 
+static void	assign_field_length (FLD, USHORT);
 static void	begin_blr (REQ, UCHAR);
 static USHORT	check_array_or_blob (NOD);
 static void	check_constraint (REQ, NOD, SSHORT);
-static void check_one_call (BOOLEAN *, SSHORT, TEXT *);
+static void	check_one_call (BOOLEAN *, SSHORT, TEXT *);
 static void	create_view_triggers (REQ, NOD, NOD);
 static void	define_computed (REQ, NOD, FLD, NOD);
 static void	define_constraint_trigger (REQ, NOD);
 static void	define_database (REQ);
 static void	define_del_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
-static void define_del_default_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
+static void	define_del_default_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_dimensions (REQ, FLD);
 static void	define_domain (REQ);
 static void	define_exception (REQ, NOD_TYPE);
@@ -108,8 +111,8 @@ static void	define_update_action (REQ, NOD *, NOD *);
 static void	define_upd_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_view (REQ);
 static void	define_view_trigger (REQ, NOD, NOD, NOD);
-static void delete_procedure (REQ, NOD, BOOLEAN);
-static void delete_relation_view (REQ, NOD, BOOLEAN);
+static void	delete_procedure (REQ, NOD, BOOLEAN);
+static void	delete_relation_view (REQ, NOD, BOOLEAN);
 static void	end_blr (REQ);
 static void	foreign_key (REQ, NOD);
 static void	generate_dyn (REQ, NOD);
@@ -390,10 +393,36 @@ void DDL_resolve_intl_type (
  **************************************
  *
  * Function
+ *	See the next function for description. This is only a
+ *	wrapper that sets the last parameter to FALSE to indicate
+ *	we are creating a field, not modifying one.
+ **************************************/
+DDL_resolve_intl_type2 (request, field, collation_name, FALSE);
+}
+
+void DDL_resolve_intl_type2 (
+    REQ		request,
+    FLD		field,
+    STR		collation_name,
+    BOOLEAN	modifying)
+{
+/**************************************
+ *
+ *	D D L _ r e s o l v e _ i n t l _ t y p e 2
+ *
+ **************************************
+ *
+ * Function
  *	If the field is defined with a character set or collation,
  *	resolve the names to a subtype now.
  *
  *	Also resolve the field length & whatnot.
+ *
+ *	If the field is being created, it will pick the db-wide charset
+ *	and collation if not specified. If the field is being modified,
+ *	since we don't allow changes to those attributes, we'll go and
+ *	calculate the correct old lenth from the field itself so DYN
+ *	can validate the change properly.
  *
  *	For International text fields, this is a good time to calculate
  *	their actual size - when declared they were declared in
@@ -459,6 +488,39 @@ if (field->fld_character_set_id != 0 &&
     return;
     }
 
+if (modifying)
+{
+	DSQL_REL relation = request->req_relation;
+	FLD afield = field->fld_next;
+	USHORT bpc = 0;
+	while (afield)
+	{
+		/* The first test is redundant. */
+		if (afield != field && afield->fld_relation
+			&& !strcmp (afield->fld_name, field->fld_name))
+		{
+			assert (afield->fld_relation == relation || !relation);
+			break;
+		}
+		afield = afield->fld_next;
+	}
+	if (afield)
+	{
+		field->fld_character_set_id = afield->fld_character_set_id;
+		bpc = METD_get_charset_bpc (request, field->fld_character_set_id);
+		field->fld_collation_id = afield->fld_collation_id;
+		field->fld_ttype = afield->fld_ttype;
+
+		if (afield->fld_flags & FLD_national)
+			field->fld_flags |= FLD_national;
+		else
+			field->fld_flags &= ~FLD_national;
+
+		assign_field_length (field, bpc);
+		return;
+	}
+}
+
 if (!(field->fld_character_set || 
       field->fld_character_set_id ||		/* set if a domain */
       (field->fld_flags & FLD_national)))
@@ -475,26 +537,11 @@ if (!(field->fld_character_set ||
         /* If field is not specified with NATIONAL, or CHARACTER SET
          * treat it as a single-byte-per-character field of character set NONE.
          */
-        if (field->fld_character_length)
-	    {
-			ULONG field_length = field->fld_character_length, extra_len = 0;
-			/* CVC: Can't understand why some developer added to the size. This is a
-			low level difference that only matters EXE, CVT, MOV, VIO and the like.
-			Now the comparison is done without altering the field's length itself. */
-			if (field->fld_dtype == dtype_varying)
-				extra_len = sizeof (USHORT);
-			/*	field_length += sizeof (USHORT); */
-			if (field_length + extra_len > (ULONG) MAX_COLUMN_SIZE)
-				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-				gds_arg_gds, gds__dsql_datatype_err,
-				gds_arg_gds, gds__imp_exc, 
-				gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
-				0);
-			field->fld_length = (USHORT) field_length + extra_len;
-	    };
+	assign_field_length (field, 1);
+
         field->fld_ttype = 0;
-		if (!collation_name)
-			return;
+	if (!collation_name)
+		return;
 	}
     }
 
@@ -547,29 +594,48 @@ if (collation_name)
     	    0);
     }
 
-
-if (field->fld_character_length)
-{
-	ULONG field_length = (ULONG) resolved_type->intlsym_bytes_per_char * 
-    			field->fld_character_length, extra_len = 0;
-
-	/* CVC: Same error again: the size of the length indicator shouldn't be
-	made a permanent addition to the field's length. */
-    if (field->fld_dtype == dtype_varying)
-		extra_len = sizeof (USHORT);
-    /*    field_length += sizeof (USHORT); */
-    if (field_length + extra_len > (ULONG) MAX_COLUMN_SIZE)
-	ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-		gds_arg_gds, gds__dsql_datatype_err,
-		gds_arg_gds, gds__imp_exc, 
-		gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
-		0);
-    field->fld_length = (USHORT) field_length + extra_len;
-};
+assign_field_length (field, resolved_type->intlsym_bytes_per_char);
 
 field->fld_ttype = resolved_type->intlsym_ttype;
 field->fld_character_set_id = resolved_type->intlsym_charset_id;
 field->fld_collation_id = resolved_type->intlsym_collate_id;
+}
+
+static void assign_field_length (
+	FLD	field,
+	USHORT	bytes_per_char)
+{
+/**************************************
+ *
+ *	a s s i g n _ f i e l d _ l e n g t h
+ *
+ **************************************
+ *
+ * Function
+ *	We'll see if the field's length fits in the maximum
+ *	allowed field, including charset and space for varchars.
+ *	Either we raise an error or assign the field's length.
+ *	If the charlen comes as zero, we do nothing, although we
+ *	know that DYN, MET and DFW will blindly set field length
+ *	to zero if they don't catch charlen or another condition.
+ *
+ **************************************/
+if (field->fld_character_length)
+	{
+	ULONG field_length = (ULONG) bytes_per_char * 
+    			field->fld_character_length;
+
+	if (field->fld_dtype == dtype_varying)
+		field_length += sizeof (USHORT);
+	if (field_length > (ULONG) MAX_COLUMN_SIZE)
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
+			gds_arg_gds, gds__dsql_datatype_err,
+			gds_arg_gds, gds__imp_exc, 
+			gds_arg_gds, gds__field_name,
+			gds_arg_string, field->fld_name,
+			0);
+	field->fld_length = (USHORT) field_length;
+	}
 }
 
 static void begin_blr (
@@ -5006,13 +5072,8 @@ else if (field->fld_dtype <= dtype_any_text)
     put_number (request, gds__dyn_fld_scale, 0);
     if (field->fld_dtype == dtype_varying)
 	{
-		/* CVC: Fix the assertion and the field length. It's no longer growth
-		by DDL_resolve_intl_type(), so nothing to decrement here.
-		Anyway, the assertion was flawed when run against the old code, too.
-		Here comes the compensation for DDL_resolve_intl_type(), since the field
-		length itself wasn't altered if it's varying.
-		UPDATE: Functionality reverted but assert fixed. */
-		assert((field->fld_length /*+ sizeof (USHORT)*/) <= MAX_SSHORT);
+		/* CVC: Fix the assertion */
+		assert((field->fld_length) <= MAX_SSHORT);
 		put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length - sizeof (USHORT)));
 	}
     else
@@ -5627,7 +5688,7 @@ else
     if (relation_name)
 	put_cstring (request, gds__dyn_rel_name, relation_name->str_data);
 
-    DDL_resolve_intl_type (request, field, NULL);
+    DDL_resolve_intl_type2 (request, field, NULL, TRUE);
     put_field (request, field, FALSE);
     }
 STUFF (gds__dyn_end);   

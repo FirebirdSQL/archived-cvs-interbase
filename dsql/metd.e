@@ -22,6 +22,9 @@
  * 2001.11.28 Claudio Valderrama: load not only udfs but udf arguments;
  *   handle possible collisions with udf redefinitions (drop->declare).
  *   This closes SF Bug# 409769.
+ * 2001.12.06 Claudio Valderrama: METD_get_charset_bpc() was added to
+ *    get only the bytes per char of a field, given its charset id.
+ *   This request is not cached.
  */
 
 #include <string.h>
@@ -554,6 +557,65 @@ symbol->sym_dbb = dbb;
 HSHD_insert (symbol);
 
 return iname;
+}
+
+USHORT METD_get_charset_bpc (
+    REQ		request,
+    SSHORT	charset_id)
+{
+/**************************************
+ *
+ *	M E T D _ g e t _ c h a r s e t _ b p c
+ *
+ **************************************
+ *
+ * Functional description
+ *	Look up an international text type object.
+ *	If it doesn't exist, return NULL.
+ *	Go directly to system tables & return only the
+ *	number of bytes per character. Lookup by
+ *	charset' id, not by name.
+ *
+ **************************************/
+SLONG	*DB, *gds__trans;
+DBB	dbb;
+BLK	*handle;
+USHORT	bpc = 0;
+
+dbb = request->req_dbb;
+DB = dbb->dbb_database_handle;
+gds__trans = request->req_trans;
+
+handle = NULL_PTR;
+
+THREAD_EXIT;
+
+FOR (REQUEST_HANDLE handle)
+    Y IN RDB$CHARACTER_SETS
+    WITH Y.RDB$CHARACTER_SET_ID EQ charset_id
+
+    THREAD_ENTER;
+
+    bpc = (Y.RDB$BYTES_PER_CHARACTER.NULL)	? 1 :
+    	(Y.RDB$BYTES_PER_CHARACTER);
+
+    THREAD_EXIT;
+END_FOR
+    ON_ERROR
+    /* Assume V3 database */
+    END_ERROR;
+/*************
+THREAD_ENTER;
+
+Un comment these if any code is added after the END_ERROR and 
+gds__release request ()
+
+THREAD_EXIT;
+*************/
+isc_release_request (gds__status, GDS_REF (handle));
+THREAD_ENTER;
+
+return bpc;
 }
 
 STR METD_get_default_charset (
@@ -1469,6 +1531,7 @@ if (dbb->dbb_flags & DBB_v3)
 	field->fld_length = FLX.RDB$FIELD_LENGTH;
 	field->fld_scale = FLX.RDB$FIELD_SCALE;
 	field->fld_sub_type = FLX.RDB$FIELD_SUB_TYPE;
+	field->fld_relation = relation;
 
 	if (!FLX.RDB$COMPUTED_BLR.NULL)
 	    field->fld_flags |= FLD_computed;
@@ -1524,6 +1587,7 @@ else /* V4 ODS8 dbb */
 	field->fld_length = FLX.RDB$FIELD_LENGTH;
 	field->fld_scale = FLX.RDB$FIELD_SCALE;
 	field->fld_sub_type = FLX.RDB$FIELD_SUB_TYPE;
+	field->fld_relation = relation;
 
 	if (!FLX.RDB$COMPUTED_BLR.NULL)
 	    field->fld_flags |= FLD_computed;

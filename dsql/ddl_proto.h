@@ -29,5 +29,6 @@ extern void	DDL_generate (struct req *, struct nod *);
 extern int	DDL_ids (struct req *);
 extern void	DDL_put_field_dtype (struct req *, struct fld *, USHORT);
 extern void	DDL_resolve_intl_type (struct req *, struct fld *, struct str *);
+extern void	DDL_resolve_intl_type2 (struct req *, struct fld *, struct str *, BOOLEAN);
 #endif /* _DSQL_DDL_PROTO_H_ */
 
