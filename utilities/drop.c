@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <errno.h>
@@ -153,7 +156,7 @@ if (sw_shutmngr)
     shut_manager ("lock manager");
 #endif
 
-#if !(defined WIN_NT || defined OS2_ONLY || defined NETWARE_386 || defined linux || defined FREEBSD)
+#if !(defined WIN_NT || defined OS2_ONLY || defined NETWARE_386 || defined linux || defined FREEBSD || defined AIX_PPC )
 if (!sw_nobridge)
     {
     ib_printf ("\nBRIDGE RESOURCES\n\n");

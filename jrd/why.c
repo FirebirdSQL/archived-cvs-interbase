@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <stdlib.h>
 #include <string.h>
@@ -482,7 +485,7 @@ static CONST_IMAGE IMAGE	images [] = {
 #endif
 
 #if (defined UNIX) && \
-    !(defined SUPERCLIENT || defined SUPERSERVER || defined DECOSF || defined NCR3000 || defined DG_X86 || defined linux || defined FREEBSD /* platforms without a V3 bridge */)
+    !(defined SUPERCLIENT || defined SUPERSERVER || defined DECOSF || defined NCR3000 || defined DG_X86 || defined linux || defined FREEBSD || AIX_PPC /* platforms without a V3 bridge */)
 #ifndef PIPE_SERVER_YVALUE
 #define PIPE_BRIDGE_TO_V3
 #endif
