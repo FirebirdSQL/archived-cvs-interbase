@@ -459,6 +459,7 @@ switch (input->nod_type)
 	return input;
 
     case nod_def_procedure:
+	case nod_redef_procedure:
     case nod_mod_procedure:
 	request->req_type = REQ_DDL;
 	request->req_flags |= REQ_procedure;

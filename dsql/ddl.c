@@ -47,6 +47,7 @@
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
  * 2001.07.22 Claudio Valderrama: minor fixes and improvements.
+ * 2001.08.18 Claudio Valderrama: RECREATE PROCEDURE.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -101,6 +102,7 @@ static void	define_update_action (REQ, NOD *, NOD *);
 static void	define_upd_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_view (REQ);
 static void	define_view_trigger (REQ, NOD, NOD, NOD);
+static void delete_procedure (REQ, NOD, BOOLEAN);
 static void delete_relation_view (REQ, NOD, BOOLEAN);
 static void	end_blr (REQ);
 static void	foreign_key (REQ, NOD);
@@ -269,7 +271,8 @@ if ((request->req_ddl_node->nod_type == nod_mod_relation) ||
 /* for delete & modify, get rid of the cached procedure metadata */
 
 if ((request->req_ddl_node->nod_type == nod_mod_procedure) ||
-    (request->req_ddl_node->nod_type == nod_del_procedure))
+	 (request->req_ddl_node->nod_type == nod_del_procedure) ||
+	 (request->req_ddl_node->nod_type == nod_redef_procedure))
 {
     string = (STR) request->req_ddl_node->nod_arg [e_prc_name];
     METD_drop_procedure (request, string); 
@@ -331,9 +334,10 @@ if (ddl_node->nod_type == nod_def_view ||
     ddl_node->nod_type == nod_def_constraint ||
     ddl_node->nod_type == nod_def_trigger ||
     ddl_node->nod_type == nod_mod_trigger ||
-    ddl_node->nod_type == nod_def_procedure ||
-    ddl_node->nod_type == nod_def_computed ||
-    ddl_node->nod_type == nod_mod_procedure)
+	 ddl_node->nod_type == nod_def_procedure ||
+	 ddl_node->nod_type == nod_def_computed ||
+	 ddl_node->nod_type == nod_mod_procedure ||
+	 ddl_node->nod_type == nod_redef_procedure)
     return FALSE;
 
 return TRUE;
@@ -2037,8 +2041,8 @@ return action_node;
 }
 
 static void define_procedure (
-    REQ		request,
-    NOD_TYPE	op)
+	 REQ		request,
+	 NOD_TYPE	op)
 {
 /**************************************
  *
@@ -2063,15 +2067,15 @@ tdsql = GET_THREAD_DATA;
 inputs = outputs = locals = 0;
 procedure_node = request->req_ddl_node;
 procedure_name = (STR) procedure_node->nod_arg [e_prc_name];
-if (op == nod_def_procedure)
-    {
-    put_cstring (request, gds__dyn_def_procedure, procedure_name->str_data);
-    put_number (request, gds__dyn_rel_sql_protection, 1);
-    }
+if (op == nod_def_procedure || op == nod_redef_procedure)
+	 {
+	 put_cstring (request, gds__dyn_def_procedure, procedure_name->str_data);
+	 put_number (request, gds__dyn_rel_sql_protection, 1);
+	 }
 else
-    {
-    put_cstring (request, gds__dyn_mod_procedure, procedure_name->str_data);
-    if (procedure = METD_get_procedure (request, procedure_name))
+	 {
+	 put_cstring (request, gds__dyn_mod_procedure, procedure_name->str_data);
+	 if (procedure = METD_get_procedure (request, procedure_name))
 	{
 	for (field = procedure->prc_inputs; field; field = field->fld_next)
 	    {
@@ -3311,7 +3315,7 @@ if ((check = node->nod_arg [e_view_check]) != NULL)
 	    0);
     
 
-    if (select_expr->nod_arg [e_sel_distinct] ||
+	 if (select_expr->nod_arg [e_sel_distinct] ||
 	select_expr->nod_arg [e_sel_group] ||
 	select_expr->nod_arg [e_sel_having])
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
@@ -3340,12 +3344,12 @@ if ((check = node->nod_arg [e_view_check]) != NULL)
 STUFF (gds__dyn_end);
 reset_context_stack(request);
 }
-
+
 static void define_view_trigger (
-    REQ		request,
-    NOD		node,
-    NOD		rse,
-    NOD		items)  /* The fields in VIEW actually  */
+	 REQ		request,
+	 NOD		node,
+	 NOD		rse,
+	 NOD		items)  /* The fields in VIEW actually  */
 {
 /**************************************
  *
@@ -3371,108 +3375,108 @@ tdsql = GET_THREAD_DATA;
 ddl_node = request->req_ddl_node;
 
 select = ddl_node->nod_arg [e_view_select];
-/* 
-   Handle VIEWS with UNION : nod_select now points to nod_list
-   which in turn points to nod_select_expr
+/*
+	Handle VIEWS with UNION : nod_select now points to nod_list
+	which in turn points to nod_select_expr
 */
 select_expr = select->nod_arg [0]->nod_arg [0];
 view_fields = ddl_node->nod_arg [e_view_fields];
 
 /* make the "define trigger" node the current request ddl node so
-   that generating of BLR will be appropriate for trigger */
+	that generating of BLR will be appropriate for trigger */
 
 request->req_ddl_node = node;
 
 trigger_name = (STR) node->nod_arg [e_cnstr_name];
 
 if (node->nod_type == nod_def_constraint)
-    {
-    assert(trigger_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_def_trigger, trigger_name->str_data, 
+	 {
+	 assert(trigger_name->str_length <= MAX_USHORT);
+	 put_string (request, gds__dyn_def_trigger, trigger_name->str_data,
 			(USHORT)trigger_name->str_length);
-    relation_node = node->nod_arg [e_cnstr_table];
-    relation_name = (STR) relation_node->nod_arg [e_rln_name];
-    assert(relation_name->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_rel_name, relation_name->str_data, 
+	 relation_node = node->nod_arg [e_cnstr_table];
+	 relation_name = (STR) relation_node->nod_arg [e_rln_name];
+	 assert(relation_name->str_length <= MAX_USHORT);
+	 put_string (request, gds__dyn_rel_name, relation_name->str_data,
 			(USHORT)relation_name->str_length);
-    }
+	 }
 else
-    return;
+	 return;
 
 if ((constant = node->nod_arg [e_cnstr_position]) != NULL)
-    put_number (request, gds__dyn_trg_sequence,
+	 put_number (request, gds__dyn_trg_sequence,
 				(SSHORT)(constant ? constant->nod_arg [0] : 0));
 
 if ((constant = node->nod_arg [e_cnstr_type]) != NULL)
-    {
-    trig_type = (USHORT) constant->nod_arg [0];
-    put_number (request, gds__dyn_trg_type, trig_type);
-    }
+	 {
+	 trig_type = (USHORT) constant->nod_arg [0];
+	 put_number (request, gds__dyn_trg_type, trig_type);
+	 }
 else
-    {
-    /* If we don't have a trigger type assigned, then this is just a template
-       definition for use with domains.  The real triggers are defined when
-       the domain is used. */
-    trig_type = 0;
-    }
+	 {
+	 /* If we don't have a trigger type assigned, then this is just a template
+		 definition for use with domains.  The real triggers are defined when
+		 the domain is used. */
+	 trig_type = 0;
+	 }
 
 STUFF (gds__dyn_sql_object);
 
 if ((message = (STR) node->nod_arg [e_cnstr_message]) != NULL)
-    {
-    put_number (request, gds__dyn_def_trigger_msg, 0);
-    assert(message->str_length <= MAX_USHORT);
-    put_string (request, gds__dyn_trg_msg, message->str_data, (USHORT)message->str_length);
-    STUFF (gds__dyn_end);
-    }
+	 {
+	 put_number (request, gds__dyn_def_trigger_msg, 0);
+	 assert(message->str_length <= MAX_USHORT);
+	 put_string (request, gds__dyn_trg_msg, message->str_data, (USHORT)message->str_length);
+	 STUFF (gds__dyn_end);
+	 }
 
 /* generate the trigger blr */
 
 if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
-    {
-    begin_blr (request, gds__dyn_trg_blr);
-    STUFF (blr_begin);
+	 {
+	 begin_blr (request, gds__dyn_trg_blr);
+	 STUFF (blr_begin);
 
-    /* create the "OLD" and "NEW" contexts for the trigger --
-       the new one could be a dummy place holder to avoid resolving
-       fields to that context but prevent relations referenced in
-       the trigger actions from referencing the predefined "1" context */
+	 /* create the "OLD" and "NEW" contexts for the trigger --
+		 the new one could be a dummy place holder to avoid resolving
+		 fields to that context but prevent relations referenced in
+		 the trigger actions from referencing the predefined "1" context */
 
-    if (request->req_context_number)
-        {
-        /* If an alias is specified for the single base table involved,
-           save and then add the context                               */
+	 if (request->req_context_number)
+		  {
+		  /* If an alias is specified for the single base table involved,
+			  save and then add the context                               */
 
-        stack = request->req_context;
-        context = (CTX) stack->lls_object;
-        if (context->ctx_alias)
-            {
-            sav_context = (CTX) ALLOCD (type_ctx);
-            *sav_context = *context;
-            }
-        }
-    reset_context_stack (request);
-    temp = relation_node->nod_arg [e_rln_alias];
-    relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (OLD_CONTEXT);
-    PASS1_make_context (request, relation_node);
-    relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (NEW_CONTEXT);
-    PASS1_make_context (request, relation_node);
-    relation_node->nod_arg [e_rln_alias] = temp;
+		  stack = request->req_context;
+		  context = (CTX) stack->lls_object;
+		  if (context->ctx_alias)
+				{
+				sav_context = (CTX) ALLOCD (type_ctx);
+				*sav_context = *context;
+				}
+		  }
+	 reset_context_stack (request);
+	 temp = relation_node->nod_arg [e_rln_alias];
+	 relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (OLD_CONTEXT);
+	 PASS1_make_context (request, relation_node);
+	 relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (NEW_CONTEXT);
+	 PASS1_make_context (request, relation_node);
+	 relation_node->nod_arg [e_rln_alias] = temp;
 
-    if (sav_context)
-        {
-        sav_context->ctx_context = request->req_context_number++;
-        context->ctx_scope_level = request->req_scope_level;
-        LLS_PUSH (sav_context, &request->req_context);
-        }
+	 if (sav_context)
+		  {
+		  sav_context->ctx_context = request->req_context_number++;
+		  context->ctx_scope_level = request->req_scope_level;
+		  LLS_PUSH (sav_context, &request->req_context);
+		  }
 
-    if (trig_type == PRE_MODIFY_TRIGGER)
+	 if (trig_type == PRE_MODIFY_TRIGGER)
 	{
 	STUFF (blr_for);
 	temp = rse->nod_arg [e_rse_streams];
 	temp->nod_arg [0] = PASS1_node (request, temp->nod_arg [0], 0);
 	temp = rse->nod_arg [e_rse_boolean];
-	rse->nod_arg [e_rse_boolean] = PASS1_node (request, temp, 0); 
+	rse->nod_arg [e_rse_boolean] = PASS1_node (request, temp, 0);
 	GEN_expr (request, rse);
 
 	condition = MAKE_node (nod_not, 1);
@@ -3484,7 +3488,7 @@ if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
 	STUFF (blr_end);
 	}
 
-    if (trig_type == PRE_STORE_TRIGGER)
+	 if (trig_type == PRE_STORE_TRIGGER)
 	{
 	condition = MAKE_node (nod_not, 1);
 	condition->nod_arg [0] = replace_field_names (select_expr->nod_arg [e_sel_where], items, view_fields, TRUE);
@@ -3494,51 +3498,80 @@ if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
 	STUFF (blr_end);
 	}
 
-    /* generate the action statements for the trigger */
+	 /* generate the action statements for the trigger */
 
-    actions = node->nod_arg [e_cnstr_actions];
-    for (ptr = actions->nod_arg, end = ptr + actions->nod_count; ptr < end; ptr++)
+	 actions = node->nod_arg [e_cnstr_actions];
+	 for (ptr = actions->nod_arg, end = ptr + actions->nod_count; ptr < end; ptr++)
 	GEN_statement (request, PASS1_statement (request, *ptr, 0));
 
-    /* generate the action statements for the trigger */
+	 /* generate the action statements for the trigger */
 
-    if ((actions = node->nod_arg [e_cnstr_else]) != NULL)
+	 if ((actions = node->nod_arg [e_cnstr_else]) != NULL)
 	{
 	STUFF (blr_begin);
 	for (ptr = actions->nod_arg, end = ptr + actions->nod_count; ptr < end; ptr++)
-	    {
-	    action_node = PASS1_statement (request, *ptr, 0);
-	    if (action_node->nod_type == nod_modify)
+		 {
+		 action_node = PASS1_statement (request, *ptr, 0);
+		 if (action_node->nod_type == nod_modify)
 		{
 		temp_rse = action_node->nod_arg [e_mod_rse];
 		temp_rse->nod_arg [e_rse_first] = MAKE_constant ((STR) 1,1);
 		}
-	    GEN_statement(request, action_node);
-	    }
+		 GEN_statement(request, action_node);
+		 }
 	STUFF (blr_end); /* of begin */
 	}
 
-    STUFF (blr_end); /* of if */
-    if (trig_type == PRE_MODIFY_TRIGGER)
+	 STUFF (blr_end); /* of if */
+	 if (trig_type == PRE_MODIFY_TRIGGER)
 	STUFF (blr_end); /* of for  */
-    end_blr (request);
-    }
+	 end_blr (request);
+	 }
 
 STUFF (gds__dyn_end);
-			    
+
 /* the request type may have been set incorrectly when parsing
-   the trigger actions, so reset it to reflect the fact that this
-   is a data definition request; also reset the ddl node */
+	the trigger actions, so reset it to reflect the fact that this
+	is a data definition request; also reset the ddl node */
 
 request->req_type = REQ_DDL;
 request->req_ddl_node = ddl_node;
 reset_context_stack (request);
 }
-
+
+static void delete_procedure (
+	REQ		request,
+	NOD		node,
+	BOOLEAN	silent_deletion)
+{
+/**************************************
+ *
+ *	d e l e t e _ p r o c e d u r e
+ *
+ **************************************
+ *
+ * Function
+ *  Do nothing and don't throw error if the procedure doesn't exist
+ *  and silent_deletion is true.
+ *  CVC: Created this function to not clutter generate_dyn().
+ *
+ **************************************/
+	STR string = (STR) node->nod_arg [e_prc_name];
+	assert (string);
+	if (node->nod_type == nod_redef_procedure || silent_deletion)
+	{
+		PRC procedure = METD_get_procedure (request, string);
+		if (!procedure)
+			return;
+	}
+	put_cstring (request, gds__dyn_delete_procedure, string->str_data);
+	STUFF (gds__dyn_end);
+}
+
 static void delete_relation_view (
 	REQ		request,
 	NOD		node,
-	BOOLEAN		silent_deletion)
+	BOOLEAN	silent_deletion)
 {
 /**************************************
  *
@@ -3549,6 +3582,8 @@ static void delete_relation_view (
  * Function
  *	Check that DROP TABLE is dropping a table and that
  *  DROP VIEW is dropping a view.
+ *  Do nothing and don't throw error if the table or view doesn't exist
+ *  and silent_deletion is true.
  *  CVC: Created this function to not clutter generate_dyn().
  *
  **************************************/
@@ -3561,7 +3596,7 @@ static void delete_relation_view (
 		assert (relation_node);
 		string = (STR) relation_node->nod_arg [e_rln_name];
 	}
-    else
+	 else
 		string = (STR) node->nod_arg [e_alt_name];
 
 	assert (string);
@@ -3571,8 +3606,8 @@ static void delete_relation_view (
 	if (node->nod_type == nod_del_relation || node->nod_type == nod_redef_relation)
 	{
 		if (!relation && !silent_deletion || relation && (relation->rel_flags & REL_view))
-			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
-			/* gds_arg_gds, gds__dsql_command_err, 
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
+			/* gds_arg_gds, gds__dsql_command_err,
 			gds_arg_gds, gds__dsql_table_not_found, */
 			gds_arg_gds, 336068783L,
 			gds_arg_string, string->str_data,
@@ -3581,22 +3616,23 @@ static void delete_relation_view (
 	else /* node->nod_type == nod_del_view */
 	{
 		if (!relation || !(relation->rel_flags & REL_view))
-			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
-			/* gds_arg_gds, gds__dsql_command_err, 
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607,
+			/* gds_arg_gds, gds__dsql_command_err,
 			gds_arg_gds, gds__dsql_view_not_found, */
 			gds_arg_gds, 336068783L,
 			gds_arg_string, string->str_data,
 			gds_arg_end);
 	}
-	
-	if (relation)
-		put_cstring (request, gds__dyn_delete_rel, string->str_data);
 
-	STUFF (gds__dyn_end);
+	if (relation)
+	{
+		put_cstring (request, gds__dyn_delete_rel, string->str_data);
+		STUFF (gds__dyn_end);
+	}
 }
 
 static void end_blr (
-    REQ		request)
+	 REQ		request)
 {
 /**************************************
  *
@@ -3711,7 +3747,7 @@ request->req_ddl_node = node;
 	case nod_def_index:
 		define_index (request);
 		break;
-		
+
 	case nod_def_relation:
 		define_relation (request);
 		break;
@@ -3722,59 +3758,64 @@ request->req_ddl_node = node;
 		define_relation (request);
 		STUFF (gds__dyn_end);
 		break;
-		
+
 	case nod_def_view:
 		define_view (request);
 		break;
-		
+
 	case nod_def_exception:
 	case nod_mod_exception:
 	case nod_del_exception:
 		define_exception (request, node->nod_type);
 		break;
-		
+
 	case nod_def_procedure:
 	case nod_mod_procedure:
 		define_procedure (request, node->nod_type);
 		break;
-		
+
+	case nod_redef_procedure:
+		STUFF (gds__dyn_begin);
+		delete_procedure (request, node, TRUE); /* silent. */
+		define_procedure (request, node->nod_type);
+		STUFF (gds__dyn_end);
+		break;
+
 	case nod_def_constraint:
 		define_constraint_trigger (request, node);
 		break;
-		
+
 	case nod_def_trigger:
 	case nod_mod_trigger:
 		define_trigger (request, node);
 		break;
-		
+
 	case nod_mod_relation:
 		modify_relation (request);
 		break;
-		
+
 	case nod_del_domain:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_global_fld, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-		
+
 	case nod_del_index:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_idx, string->str_data);
 		STUFF (gds__dyn_end);
 		break;
-		
+
 	/* CVC: Handling drop table and drop view properly. */
 	case nod_del_relation:
 	case nod_del_view:
 		delete_relation_view (request, node, FALSE); /* no silent. */
 		break;
-		
+
 	case nod_del_procedure:
-		string = (STR) node->nod_arg [0];
-		put_cstring (request, gds__dyn_delete_procedure, string->str_data);
-		STUFF (gds__dyn_end);
+		delete_procedure (request, node, FALSE); /* no silent. */
 		break;
-		
+
 	case nod_del_trigger:
 		string = (STR) node->nod_arg [0];
 		put_cstring (request, gds__dyn_delete_trigger, string->str_data);

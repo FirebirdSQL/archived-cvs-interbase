@@ -1350,21 +1350,23 @@ switch (node->nod_type)
     case nod_def_index:		verb = "define index"; 		break;
     case nod_def_relation:	verb = "define relation"; 	break;
 
-	/* CVC: New node redef_relation.*/
+	/* CVC: New node redef_relation. */
 	case nod_redef_relation:    verb = "redefine relation";     break;
 
-    case nod_def_view:		verb = "define view"; 		break;
-    case nod_delete:		verb = "delete";		break;
-    case nod_del_field:		verb = "delete field";		break;
-    case nod_del_filter:        verb = "delete filter";         break;
-    case nod_del_generator:     verb = "delete generator";      break;
-    case nod_del_index:		verb = "delete index";		break;
-    case nod_del_relation:	verb = "delete relation";	break;
+	 case nod_def_view:		verb = "define view"; 		break;
+	 case nod_delete:		verb = "delete";		break;
+	 case nod_del_field:		verb = "delete field";		break;
+	 case nod_del_filter:        verb = "delete filter";         break;
+	 case nod_del_generator:     verb = "delete generator";      break;
+	 case nod_del_index:		verb = "delete index";		break;
+	 case nod_del_relation:	verb = "delete relation";	break;
 
-    /* CVC: New node del_view. */
-    case nod_del_view:		verb = "delete view";		break;
+	 /* CVC: New node del_view. */
+	 case nod_del_view:		verb = "delete view";		break;
 
-    case nod_def_procedure:	verb = "define procedure";	break;
+	 case nod_def_procedure:	verb = "define procedure";	break;
+	 /* CVC: New node redef_procedure. */
+	 case nod_redef_procedure:	verb = "redefine procedure"; break;
     case nod_del_procedure:	verb = "delete porcedure";	break;
     case nod_def_trigger:	verb = "define trigger";	break;
     case nod_mod_trigger:	verb = "modify trigger";	break;

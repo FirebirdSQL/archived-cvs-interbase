@@ -704,11 +704,13 @@ recreate 	: RECREATE recreate_clause
 			{ $$ = $2; }
 		;
 
-recreate_clause	: /* PROCEDURE rprocedure_clause
-			{ $$ = $2; } */
+recreate_clause	: PROCEDURE rprocedure_clause
+			{ $$ = $2; }
 		| TABLE rtable_clause
 			{ $$ = $2; }
-/*		| VIEW rview_clause
+/*		| TRIGGER def_trigger_clause
+			{ $$ = $2; }
+		| VIEW rview_clause
 			{ $$ = $2; }
 		| DOMAIN rdomain_clause
 			{ $$ = $2; }             
@@ -1258,10 +1260,16 @@ procedure_clause	: symbol_procedure_name input_parameters
 					          $1, $2, $3, $6, $7, $8, NULL); } 
 		;        
 
-/*
-rprocedure_clause	: alter_procedure_clause
-			;
-*/
+rprocedure_clause	: symbol_procedure_name input_parameters
+		     	  output_parameters
+		    	  AS begin_string
+			  var_declaration_list
+			  full_proc_block
+			  end_trigger
+				{ $$ = make_node (nod_redef_procedure,
+						  (int) e_prc_count, 
+					          $1, $2, $3, $6, $7, $8, NULL); } 
+		;        
 
 alter_procedure_clause	: symbol_procedure_name input_parameters
 		     	  output_parameters
