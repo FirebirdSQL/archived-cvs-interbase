@@ -22,7 +22,7 @@ define(NEXT, [N define([N], incr(N))])
 
 define(RELATION, [define([N], 0)])
 define(FIELD, [divert(1)[#define] $1 NEXT 
-divert()dnl])
+divert(0)dnl])
 define(END_RELATION, )
 
 define(FIELD_ODS8, )
