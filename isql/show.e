@@ -672,7 +672,7 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
     	    first = FALSE;
 
 	    if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-		ISQL_copy_SQL_id (object, &SQL_identifier, DBL_QUOTE);
+		ISQL_copy_SQL_id (object, SQL_identifier, DBL_QUOTE);
 	    else
 		strcpy (SQL_identifier, object);
 
@@ -705,7 +705,7 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
 	    case obj_sql_role:
 		if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 		    {
-		    ISQL_copy_SQL_id (PRV.RDB$USER, &SQL_identifier, DBL_QUOTE);
+		    ISQL_copy_SQL_id (PRV.RDB$USER, SQL_identifier, DBL_QUOTE);
 		    }
 		else
 		    strcpy (SQL_identifier, PRV.RDB$USER);
@@ -767,7 +767,7 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
 	    ISQL_blankterm (PRV.RDB$FIELD_NAME);
 	    if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 		{
-		ISQL_copy_SQL_id (PRV.RDB$FIELD_NAME, &SQL_identifier, 
+		ISQL_copy_SQL_id (PRV.RDB$FIELD_NAME, SQL_identifier, 
 				  DBL_QUOTE);
 		sprintf(col_string, " (%s)", SQL_identifier);
 		}
@@ -792,7 +792,7 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
     	first = FALSE;
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	    ISQL_copy_SQL_id (object, &SQL_identifier, DBL_QUOTE);
+	    ISQL_copy_SQL_id (object, SQL_identifier, DBL_QUOTE);
 	else
 	    strcpy (SQL_identifier, object);
 
@@ -838,7 +838,7 @@ FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ object;
 	    case obj_sql_role:
 		if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 		    {
-		    ISQL_copy_SQL_id (PRV.RDB$USER, &SQL_identifier, DBL_QUOTE);
+		    ISQL_copy_SQL_id (PRV.RDB$USER, SQL_identifier, DBL_QUOTE);
 		    }
 		else
 		    strcpy (SQL_identifier, PRV.RDB$USER);
@@ -871,7 +871,7 @@ FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ object;
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (object, &SQL_identifier, DBL_QUOTE);
+	    ISQL_copy_SQL_id (object, SQL_identifier, DBL_QUOTE);
 	    }
 	else
 	    strcpy (SQL_identifier, object);
@@ -909,7 +909,7 @@ FOR PRV IN RDB$USER_PRIVILEGES WITH
     ISQL_blankterm (PRV.RDB$RELATION_NAME);
     strcpy (role_name, PRV.RDB$RELATION_NAME);
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	ISQL_copy_SQL_id (role_name, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (role_name, SQL_identifier, DBL_QUOTE);
     else
 	strcpy (SQL_identifier, role_name);
 
@@ -983,7 +983,7 @@ FOR PRV IN RDB$USER_PRIVILEGES WITH
     ISQL_blankterm (PRV.RDB$RELATION_NAME);
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (PRV.RDB$RELATION_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (PRV.RDB$RELATION_NAME, SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, "GRANT %s TO %s%s%s%s", SQL_identifier,
 		 user_string, with_option, terminator, NEWLINE);
 	}
@@ -3339,7 +3339,7 @@ FOR PRV IN RDB$USER_PRIVILEGES WITH
     ISQL_blankterm (PRV.RDB$RELATION_NAME);
     strcpy (role_name, PRV.RDB$RELATION_NAME);
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	ISQL_copy_SQL_id (role_name, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (role_name, SQL_identifier, DBL_QUOTE);
     else
 	strcpy (SQL_identifier, role_name);
 

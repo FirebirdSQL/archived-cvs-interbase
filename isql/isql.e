@@ -29,6 +29,9 @@
   but that is for another day :-)
 
   2001/05/20  Neil McCalden  add planonly option
+  2001.09.09  Claudio Valderrama: put double quotes around identifiers
+	in dialect 3 only when needed. Solve mischievous declaration/invocation
+	of ISQL_copy_SQL_id that made no sense and caused pointer problems.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -692,7 +695,7 @@ return ((int) ret_code);
 
 void ISQL_copy_SQL_id (
     TEXT	*in_str,
-    TEXT	**output_str,
+    TEXT	*output_str,
     TEXT	escape_char)
 {
 /**************************************
@@ -710,21 +713,39 @@ void ISQL_copy_SQL_id (
  **************************************/
 TEXT	*p1, *q1;
 
-q1 = output_str;
-*q1 = escape_char;
-q1++;
-for (p1 = in_str; *p1; p1++)
-    {
-    *q1 = *p1;
-    q1++;
-    if (*p1 == escape_char)
+/* CVC: Try to detect if we can get rid of double quotes as
+requested by Ann. Notice empty names need double quotes.
+Assume the caller invoked previously ISQL_blankterm() that's
+just another function like DYN_terminate, MET_exact_name, etc. */
+if (escape_char == DBL_QUOTE)
+{
+	/* Cannot rely on ANSI functions that may be localized. */
+	BOOLEAN need_quotes = *in_str < 'A' || *in_str > 'Z';
+	q1 = output_str;
+	for (p1 = in_str; *p1 && !need_quotes; ++p1, ++q1)
 	{
-	*q1 = escape_char;
-	q1++;
+		if ((*p1 < 'A' || *p1 > 'Z') && (*p1 < '0' || *p1 > '9') 
+			&& *p1 != '_' && *p1 != '$')
+			need_quotes = TRUE;
+		*q1 = *p1;
 	}
-    }
-*q1 = escape_char;
-q1++;
+	if (!need_quotes)
+	{
+		*q1 = '\0';
+		return;
+	}
+}
+
+q1 = output_str;
+*q1++ = escape_char;
+
+for (p1 = in_str; *p1; p1++)
+{
+    *q1++ = *p1;
+    if (*p1 == escape_char)
+		*q1++ = escape_char;
+}
+*q1++ = escape_char;
 *q1 = '\0';
 }
 
@@ -1642,7 +1663,7 @@ FOR SEG IN RDB$INDEX_SEGMENTS WITH
     ISQL_blankterm (SEG.RDB$FIELD_NAME);
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION && delimited_yes)
 	{
-	ISQL_copy_SQL_id (SEG.RDB$FIELD_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (SEG.RDB$FIELD_NAME, SQL_identifier, DBL_QUOTE);
 	}
     else
 	strcpy (SQL_identifier, SEG.RDB$FIELD_NAME);

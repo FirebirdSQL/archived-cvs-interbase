@@ -30,7 +30,8 @@
  * Fixed Bug #122563 in extract.e get_procedure_args
  * Apparently this has to be done in show.e also,
  * but that is for another day :-)
- *
+ * 2001.09.09 Claudio Valderrama: procedure's parameter names may need 
+ *   double quotes if they are in dialect 3 and have special characters.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -198,11 +199,11 @@ else
     list_create_db();
     list_filters();
     list_functions();
+	list_generators();
     list_domains(default_char_set_id);
     list_all_tables (flag,default_char_set_id);
     list_index ();
     list_foreign ();
-    list_generators();
     list_views ();
     list_check();
     list_exception();
@@ -335,9 +336,9 @@ FOR REL IN RDB$RELATIONS CROSS
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
 	    if (new_name)
-		ISQL_copy_SQL_id (new_name, &SQL_identifier, DBL_QUOTE);
+		ISQL_copy_SQL_id (new_name, SQL_identifier, DBL_QUOTE);
 	    else
-		ISQL_copy_SQL_id (relation_name, &SQL_identifier, DBL_QUOTE);
+		ISQL_copy_SQL_id (relation_name, SQL_identifier, DBL_QUOTE);
 	    sprintf (Print_buffer, "CREATE TABLE %s ", SQL_identifier);
 	    }
 	else
@@ -346,7 +347,7 @@ FOR REL IN RDB$RELATIONS CROSS
 	ISQL_printf (Out, Print_buffer);
 	if (!REL.RDB$EXTERNAL_FILE.NULL)
 	    {
-	    ISQL_copy_SQL_id (REL.RDB$EXTERNAL_FILE, &SQL_identifier2, 
+	    ISQL_copy_SQL_id (REL.RDB$EXTERNAL_FILE, SQL_identifier2, 
 			      SINGLE_QUOTE);
 	    sprintf (Print_buffer, "EXTERNAL FILE %s ", SQL_identifier2);
 	    ISQL_printf (Out, Print_buffer);
@@ -362,7 +363,7 @@ FOR REL IN RDB$RELATIONS CROSS
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
 	ISQL_copy_SQL_id (ISQL_blankterm (RFR.RDB$FIELD_NAME),
-			  &SQL_identifier, DBL_QUOTE);
+			  SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, "%s ", SQL_identifier);
 	}
     else
@@ -389,7 +390,7 @@ FOR REL IN RDB$RELATIONS CROSS
 	ISQL_blankterm (FLD.RDB$FIELD_NAME);
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (FLD.RDB$FIELD_NAME, &SQL_identifier, DBL_QUOTE);
+	    ISQL_copy_SQL_id (FLD.RDB$FIELD_NAME, SQL_identifier, DBL_QUOTE);
 	    sprintf (Print_buffer, "%s", SQL_identifier);
 	    }
 	else
@@ -567,7 +568,7 @@ FOR REL IN RDB$RELATIONS CROSS
 		ISQL_blankterm(CON.RDB$CONSTRAINT_NAME);
 		if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 		    {
-		    ISQL_copy_SQL_id (CON.RDB$CONSTRAINT_NAME, &SQL_identifier,
+		    ISQL_copy_SQL_id (CON.RDB$CONSTRAINT_NAME, SQL_identifier,
 				      DBL_QUOTE);
 		    sprintf (Print_buffer, " CONSTRAINT %s", SQL_identifier);
 		    }
@@ -644,7 +645,7 @@ FOR RELC IN RDB$RELATION_CONSTRAINTS WITH
 	ISQL_blankterm(RELC.RDB$CONSTRAINT_NAME);
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (RELC.RDB$CONSTRAINT_NAME, &SQL_identifier,
+	    ISQL_copy_SQL_id (RELC.RDB$CONSTRAINT_NAME, SQL_identifier,
 			      DBL_QUOTE);
 	    sprintf (Print_buffer, "CONSTRAINT %s ", SQL_identifier);
 	    }
@@ -726,7 +727,7 @@ FOR REL IN RDB$RELATIONS WITH
     ISQL_blankterm (REL.RDB$RELATION_NAME);
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	ISQL_copy_SQL_id (REL.RDB$RELATION_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (REL.RDB$RELATION_NAME, SQL_identifier, DBL_QUOTE);
     else
 	strcpy (SQL_identifier, REL.RDB$RELATION_NAME);
 
@@ -794,7 +795,7 @@ static void get_procedure_args (
  *
  **************************************/
 SSHORT	ptype,first_time, i, header = TRUE;
-TEXT	msg [MSG_LENGTH];
+/*TEXT	msg [MSG_LENGTH];*/
 SCHAR   char_sets [86];
 
 /* query to retrieve the parameters. */
@@ -802,7 +803,7 @@ SCHAR   char_sets [86];
   
 
 /* placed the two identical code blocks into one
-   for loop as suggested by Ann H. and Claudio C.
+   for loop as suggested by Ann H. and Claudio V.
    FSG 18.Nov.2000
 */
   
@@ -839,7 +840,14 @@ SCHAR   char_sets [86];
 	    }
 
 	ISQL_blankterm (PRM.RDB$PARAMETER_NAME);
-	sprintf (Print_buffer, "%s ", PRM.RDB$PARAMETER_NAME);
+
+	/* CVC: Parameter names need check for dialect 3, too. */
+    if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
+		ISQL_copy_SQL_id (PRM.RDB$PARAMETER_NAME, SQL_identifier, DBL_QUOTE);
+    else
+		strcpy (SQL_identifier, PRM.RDB$PARAMETER_NAME);
+
+	sprintf (Print_buffer, "%s ", SQL_identifier);
 	ISQL_printf (Out, Print_buffer);
 
 	/* Get column type name to print */
@@ -1025,7 +1033,7 @@ if (major_ods >= ODS_VERSION9)
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (XX.RDB$ROLE_NAME, &SQL_identifier, DBL_QUOTE);
+	    ISQL_copy_SQL_id (XX.RDB$ROLE_NAME, SQL_identifier, DBL_QUOTE);
 	    sprintf (Print_buffer, "CREATE ROLE %s;%s",
 		     SQL_identifier, NEWLINE);
 	    }
@@ -1158,7 +1166,7 @@ FOR PRC IN RDB$PROCEDURES
     ISQL_blankterm (PRC.RDB$PROCEDURE_NAME);
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (PRC.RDB$PROCEDURE_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (PRC.RDB$PROCEDURE_NAME, SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, create_procedure_str1, 
 		SQL_identifier);
         ISQL_printf (Out, Print_buffer);
@@ -1193,7 +1201,7 @@ FOR PRC IN RDB$PROCEDURES
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (PRC.RDB$PROCEDURE_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (PRC.RDB$PROCEDURE_NAME, SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, "%sALTER PROCEDURE %s ", NEWLINE, 
 		 SQL_identifier);
 	}
@@ -1324,8 +1332,8 @@ FOR TRG IN RDB$TRIGGERS CROSS REL IN RDB$RELATIONS OVER RDB$RELATION_NAME
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (TRG.RDB$TRIGGER_NAME,  &SQL_identifier,  DBL_QUOTE);
-	ISQL_copy_SQL_id (TRG.RDB$RELATION_NAME, &SQL_identifier2, DBL_QUOTE);
+	ISQL_copy_SQL_id (TRG.RDB$TRIGGER_NAME,  SQL_identifier,  DBL_QUOTE);
+	ISQL_copy_SQL_id (TRG.RDB$RELATION_NAME, SQL_identifier2, DBL_QUOTE);
 	}
     else
 	{
@@ -1401,7 +1409,7 @@ FOR TRG IN RDB$TRIGGERS CROSS
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (TRG.RDB$RELATION_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (TRG.RDB$RELATION_NAME, SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, "ALTER TABLE %s ADD %s%s", 
 		 SQL_identifier, NEWLINE, TAB);
 	}
@@ -1416,7 +1424,7 @@ FOR TRG IN RDB$TRIGGERS CROSS
 	ISQL_blankterm(CHK.RDB$CONSTRAINT_NAME);
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (CHK.RDB$CONSTRAINT_NAME, &SQL_identifier, 
+	    ISQL_copy_SQL_id (CHK.RDB$CONSTRAINT_NAME, SQL_identifier, 
 			      DBL_QUOTE);
 	    sprintf (Print_buffer, "CONSTRAINT %s ", SQL_identifier);
 	    }
@@ -2035,7 +2043,7 @@ FOR FLD IN RDB$FIELDS WITH
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id(FLD.RDB$FIELD_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id(FLD.RDB$FIELD_NAME, SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, "CREATE DOMAIN %s AS ", SQL_identifier);
 	}
     else	
@@ -2217,10 +2225,10 @@ FOR EXC IN RDB$EXCEPTIONS
     first = FALSE;
     ISQL_blankterm (EXC.RDB$EXCEPTION_NAME);
 
-    ISQL_copy_SQL_id (EXC.RDB$MESSAGE, &SQL_identifier2, SINGLE_QUOTE);
+    ISQL_copy_SQL_id (EXC.RDB$MESSAGE, SQL_identifier2, SINGLE_QUOTE);
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (EXC.RDB$EXCEPTION_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (EXC.RDB$EXCEPTION_NAME, SQL_identifier, DBL_QUOTE);
 	sprintf (Print_buffer, "CREATE EXCEPTION %s %s%s%s", 
 		SQL_identifier, SQL_identifier2, Term, NEWLINE);
 	}
@@ -2335,7 +2343,7 @@ FOR RELC1 IN RDB$RELATION_CONSTRAINTS CROSS
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (RELC1.RDB$RELATION_NAME, &SQL_identifier,
+	    ISQL_copy_SQL_id (RELC1.RDB$RELATION_NAME, SQL_identifier,
 			      DBL_QUOTE);
 	    sprintf (Print_buffer, "ALTER TABLE %s ADD ", SQL_identifier);
 	    }
@@ -2353,7 +2361,7 @@ FOR RELC1 IN RDB$RELATION_CONSTRAINTS CROSS
 				strlen(RELC1.RDB$CONSTRAINT_NAME));
 	    if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 		{
-		ISQL_copy_SQL_id (RELC1.RDB$CONSTRAINT_NAME, &SQL_identifier,
+		ISQL_copy_SQL_id (RELC1.RDB$CONSTRAINT_NAME, SQL_identifier,
 				  DBL_QUOTE);
 		sprintf (Print_buffer, "CONSTRAINT %s ", SQL_identifier);
 		}
@@ -2365,7 +2373,7 @@ FOR RELC1 IN RDB$RELATION_CONSTRAINTS CROSS
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	    {
-	    ISQL_copy_SQL_id (RELC2.RDB$RELATION_NAME, &SQL_identifier,
+	    ISQL_copy_SQL_id (RELC2.RDB$RELATION_NAME, SQL_identifier,
 			      DBL_QUOTE);
 	    sprintf (Print_buffer, "FOREIGN KEY (%s) REFERENCES %s ", 
 		     collist, SQL_identifier);
@@ -2681,7 +2689,7 @@ FOR GEN IN RDB$GENERATORS WITH
     ISQL_blankterm (GEN.RDB$GENERATOR_NAME);
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	ISQL_copy_SQL_id (GEN.RDB$GENERATOR_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (GEN.RDB$GENERATOR_NAME, SQL_identifier, DBL_QUOTE);
     else
 	strcpy (SQL_identifier, GEN.RDB$GENERATOR_NAME);
 
@@ -2754,8 +2762,8 @@ FOR IDX IN RDB$INDICES CROSS RELC IN RDB$RELATIONS
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
 	{
-	ISQL_copy_SQL_id (IDX.RDB$INDEX_NAME,    &SQL_identifier,  DBL_QUOTE);
-	ISQL_copy_SQL_id (IDX.RDB$RELATION_NAME, &SQL_identifier2, DBL_QUOTE);
+	ISQL_copy_SQL_id (IDX.RDB$INDEX_NAME,    SQL_identifier,  DBL_QUOTE);
+	ISQL_copy_SQL_id (IDX.RDB$RELATION_NAME, SQL_identifier2, DBL_QUOTE);
 	sprintf (Print_buffer, "CREATE%s%s INDEX %s ON %s(",
 	    (IDX.RDB$UNIQUE_FLAG ? " UNIQUE" : ""),
 	    (IDX.RDB$INDEX_TYPE ? " DESCENDING" : ""),
@@ -2816,7 +2824,7 @@ FOR REL IN RDB$RELATIONS WITH
     ISQL_blankterm (REL.RDB$RELATION_NAME);
 
     if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	ISQL_copy_SQL_id (REL.RDB$RELATION_NAME, &SQL_identifier, DBL_QUOTE);
+	ISQL_copy_SQL_id (REL.RDB$RELATION_NAME, SQL_identifier, DBL_QUOTE);
     else
 	strcpy (SQL_identifier, REL.RDB$RELATION_NAME);
 
@@ -2839,7 +2847,7 @@ FOR REL IN RDB$RELATIONS WITH
 	ISQL_blankterm (RFR.RDB$FIELD_NAME);
 
 	if (db_SQL_dialect > SQL_DIALECT_V6_TRANSITION)
-	    ISQL_copy_SQL_id (RFR.RDB$FIELD_NAME, &SQL_identifier, DBL_QUOTE);
+	    ISQL_copy_SQL_id (RFR.RDB$FIELD_NAME, SQL_identifier, DBL_QUOTE);
 	else
 	    strcpy (SQL_identifier, RFR.RDB$FIELD_NAME);
 
