@@ -28,7 +28,5 @@
 extern void	PWD_get_user_dbpath (TEXT *);
 extern void	PWD_verify_user (TEXT *, TEXT *, TEXT *, TEXT *, 
 				int *, int *, int *);
-extern char *PWD_ls_user(void);
-extern char *PWD_ls_pw(void);
 
 #endif /* _JRD_PWD_PROTO_H_ */

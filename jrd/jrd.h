@@ -696,6 +696,13 @@ typedef struct tdbb {
 #define TDBB_no_cache_unwind	2	/* Don't unwind page buffer cache */
 #define TDBB_prc_being_dropped	4       /* Dropping a procedure  */	
 
+/* List of internal database handles */
+
+typedef struct ihndl {
+    struct ihndl *ihndl_next;
+    void         *ihndl_object;
+} *IHNDL;
+
 /* Threading macros */
 
 #ifdef GET_THREAD_DATA
@@ -794,11 +801,14 @@ extern TDBB     gdbb;
 #ifndef SHLIB_DEFS
 #ifdef JRD_MAIN
 int             debug;
+IHNDL		internal_db_handles = 0;
 #else
 extern int      debug;
+extern IHNDL	internal_db_handles;
 #endif
 #else
 extern int      debug;
+extern IHNDL	internal_db_handles;
 #endif
 #endif /* REQUESTER */
 

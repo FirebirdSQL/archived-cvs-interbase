@@ -30,7 +30,7 @@ extern void		SCL_check_relation (struct dsc *, USHORT);
 extern struct scl	*SCL_get_class (TEXT *);
 extern int		SCL_get_mask (TEXT *, TEXT *);
 extern void		SCL_init (BOOLEAN, TEXT *, TEXT *, TEXT *,
-                                 TEXT *, TEXT *, TDBB);
+                                 TEXT *, TEXT *, TDBB, BOOLEAN);
 extern void		SCL_move_priv (UCHAR **, USHORT, STR *, ULONG *);
 extern struct scl	*SCL_recompute_class	(TDBB, TEXT *);
 extern void		SCL_release (struct scl *);

@@ -29,7 +29,6 @@
 #include "../jrd/jrd.h"
 #include "../jrd/ods.h"
 #include "../jrd/scl.h"
-#include "../jrd/pwd.h"
 #include "../jrd/acl.h"
 #include "../jrd/blb.h"
 #include "../jrd/irq.h"
@@ -40,7 +39,6 @@
 #include "../jrd/all_proto.h"
 #include "../jrd/blb_proto.h"
 #include "../jrd/cmp_proto.h"
-#include "../jrd/enc_proto.h"
 #include "../jrd/err_proto.h"
 #include "../jrd/exe_proto.h"
 #include "../jrd/gds_proto.h"
@@ -505,7 +503,8 @@ void SCL_init (
     TEXT	*password,
     TEXT	*password_enc,
     TEXT	*sql_role,
-    TDBB	tdbb)
+    TDBB	tdbb,
+    BOOLEAN	internal)
 {
 /**************************************
  *
@@ -529,9 +528,6 @@ USR	user;
 TEXT	name [129], project [33], organization [33], *p;
 USHORT	length;
 int	id, group, wheel, node_id;
-TEXT	locksmith_password[20];
-TEXT	locksmith_password_enc[33];
-TEXT	user_locksmith[20];
 TEXT	role_name[33], login_name [129], *q;
 USHORT  major_version, minor_original;
 
@@ -559,11 +555,7 @@ if (user_name || (id == -1))
     if ((user_name == NULL) || ((password_enc == NULL) && (password == NULL)))
 	ERR_post (gds__login, 0);
 
-    strcpy (locksmith_password, LOCKSMITH_PASSWORD);
-    strcpy (user_locksmith, LOCKSMITH_USER);
-    strcpy (locksmith_password_enc, ENC_crypt (locksmith_password, PASSWORD_SALT));
-    if (strcmp (user_name, user_locksmith) || (password_enc == NULL) ||
-	strcmp (password_enc, locksmith_password_enc + 2))
+    if (!internal)
 	PWD_verify_user (name, user_name, password, password_enc, &id, 
 			 &group, &node_id);
 

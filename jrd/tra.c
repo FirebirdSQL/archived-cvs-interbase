@@ -3086,35 +3086,26 @@ static void THREAD_ROUTINE sweep_database (
  *	Sweep database.
  *
  **************************************/
-SLONG	db_handle;
+isc_db_handle	db_handle;
+IHNDL	ihandle;
 STATUS	status_vector [ISC_STATUS_LENGTH];
 UCHAR   *dpb;
 SSHORT  dpb_length;
 UCHAR   *q;
 UCHAR	sweep_dpb [100];
-TEXT    password_enc[100];
-
-/* The implementation of the encryption algorithm is not thread-safe
-   on most of our platforms. Wrap the encryption and copy operation
-   with the global scheduler's mutex. When we support SMP, we'll have
-   to do better than this. */
-
-THREAD_ENTER;
-strcpy (password_enc, (char *)ENC_crypt (LOCKSMITH_PASSWORD, PASSWORD_SALT));
-THREAD_EXIT;
 
 db_handle = NULL;
 
 dpb = sweep_dpb;
 *dpb++ = gds__dpb_version1;
 *dpb++ = gds__dpb_user_name;
-*dpb++ = strlen (LOCKSMITH_USER);
-q = LOCKSMITH_USER;
+q = "sweeper";
+*dpb++ = strlen (q);
 while (*q)
     *dpb++ = *q++;
 
-*dpb++ = gds__dpb_password_enc;
-q = password_enc + 2;
+*dpb++ = gds__dpb_password;
+q = "none";
 *dpb++ = strlen (q);
 while (*q)
     *dpb++ = *q++;
@@ -3124,12 +3115,34 @@ while (*q)
 *dpb++ = gds__dpb_records;
 dpb_length = dpb - sweep_dpb;
 
+/* Register as internal database handle */
+
+THREAD_ENTER;
+for (ihandle = internal_db_handles; ihandle; ihandle = ihandle->ihndl_next)
+    if (ihandle->ihndl_object == NULL)
+	{
+	ihandle->ihndl_object = &db_handle;
+	break;
+	}
+
+if (!ihandle)
+    {
+    ihandle = (IHNDL) gds__alloc ((SLONG) sizeof (struct ihndl));
+    ihandle->ihndl_object = &db_handle;
+    ihandle->ihndl_next = internal_db_handles;
+    internal_db_handles = ihandle;
+    }
+THREAD_EXIT;
+
 gds__attach_database (status_vector,
 	0,
 	GDS_VAL (database),
 	GDS_REF (db_handle),
 	dpb_length,
 	GDS_VAL (sweep_dpb));
+
+assert (ihandle->ihndl_object == &db_handle);
+ihandle->ihndl_object = NULL;
 
 if (db_handle)
     gds__detach_database (status_vector, GDS_REF (db_handle));

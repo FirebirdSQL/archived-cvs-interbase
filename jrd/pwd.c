@@ -102,8 +102,7 @@ static CONST char     tpb[4] = { isc_tpb_version1,
 			   isc_tpb_wait };
 
 static BOOLEAN  lookup_user (TEXT *, int *, int *, TEXT *);
-static BOOLEAN  open_user_db (SLONG **, SLONG *);
-
+static BOOLEAN  open_user_db (isc_db_handle *, SLONG *);
 
 /* kludge to make sure pwd sits below why.c on the PC (Win16) platform */
 
@@ -119,50 +118,7 @@ static BOOLEAN  open_user_db (SLONG **, SLONG *);
 #define isc_start_transaction           jrd8_start_transaction
 
 #endif
-
-
-static char ls_user[12]="Firebird   ";
-static char ls_pw[8]="Phoenix";
-
-
-void mk_pwd(TEXT *pw)
-{
-    unsigned char  i=0;
-    unsigned char  j=0;
-
-/* I hope that this will work on all platforms
-   FSG 22.Dez.2000
-*/
-    srand( (unsigned)time (NULL));
-    for (i=0; i < strlen(pw); i++)
-    {
-       j=1+(int) (255.0*rand()/(RAND_MAX+1.0));
-       pw[i]=j;
-    }
-}
-
-char *PWD_ls_user()
-{
- if (strcmp(ls_user,"Firebird   ")==0)
- {
-   mk_pwd(ls_user);
- }
- return ls_user;
-}
-
-
-char *PWD_ls_pw()
-
-{
- if (strcmp(ls_pw,"Phoenix")==0)
-  {
-     mk_pwd(ls_pw);
-  }
-  return ls_pw;
-}
-       
-
-
+
 void PWD_get_user_dbpath (
     TEXT        *path_buffer)
 {
@@ -262,7 +218,7 @@ static BOOLEAN lookup_user (
  *
  **************************************/
 BOOLEAN         notfound;               /* user found flag */
-SLONG           *uinfo;                 /* database handle */
+isc_db_handle   uinfo;                  /* database handle */
 SLONG           *lookup_trans;          /* default transaction handle */
 STATUS          status [20];            /* status vector */
 SLONG           *lookup_req;            /* request handle */
@@ -347,7 +303,7 @@ return notfound;
 }
 
 static BOOLEAN open_user_db (
-    SLONG       **uihandle,
+    isc_db_handle *uihandle,
     SLONG	*status)
 {
 /**************************************
@@ -366,21 +322,31 @@ static BOOLEAN open_user_db (
  **************************************/
 TEXT    user_info_name [MAX_PATH_LENGTH];
 BOOLEAN notopened;              /* open/not open flag */
-SLONG   *uinfo;                 /* database handle */
+isc_db_handle uinfo;            /* database handle */
+IHNDL	ihandle;
 SCHAR   *p, *dpb, dpb_buffer [256];
 SSHORT  dpb_len;
-TEXT    locksmith_password_enc [33];
 #ifdef  WINDOWS_ONLY
 SCHAR   *expanded_name;
 #endif
 
-/* Encrypt and copy locksmith's password under the global scheduler's
-   mutex since the implementation of the encryption isn't thread-safe
-   on most of our platforms. */
+/* Register as internal database handle */
 
+for (ihandle = internal_db_handles; ihandle; ihandle = ihandle->ihndl_next)
+    if (ihandle->ihndl_object == NULL)
+	{
+	ihandle->ihndl_object = &uinfo;
+	break;
+	}
 
+if (!ihandle)
+    {
+    ihandle = (IHNDL) gds__alloc ((SLONG) sizeof (struct ihndl));
+    ihandle->ihndl_object = &uinfo;
+    ihandle->ihndl_next = internal_db_handles;
+    internal_db_handles = ihandle;
+    }
 
-strcpy (locksmith_password_enc, ENC_crypt (LOCKSMITH_PASSWORD, PASSWORD_SALT));
 THREAD_EXIT;
 
 /* initialize the data base's name */
@@ -400,13 +366,13 @@ dpb = dpb_buffer;
 
 *dpb++ = gds__dpb_version1;
 *dpb++ = gds__dpb_user_name;
-*dpb++ = strlen (LOCKSMITH_USER);
-p = LOCKSMITH_USER;
+p = "authenticator";
+*dpb++ = strlen (p);
 while (*p)
     *dpb++ = *p++;
 
-*dpb++ = gds__dpb_password_enc;
-p = locksmith_password_enc + 2;
+*dpb++ = gds__dpb_password;
+p = "none";
 *dpb++ = strlen (p);
 while (*p)
     *dpb++ = *p++;
@@ -421,7 +387,7 @@ isc_attach_database (status, 0, user_info_name, &uinfo, dpb_len, dpb_buffer);
 if (status [1] == gds__login)
     {
     /* we may be going against a V3 database which does not
-     * understand the "hello, god" combination.
+     * understand this combination.
      */
     
     isc_attach_database (status, 0, user_info_name, &uinfo, 0, 0);
@@ -430,6 +396,9 @@ if (status [1] == gds__login)
 if (status [1])
     notopened = TRUE;
 *uihandle = uinfo;
+
+assert (ihandle->ihndl_object == &uinfo);
+ihandle->ihndl_object = NULL;
 
 #ifdef  WINDOWS_ONLY
 gds__free( (SLONG*)expanded_name);

@@ -30,9 +30,6 @@ $Id$
 #define PASSWORD_SALT		"9z"
 #define MAX_PASSWORD_ENC_LENGTH	12
 
-#define LOCKSMITH_USER  PWD_ls_user()
-#define LOCKSMITH_PASSWORD PWD_ls_pw()
-
 #ifdef APOLLO
 #define USER_INFO_NAME	"/interbase/isc4.gdb"      
 #endif
@@ -40,7 +37,7 @@ $Id$
 #ifdef VMS
 #define USER_INFO_NAME	"[sysmgr]isc4.gdb"
 #endif
-
+    
 #if (defined WINDOWS_ONLY || defined WIN_NT)
 #define USER_INFO_NAME	"isc4.gdb"
 #endif

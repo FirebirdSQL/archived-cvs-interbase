@@ -478,6 +478,8 @@ TEXT		end_quote, local_role_name [BUFFER_LENGTH128];
 UCHAR		*p1, *p2;
 SSHORT		cnt, len;
 BOOLEAN		delimited_done = FALSE;
+BOOLEAN		internal;
+IHNDL		ihandle;
 
 API_ENTRY_POINT_INIT;
 
@@ -861,9 +863,19 @@ if (options.dpb_role_name)
 
 options.dpb_sql_dialect = 0;
 
+/* Don't run internal handles thru the security gauntlet. */
+
+internal = FALSE;
+for (ihandle = internal_db_handles; ihandle; ihandle = ihandle->ihndl_next)
+    if (ihandle->ihndl_object == (isc_db_handle *) handle)
+	{
+	internal = TRUE;
+	break;
+	}
+
 SCL_init (FALSE, options.dpb_sys_user_name, options.dpb_user_name,
           options.dpb_password, options.dpb_password_enc,
-          options.dpb_role_name, tdbb);
+          options.dpb_role_name, tdbb, internal);
 #ifdef V4_THREADING
 initing_security = FALSE;
 V4_JRD_MUTEX_LOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
@@ -1541,6 +1553,8 @@ JMP_BUF		env;
 JMP_BUF		env1;
 #endif
 struct tdbb	thd_context, *tdbb = NULL;
+BOOLEAN		internal;
+IHNDL		ihandle;
 
 API_ENTRY_POINT_INIT;
 
@@ -1726,9 +1740,20 @@ SBM_init();
 V4_JRD_MUTEX_UNLOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
 initing_security = TRUE;
 #endif
+
+/* Don't run internal handles thru the security gauntlet. */
+
+internal = FALSE;
+for (ihandle = internal_db_handles; ihandle; ihandle = ihandle->ihndl_next)
+    if (ihandle->ihndl_object == (isc_db_handle *) handle)
+	{
+	internal = TRUE;
+	break;
+	}
+
 SCL_init (TRUE, options.dpb_sys_user_name, options.dpb_user_name,
           options.dpb_password, options.dpb_password_enc,
-          options.dpb_role_name, tdbb);
+          options.dpb_role_name, tdbb, internal);
 #ifdef V4_THREADING
 initing_security = FALSE;
 V4_JRD_MUTEX_LOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
