@@ -1,3 +1,37 @@
+2001-08-09 09:32  robocop
+
+	* interbase/jrd/: gdsold.h, ibase.h, inf.c:
+	
+	txn information for isc_database_info() API call
+
+2001-08-09 02:27  nmcc
+
+	* interbase/: alice/aliceswi.h, burp/burp.c, burp/burpswi.h,
+	intl/anhun.h:
+	
+	Add missing \n to end of file so Sun compiler does not loose
+	closing #endif.  Also removes cvs warning message.
+
+2001-08-09 02:21  nmcc
+
+	* interbase/jrd/: common.h, inf.c, rlck.c:
+	
+	Add missing \n to end of file so Sun compiler does not loose
+	closing #endif.  Also removes cvs warning message.
+
+2001-08-09 02:15  nmcc
+
+	* interbase/jrd/jrd.c:
+	
+	Convert C++ // style comment to C /**/ style.
+
+2001-08-09 00:22  rfm
+
+	* interbase/utilities/dba.e:
+	
+	delete escaped #else clause left over from READONLY_DATABASE
+	cleanup. This is in NETWARE db_open, so it is untested.
+
 2001-08-08 03:49  seanleyne
 
 	* interbase/: burp/restore.e, utilities/dba.e, utilities/ppg.c:
