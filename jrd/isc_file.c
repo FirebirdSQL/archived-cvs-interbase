@@ -2323,6 +2323,7 @@ if (ret == ERROR_MORE_DATA)
 #ifdef STACK_EFFICIENT
         gds__free((SLONG *)data_buf);
 #endif	/* STACK_EFFICIENT */
+	RegCloseKey (hkey);
 	return;		/* Error not really handled */
         }
     ret = RegQueryValueEx (hkey, workspace, NULL, &type_code, data, &d_size);
