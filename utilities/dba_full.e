@@ -20,12 +20,12 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+#include "../jrd/common.h"
 
 #include "../jrd/ib_stdio.h"
 #include <errno.h>
 #include <string.h>
 #include "../jrd/ibsetjmp.h"
-#include "../jrd/common.h"
 #include "../jrd/time.h"
 #include "../jrd/gds.h"
 #include "../jrd/ods.h"
@@ -1256,6 +1256,7 @@ SCHAR	*p;
 SSHORT	length, l;
 FIL	fil;
 TDBA	tddba;
+UINT64 offset;
 
 tddba = GET_THREAD_DATA;
 
@@ -1263,7 +1264,8 @@ for (fil = tddba->files; page_number > fil->fil_max_page && fil->fil_next;)
     fil = fil->fil_next;
 
 page_number -= fil->fil_min_page - fil->fil_fudge;
-if (lseek (fil->fil_desc, page_number * tddba->page_size, 0) == -1)
+offset = ((UINT64)page_number) * ((UINT64)tddba->page_size);
+if (lseek (fil->fil_desc, offset, 0) == -1)
  db_error (errno);
 
 for (p = (SCHAR*) tddba->global_buffer, length = tddba->page_size; length > 0;)
@@ -1899,6 +1901,7 @@ SCHAR	*p;
 SSHORT	length, l;
 FIL	fil;
 TDBA	tddba;
+UINT64 offset;
 
 tddba = GET_THREAD_DATA;
 
@@ -1906,7 +1909,8 @@ for (fil = tddba->files; page_number > fil->fil_max_page && fil->fil_next;)
     fil = fil->fil_next;
 
 page_number -= fil->fil_min_page - fil->fil_fudge;
-if (lseek (fil->fil_desc, page_number * tddba->page_size, 0) == -1)
+offset = ((UINT64)page_number) * ((UINT64)tddba->page_size);
+if (lseek (fil->fil_desc, offset, 0) == -1)
     db_error (errno);
     
 for (p = (SCHAR*) tddba->global_buffer, length = tddba->page_size; length > 0;)

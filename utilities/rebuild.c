@@ -20,6 +20,7 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+#include "../jrd/common.h"
 
 #include "../jrd/ib_stdio.h"
 #include <errno.h>
@@ -679,10 +680,12 @@ PAG RBDB_read (
 SCHAR	*p;
 SSHORT	length, l;
 int	file;
+UINT64 offset;
 
 file = rbdb->rbdb_file.fil_file;
 
-if (lseek (file, page_number * rbdb->rbdb_page_size, 0) == -1)
+offset = ((UINT64)page_number) * ((UINT64)rbdb->rbdb_page_size);
+if (lseek (file, offset, 0) == -1)
     db_error (errno);
 
 for (p = (SCHAR*) rbdb->rbdb_buffer1, length = rbdb->rbdb_page_size; length > 0;)
@@ -716,12 +719,14 @@ void RBDB_write (
  **************************************/
 ULONG	page_size;
 int	fd;
+UINT64 offset;
 
 page->pag_checksum = compute_checksum (rbdb, page);
 page_size = rbdb->rbdb_page_size;
 fd = rbdb->rbdb_file.fil_file;
 
-if (lseek (fd, page_number * page_size, 0) == -1)
+offset = ((UINT64)page_number) * ((UINT64)page_size);
+if (lseek (fd, offset, 0) == -1)
     db_error (errno);
 if (write (fd, page, page_size) == -1)
     db_error (errno);

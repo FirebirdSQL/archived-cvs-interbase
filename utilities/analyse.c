@@ -21,6 +21,8 @@
  * Contributor(s): ______________________________________.
  */
 
+#include "../jrd/common.h"
+
 #ifdef VMS
 #include <types.h>
 #include "times.h"
@@ -30,7 +32,6 @@
 #include <sys/time.h>
 #endif
 
-#include "../jrd/common.h"
 #include "../jrd/ib_stdio.h"
 #include <errno.h>
 #include "jrd.h"
@@ -423,11 +424,12 @@ static PAG db_read (
  *	Read a database page.
  *
  **************************************/
+ UINT64 offset = ((UINT64)page_number) * ((UINT64)page_size);
 
 if (!global_buffer)
     global_buffer = malloc (page_size);
 
-if (lseek (file, page_number * page_size, 0) == -1)
+if (lseek (file, offset, 0) == -1)
     db_error (errno);
 
 if (read (file, global_buffer, page_size) == -1)

@@ -20,13 +20,13 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+#include "../jrd/common.h"
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <stdlib.h>
-#include "../jrd/common.h"
 
 typedef struct blk {
     UCHAR	blk_type;
@@ -877,8 +877,10 @@ static PAG db_read (
  **************************************/
 SCHAR	*p;
 SSHORT	length, l;
+UINT64 offset;
 
-if (lseek (file, page_number * page_size, 0) == -1)
+offset = ((UINT64)page_number) * ((UINT64)page_size);
+if (lseek (file, offset, 0) == -1)
     db_error (errno);
 
 for (p = (SCHAR*) global_buffer, length = page_size; length > 0;)

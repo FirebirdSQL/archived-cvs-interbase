@@ -547,7 +547,7 @@ SLONG PIO_max_alloc (
  *
  **************************************/
 struct stat	statistics;
-SLONG		length;
+UINT64	length;
 FIL		file;
 
 for (file = dbb->dbb_file; file->fil_next; file = file->fil_next)
@@ -594,9 +594,9 @@ SLONG PIO_act_alloc (
  *
  **************************************/
 struct stat	statistics;
-SLONG		length;
+UINT64	length;
 FIL		file;
-SLONG tot_pages=0;
+ULONG tot_pages=0;
 
 /**
  **  Traverse the linked list of files and add up the number of pages
@@ -961,6 +961,8 @@ static FIL seek_file (
  **************************************/
 ULONG	page;
 DBB	dbb;
+UINT64 lseek_offset;
+static int bad_off_count = 0;
 
 dbb = bdb->bdb_dbb;
 page = bdb->bdb_page;
@@ -982,9 +984,18 @@ page -= file->fil_min_page - file->fil_fudge;
 #ifdef PREAD_PWRITE
 *offset = (SLONG) (page * dbb->dbb_page_size);
 #else
+lseek_offset = page;
+lseek_offset *= dbb->dbb_page_size;
+#ifndef UNIX_64_BIT_IO
+if (lseek_offset > MAX_SLONG)
+{
+    return (FIL) unix_error ("lseek", file, isc_io_32bit_exceeded_err, status_vector);
+}
+#endif
+
 THD_MUTEX_LOCK (file->fil_mutex);
 
-if ((lseek (file->fil_desc, LSEEK_OFFSET_CAST (page * dbb->dbb_page_size), 0)) == -1)
+if ((lseek (file->fil_desc, LSEEK_OFFSET_CAST lseek_offset, 0)) == -1)
     {
     THD_MUTEX_UNLOCK (file->fil_mutex);
     return (FIL) unix_error ("lseek", file, isc_io_access_err, status_vector);

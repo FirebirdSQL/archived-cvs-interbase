@@ -99,6 +99,7 @@ $Id$
 
 /* Darwin Platforms */
 #ifdef DARWIN
+#define UNIX_64_BIT_IO
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
@@ -114,9 +115,12 @@ $Id$
 #define MMAP_SUPPORTED
 #define MAP_ANONYMOUS
 #define MAP_ANNON
-#define LSEEK_OFFSET_CAST (off_t)
 #define INTL
 #define SIGACTION_SUPPORTED
+
+#if 0
+#define POSIX_SEMAPHORES
+#endif
 
 #define MEMMOVE(from,to,length)     memmove ((void *)to, (void *)from, (size_t)length)
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
@@ -1215,6 +1219,11 @@ typedef unsigned char   UCHAR;
 #define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
 #define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
 
+
+#ifdef UNIX_64_BIT_IO
+#define _FILE_OFFSET_BITS       64  /* Enable 64 bit IO functions */
+#endif
+
 #ifndef MAXPATHLEN
 #define MAXPATHLEN      1024
 #endif
@@ -1609,9 +1618,9 @@ typedef USHORT		FLD_LENGTH;
 #define BUFFER_SMALL    256
 #define BUFFER_TINY     128
 
-/* The default lseek offset type */
+/* The default lseek offset type.  Changed from nothing to (off_t) to correctly support 64 bit IO */
 #ifndef LSEEK_OFFSET_CAST
-#define LSEEK_OFFSET_CAST
+#define LSEEK_OFFSET_CAST (off_t)
 #endif
 
 #ifndef DOUBLE_MULTIPLY
