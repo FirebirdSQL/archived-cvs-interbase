@@ -387,7 +387,7 @@ manager gds_lock_manager:	$(ACCESS_METHOD) drop force
 msgs:		$(ACCESS_METHOD) $(LOCK_MANAGER) force
 	$(QUIET_ECHO) "Building message file(s)..."
 	$(SH) '$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" check_messages'
-	$(SH) '$(CD) source/msgs; check_messages -d $(MSGSDIR)master_msg_db -l'
+	$(SH) '$(CD) source/msgs; ./check_messages -d $(MSGSDIR)master_msg_db -l'
 	$(SH) '$(CD) source/msgs; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" interbase.msg'
 	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" includes.msg'
 
