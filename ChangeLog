@@ -1,3 +1,24 @@
+2001-10-19 22:08  awharrison
+
+	* interbase/dsql/pass1.c:
+	
+	
+	Get rid of a debugging statement.
+
+2001-10-19 22:00  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	
+	Added flag values 4 & 5 as indicating check triggers which should
+	run after other before action triggers.
+
+2001-10-19 06:10  robocop
+
+	* interbase/dsql/metd.e:
+	
+	Fix misleading comment
+
 2001-10-18 23:30  bellardo
 
 	* interbase/builds/original/prefix.darwin:
