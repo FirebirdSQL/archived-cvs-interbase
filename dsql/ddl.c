@@ -37,6 +37,10 @@
  * Ex: alter domain d type char(5) type varchar(5) default 'x' default 'y';
  * Bear in mind that if DYN functions are addressed directly, this protection
  * becomes a moot point.
+ * 2001.6.30 Claudio Valderrama: revert changes from 2001.6.26 because the code
+ * is called from several places and there are more functions, even in metd.c,
+ * playing the same nonsense game with the field's length, so it needs more
+ * careful examination. For now, the new checks in DYN_MOD should catch most anomalies.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -462,7 +466,7 @@ if (!(field->fld_character_set ||
 				gds_arg_gds, gds__imp_exc, 
 				gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
 				0);
-			field->fld_length = (USHORT) field_length;
+			field->fld_length = (USHORT) field_length + extra_len;
 	    };
         field->fld_ttype = 0;
 		if (!collation_name)
@@ -536,7 +540,7 @@ if (field->fld_character_length)
 		gds_arg_gds, gds__imp_exc, 
 		gds_arg_gds, gds__field_name, gds_arg_string, field->fld_name,
 		0);
-    field->fld_length = (USHORT) field_length;
+    field->fld_length = (USHORT) field_length + extra_len;
 };
 
 field->fld_ttype = resolved_type->intlsym_ttype;
@@ -4862,9 +4866,10 @@ else if (field->fld_dtype <= dtype_any_text)
 		by DDL_resolve_intl_type(), so nothing to decrement here.
 		Anyway, the assertion was flawed when run against the old code, too.
 		Here comes the compensation for DDL_resolve_intl_type(), since the field
-		length itself wasn't altered if it's varying. */
-		assert((field->fld_length + sizeof (USHORT)) <= MAX_SSHORT);
-		put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length /* - sizeof (USHORT)*/));
+		length itself wasn't altered if it's varying.
+		UPDATE: Functionality reverted but assert fixed. */
+		assert((field->fld_length /*+ sizeof (USHORT)*/) <= MAX_SSHORT);
+		put_number (request, gds__dyn_fld_length, (SSHORT)(field->fld_length - sizeof (USHORT)));
 	}
     else
         put_number (request, gds__dyn_fld_length, field->fld_length);
