@@ -27,6 +27,11 @@
  * Change to be in sync with extract.e: BLOB is not returned
  * by value but by descriptor.
  * 2001.09.21 Claudio Valderrama: Show correct mechanism for UDF parameters.
+ * 2001.10.01 Claudio Valderrama: SHOW GRANTS works without any argument, too.
+ *   Metadata extraction is slightly faster if SHOW_grants() knows the obj_type.
+ *   Keyword USER is written when the grantee is a user and since the engine
+ *   now supports GRANT...to ROLE role_name, ROLE is written when the grantee is
+ *   indeed a role. When the grantee is a group, it's shown, too.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -48,6 +53,7 @@
 #include "../jrd/utl_proto.h"
 #include "../jrd/obj.h"
 #include "../jrd/ods.h"
+#include "../isql/extra_proto.h"
 
 ASSERT_FILENAME
 
@@ -612,7 +618,8 @@ ISQL_FREE (msg);
 
 int SHOW_grants (
     SCHAR	*object,
-    SCHAR	*terminator)
+    SCHAR	*terminator,
+    USHORT	obj_type)
 {
 /**************************************
  *
@@ -656,6 +663,8 @@ priv_flags = 0;
 prev_field_null = -1;
 prev_field [0] = '\0';
 
+if (obj_type == obj_relation || obj_type == 255)
+{
 /* Find the user specified relation and show its privileges */
 
 FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
@@ -747,6 +756,18 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
 	    case obj_procedure:
 	        sprintf (user_string, "PROCEDURE %s", SQL_identifier);
 	        break;
+	    case obj_user:
+		if (strcmp(SQL_identifier, "PUBLIC"))
+	            sprintf (user_string, "USER %s", SQL_identifier);
+		else
+	            strcpy (user_string, SQL_identifier);
+	        break;
+	    case obj_user_group:
+	        sprintf (user_string, "GROUP %s", SQL_identifier);
+	        break;
+	    case obj_sql_role:
+	        sprintf (user_string, "ROLE %s", SQL_identifier);
+	        break;
     	    default:
 	        strcpy (user_string, SQL_identifier);
 	        break;
@@ -780,7 +801,7 @@ FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ object;
 	        priv_flags |= priv_UNKNOWN;
 	    }
 
-        /* Column level privileges for update only */
+        /* Column level privileges for update and references only */
         if (PRV.RDB$FIELD_NAME.NULL)
 	    *col_string = '\0';
         else
@@ -831,10 +852,13 @@ END_FOR
 
 if (!first)
     return (SKIP);
+}
 
+if (obj_type == obj_procedure || obj_type == 255)
+{
 /* No relation called "object" was found, try procedure "object" */
 
-FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ object;
+FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ object
 
     /* Part two is for stored procedures only */
 
@@ -880,6 +904,18 @@ FOR FIRST 1 P IN RDB$PROCEDURES WITH P.RDB$PROCEDURE_NAME EQ object;
 	    case obj_procedure:
 	        sprintf (user_string, "PROCEDURE %s", SQL_identifier);
 	        break;
+	    case obj_user:
+		if (strcmp(SQL_identifier, "PUBLIC"))
+	            sprintf (user_string, "USER %s", SQL_identifier);
+		else
+	            strcpy (user_string, SQL_identifier);
+	        break;
+	    case obj_user_group:
+	        sprintf (user_string, "GROUP %s", SQL_identifier);
+	        break;
+	    case obj_sql_role:
+	        sprintf (user_string, "ROLE %s", SQL_identifier);
+	        break;
     	    default:
 	        strcpy (user_string, SQL_identifier);
 	        break;
@@ -915,10 +951,15 @@ END_FOR
 
 if (!first)
 	return (SKIP);
+}
 
+if (obj_type == obj_sql_role || obj_type == 255)
+{
 /* No procedure called "object" was found, try role "object" */
+/* CVC: This code could be superseded by SHOW_grant_roles() below
+with the sole difference of the sort fields. */
 
-FOR FIRST 1 R IN RDB$ROLES WITH R.RDB$ROLE_NAME EQ object;
+FOR FIRST 1 R IN RDB$ROLES WITH R.RDB$ROLE_NAME EQ object
 
 FOR PRV IN RDB$USER_PRIVILEGES WITH
     PRV.RDB$OBJECT_TYPE   EQ obj_sql_role AND
@@ -960,14 +1001,16 @@ END_FOR
     return (ERR);
     END_ERROR;
 
-if (first)
-    return (NOT_FOUND);
+if (!first)
+    return (SKIP);
+}
 
-return (SKIP);
+return NOT_FOUND;
 }
 
 void SHOW_grant_roles (
-    SCHAR	*terminator)
+    SCHAR	*terminator,
+    SSHORT	*first)
 {
 /**************************************
  *
@@ -976,7 +1019,7 @@ void SHOW_grant_roles (
  **************************************
  *
  * Functional description
- *	Show grants for given role name
+ *	Show grants for EVERY role name
  *	This function is also called by extract for privileges.
  *	All membership privilege may have the with_admin option set.
  *
@@ -992,6 +1035,9 @@ FOR PRV IN RDB$USER_PRIVILEGES WITH
     PRV.RDB$USER_TYPE     EQ obj_user     AND
     PRV.RDB$PRIVILEGE     EQ 'M'
     SORTED BY  PRV.RDB$RELATION_NAME, PRV.RDB$USER
+
+    if (first)
+	*first = FALSE;
 
     ISQL_blankterm (PRV.RDB$USER);
     strcpy (user_string, PRV.RDB$USER);
@@ -1364,12 +1410,14 @@ else if ((!strcmp (cmd [1], "GRANT")) ||
 	    }
 	else
 	    strcpy (SQL_id_for_grant, cmd [2]);
+	ret = SHOW_grants (SQL_id_for_grant, "", 255);
 	}
     else
-	strcpy (SQL_id_for_grant, cmd [2]);
+	{
+	    strcpy (SQL_id_for_grant, cmd [2]);
+	    ret = EXTRACT_list_grants ("");
+	}
 
-    ret = SHOW_grants (SQL_id_for_grant, "");
-    
     if (ret == NOT_FOUND)
       {
       FOR FIRST 1 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME EQ 

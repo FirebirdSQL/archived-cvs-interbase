@@ -34,6 +34,8 @@
  *   double quotes if they are in dialect 3 and have special characters.
  * 2001.09.21 Claudio Valderrama: Show correct mechanism for UDF parameters
  *   and support the RETURNS PARAMETER <n> syntax.
+ * 2001.10.01 Claudio Valderrama: list_all_grants2() and EXTRACT_list_grants()
+ *   to better organize the code that should be called to handle SHOW GRANTS.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -51,6 +53,7 @@
 #include "../isql/isql_proto.h" 
 #include "../isql/show_proto.h"
 #include "../jrd/gds_proto.h"
+#include "../jrd/obj.h"
 #include "../jrd/ods.h"
 
 DATABASE DB = EXTERN COMPILETIME "yachts.lnk";
@@ -60,12 +63,13 @@ extern USHORT	minor_ods;
 extern SSHORT	V33;
 
 static void	list_all_grants (void);
+static int	list_all_grants2 (BOOLEAN, SCHAR *);
 static void	list_all_procs (void);
-static void	list_all_tables (SSHORT,SSHORT);
+static void	list_all_tables (SSHORT, SSHORT);
 static void	list_all_triggers (void);
 static void	list_check (void);
 static void	list_create_db (void);
-static void	list_domain_table (SCHAR *,SSHORT);
+static void	list_domain_table (SCHAR *, SSHORT);
 static void	list_domains (SSHORT);
 static void	list_exception (void);
 static void	list_filters (void);
@@ -92,7 +96,7 @@ extern SQLTYPES	Column_types [];
 extern SCHAR	*Integral_subtypes [];
 extern SCHAR	*Sub_types [];
 extern SCHAR	*Trigger_types [];
-extern SCHAR	*UDF_param_types[];
+extern SCHAR	*UDF_param_types [];
 
 static SCHAR	*Procterm = "^";	/* TXNN: script use only */
 
@@ -235,7 +239,25 @@ if (DB && did_attach)
 
 return (SSHORT) ret_code;
 }
-
+
+int EXTRACT_list_grants (SCHAR *terminator)
+{
+/**************************************
+ *
+ *	E X T R A C T _ l i s t _ g r a n t s
+ *
+ **************************************
+ *
+ * Functional description
+ *	Shows columns, types, info for a given table name
+ *	and text of views.
+ *	Use a GDML query to get the info and print it.
+ *	If a new_name is passed, substitute it for relation_name
+ *
+ **************************************/
+    return list_all_grants2 (FALSE, terminator);
+}
+
 SSHORT EXTRACT_list_table (
     SCHAR	*relation_name,
     SCHAR	*new_name,
@@ -979,8 +1001,7 @@ SCHAR   char_sets [86];
   }
 }
 
-
-static void list_all_grants (void)
+static void list_all_grants ()
 {
 /**************************************
  *
@@ -991,7 +1012,27 @@ static void list_all_grants (void)
  * Functional description
  *	Print the permissions on all user tables.
  *
- *	Get separate permissions on table/views and then procedures
+ *	Wrapper around list_all_grants2().
+ *
+ **************************************/
+    list_all_grants2 (TRUE, Term);
+}
+
+static int list_all_grants2 (
+    BOOLEAN	show_role_list,
+    SCHAR	*terminator)
+{
+/**************************************
+ *
+ *	l i s t _ a l l _ g r a n t s 2
+ *
+ **************************************
+ *
+ * Functional description
+ *	Print the permissions on all user tables.
+ *
+ *	Get separate permissions on table/views and then procedures and
+ *	finally triggers, since our syntax allows giving rights to triggers.
  *
  **************************************/
 SSHORT 	first = TRUE;
@@ -1003,7 +1044,7 @@ TEXT	prev_owner [44];
 **
 *******************************************************************/
 
-if (major_ods >= ODS_VERSION9)
+if (major_ods >= ODS_VERSION9 && show_role_list)
     {
     prev_owner [0] = '\0';
 
@@ -1076,7 +1117,7 @@ FOR REL IN RDB$RELATIONS WITH
 
     ISQL_blankterm (REL.RDB$RELATION_NAME);
 
-    SHOW_grants (REL.RDB$RELATION_NAME, Term);
+    SHOW_grants (REL.RDB$RELATION_NAME, terminator, obj_relation);
 
 END_FOR
     ON_ERROR
@@ -1093,7 +1134,7 @@ if (first)
     first = FALSE;
     }
 
-SHOW_grant_roles (Term); 
+SHOW_grant_roles (terminator, &first); 
 
 /* Again for stored procedures */
 FOR PRC IN RDB$PROCEDURES 
@@ -1112,7 +1153,7 @@ FOR PRC IN RDB$PROCEDURES
 
     ISQL_blankterm (PRC.RDB$PROCEDURE_NAME);
 
-    SHOW_grants (PRC.RDB$PROCEDURE_NAME, Term);
+    SHOW_grants (PRC.RDB$PROCEDURE_NAME, terminator, obj_procedure);
 
 END_FOR
     ON_ERROR
@@ -1120,6 +1161,7 @@ END_FOR
 	return;
     END_ERROR;
 
+return first ? NOT_FOUND : SKIP;
 }
 
 static void list_all_procs ()

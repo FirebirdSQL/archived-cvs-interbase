@@ -33,8 +33,8 @@ extern void	SHOW_build_view_namelist (VIEWLIST **);
 #endif /* GUI_TOOLS */
 
 extern void	SHOW_dbb_parameters (SLONG *, SCHAR *, SCHAR *, USHORT, USHORT);
-extern int	SHOW_grants (SCHAR *, SCHAR *);
-extern void	SHOW_grant_roles (SCHAR *);
+extern int	SHOW_grants (SCHAR *, SCHAR *, USHORT);
+extern void	SHOW_grant_roles (SCHAR *, SSHORT *);
 extern void	SHOW_print_metadata_text_blob (IB_FILE *, GDS__QUAD *);
 extern int	SHOW_metadata (SCHAR **, SCHAR **);
 

@@ -4248,8 +4248,10 @@ else if (!strcmp (parms [0], "SET"))
     else if ((!strcmp (parms [1], "AUTODDL")) ||
 	    (!strcmp (parms [1], "AUTO")))
 	ret = do_set_command (parms[2], &Autocommit);
+#ifdef SCROLLABLE_CURSORS
     else if (!strcmp (parms [1], "AUTOFETCH")) 
 	ret = do_set_command (parms[2], &Autofetch);
+#endif
     else if (!strcmp (parms [1], "WIDTH"))
 	ret = newsize (parms [2], parms[3]);
     else if ((!strcmp (parms [1], "TRANSACTION")) ||
