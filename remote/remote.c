@@ -22,6 +22,7 @@
  */
 
 #include <string.h>
+#include <stdlib.h>
 #include "../jrd/gds.h"
 #include "../remote/remote.h"
 #include "../jrd/file_params.h"
@@ -31,6 +32,8 @@
 #include "../remote/proto_proto.h"
 #include "../remote/remot_proto.h"
 #include "../jrd/gds_proto.h"
+#include "../jrd/thd_proto.h"
+#include "../jrd/isc_proto.h"
 
 #define DUMMY_INTERVAL		60	/* seconds */
 #define CONNECTION_TIMEOUT	180	/* seconds */
@@ -174,7 +177,7 @@ ULONG REMOTE_compute_batch_size (
 #define DESIRED_ROWS_PER_BATCH	20 /* data rows  - picked by SWAG */
 #define MIN_ROWS_PER_BATCH	10 /* data rows  - picked by SWAG */
 
-USHORT	op_overhead = xdr_protocol_overhead (op_code);
+USHORT	op_overhead = (USHORT)xdr_protocol_overhead (op_code);
 USHORT	num_packets;
 ULONG	row_size;
 ULONG	result;
@@ -202,16 +205,16 @@ else
 	    + op_overhead);
     }
 
-num_packets = ((DESIRED_ROWS_PER_BATCH * row_size)  /* data set */
+num_packets = (USHORT)(((DESIRED_ROWS_PER_BATCH * row_size)  /* data set */
 		+ buffer_used			    /* used in 1st pkt */
 		+ (port->port_buff_size - 1))	    /* to round up */
-	   / port->port_buff_size;
+	   / port->port_buff_size);
 if (num_packets > MAX_PACKETS_PER_BATCH)
     {
-    num_packets = ((MIN_ROWS_PER_BATCH * row_size)          /* data set */
+    num_packets = (USHORT)(((MIN_ROWS_PER_BATCH * row_size)          /* data set */
 		    + buffer_used			    /* used in 1st pkt */
 		    + (port->port_buff_size - 1))	    /* to round up */
-	       / port->port_buff_size;
+	       / port->port_buff_size);
     }
 num_packets = MAX (num_packets, MIN_PACKETS_PER_BATCH);
 
@@ -409,7 +412,7 @@ if (dpb && dpb_length)
 		    l = *(p++);
 		    if (l)
 		        {
-		        t_data = malloc(l+1);
+		        t_data = (char*)malloc(l+1);
 		        do
 			    { 
 			    t_data[i] = *p;
@@ -418,7 +421,7 @@ if (dpb && dpb_length)
 			    }while (--l);
 		        }
 		    else
-		        t_data = malloc(1);
+		        t_data = (char*)malloc(1);
 		    t_data[i] = 0;
 
 
@@ -535,7 +538,7 @@ void DLL_EXPORT REMOTE_release_request (
  *	Release a request block and friends.
  *
  **************************************/
-MSG		message, temp;
+MSG		message;
 RDB		rdb;
 RRQ		*p, next;
 struct rrq_repeat	*tail, *end;
@@ -709,7 +712,7 @@ while (*vector)
     switch (status)
 	{
 	case gds_arg_cstring:
-	    l = *vector++;
+	    l = (USHORT)*vector++;
 
 	case gds_arg_interpreted:
 	case gds_arg_string:
