@@ -25,6 +25,7 @@
     mkdir /opt/interbase/lib 
     mkdir /opt/interbase/doc 
     mkdir /opt/interbase/UDF 
+    mkdir /opt/interbase/misc 
 
     cp interbase/bin/gbak /opt/interbase/bin/gbak 
     cp interbase/bin/gdef /opt/interbase/bin/gdef 
@@ -85,11 +86,7 @@
 
 
     cp interbase/README /opt/interbase/README
-    cp  interbase/firebird /etc/rc.d/init.d
 
-    # June 23 2000, 6:00AM 
-    #TIMESTAMP="200006230600.00" 
-    #cd /opt/interbase/ 
-    #touch -t $TIMESTAMP `find . -print`
-
+    cp  interbase/misc/firebird.init.d.generic /opt/interbase/misc
+    cp  interbase/misc/firebird.init.d.mandrake /opt/interbase/misc
 

@@ -43,5 +43,5 @@
     /opt/interbase/services.isc 
     /opt/interbase/README
 
-    /etc/rc.d/init.d/firebird
+    /opt/interbase/misc
 

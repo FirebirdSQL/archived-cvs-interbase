@@ -68,6 +68,24 @@ removeLineFromFile() {
 }
 
 
+#------------------------------------------------------------------------
+#  install correct /etc/init.d startup script
+#  Basically mandrake and redhat have these special functions to display
+#  pretty widgets.  Otherwise we install the default one.
+
+installInitdFile() {
+
+    if [ -e /etc/rc.d/init.d/functions ]
+      then
+        cp $IBRootDir/misc/firebird.init.d.mandrake /etc/rc.d/firebird
+    else
+        cp $IBRootDir/misc/firebird.init.d.generic /etc/rc.d/firebird
+
+    fi
+
+}
+
+
 
 #------------------------------------------------------------------------
 #  changeInitPassword
@@ -262,6 +280,10 @@ changeDBAPassword() {
     fi
 
 
+    # Install the correct /etc/init.d file
+    installInitdFile
+
+
     # Update ownership of programs
 
     chown -R $RunUser.$RunUser $IBRootDir
@@ -301,6 +323,7 @@ EOF
 
     # make examples writable by anyone              
     chmod uga+rw examples/*.gdb
+
 
 
     chmod ug+rx,o= /etc/rc.d/init.d/firebird

@@ -91,7 +91,6 @@ if [ -e firebird ]
 
     ( $ScriptsSrcDir/super/SSpreinstall.sh )
 
-    cp $ScriptsSrcDir/misc/firebird interbase
     cp $ScriptsSrcDir/misc/README interbase
 
     for i in SSchangeRunUser.sh SSrestoreRootRunUser.sh changeDBAPassword.sh
