@@ -1,3 +1,125 @@
+2001-11-21 23:25  awharrison
+
+	* interbase/jrd/winnt.c:
+	
+	
+	Change the open mode from exclusive to read/write allowing shared
+	read.
+
+2001-11-21 20:25  awharrison
+
+	* interbase/dsql/utld.c:
+	
+	
+	Because parse_sqlda decides that a prepared statement has already
+	been executed and returns a 0 in the blr_length field, code in
+	interface.c neglects to check that the statement is also the most
+	recently executed statement, leading to confusion about SQLDA's on
+	the server side.  Turned off the optimization as a stop-gap.  We'll
+	need to beef up the statement identification in the next release.
+
+2001-11-21 20:11  awharrison
+
+	* interbase/jrd/winnt.c:
+	
+	
+	For reasons obscure, the FIL block has two descriptors, one for
+	forced writes and one for async writes.  The code that checked the
+	number of pages used the async write descriptor without checking. 
+	It now checks.
+
+2001-11-21 19:53  awharrison
+
+	* interbase/isql/: extract.e, isql.e, show.e, show_proto.h:
+	
+	
+	ISQL did not check the returns status of info calls and crashed if
+	one failed.  Also return the Firebird version on -z.
+
+2001-11-21 19:20  pcisar
+
+	* interbase/firebird/pcisar/install/: Makefile,
+	classic/buildrpm.sh, classic/makerpmimage.sh,
+	classic/maketarimage.sh, classic/postinstall.txt,
+	classic/postuninstall.txt, classic/preinstall.txt,
+	classic/preuninstall.txt, classic/rpmfiles.txt,
+	classic/rpmheader.txt, classic/tarinstall.sh,
+	classic/tarmaininstall.sh, classic/tarpostinstall.sh,
+	classic/tarpreinstall.sh, misc/CSchangeRunUser.sh,
+	misc/CSrestoreRootRunUser.sh, misc/README, misc/SSchangeRunUser.sh,
+	misc/SSrestoreRootRunUser.sh, misc/changeDBAPassword.sh,
+	misc/firebird, misc/firebird.init.d.generic,
+	misc/firebird.init.d.mandrake, misc/firebird.init.d.suse,
+	misc/firebird.xinetd, misc/ibmgr, misc/isc_config,
+	misc/rc.config.firebird, misc/whatsnew.txt, super/buildrpm.sh,
+	super/makerpmimage.sh, super/maketarimage.sh,
+	super/postinstall.txt, super/postuninstall.txt,
+	super/preinstall.txt, super/preuninstall.txt, super/rpmfiles.txt,
+	super/rpmheader.txt, super/tarinstall.sh, super/tarmaininstall.sh,
+	super/tarpostinstall.sh, super/tarpreinstall.sh:
+	
+	A
+
+2001-11-21 04:16  robocop
+
+	* interbase/remote/srvr_w32.c:
+	
+	Honor -b in SS-Win32 for high priority.
+
+2001-11-21 04:06  robocop
+
+	* interbase/jrd/cvt.c:
+	
+	Conversion error from <value> should show the "from" descriptor,
+	not the "to" descriptor in integer_to_tex() when an overflow
+	occurs.
+
+2001-11-21 04:00  robocop
+
+	* interbase/jrd/dfw.e:
+	
+	Put a pair of parenthesis in a sub statement in the GDML code that
+	handles user triggers so the ordering by sequence numbers works
+	again and triggers are executed in the due precedence.
+
+2001-11-21 03:56  robocop
+
+	* interbase/isql/isql.e:
+	
+	If isql accepts -nowarnings as a command-line argument and SET
+	shows the state of the warnings display, it seems natural to add
+	SET WNG or SET WARNINGS to toggle that flag. No other code change
+	as been done as the logic to suppress or show warnings is already
+	in place.
+
+2001-11-21 03:50  robocop
+
+	* interbase/burp/backup.e:
+	
+	Allow generators with embedded blanks in names to save their values
+	to the backup file.  Clean a bit the mess in the code that removes
+	trailing spaces.
+
+2001-11-21 01:16  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSrpmheader.txt:
+	
+	Updated for (possible) build 584 release
+
+2001-11-21 00:40  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSrpmheader.txt:
+	
+	Updated packaging for a (potential) 1.0.0.584 RC1 release.
+
+2001-11-20 20:15  awharrison
+
+	* interbase/jrd/common.h:
+	
+	
+	The file 64bitio.h does not exist on windows.
+
 2001-11-18 22:27  nmcc
 
 	* interbase/Configure.sh:
