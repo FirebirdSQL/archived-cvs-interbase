@@ -2723,10 +2723,11 @@ index_list	: symbol_index_name
 
 /* INSERT statement */
 
-insert		: INSERT INTO simple_table_name column_parens_opt VALUES '(' insert_value_list ')'
+/* IBO hack: replace column_parens_opt by ins_column_parens_opt. */
+insert		: INSERT INTO simple_table_name ins_column_parens_opt VALUES '(' insert_value_list ')'
 			{ $$ = make_node (nod_insert, e_ins_count, 
 			  $3, make_list ($4), make_list ($7), NULL); }
-		| INSERT INTO simple_table_name column_parens_opt select_expr
+		| INSERT INTO simple_table_name ins_column_parens_opt select_expr
 			{ $$ = make_node (nod_insert, e_ins_count, $3, $4, NULL, $5); }
 		;
 
@@ -2830,6 +2831,22 @@ column_list	: simple_column_name
 		| column_list ',' simple_column_name
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		;
+
+/* begin IBO hack */
+ins_column_parens_opt : ins_column_parens
+		|
+			{ $$ = NULL; }
+		;
+
+ins_column_parens	: '(' ins_column_list ')'
+			{ $$ = make_list ($2); }
+		;
+
+ins_column_list	: update_column_name
+		| column_list ',' update_column_name
+			{ $$ = make_node (nod_list, 2, $1, $3); }
+		;
+/* end IBO hack */
 
 column_name     : simple_column_name
 		| symbol_table_alias_name '.' symbol_column_name
