@@ -296,17 +296,19 @@ then
         mkdir UDF
         mkdir -p examples/v5
         mkdir include
+# this is now done by buildRefDatabases
 # create metadata.gdb (run one level above root) 
-        if [ ! -f ../metadata.gdb ]; then
-                $INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
-        fi
+#        if [ ! -f ../metadata.gdb ]; then
+#                $INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
+#        fi
 #
         cd ..
 #
 # for purely legal reasons
-        rmIfExists isc.gdb
-        cp $INTERBASE/isc4.gdb isc.gdb
-        rmIfExists jrd/isc.gdb
+# this is now done by buildRefDatabases
+#        rmIfExists isc.gdb
+#        cp $INTERBASE/isc4.gdb isc.gdb
+#        rmIfExists jrd/isc.gdb
 # replace old "yachts"
         cd jrd
         rmIfExists yachts.gdb
@@ -374,23 +376,23 @@ refreshLink source/builds/make.dudley dudley/makefile
 
 # V3 Examples
 refreshLink .. examples/source
-refreshLink $3/examples/atlas.gdb examples/atlas.gdb
-refreshLink $3/examples/c_guide.gdb examples/c_guide.gdb
-refreshLink $3/examples/emp.gdb examples/emp.gdb
-refreshLink $3/examples/nc_guide.gdb examples/nc_guide.gdb
-refreshLink $3/examples/slides.gdb examples/slides.gdb
-refreshLink $3/examples/stocks.gdb examples/stocks.gdb
+refreshLink $MasterSourceDir/examples/atlas.gdb examples/atlas.gdb
+refreshLink $MasterSourceDir/examples/c_guide.gdb examples/c_guide.gdb
+refreshLink $MasterSourceDir/examples/emp.gdb examples/emp.gdb
+refreshLink $MasterSourceDir/examples/nc_guide.gdb examples/nc_guide.gdb
+refreshLink $MasterSourceDir/examples/slides.gdb examples/slides.gdb
+refreshLink $MasterSourceDir/examples/stocks.gdb examples/stocks.gdb
 refreshLink source/builds/make.examples examples/makefile
 
 # V4 Examples
 refreshLink .. example4/source
 refreshLink source/builds/make.example4 example4/makefile
-refreshLink $3/example4/empbuild.gdb example4/empbuild.gdb
+refreshLink $MasterSourceDir/example4/empbuild.gdb example4/empbuild.gdb
 
 # V5 Examples
 refreshLink .. example5/source
 refreshLink source/builds/make.example5 example5/makefile
-refreshLink $3/example5/empbuild.gdb example5/empbuild.gdb
+refreshLink $MasterSourceDir/example5/empbuild.gdb example5/empbuild.gdb
 
 # ExtLib
 refreshLink .. extlib/source
@@ -413,27 +415,27 @@ refreshLink source/jrd/yachts.gdb isql/yachts.lnk
 refreshLink source/builds/make.isql isql/makefile
 # Journal
 refreshLink .. journal/source
-refreshLink $3/journal/journal.gdb journal/journal.gdb
-refreshLink $3/journal/journal_vms.gdb journal/journal_vms.gdb
+refreshLink $MasterSourceDir/journal/journal.gdb journal/journal.gdb
+refreshLink $MasterSourceDir/journal/journal_vms.gdb journal/journal_vms.gdb
 refreshLink source/builds/make.journal journal/makefile
 refreshLink .. super/journal/source
-refreshLink $3/journal/journal.gdb super/journal/journal.gdb
+refreshLink $MasterSourceDir/journal/journal.gdb super/journal/journal.gdb
 refreshLink source/builds/make.journal_ss super/journal/makefile
 # Jrd
 refreshLink .. jrd/source
 refreshLink yachts.gdb jrd/yachts.lnk
 refreshLink source/msgs/msg.gdb jrd/msg.gdb   # TMC 081100
-#refreshLink $3/jrd/yachts.gdb jrd/yachts.gdb
-#refreshLink $3/jrd/isc.gdb jrd/isc.gdb
+#refreshLink $MasterSourceDir/jrd/yachts.gdb jrd/yachts.gdb
+#refreshLink $MasterSourceDir/jrd/isc.gdb jrd/isc.gdb
 refreshLink source/builds/make.jrd jrd/makefile
 refreshLink source/pipe/allp.c jrd/allp.c
 refreshLink source/pipe/foot.c jrd/foot.c
 refreshLink source/pipe/head.c jrd/head.c
 refreshLink .. super/jrd/source
 #refreshLink yachts.gdb super/jrd/yachts.lnk
-#refreshLink $3/jrd/isc.gdb super/jrd/isc.gdb
+#refreshLink $MasterSourceDir/jrd/isc.gdb super/jrd/isc.gdb
 refreshLink gds_ss.a super/jrd/libgds_ss.a
-refreshLink $3/msgs/msg.gdb super/jrd/msg.gdb
+refreshLink $MasterSourceDir/msgs/msg.gdb super/jrd/msg.gdb
 refreshLink source/builds/make.jrd_ss super/jrd/makefile
 refreshLink source/builds/original/bind_dsql.apollo dsql/bind_dsql
 refreshLink source/builds/original/bind_gdslib.apollo jrd/bind_gdslib
@@ -519,16 +521,16 @@ refreshLink source/builds/make.pipe pipe/makefile
 # Pyxis
 refreshLink .. pyxis/source
 refreshLink source/jrd/yachts.gdb pyxis/yachts.lnk
-refreshLink $3/pyxis/forms.gdb pyxis/forms.gdb
+refreshLink $MasterSourceDir/pyxis/forms.gdb pyxis/forms.gdb
 refreshLink source/interbase/lib/gds_pyxis.a pyxis/libgds_pyxis.a
 refreshLink source/builds/make.pyxis pyxis/makefile
 # Qli
 refreshLink .. qli/source
 refreshLink source/jrd/yachts.gdb qli/yachts.lnk
 refreshLink source/jrd/yachts.gdb qli/yachts.link
-refreshLink $3/qli/help.gdb qli/help.gdb              # TMC 081700
-#refreshLink $3/interbase/help/help.gdb qli/help.gdb  # TMC 081700
-refreshLink $3/qli/help.gdb qli/master_help_db        # TMC 081700
+refreshLink $MasterSourceDir/qli/help.gdb qli/help.gdb              # TMC 081700
+#refreshLink $MasterSourceDir/interbase/help/help.gdb qli/help.gdb  # TMC 081700
+refreshLink $MasterSourceDir/qli/help.gdb qli/master_help_db        # TMC 081700
 refreshLink source/builds/make.qli qli/makefile
 # Register
 # Probably registration code - no source from Inprise
@@ -555,12 +557,12 @@ refreshLink source/isc.gdb jrd/isc.gdb
 refreshLink source/isc.gdb utilities/isc.gdb
 refreshLink source/jrd/yachts.gdb utilities/yachts.lnk
 refreshLink source/builds/make.utilities utilities/makefile
-refreshLink $3/utilities/rebuild.gdb utilities/rebuild.gdb
+refreshLink $MasterSourceDir/utilities/rebuild.gdb utilities/rebuild.gdb
 refreshLink .. super/utilities/source
 refreshLink source/jrd/isc.gdb super/utilities/isc.gdb
 refreshLink source/jrd/yachts.gdb super/utilities/yachts.lnk
 refreshLink source/builds/make.utilities_ss super/utilities/makefile
-refreshLink $3/utilities/rebuild.gdb super/utilities/rebuild.gdb
+refreshLink $MasterSourceDir/utilities/rebuild.gdb super/utilities/rebuild.gdb
 # Wal
 refreshLink .. wal/source
 refreshLink source/builds/make.wal wal/makefile
