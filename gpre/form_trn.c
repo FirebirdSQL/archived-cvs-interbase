@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Log$
+ * Revision 1.3  2000/11/29 11:11:56  fsg
+ * Added some more PYXIS datatypes to form_trn.c
+ *
  * Revision 1.2  2000/11/27 09:26:13  fsg
  * Fixed bugs in gpre to handle PYXIS forms
  * and allow edit.e and fred.e to go through
@@ -48,39 +51,38 @@ FSG 26.Nov.2000
 
 
 /* 
-I have figured out some of the
+I have now figured out most of the
 PYXIS datatypes 
 
-The following seem to be right 
-FSG 26.Nov.2000
+FSG 29.Nov.2000
 */
 
-#define dtype_null      0
-#define dtype_text      1
-#define dtype_cstring   2
-#define dtype_varying   3
-#define dtype_short     4
-#define dtype_long      5
-#define dtype_blob      10
+#define ptype_null      0
+#define ptype_text      1
+#define ptype_cstring   2
+#define ptype_varying   3
+#define ptype_short     4
+#define ptype_long      5
+#define ptype_quad      6
+#define ptype_real      7
+#define ptype_double    8
+#define ptype_timestamp 9
+#define ptype_blob      10
 
 
 /* FIX ME the following are  
           from dsc.h and are
           probably wrong
-  FSG 26.Nov.2000        
+          but I don't believe
+          that these are used by
+          PYXIS
+  FSG 29.Nov.2000        
 */
-
-#define dtype_packed    6
-#define dtype_byte      7
-#define dtype_real      11
-#define dtype_double    12
-#define dtype_d_float   13
-#define dtype_sql_date  14
-#define dtype_sql_time  15
-#define dtype_timestamp 16
-#define dtype_quad      17
-#define dtype_array     18
-#define dtype_int64     19
+#define ptype_d_float   13
+#define ptype_sql_date  14
+#define ptype_sql_time  15
+#define ptype_array     18
+#define ptype_int64     19
 
 
 
@@ -105,54 +107,57 @@ USHORT	gpre_dtype, length;
 
 switch (pyxis_dtype)
     {
-    case dtype_text:
+    case ptype_text:
 	gpre_dtype = MET_get_dtype (blr_text, 0, &length);
 	break;
 
-    case dtype_cstring:
+    case ptype_cstring:
 	gpre_dtype = MET_get_dtype (blr_cstring, 0, &length);
 	break;
 
-    case dtype_varying:
+    case ptype_varying:
 	gpre_dtype = MET_get_dtype (blr_varying, 0, &length);
 	break;
 
-    case dtype_short:
+    case ptype_short:
 	gpre_dtype = MET_get_dtype (blr_short, 0, &length);
 	break;
 
-    case dtype_long:
+    case ptype_long:
 	gpre_dtype = MET_get_dtype (blr_long, 0, &length);
 	break;
 
-    case dtype_quad:
+    case ptype_quad:
 	gpre_dtype = MET_get_dtype (blr_quad, 0, &length);
 	break;
 
-    case dtype_real:
+    case ptype_real:
 	gpre_dtype = MET_get_dtype (blr_float, 0, &length);
 	break;
 
-    case dtype_double:
+    case ptype_double:
 	gpre_dtype = MET_get_dtype (blr_double, 0, &length);
 	break;
 
     /* dtype_sql_date & dtype_sql_time not supported in pyxis */
-    case dtype_sql_date:
-    case dtype_sql_time:
-    case dtype_int64:
-	gpre_dtype = dtype_null;
+    case ptype_sql_date:
+    case ptype_sql_time:
+    case ptype_int64:
+    /* Arrays aren't supported afaik
+       FSG 29.Nov.2000 */
+    case ptype_array:
+	gpre_dtype = ptype_null;
 	break;
 
-    case dtype_timestamp:
+    case ptype_timestamp:
 	gpre_dtype = MET_get_dtype (blr_timestamp, 0, &length);
 	break;
 
-    case dtype_blob:
+    case ptype_blob:
 	gpre_dtype = MET_get_dtype (blr_blob, 0, &length);
 	break;
 
-    case dtype_d_float:
+    case ptype_d_float:
 	gpre_dtype = MET_get_dtype (blr_d_float, 0, &length);
 	break;
 
