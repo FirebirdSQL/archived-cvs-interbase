@@ -1,3 +1,24 @@
+2001-10-13 12:21  dimitr
+
+	* interbase/firebird/dimitr/exec_sql/latest/: dsql/dsql.c,
+	dsql/dsql.c.diff, dsql/gen.c, dsql/gen.c.diff, dsql/node.h,
+	dsql/node.h.diff, dsql/parse.y, dsql/parse.y.diff, dsql/pass1.c,
+	dsql/pass1.c.diff, jrd/blp.h, jrd/blp.h.diff, jrd/blr.h,
+	jrd/blr.h.diff, jrd/blrtable.c, jrd/blrtable.c.diff, jrd/exe.c,
+	jrd/exe.c.diff, jrd/ibase.h, jrd/ibase.h.diff, jrd/nod.h,
+	jrd/nod.h.diff, jrd/par.c, jrd/par.c.diff, jrd/tra.h,
+	jrd/tra.h.diff, msgs/load.e, msgs/load.e.diff:
+	
+	EXECUTE VARCHAR implementation
+
+2001-10-13 00:21  awharrison
+
+	* interbase/dsql/: ddl.c, dsql.h, pass1.c, utld.c:
+	
+	
+	Changed the way union contexts were passed to ddl.c to avoid
+	confusing the code that recognizes ambiguous context names
+
 2001-10-12 10:51  paulbeach
 
 	* interbase/jrd/: dyn_def.e, dls.c, dls_proto.h, ext.c, fil.h,
