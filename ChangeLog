@@ -1,3 +1,22 @@
+2002-11-13 15:27  paul_reeves
+
+	* interbase/jrd/isc_file.c:
+	
+	-m Fix bug: 623992 - double forward slash in connection string.
+	With thanks to Mark O'Donohue.
+
+2002-11-13 07:12  fsg
+
+	* interbase/intl/anhun.h:
+	
+	Fixed hungarian collation provided by Sandor Szollosi
+
+2002-11-13 01:44  stryqx
+
+	* interbase/jrd/common.h:
+	
+	Fix for gds__sys_alloc to return something useful.
+
 2002-11-06 10:23  paul_reeves
 
 	* interbase/: jrd/common.h, jrd/unix.c, utilities/dba.e:
