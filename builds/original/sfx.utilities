@@ -42,7 +42,7 @@ all:		dba$(EXEC_EXT) drop$(EXEC_EXT) \
 		
 super_server_targets:	ibguard$(EXEC_EXT) ibmgr$(EXEC_EXT)
 
-dba:		dba.o ppg.o $(GDSSHR)
+dba:		dba.o ppg.o $(GDSSHR) $(ENC_LINK)
 	-$(RM) dba
 	$(CC) $(LINK_OPTS) dba.o ppg.o $(ENC_LINK) $(STDIO) -o dba $(GDSSHR_LINK)
 	$(CHMOD_7) dba
@@ -179,6 +179,9 @@ relay.o:	relay.c source/jrd/license.h
 
 $(GDSSHR) $(GDSLIB) $(JRD_LINK):
 	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" $(@F)'
+
+$(ENC_LINK) enc.o:
+	$(SH) '$(CD) source/jrd; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" enc.o'
 
 # This entry is used to programatically update the include file dependencies 
 # for all *.c files in the current directory.
