@@ -35,6 +35,9 @@
   2001/10/03  Neil McCalden  pick up Firebird version from database server
 	and display it with client version when -z used.
   2001.10.09 Claudio Valderrama: try to disconnect gracefully in batch mode.
+  2001.11.23 Claudio Valderrama: skip any number of -- comments but only at
+	the beginning and ignore void statements like block comments followed by
+	a semicolon.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -4033,6 +4036,25 @@ for (i = 0; i < sizeof (parms)/sizeof (parms[0]); i++)
 
 p = statement;
 
+/* Cope with -- at the beginning of the command, at least.
+This should be done before the whitespace munching shown
+below, because the -- marker is only valid in the 1st pos. */
+
+while (*p == '-' && p [1] == '-')
+{
+	p += 2;
+	while (*p && *p != '\n')
+		++p;
+	while (*p && isspace (*p))
+		++p;
+	/* isspace will consume control chars including LF, so
+	we need to be sure the previous character was a LF or
+	we have to leave the loop checking for a --, remember
+	we want to honor it only at first position in a line. */
+	if (p [-1] != '\n')
+		break;
+}
+
 /* Eat any whitespace at the beginning */
 
 while (*p && isspace (*p))
@@ -4067,63 +4089,66 @@ while (*p == '/' && *(p+1) == '*')
 /* Set beginning of statement past comment */
 cmd = p;
 
-for (i = 0; i < MAX_TERMS; i++)
-    {
-    a = buffer;
-    j = 0;
-    if (*p == DBL_QUOTE || *p == SINGLE_QUOTE)
+if (*cmd)
 	{
-	if (i > 0 && (!strcmp (parms [i - 1], KW_ROLE)))
-	    role_found = TRUE;
-	delimited_done = FALSE;
-	end_quote = *p;
-	j++;
-	*a++ = *p++;
-	/* Allow a quoted string to have embedded spaces */
-	/*  Prevent overflow */
-	while (*p && !delimited_done && j < BUFFER_LENGTH256-1)
-	    {
-	    if (*p == end_quote)
+	for (i = 0; i < MAX_TERMS; i++)
 		{
+		a = buffer;
+		j = 0;
+		if (*p == DBL_QUOTE || *p == SINGLE_QUOTE)
+		{
+		if (i > 0 && (!strcmp (parms [i - 1], KW_ROLE)))
+			role_found = TRUE;
+		delimited_done = FALSE;
+		end_quote = *p;
 		j++;
 		*a++ = *p++;
-		if (*p && *p == end_quote && j < BUFFER_LENGTH256-1)
-		    {
-		    j++;	/* do not skip the escape quote here */
-		    *a++ = *p++;
-		    }
+		/* Allow a quoted string to have embedded spaces */
+		/*  Prevent overflow */
+		while (*p && !delimited_done && j < BUFFER_LENGTH256-1)
+			{
+			if (*p == end_quote)
+			{
+			j++;
+			*a++ = *p++;
+			if (*p && *p == end_quote && j < BUFFER_LENGTH256-1)
+				{
+				j++;	/* do not skip the escape quote here */
+				*a++ = *p++;
+				}
+			else
+				delimited_done = TRUE;
+			}
+			else
+			{
+			j++;
+			*a++ = *p++;
+			}
+			}
+		}
 		else
-		    delimited_done = TRUE;
-		}
-	    else
 		{
-		j++;
-		*a++ = *p++;
+			/*  Prevent overflow */
+			while (*p && !isspace (*p) && j < BUFFER_LENGTH256-1)
+			{
+			j++;
+			*a++ = *p++;
+			}
 		}
-	    }
+		*a = '\0';
+		length = strlen (buffer);
+		parms [i] = (TEXT*) ISQL_ALLOC ((SLONG) (length + 1));
+		lparms [i] = (TEXT*) ISQL_ALLOC ((SLONG) (length + 1));
+		strncpy (parms [i], buffer, length);
+		parms [i][length] = '\0';
+		while (*p && isspace (*p))
+		p++;
+		strcpy (lparms [i], parms [i]);
+		if (!role_found)
+		ISQL_make_upper (parms [i]);
+		role_found = FALSE;
+		}
 	}
-    else
-	{
-        /*  Prevent overflow */
-        while (*p && !isspace (*p) && j < BUFFER_LENGTH256-1)
-	    {
-	    j++;
-	    *a++ = *p++;
-	    }
-	}
-    *a = '\0';
-    length = strlen (buffer);
-    parms [i] = (TEXT*) ISQL_ALLOC ((SLONG) (length + 1));
-    lparms [i] = (TEXT*) ISQL_ALLOC ((SLONG) (length + 1));
-    strncpy (parms [i], buffer, length);
-    parms [i][length] = '\0';
-    while (*p && isspace (*p))
-	p++;
-    strcpy (lparms [i], parms [i]);
-    if (!role_found)
-	ISQL_make_upper (parms [i]);
-    role_found = FALSE;
-    }
 
 /*
 ** Look to see if the words (parms) match any known verbs.  If nothing
@@ -4131,7 +4156,9 @@ for (i = 0; i < MAX_TERMS; i++)
 */
 
 
-if (!strcmp (parms [0], "SHOW"))
+if (!*cmd)
+	ret = SKIP;
+else if (!strcmp (parms [0], "SHOW"))
     {
     /* Transaction for all frontend commands */
     if (DB && !gds__trans)
@@ -4741,6 +4768,7 @@ while (!done)
 	    /* Catch the help ? without a terminator */
 	    if (*statement == '?')
 		{
+		statement [1] = '\0';
 		done = TRUE;
 		Continuation = FALSE;
 		break;
