@@ -20,6 +20,8 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.6.12 Claudio Valderrama: add break_* constants.
+ * 2001.6.30 Claudio valderrama: Jim Starkey suggested to hold information
+ * about source line in each node that's created.
  */
 
 #ifndef _DSQL_NODE_H_
@@ -339,7 +341,7 @@ typedef ENUM nod_t {
 
 } NOD_TYPE;
 
-
+
 /* definition of a syntax node created both
    in parsing and in context recognition */
 
@@ -347,6 +349,8 @@ typedef struct nod {
     struct blk   nod_header;
     NOD_TYPE	 nod_type;		/* Type of node */
     DSC		 nod_desc;		/* Descriptor */
+    USHORT       nod_line;		/* Source line of the statement. */
+    USHORT       nod_column;		/* Source column of the statement. */
     USHORT	 nod_count;		/* Number of arguments */
     USHORT	 nod_flags;
     struct nod   *nod_arg[1];

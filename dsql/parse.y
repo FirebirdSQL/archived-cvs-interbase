@@ -24,6 +24,7 @@
  * 2001.05.30 Claudio Valderrama: DROP TABLE and DROP VIEW lead now to two
  *   different node types so DDL can tell which is which.
  * 2001.06.13: Claudio Valderrama: SUBSTRING is being surfaced.
+ * 2001.06.30: Claudio valderrama: Feed (line,column) for each node. See node.h.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -3629,6 +3630,8 @@ tdsql = GET_THREAD_DATA;
 
 node = (NOD) ALLOCDV (type_nod, count);
 node->nod_type = type;
+node->nod_line = (USHORT) lines;
+node->nod_column = (USHORT) (last_token - line_start);
 node->nod_count = count;
 p = node->nod_arg;
 VA_START (ptr, count);
@@ -3664,6 +3667,8 @@ tdsql = GET_THREAD_DATA;
 node = (NOD) ALLOCDV (type_nod, count);
 node->nod_type = type;
 node->nod_flags = flag;
+node->nod_line = (USHORT) lines;
+node->nod_column = (USHORT) (last_token - line_start);
 node->nod_count = count;
 p = node->nod_arg;
 VA_START (ptr, count);

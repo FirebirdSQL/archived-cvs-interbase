@@ -28,6 +28,7 @@
  * 2001.6.12: Claudio Valderrama: add basic BREAK capability to procedures.
  * 2001.6.27: Claudio Valderrama: pass1_variable() now gives the name of the
  * variable it can't find in the error message.
+ * 2001.6.30: Claudio Valderrama: Enhanced again to privide (line, col), see node.h.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -60,7 +61,7 @@ static NOD	copy_field (NOD, CTX);
 static NOD	copy_fields (NOD, CTX);
 static void	explode_asterisk (NOD, NOD, LLS *);
 static NOD	explode_outputs (REQ, PRC);
-static void	field_error (TEXT *, TEXT *);
+static void	field_error (TEXT *, TEXT *, NOD);
 static PAR	find_dbkey (REQ, NOD);
 static PAR	find_record_version (REQ, NOD);
 static BOOLEAN	invalid_reference (NOD, NOD);
@@ -1655,7 +1656,8 @@ return node;
 
 static void field_error (
     TEXT	*qualifier_name,
-    TEXT	*field_name)
+    TEXT	*field_name,
+	NOD		flawed_node)
 {
 /**************************************
  *
@@ -1667,7 +1669,7 @@ static void field_error (
  *	Report a field parsing recognition error.
  *
  **************************************/
-TEXT	field_string [64];
+TEXT	field_string [64], linecol [64];
 
 if (qualifier_name)
     {
@@ -1676,15 +1678,25 @@ if (qualifier_name)
     field_name = field_string;
     }
 
+if (flawed_node)
+	sprintf (linecol, "At line %d, column %d.",
+		(int) flawed_node->nod_line, (int) flawed_node->nod_column);
+else
+	sprintf (linecol, "At unknown line and column.");
+
 if (field_name)
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
 	gds_arg_gds, gds__dsql_field_err, 
 	gds_arg_gds, gds__random, 
 	gds_arg_string, field_name,
+	gds_arg_gds, gds__random,
+	gds_arg_string, linecol,
 	0);
 else
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
 	gds_arg_gds, gds__dsql_field_err, 
+	gds_arg_gds, gds__random,
+	gds_arg_string, linecol,
 	0);
 }
 
@@ -2654,7 +2666,7 @@ else
 
 /* field unresolved */
 
-field_error (qualifier ? qualifier->str_data : (UCHAR *) NULL_PTR, DB_KEY_STRING); 
+field_error (qualifier ? qualifier->str_data : (UCHAR *) NULL_PTR, DB_KEY_STRING, input); 
 
 return NULL;
 }
@@ -2828,7 +2840,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
     
 
 field_error (qualifier ? (TEXT *) qualifier->str_data : (TEXT *) NULL_PTR, 
-	     name ? (TEXT *) name->str_data : (TEXT *) NULL_PTR);
+	     name ? (TEXT *) name->str_data : (TEXT *) NULL_PTR, input);
 
 return NULL;
 }
@@ -3825,7 +3837,7 @@ if (input->nod_type == nod_field_name)
 	if (request->req_flags & REQ_trigger)
 	    return pass1_field (request, input, 0);
 	else
-	    field_error (NULL_PTR, NULL_PTR);
+	    field_error (NULL_PTR, NULL_PTR, input);
 	}
     var_name = (STR) input->nod_arg[e_fln_name];
     }
@@ -3886,8 +3898,8 @@ if ((procedure_node = request->req_ddl_node) &&
 
 /* CVC: That's all [the fix], folks! */
 if (var_name)
-	field_error (NULL_PTR, (TEXT *) var_name->str_data);
-else field_error (NULL_PTR, NULL_PTR);
+	field_error (NULL_PTR, (TEXT *) var_name->str_data, input);
+else field_error (NULL_PTR, NULL_PTR, input);
 
 return NULL;
 }
