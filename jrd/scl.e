@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.12 Claudio Valderrama: the role should be wiped out if invalid.
  */
 
 #include <string.h>
@@ -530,6 +531,7 @@ USHORT	length;
 int	id, group, wheel, node_id;
 TEXT	role_name[33], login_name [129], *q;
 USHORT  major_version, minor_original;
+BOOLEAN preODS9;
 
 SET_TDBB (tdbb);
 dbb =  tdbb->tdbb_database;
@@ -539,6 +541,7 @@ minor_original = (SSHORT) dbb->dbb_minor_original;
 *project = *organization = *name = *role_name = *login_name = '\0';
 
 node_id = 0;
+id = -1; /* CVC: This var contained trash. */
 if (!user_name)
     wheel = ISC_get_user (name, &id, &group, project, organization, &node_id, sys_user_name);
 else
@@ -578,10 +581,13 @@ if (wheel)
 **
 ****************************************************************/
 
+/* CVC: We'll verify the role and wipe it out when it doesn't exist. */
+
 if (ENCODE_ODS(major_version, minor_original) >= ODS_9_0)
 {
+preODS9 = FALSE;
 if (strlen (name) != 0)
-    {
+    { 
     for (p = login_name, q = name; *p++ = UPPER7 (*q); q++);
 
     if (!create)
@@ -602,16 +608,35 @@ if (strlen (name) != 0)
 
         if (!REQUEST (irq_get_role_name))
             REQUEST (irq_get_role_name) = request;
+
         }
+    } 
+/* CVC: If this is ODS>=ODS_9_0 and we aren't creating a db and sql_role was specified,
+then verify it against rdb$roles. */
+if (!create && sql_role && *sql_role && strcmp (sql_role, "NONE"))
+    {
+    BOOLEAN found = FALSE;
+    request = NULL;
+    /* The caller has hopefully uppercased the role or stripped quotes. */
+    FOR (REQUEST_HANDLE request) FIRST 1 X2 IN RDB$ROLES
+        WITH X2.RDB$ROLE_NAME EQ sql_role
+	found = TRUE;
+    END_FOR;
+    if (!found)
+	strcpy (role_name, "NONE");
     }
 }
+/* CVC: Let's clean any role in pre-ODS9 attachments. */
+else preODS9 = TRUE;
 
-if (sql_role != NULL)
+if (sql_role)
     {
-    strcpy (role_name, sql_role);
+    if (!preODS9 && strcmp (role_name, "NONE"))
+    	strcpy (role_name, sql_role);
     }
 else
-    if (strlen (name) != 0)
+/* CVC: I don't see the need for this if().
+    if (strlen (name) != 0) */
         strcpy (role_name, "NONE");
 
 length = strlen (name) + strlen (role_name) + strlen (project) +

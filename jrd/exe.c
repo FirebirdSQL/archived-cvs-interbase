@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.21 Claudio Valderrama: Allow inserting strings into blob fields.
  */
 /*
 $Id$
@@ -240,7 +241,14 @@ if (!null)
 #else
     if (DTYPE_IS_BLOB (to_desc->dsc_dtype) && to_desc->dsc_dtype != dtype_d_float)
 #endif
-	BLB_move (tdbb, from_desc, to_desc, to);
+	{
+		/* CVC: This is a case that has hurt me for years and I'm going to solve it.
+		It should be possible to copy a string to a blob, even if the charset is
+		lost as a result of this experimental implementation. */
+		if (from_desc->dsc_dtype <= dtype_varying)
+			BLB_move_from_string (tdbb, from_desc, to_desc, to);
+		else BLB_move (tdbb, from_desc, to_desc, to);
+	}
 
     else if (!DSC_EQUIV (from_desc, to_desc))
 	MOV_move (from_desc, to_desc);

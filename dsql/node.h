@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.12 Claudio Valderrama: add break_* constants.
  */
 
 #ifndef _DSQL_NODE_H_
@@ -329,7 +330,12 @@ typedef ENUM nod_t {
     nod_mod_domain_type,
     nod_mod_field_name,
     nod_mod_field_type,
-    nod_mod_field_pos
+    nod_mod_field_pos,
+
+   /* CVC: SQL requires that DROP VIEW and DROP table are independent. */
+    nod_del_view,
+    nod_current_role, /* nod_role_name is already taken but only for DDL. */
+    nod_breakleave
 
 } NOD_TYPE;
 
@@ -465,7 +471,9 @@ typedef struct nod {
 #define e_flp_into	1
 #define e_flp_cursor	2
 #define e_flp_action	3
-#define e_flp_count	4
+/* CVC: This node added to support basic BREAK functionality */
+#define e_flp_number	4
+#define e_flp_count	5
 
 #define e_cur_name	0	/* nod_cursor */ 
 #define e_cur_context	1
@@ -754,9 +762,9 @@ typedef struct nod {
 
 /* SQL extract() function */
 
-#define e_extract_count	2
 #define e_extract_part  0	/* constant representing part to extract */
 #define e_extract_value	1	/* Must be a time or date value */
+#define e_extract_count	2
 
 /* SQL CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP */
 
@@ -782,5 +790,17 @@ typedef struct nod {
 #define e_mod_fld_pos_orig_name		0	/* nod_mod_field_position */
 #define e_mod_fld_pos_new_position	1
 #define e_mod_fld_pos_count		2
+
+/* CVC: blr_leave used to emulate break */
+#define e_break_number	0	/* nod_breakleave */
+#define e_break_count	1
+
+/* SQL substring() function */
+
+#define e_substr_value	0	/* Anything that can be treated as a string */
+#define e_substr_start	1	/* Where the slice starts */
+#define e_substr_length	2	/* The length of the slice */
+#define e_substr_count	3
+
 
 #endif /* _DSQL_NODE_H_ */

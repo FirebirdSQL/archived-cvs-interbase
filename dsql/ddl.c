@@ -20,8 +20,15 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Id$
+ */
+/*
  * 2001.5.20 Claudio Valderrama: Stop null pointer that leads to a crash,
  * caused by incomplete yacc syntax that allows ALTER DOMAIN dom SET;
+ * 2001.5.29 Claudio Valderrama: Check for view v/s relation in DROP
+ * command will stop a user that uses DROP VIEW and drops a table by
+ * accident and vice-versa.
+ * 2001.5.30 Claudio Valderrama: alter column should use 1..N for the
+ * position argument since the call comes from SQL DDL.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -75,6 +82,7 @@ static void	define_update_action (REQ, NOD *, NOD *);
 static void	define_upd_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_view (REQ);
 static void	define_view_trigger (REQ, NOD, NOD, NOD);
+static void delete_relation_view (REQ, NOD);
 static void	end_blr (REQ);
 static void	foreign_key (REQ, NOD);
 static void	generate_dyn (REQ, NOD);
@@ -223,7 +231,9 @@ THREAD_ENTER;
 /* for delete & modify, get rid of the cached relation metadata */
 
 if ((request->req_ddl_node->nod_type == nod_mod_relation) ||
-    (request->req_ddl_node->nod_type == nod_del_relation))
+    (request->req_ddl_node->nod_type == nod_del_relation) ||
+	/* CVC: Handle nod_del_view here or we will keep obsolete metadata. */
+	(request->req_ddl_node->nod_type == nod_del_view))
     {
     if (request->req_ddl_node->nod_type == nod_mod_relation)
 	{
@@ -1645,6 +1655,7 @@ if (domain_node = element->nod_arg [e_dfl_domain])
         ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
             gds_arg_gds, gds__dsql_command_err, 
             gds_arg_gds, gds__dsql_domain_not_found, 
+            gds_arg_string, ERR_cstring (domain_name->str_data),
             /* Specified domain or source field does not exist */
             0);
        
@@ -3452,6 +3463,50 @@ request->req_ddl_node = ddl_node;
 reset_context_stack (request);
 }
 
+static void delete_relation_view (
+	REQ		request,
+	NOD		node)
+{
+/**************************************
+ *
+ *	d e l e t e _ r e l a t i o n _ v i e w
+ *
+ **************************************
+ *
+ * Function
+ *	Check that DROP TABLE is dropping a table and that
+ *  DROP VIEW is dropping a view.
+ *  CVC: Created this function to not clutter generate_dyn().
+ *
+ **************************************/
+	STR string = (STR) node->nod_arg [0];
+	DSQL_REL relation = METD_get_relation (request, string);
+
+	if (node->nod_type == nod_del_relation)
+	{
+		if (!relation || (relation->rel_flags & REL_view))
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            /* gds_arg_gds, gds__dsql_command_err, 
+            gds_arg_gds, gds__dsql_table_not_found, */
+			gds_arg_gds, 336068783L,
+			gds_arg_string, string->str_data,
+            gds_arg_end);
+	}
+	else /* node->nod_type == nod_del_view */
+	{
+		if (!relation || !(relation->rel_flags & REL_view))
+			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
+            /* gds_arg_gds, gds__dsql_command_err, 
+            gds_arg_gds, gds__dsql_view_not_found, */
+			gds_arg_gds, 336068783L,
+			gds_arg_string, string->str_data,
+            gds_arg_end);
+	}
+
+	put_cstring (request, gds__dyn_delete_rel, string->str_data);
+	STUFF (gds__dyn_end);
+}
+
 static void end_blr (
     REQ		request)
 {
@@ -3613,10 +3668,10 @@ switch (node->nod_type)
 	STUFF (gds__dyn_end);
 	break;
 
+	/* CVC: Handling drop table and drop view properly. */
     case nod_del_relation:
-	string = (STR) node->nod_arg [0];
-	put_cstring (request, gds__dyn_delete_rel, string->str_data);
-	STUFF (gds__dyn_end);
+	case nod_del_view:
+		delete_relation_view (request, node);
 	break;
 
     case nod_del_procedure:
@@ -4181,7 +4236,8 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 				   domain_name->str_data))
 	        ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
 			   gds_arg_gds, gds__dsql_command_err, 
-			   gds_arg_gds, gds__dsql_domain_not_found, 
+			   gds_arg_gds, gds__dsql_domain_not_found,
+			   gds_arg_string, ERR_cstring (domain_name->str_data),
 		      /* Specified domain or source field does not exist */
 			   0);
 	    if(element->nod_arg [e_cnstr_condition])
@@ -4506,8 +4562,9 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	    field_name =  (STR) field_node->nod_arg [e_fln_name];
 	    put_cstring (request, gds__dyn_mod_local_fld, field_name->str_data);
 	
-            const_node = element->nod_arg [e_mod_fld_pos_new_position];
-	    constant = (SSHORT) const_node->nod_arg [0];
+        const_node = element->nod_arg [e_mod_fld_pos_new_position];
+		/* CVC: Since now the parser accepts pos=1..N, let's subtract one here. */
+	    constant = (SSHORT) const_node->nod_arg [0] - 1;
 	    put_cstring (request, gds__dyn_rel_name, relation_name->str_data);
 	    put_number (request, gds__dyn_fld_position, constant);
 	    STUFF (gds__dyn_end);

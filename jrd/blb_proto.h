@@ -42,6 +42,7 @@ extern SLONG		BLB_get_slice (TDBB, struct tra *, struct bid *, UCHAR *, USHORT, 
 extern SLONG		BLB_lseek (struct blb *, USHORT, SLONG);
 extern void DLL_EXPORT	BLB_map_blobs (TDBB, struct blb *, struct blb *);
 extern void		BLB_move (TDBB, struct dsc *, struct dsc *, struct nod *);
+extern void		BLB_move_from_string (TDBB, struct dsc *, struct dsc *, struct nod *);
 extern struct blb	*BLB_open (TDBB, struct tra *, struct bid *);
 extern struct blb	*BLB_open2 (TDBB, struct tra *, struct bid *, USHORT, UCHAR *);
 extern void		BLB_put_segment (TDBB, struct blb *, UCHAR *, USHORT);

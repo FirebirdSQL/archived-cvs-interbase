@@ -192,3 +192,6 @@ NODE (nod_average2, average2, "AVG")
 NODE (nod_gen_id2, recnum, "")
 NODE (nod_set_generator2, set_generator, "")
 NODE (nod_total2, total, "SUM")
+
+NODE (nod_current_role, current_role, "")
+NODE (nod_breakleave, breakleave, "")

@@ -383,6 +383,7 @@ switch (node->nod_type)
 	return;	
 
     case nod_upcase:
+	case nod_substr:
 	MAKE_desc (&desc1, node->nod_arg [0]);
 	if (desc1.dsc_dtype <= dtype_any_text)
 	    {
@@ -898,6 +899,7 @@ switch (node->nod_type)
 	return;
 
     case nod_user_name:
+    case nod_current_role:
         desc->dsc_dtype = dtype_varying;
 	desc->dsc_scale = 0;
 	desc->dsc_flags = 0;

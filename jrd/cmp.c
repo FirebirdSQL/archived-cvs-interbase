@@ -1475,6 +1475,7 @@ switch (node->nod_type)
 	return;
 
     case nod_user_name:
+    case nod_current_role:
 	desc->dsc_dtype = dtype_text;
 	desc->dsc_ttype = ttype_metadata;
 	desc->dsc_length = USERNAME_LENGTH;
@@ -4602,6 +4603,7 @@ switch (node->nod_type)
     case nod_divide:
     case nod_null:
     case nod_user_name:
+    case nod_current_role:
     case nod_gen_id:
     case nod_gen_id2:
     case nod_upcase:

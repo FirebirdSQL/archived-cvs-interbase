@@ -527,6 +527,8 @@
 #define isc_valid_client_dialects            335544812L
 #define isc_optimizer_between_err            335544813L
 #define isc_service_not_supported            335544814L
+#define isc_generator_name                   335544815L
+#define isc_udf_name                         335544816L
 #define isc_gfix_db_name                     335740929L
 #define isc_gfix_invalid_sw                  335740930L
 #define isc_gfix_incmp_sw                    335740932L
@@ -723,5 +725,5 @@
 #define isc_gstat_open_err                   336920605L
 #define isc_gstat_read_err                   336920606L
 #define isc_gstat_sysmemex                   336920607L
-#define isc_err_max                          690
+#define isc_err_max                          692
 

@@ -515,6 +515,8 @@
 "valid_client_dialects", 335544812,
 "optimizer_between_err", 335544813,
 "service_not_supported", 335544814,
+"generator_name", 335544815,
+"udf_name", 335544816,
 "gfix_db_name", 335740929,
 "gfix_invalid_sw", 335740930,
 "gfix_incmp_sw", 335740932,

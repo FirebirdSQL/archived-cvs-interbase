@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.25 Claudio Valderrama: Finish MET_lookup_generator_id() by
+ *	assigning it a number in the compiled requests table.
  */
 /*
 $Id$
@@ -1246,10 +1248,10 @@ if (!REQUEST (irq_r_filters))
 
 return blf;
 }
-
+
 SLONG MET_lookup_generator (
     TDBB	tdbb,
-    TEXT        *name)
+    TEXT	*name)
 {
 /**************************************
  *
@@ -1259,6 +1261,8 @@ SLONG MET_lookup_generator (
  *
  * Functional description
  *      Lookup generator (aka gen_id).  If we can't find it, make a new one.
+ * CVC: I don't see how this function "makes" a new generator; it simply
+ *		returns -1 if the name is not found.
  *
  **************************************/
 DBB     dbb;
@@ -1287,7 +1291,50 @@ if (!REQUEST (irq_r_gen_id))
 
 return gen_id;
 }
-
+
+void MET_lookup_generator_id (
+    TDBB	tdbb,
+	SLONG	gen_id,
+    TEXT    *name)
+{
+/**************************************
+ *
+ *      M E T _ l o o k u p _ g e n e r a t o r _ i d
+ *
+ **************************************
+ *
+ * Functional description
+ *      Lookup generator (aka gen_id) by ID. It will load
+ *		the name in the third parameter.
+ *
+ **************************************/
+DBB     dbb;
+BLK     request;
+
+SET_TDBB (tdbb);
+dbb  = tdbb->tdbb_database;
+
+if (!gen_id)
+{
+	strcpy (name, "RDB$GENERATORS");
+    return;
+}
+
+*name = 0;
+
+request = (BLK) CMP_find_request (tdbb, irq_r_gen_id_num, IRQ_REQUESTS);
+
+FOR (REQUEST_HANDLE request)
+    X IN RDB$GENERATORS WITH X.RDB$GENERATOR_ID EQ gen_id
+    if (!REQUEST (irq_r_gen_id_num))
+	REQUEST (irq_r_gen_id_num) = request;
+	name_copy (name, X.RDB$GENERATOR_NAME);
+END_FOR;
+
+if (!REQUEST (irq_r_gen_id_num))
+    REQUEST (irq_r_gen_id_num) = request;
+}
+
 void DLL_EXPORT MET_lookup_index (
     TDBB	tdbb,
     TEXT        *index_name,
@@ -1330,7 +1377,7 @@ END_FOR;
 if (!REQUEST (irq_l_index))
     REQUEST (irq_l_index) = request;
 }
-
+
 SLONG MET_lookup_index_name (
     TDBB	tdbb,
     TEXT        *index_name,
@@ -3656,26 +3703,37 @@ while (csb->csb_dependencies)
     if (!node->nod_arg [e_dep_object])
 	continue;
     dpdo_type = (SSHORT) node->nod_arg [e_dep_object_type];
-    if (dpdo_type == obj_relation)
-	{
-	relation = (REL) node->nod_arg [e_dep_object];
-	dpdo_name = relation->rel_name;
-	}
-    else
 	relation = NULL;
-    if (dpdo_type == obj_procedure)
-	{
-	procedure = (PRC) node->nod_arg [e_dep_object];
-	dpdo_name = procedure->prc_name->str_data;
-	}
-    else
 	procedure = NULL;
-    if (dpdo_type == obj_exception)
+	switch (dpdo_type)
 	{
-	number = (SLONG) node->nod_arg [e_dep_object];
-	MET_lookup_exception (tdbb, number, name, NULL);
-	dpdo_name = name;
+	case obj_relation:
+		relation = (REL) node->nod_arg [e_dep_object];
+		dpdo_name = relation->rel_name;
+		break;
+	case obj_procedure:
+		procedure = (PRC) node->nod_arg [e_dep_object];
+		dpdo_name = procedure->prc_name->str_data;
+		break;
+	case obj_exception:
+		number = (SLONG) node->nod_arg [e_dep_object];
+		MET_lookup_exception (tdbb, number, name, NULL);
+		dpdo_name = name;
+		break;
+	/* CVC: Here I'm going to track those pesky things named generators and UDFs. */
+	case obj_generator:
+		number = (SLONG) node->nod_arg [e_dep_object];
+		MET_lookup_generator_id (tdbb, number, name);
+		dpdo_name = name;
+		break;
+	case obj_udf:
+		{
+			FUN udf = (FUN) node->nod_arg [e_dep_object];
+			dpdo_name = udf->fun_symbol->sym_string;
+			break;
+		}
 	}
+
     field_node = node->nod_arg [e_dep_field];
 
     field_name = NULL;

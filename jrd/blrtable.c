@@ -242,6 +242,8 @@ static CONST VERB verbs [] = {
     PAIR (nod_current_timestamp, blr_current_timestamp, 
 		e_current_timestamp_length, 0, VALUE, OTHER)
 
+    PAIR (nod_current_role, blr_current_role, 1, 0, VALUE, VALUE)
+
     0
 };
 

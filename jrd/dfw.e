@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.25 Claudio Valderrama: Implement deferred check for udf usage
+ * inside a procedure before dropping the uff and creating stub for future
+ * processing of dependencies from dropped generators.
  */
 
 #ifdef SHLIB_DEFS
@@ -140,6 +143,8 @@ static BOOLEAN	create_trigger		(TDBB, SSHORT, DFW, TRA);
 static BOOLEAN	delete_trigger		(TDBB, SSHORT, DFW, TRA);
 static BOOLEAN	modify_trigger		(TDBB, SSHORT, DFW, TRA);
 static BOOLEAN	delete_exception	(TDBB, SSHORT, DFW, TRA);
+static BOOLEAN	delete_generator	(TDBB, SSHORT, DFW, TRA);
+static BOOLEAN	delete_udf		(TDBB, SSHORT, DFW, TRA);
 static BOOLEAN	delete_field		(TDBB, SSHORT, DFW, TRA);
 static BOOLEAN	delete_global		(TDBB, SSHORT, DFW, TRA);
 static BOOLEAN	delete_parameter	(TDBB, SSHORT, DFW, TRA);
@@ -207,6 +212,8 @@ static CONST TASK task_table [] =
     dfw_modify_procedure, modify_procedure,
     dfw_delete_prm, delete_parameter,
     dfw_delete_exception, delete_exception,
+    dfw_delete_generator, delete_generator,
+    dfw_delete_udf, delete_udf,
     dfw_null, NULL
     };
 
@@ -357,7 +364,7 @@ void DFW_merge_work (
  *
  * Functional description
  *	Merge the deferred work with the previous level.  This will
- *	be called only of there is a previous level.
+ *	be called only if there is a previous level.
  *
  **************************************/
 DFW	work, *ptr;
@@ -1091,21 +1098,27 @@ else
 for (i = 0; i < obj_count; i++)
     if (dep_counts [i])
 	{
-	switch (dpdo_type)
-	    {
-	    case obj_relation:
-	    	obj_type = gds__table_name;
-		break;
-	    case obj_procedure:
-		obj_type = gds__proc_name;
-		break;
-	    case obj_exception:
-		obj_type = gds__exception_name;
-		break;
-	    default:
-		assert (FALSE);
-		break;
-	    }
+		switch (dpdo_type)
+		{
+		case obj_relation:
+			obj_type = gds__table_name;
+			break;
+		case obj_procedure:
+			obj_type = gds__proc_name;
+			break;
+		case obj_exception:
+			obj_type = gds__exception_name;
+			break;
+		case obj_generator:
+			obj_type = isc_generator_name;
+			break;
+		case obj_udf:
+			obj_type = isc_udf_name;
+			break;
+		default:
+			assert (FALSE);
+			break;
+		}
 	if (field_name)
 	    ERR_post (gds__no_meta_update,
 		gds_arg_gds, gds__no_delete,    /* Msg353: can not delete */
@@ -1810,7 +1823,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_exception (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1853,7 +1866,95 @@ switch (phase)
 
 return FALSE;
 }
-
+
+static BOOLEAN delete_generator (
+    TDBB	tdbb,
+    SSHORT	phase,
+    DFW		work,
+    TRA		transaction)
+{
+/**************************************
+ *
+ *	d e l e t e _ g e n e r a t o r
+ *
+ **************************************
+ *
+ * Functional description
+ *	Check if it is allowable to delete
+ *	a generator, and if so, clean up after it.
+ * CVC: This function was modelled after delete_exception.
+ *
+ **************************************/
+
+SET_TDBB (tdbb);
+
+switch (phase)
+    {
+    case 0:
+	return FALSE;
+
+    case 1:
+	check_dependencies (tdbb, work->dfw_name, NULL_PTR,
+			obj_generator, transaction); 
+	return TRUE;
+
+    case 2:
+	return TRUE;
+
+    case 3:
+	return TRUE;
+
+    case 4:
+	break;
+    }
+
+return FALSE;
+}
+
+static BOOLEAN delete_udf (
+    TDBB	tdbb,
+    SSHORT	phase,
+    DFW		work,
+    TRA		transaction)
+{
+/**************************************
+ *
+ *	d e l e t e _ u d f
+ *
+ **************************************
+ *
+ * Functional description
+ *	Check if it is allowable to delete
+ *	an udf, and if so, clean up after it.
+ * CVC: This function was modelled after delete_exception.
+ *
+ **************************************/
+
+SET_TDBB (tdbb);
+
+switch (phase)
+    {
+    case 0:
+	return FALSE;
+
+    case 1:
+	check_dependencies (tdbb, work->dfw_name, NULL_PTR,
+			obj_udf, transaction); 
+	return TRUE;
+
+    case 2:
+	return TRUE;
+
+    case 3:
+	return TRUE;
+
+    case 4:
+	break;
+    }
+
+return FALSE;
+}
+
 static BOOLEAN delete_field (
     TDBB	tdbb,
     SSHORT	phase,

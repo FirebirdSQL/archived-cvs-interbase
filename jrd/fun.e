@@ -614,7 +614,7 @@ dbb =  tdbb->tdbb_database;
 V4_JRD_MUTEX_LOCK (dbb->dbb_mutexes + DBB_MUTX_udf);
 
 for (symbol = SYM_lookup (name); symbol; symbol = symbol->sym_homonym)
-    if ((int) (symbol->sym_type = SYM_fun))
+    if (symbol->sym_type == SYM_fun)
 	{
 	V4_JRD_MUTEX_UNLOCK (dbb->dbb_mutexes + DBB_MUTX_udf);
 	return (FUN) symbol->sym_object;

@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.25: Claudio Valderrama: Modify VIO_erase() to check for possible
+ * dependencies on generators and triggers.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -1106,7 +1108,17 @@ if (!(transaction->tra_flags & TRA_system))
 	    EVL_field (NULL_PTR, rpb->rpb_record, f_prc_name, &desc);
 	    DFW_post_work (transaction, dfw_delete_exception, &desc, 0);
 	    break;
-	
+
+	case rel_gens:
+	    EVL_field (NULL_PTR, rpb->rpb_record, f_prc_name, &desc);
+	    DFW_post_work (transaction, dfw_delete_generator, &desc, 0);
+	    break;
+
+	case rel_funs:
+	    EVL_field (NULL_PTR, rpb->rpb_record, f_prc_name, &desc);
+	    DFW_post_work (transaction, dfw_delete_udf, &desc, 0);
+	    break;
+
 	case rel_indices:
 	    EVL_field (NULL_PTR, rpb->rpb_record, f_idx_relation, &desc);
 	    SCL_check_relation (&desc, SCL_control);

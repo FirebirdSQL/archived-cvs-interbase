@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.21 Claudio Valderrama: BREAK and SUBSTRING.
  */
 /*
 $Id$
@@ -214,6 +215,15 @@ switch (node->nod_type)
 	STUFF (blr_current_date);
 	return;
 
+    case nod_current_role:
+	STUFF (blr_current_role);
+	return;
+
+    case nod_breakleave:
+	STUFF (blr_leave);
+	STUFF (0);
+	return;
+
     case nod_udf:
 	gen_udf (request, node);
 	return;
@@ -375,6 +385,7 @@ switch (node->nod_type)
     case nod_via:	operator = blr_via;		break;
 
     case nod_upcase:    operator = blr_upcase;		break;
+	case nod_substr:	operator = blr_substring;		break;
     case nod_cast:
 	gen_cast (request, node);
 	return;
@@ -970,6 +981,11 @@ switch (node->nod_type)
 	STUFF (0);
 	return;
 
+    case nod_breakleave:
+	STUFF (blr_leave);
+	STUFF ((int) node->nod_arg [e_break_number]);
+	return;
+
     case nod_store:
 	if ((temp = node->nod_arg [e_sto_rse]) != NULL)
 	    {
@@ -1493,6 +1509,14 @@ NOD	list, list_to, *ptr, *ptr_to, *end, rse;
 
 rse = for_select->nod_arg [e_flp_select];
 
+/* CVC: Only put a label if this is not singular; otherwise,
+what loop is the user trying to abandon? */
+if (for_select->nod_arg [e_flp_action])
+{
+    STUFF (blr_label);
+    STUFF ((int) for_select->nod_arg [e_flp_number]);
+}
+
 /* Generate FOR loop */
 
 STUFF (blr_for);
@@ -1520,6 +1544,7 @@ for (ptr = list->nod_arg, ptr_to = list_to->nod_arg,
     }
 if (for_select->nod_arg [e_flp_action])
     GEN_statement (request, for_select->nod_arg [e_flp_action]);
+
 STUFF (blr_end);
 }
 
@@ -2028,7 +2053,7 @@ for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
     else if (item->nod_type == nod_dbkey)
 	{
 	parameter->par_name = parameter->par_alias = db_key_name;
-	context = (CTX) item->nod_arg [0]->nod_arg[0];
+	context = (CTX) item->nod_arg [0]->nod_arg [0];
 	parameter->par_rel_name = context->ctx_relation->rel_name;
 	parameter->par_owner_name = context->ctx_relation->rel_owner;
 	}
@@ -2111,7 +2136,18 @@ for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
 	parameter->par_name = parameter->par_alias  = "GEN_ID";
     else if (item->nod_type == nod_gen_id2)
 	parameter->par_name = parameter->par_alias  = "GEN_ID";
-    }
+    else if (item->nod_type == nod_user_name)
+	parameter->par_name = parameter->par_alias  = "USER";
+    else if (item->nod_type == nod_current_role)
+	parameter->par_name = parameter->par_alias  = "ROLE";
+    else if (item->nod_type == nod_substr)
+		{
+		/* CVC: SQL starts at 1 but C starts at zero. */
+		NOD node = item->nod_arg [e_substr_start];
+		--(*(SLONG *) (node->nod_desc.dsc_address));
+		parameter->par_name = parameter->par_alias  = "SUBSTRING";
+		}
+    } /* for */
 
 /* Set up parameter to handle EOF */
 

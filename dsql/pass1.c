@@ -19,6 +19,13 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.5.26: Claudio Valderrama: COMPUTED fields will be skipped if a dummy
+ *       "insert into tbl values(...)" sentence is issued.
+ * 2001.5.26: Claudio Valderrama: field names should be skimmed from trailing
+ *		blanks to allow reliable comparisons in pass1_field. Same for table and
+ *		and index names in plans.
+ * 2001.5.29: Claudio Valderrama: handle DROP VIEW case in pass1_statement().
+ * 2001.6.12: Claudio Valderrama: add basic BREAK capability to procedures.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -85,6 +92,7 @@ static FLD	resolve_context (REQ, STR, STR, CTX);
 static BOOLEAN	set_parameter_type (NOD, NOD, BOOLEAN);
 static void	set_parameters_name (NOD, NOD);
 static void	set_parameter_name (NOD, NOD, DSQL_REL);
+static TEXT *pass_exact_name (TEXT *);
 
 STR	temp_collation_name = NULL;
 
@@ -139,6 +147,10 @@ if (relation_node->nod_type == nod_rel_proc_name)
     relation_name = (STR) relation_node->nod_arg [e_rpn_name];
 else
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
+
+/* CVC: Let's skim the context, too. */
+if (relation_name && relation_name -> str_data)
+	pass_exact_name (relation_name -> str_data);
 
 DEV_BLKCHK (relation_name, type_str);
 
@@ -820,6 +832,8 @@ switch (input->nod_type)
     case nod_mod_relation:
     case nod_mod_exception:
     case nod_del_relation:
+	/* CVC: Deleting view is a new case. */
+	case nod_del_view:
     case nod_del_index:
     case nod_del_exception:
     case nod_grant:
@@ -999,8 +1013,15 @@ switch (input->nod_type)
 	    DEV_BLKCHK (*(ptr2-1), type_nod);
 	    }
 	if (input->nod_arg [e_flp_action])
+	{
+		/* CVC: Let's add the ability to BREAK the for_select same as the while.
+	    but only if the command is FOR SELECT, otherwise we have singular SELECT. */
+	    node->nod_arg [e_flp_number] = (NOD) request->req_loop_number++;
+
 	    node->nod_arg [e_flp_action] = PASS1_statement (request,
 				   input->nod_arg [e_flp_action], proc_flag);
+	}
+
 	if (cursor &&
 	    procedure &&
 	    ((procedure->nod_type == nod_def_procedure) ||
@@ -1112,6 +1133,10 @@ switch (input->nod_type)
 		gds_arg_string, "EXIT", 0);
 	return input;
 
+    case nod_breakleave:
+	input->nod_arg [e_break_number] = (NOD) (request->req_loop_number - 1);
+	return input;
+
     case nod_return:
 	if (request->req_flags & REQ_trigger)
 	    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 
@@ -1165,9 +1190,11 @@ switch (input->nod_type)
 	node = MAKE_node (input->nod_type, input->nod_count);
 	node->nod_arg [e_while_cond] = PASS1_node (request,
 				   input->nod_arg [e_while_cond], proc_flag);
+	/* CVC: loop numbers should be incremented before analyzing the body
+	to preserve nesting <==> incresing level number. */
+	node->nod_arg [e_while_number] = (NOD) request->req_loop_number++;
 	node->nod_arg [e_while_action] = PASS1_statement (request,
 				   input->nod_arg [e_while_action], proc_flag);
-	node->nod_arg [e_while_number] = (NOD) request->req_loop_number++;
 	break;
 
     case nod_abort:
@@ -1959,6 +1986,7 @@ else
 	    case nod_current_time:
 	    case nod_current_timestamp:
 	    case nod_user_name:
+	    case nod_current_role:
 		return FALSE;
 	    } 
     }
@@ -2727,6 +2755,11 @@ else
     name = (STR) input->nod_arg [1];
     qualifier = (STR) input->nod_arg [0];
     }
+
+/* CVC: Let's strip trailing blanks or comparisons may fail in dialect 3. */
+if (name && name -> str_data)
+	pass_exact_name (name -> str_data);
+
 DEV_BLKCHK (name, type_str);
 DEV_BLKCHK (qualifier, type_str);
 
@@ -2849,9 +2882,14 @@ if (fields = input->nod_arg [e_ins_fields])
     fields = PASS1_node (request, fields, 0);
 else
     {
+	/* CVC: Ann Harrison requested to skip COMPUTED fields in INSERT w/o field list. */
     stack = NULL;
     for (field = relation->rel_fields; field; field = field->fld_next)
-	LLS_PUSH (MAKE_field (context, field, NULL_PTR), &stack);
+	{
+		if (field->fld_flags & FLD_computed)
+			continue;
+		LLS_PUSH (MAKE_field (context, field, NULL_PTR), &stack);
+	}
     fields = MAKE_list (stack);
     }
 
@@ -3064,6 +3102,10 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
     context = (CTX) stack->lls_object;
     if (context->ctx_scope_level != request->req_scope_level)
 	continue;
+
+	/* CVC: Getting rid of trailing spaces */
+	if (alias && alias -> str_data)
+		pass_exact_name (alias -> str_data);
 
     /* check for matching alias */
 
@@ -4199,4 +4241,29 @@ switch (par_node->nod_type)
     default:
         return;
     }
+}
+
+static TEXT *pass_exact_name (
+	TEXT	*str)
+{
+/**************************************
+ *
+ *      p a s s _ e x a c t _ n a m e
+ *
+ **************************************
+ *
+ * Functional description
+ *      Skim trailing blanks from identifiers.
+ *	CVC: I had to add this function because metd_exact_name
+ *	usage forced the inclusion of metd.c that currently
+ *	isn't used on other directories.
+ *
+ **************************************/
+TEXT *p;
+for (p = str; *p; ++p);
+for (--p; p >= str && *p == '\x20'; --p);
+/* Write *++p = 0; if you like instead of two lines. */
+++p;
+*p = 0;
+return str;
 }

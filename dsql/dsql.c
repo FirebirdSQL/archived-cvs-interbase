@@ -1351,6 +1351,10 @@ switch (node->nod_type)
     case nod_del_generator:     verb = "delete generator";      break; 
     case nod_del_index:		verb = "delete index";		break;
     case nod_del_relation:	verb = "delete relation";	break;
+
+    /* CVC: New node del_view. */
+    case nod_del_view:		verb = "delete view";		break;
+
     case nod_def_procedure:	verb = "define procedure";	break;
     case nod_del_procedure:	verb = "delete porcedure";	break;
     case nod_def_trigger:	verb = "define trigger";	break;
@@ -1431,6 +1435,10 @@ switch (node->nod_type)
     case nod_upcase:	verb = "upcase";	break;
     case nod_singular:	verb = "singular";	break;
     case nod_user_name:	verb = "user_name";	break;
+
+    /* CVC: New node current_role. */
+    case nod_current_role:	verb = "current_role";	break;
+
     case nod_values:	verb = "values";	break;
     case nod_via:	verb = "via";		break;
 
@@ -1440,6 +1448,9 @@ switch (node->nod_type)
     case nod_gen_id2:   verb = "gen_id2";       break;
     case nod_multiply2: verb = "multiply2";	break;
     case nod_subtract2:	verb = "subtract2";	break;
+
+    /* CVC: New node breakleave. */
+    case nod_breakleave:	verb = "breakleave";	break;
 
     case nod_aggregate:
 	verb = "aggregate";
@@ -2309,7 +2320,7 @@ static USHORT get_plan_info (
  **************************************/
 SCHAR 	explain_buffer [256], *explain, *plan, *explain_ptr, *buffer_ptr;
 SSHORT 	explain_length, i;
-USHORT	join_count = 0, level = 0;
+USHORT	join_count, level;
 TSQL	tdsql;
 STATUS	s;
 
@@ -2364,6 +2375,10 @@ for (i = 0; i < 2; i++)
     explain_length += (UCHAR) (*explain++) << 8;
            
     plan = buffer_ptr;
+
+	/* CVC: What if we need to do 2nd pass? Those variables were only initialized
+	at the begining of the function hence they had trash the second time. */
+	join_count = level = 0;
 
     /* keep going until we reach the end of the explain info */
 
@@ -2514,7 +2529,9 @@ switch (*explain++)
 	break;
 
     case gds__info_rsb_end:
-	(*level_ptr)--;
+	if (*level_ptr)
+		(*level_ptr)--;
+	/* else --*parent_join_count; ??? */
 	break;
 
     case gds__info_rsb_relation:
@@ -2579,16 +2596,16 @@ switch (*explain++)
 		/* for the rest of the members, start the level at 0 so each
 		   gets its own "PLAN ... " line */
 
-                while (union_count)
+        while (union_count)
 		{
 		    union_join_count = 0;
 		    union_level = 0;
 		    while (TRUE)
 		    {
-	                if (get_rsb_item (&explain_length, &explain, &plan_length, &plan,
+	            if (get_rsb_item (&explain_length, &explain, &plan_length, &plan,
 					  &union_join_count, &union_level))
 		            return FAILURE;
-			if (!union_level)
+				if (!union_level)
 			    break;
 		    }
 		    union_count--;
@@ -2626,10 +2643,14 @@ switch (*explain++)
 		
 		explain_length--;
 		join_count = (USHORT) *explain++;
-                while (join_count)
-	            if (get_rsb_item (&explain_length, &explain, &plan_length, 
+        while (join_count)
+		{
+	        if (get_rsb_item (&explain_length, &explain, &plan_length, 
 	                              &plan, &join_count, level_ptr))
-		         return FAILURE;
+				return FAILURE;
+			if (!*level_ptr)
+		    	break;
+		}
 
 		/* put out the final parenthesis for the join */
 
@@ -2728,13 +2749,13 @@ switch (*explain++)
 
 		save_level = *level_ptr;
 		while (explain_length > 0 && plan_length > 0)
-		    {
-	            if (get_rsb_item (&explain_length, &explain, &plan_length, 
+		{
+	        if (get_rsb_item (&explain_length, &explain, &plan_length, 
 	                              &plan, parent_join_count, level_ptr))
 		        return FAILURE;
 		    if (*level_ptr == save_level)
 		    	break;
-		    }
+		}
 
 		if (--plan_length < 0)
 		    return FAILURE;

@@ -1575,6 +1575,7 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define blr_average2		  171
 #define blr_gen_id2		  172
 #define blr_set_generator2        173
+#define blr_current_role          174
 #endif					/* _JRD_BLR_H_ */
 
 /**********************************/

@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.23 Claudio Valderrama: BLB_move_from_string to accept assignments
+ * from string to blob field. First use was to allow inserting a literal string
+ * in a blob field without requiring an UDF.
  */
 /*
 $Id$
@@ -57,6 +60,7 @@ $Id$
 #include "../jrd/pag_proto.h"
 #include "../jrd/sdl_proto.h"
 #include "../jrd/thd_proto.h"
+#include "../jrd/dsc_proto.h"
 
 #ifdef	WINDOWS_ONLY
 #include "../jrd/seg_proto.h"
@@ -832,7 +836,7 @@ new_map->map_next = dbb->dbb_blob_map;
 dbb->dbb_blob_map = new_map;
 }            
 #endif
-
+
 void BLB_move (
     TDBB	tdbb,
     DSC         *from_desc,
@@ -977,7 +981,62 @@ if (materialized_blob)
     }
 release_blob (blob, (materialized_blob) ? FALSE : TRUE);
 }
-
+
+void BLB_move_from_string (
+    TDBB	tdbb,
+    DSC         *from_desc,
+    DSC         *to_desc,
+    NOD         field)
+{
+/**************************************
+ *
+ *      B L B _ m o v e _ f r o m _ s t r i n g
+ *
+ **************************************
+ *
+ * Functional description
+ *      Perform an assignment to a blob field.  It's capable of handling
+ *      strings by doing an internal conversion to blob and then calling
+ *      BLB_move with that new blob.
+ *
+ **************************************/
+SET_TDBB (tdbb);
+
+if (from_desc->dsc_dtype >= dtype_varying)
+    ERR_post (gds__convert_error, gds_arg_string,
+	DSC_dtype_tostring (from_desc->dsc_dtype), 0);
+else
+{
+	USHORT ttype = -1;
+	BLB blob = 0;
+	UCHAR *fromstr = 0;
+	struct bid temp_bid;
+	DSC blob_desc;
+	MOVE_CLEAR (&temp_bid, sizeof (temp_bid));
+	MOVE_CLEAR (&blob_desc, sizeof (blob_desc));
+	blob = BLB_create (tdbb, tdbb->tdbb_request->req_transaction, &temp_bid);
+	blob_desc.dsc_length = MOV_get_string_ptr (from_desc, &ttype, &fromstr, 0, 0);
+	if (from_desc->dsc_sub_type == BLOB_text)
+	{
+	/* I have doubts on the merits of this charset assignment since BLB_create2
+	calculates charset internally and assigns it to fields inside blb struct.
+	I really need to call BLB_create2 and provide more parameters.
+	This macro is useless here as it doesn't cater for blob fields because
+	desc.dsc_ttype is desc.dsc_sub_type but blobs use dsc_scale for the charset
+	and dsc_sub_type for blob sub_types, IE text.
+	INTL_ASSIGN_TTYPE (&blob_desc, ttype);
+	*/
+		blob_desc.dsc_scale = ttype;
+	}
+	else blob_desc.dsc_scale = ttype_none;
+	blob_desc.dsc_dtype = dtype_blob;
+	blob_desc.dsc_address = (UCHAR*) &temp_bid;
+	BLB_put_segment (tdbb, blob, fromstr, blob_desc.dsc_length);
+	BLB_close (tdbb, blob);
+	BLB_move (tdbb, &blob_desc, to_desc, field);
+}
+}
+
 BLB BLB_open (
     TDBB	tdbb,
     TRA         transaction,

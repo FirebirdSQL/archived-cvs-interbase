@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.06.14 Claudio Valderrama: isc_set_path() will append slash if missing,
+ * so ISC_PATH environment variable won't fail for this cause.
  */
 
 #ifdef SHLIB_DEFS
@@ -1266,6 +1268,13 @@ for (p = file_name; *p; p++)
 /* concatenate the strings */
 
 strcpy (expanded_name, pathname);
+
+/* CVC: Make the concatenation work if no slash is present. */
+p = expanded_name + (strlen (expanded_name) - 1);
+if (*p == ':' || *p == '/' || *p == '\\')
+	;
+else strcat(expanded_name, "/");
+
 strcat (expanded_name, file_name);
 
 return TRUE;

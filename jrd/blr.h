@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Claudio Valderrama: 2001.6.18: Add blr_current_role.
  */
 
 #ifndef _JRD_BLR_H_
@@ -273,5 +274,7 @@
 #define blr_average2		  171
 #define blr_gen_id2		  172
 #define blr_set_generator2        173
+
+#define blr_current_role	  174
 
 #endif /* _JRD_BLR_H_ */

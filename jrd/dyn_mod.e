@@ -1243,7 +1243,7 @@ END_FOR;
 if (!DYN_REQUEST (drq_m_lfield))
     DYN_REQUEST (drq_m_lfield) = request;
 
-if (npflag && found)
+if (npflag && found && position != existing_position)
     modify_lfield_position (tdbb, dbb, gbl, r, f, position, existing_position);
 
 

@@ -590,7 +590,8 @@ typedef ENUM sym_t {
     SYM_fun,		/* UDF function block */
     SYM_prc,		/* stored procedure block */
     SYM_sql,		/* SQL request cache block */
-    SYM_blr		/* BLR request cache block */
+    SYM_blr,		/* BLR request cache block */
+    SYM_label		/* CVC: I need to track labels if LEAVE is implemented. */
 } SYM_T;
 
 typedef struct sym {
@@ -812,7 +813,7 @@ extern IHNDL	internal_db_handles;
 #endif
 #endif /* REQUESTER */
 
-/* Define the xxx_THREAD_DATA macors.  These are needed in the whole 
+/* Define the xxx_THREAD_DATA macros.  These are needed in the whole 
    component, but they are defined differently for use in jrd.c (JRD_MAIN)
    Here we have a function which sets some flags, and then calls THD_put_specific
    so in this case we define the macro as calling that function. */

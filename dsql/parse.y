@@ -20,7 +20,17 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.05.20 Neil McCalden: Allow a udf to be used in a 'group by' clause.
+ * 2001.05.30 Claudio Valderrama: DROP TABLE and DROP VIEW lead now to two
+ *   different node types so DDL can tell which is which.
+ * 2001.06.13: Claudio Valderrama: SUBSTRING is being surfaced.
  */
+
+#if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
+#include <windows.h>
+/*#include <wincon.h>*/
+#endif
+
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -44,6 +54,12 @@
 #ifndef WINDOWS_ONLY
 #include "../wal/wal.h"
 #endif
+
+/* Can't include ../jrd/err_proto.h here because it pulls jrd.h. */
+#if !defined(_JRD_ERR_PROTO_H_)
+extern TEXT * DLL_EXPORT ERR_string (TEXT *, int);
+#endif
+
 
 ASSERT_FILENAME
 
@@ -331,6 +347,11 @@ static SSHORT	log_defined, cache_defined;
 %token CURRENT_DATE
 %token CURRENT_TIME
 %token CURRENT_TIMESTAMP
+/* CVC: Special Firebird additions. */
+%token CURRENT_USER
+%token CURRENT_ROLE
+%token KW_BREAK
+%token SUBSTRING
 
 /* special aggregate token types returned by lex in v6.0 */
 
@@ -353,7 +374,7 @@ static SSHORT	log_defined, cache_defined;
 %nonassoc ELSE
 
 /* The same issue exists with ALTER COLUMN now that keywords can be used
-   in order to change their names.  The syntax which show the issue is:
+   in order to change their names.  The syntax which shows the issue is:
      ALTER COLUMN where column is part of the alter statement
        or
      ALTER COLUMN where column is the name of the column in the relation
@@ -387,9 +408,7 @@ statement	: alter
 		| set
 		| update
 		| DEBUG signed_short_integer
-			{ DSQL_debug = (int) $2;
-			  if (DSQL_debug > 10)
-			      yydebug = DSQL_debug;
+			{ prepare_console_debug ((int) $2);
 			  $$ = make_node (nod_null, (int) 0, NULL); }
 		;
 
@@ -615,6 +634,10 @@ return_value	: init_data_type udf_data_type
 		| init_data_type udf_data_type BY KW_VALUE
 			{ $$ = make_node (nod_udf_return_value, (int) 2, $1, 
 				MAKE_constant ((STR) FUN_value, CONSTANT_SLONG));}
+/* CVC: Enable return by descriptor for the future.
+		| init_data_type udf_data_type BY KW_DESCRIPTOR
+			{ $$ = make_node (nod_udf_return_value, (int) 2, $1,
+				MAKE_constant ((STR) FUN_reference, CONSTANT_SLONG));}*/
 		| PARAMETER pos_short_integer
 			{ $$ = make_node (nod_udf_return_value, (int) 2, 
 		  		(NOD) NULL, MAKE_constant ((STR) $2, CONSTANT_SLONG));}
@@ -1061,14 +1084,18 @@ default_opt	: DEFAULT default_value
 
 default_value	: constant
 			{ $$ = $1; }
-		| USER
+/*		| USER
 			{ $$ = make_node (nod_user_name, (int) 0, NULL); }
+		| CURRENT_USER
+			{ $$ = make_node (nod_user_name, (int) 0, NULL); }*/
+		| current_user
+		| current_role
 		| null_value
 			{ $$ = $1; }
 		| datetime_value_expression
 			{ $$ = $1; }
 		;
-                   
+
 column_constraint_clause : 
 				{ $$ = (NOD) NULL; }
 			| column_constraint_list
@@ -1274,6 +1301,8 @@ proc_statement	: assignment ';'
 			{ $$ = make_node (nod_return, e_rtn_count, NULL); }
 		| EXIT ';'
 			{ $$ = make_node (nod_exit, 0, NULL); }
+		| KW_BREAK ';'
+			{ $$ = make_node (nod_breakleave, e_break_count, NULL); }
 		;
 
 exec_procedure	: EXECUTE PROCEDURE symbol_procedure_name proc_inputs proc_outputs ';'
@@ -1283,7 +1312,7 @@ exec_procedure	: EXECUTE PROCEDURE symbol_procedure_name proc_inputs proc_output
 
 for_select	: FOR select INTO variable_list cursor_def DO proc_block
 			{ $$ = make_node (nod_for_select, e_flp_count, $2,
-					  make_list ($4), $5, $7); }
+					  make_list ($4), $5, $7, NULL); }
 		;
 
 if_then_else	: IF '(' search_condition ')' THEN proc_block ELSE proc_block
@@ -1313,7 +1342,7 @@ proc_inputs	: var_const_list
 
 proc_outputs	: RETURNING_VALUES variable_list
 			{ $$ = make_list ($2); }
-		| RETURNING_VALUES '(' variable_list  ')'
+		| RETURNING_VALUES '(' variable_list ')'
 			{ $$ = make_list ($3); }
 		|
 			{ $$ = NULL; }
@@ -1351,6 +1380,7 @@ cursor_def	: AS CURSOR symbol_cursor_name
 		|
 			{ $$ = NULL; }
 		;
+
 excp_statements	: excp_statement
 		| excp_statements excp_statement
 			{ $$ = make_node (nod_list, 2, $1, $2); }
@@ -1594,7 +1624,11 @@ alter_op	: DROP simple_column_name drop_behaviour
 			{ $$ = $2; }
                 | ADD table_constraint_definition
                         { $$ = $2; }
+/* CVC: From SQL, field positions start at 1, not zero. Think in ORDER BY, for example.
 		| col_opt simple_column_name POSITION nonneg_short_integer
+			{ $$ = make_node (nod_mod_field_pos, 2, $2,
+				MAKE_constant ((STR) $4, CONSTANT_SLONG)); } */
+		| col_opt simple_column_name POSITION pos_short_integer
 			{ $$ = make_node (nod_mod_field_pos, 2, $2,
 				MAKE_constant ((STR) $4, CONSTANT_SLONG)); }
 		| col_opt alter_column_name TO simple_column_name
@@ -1624,7 +1658,11 @@ keyword_or_column	: COLUMN
 			| CURRENT_DATE
 			| CURRENT_TIME
 			| CURRENT_TIMESTAMP
+			| CURRENT_USER /* CVC: Added the following except SYMBOL. */
+			| CURRENT_ROLE
 			| SYMBOL
+			| KW_BREAK
+			| SUBSTRING
 			;
 
 col_opt		: ALTER
@@ -1731,7 +1769,7 @@ drop_clause	: EXCEPTION symbol_exception_name
 		| TRIGGER symbol_trigger_name
 			{ $$ = make_node (nod_del_trigger, (int) 1, $2); }
 		| VIEW symbol_view_name
-			{ $$ = make_node (nod_del_relation, (int) 1, $2); }
+			{ $$ = make_node (nod_del_view, (int) 1, $2); }
 		| FILTER symbol_filter_name
 			{ $$ = make_node (nod_del_filter, (int) 1, $2); }
 		| DOMAIN symbol_domain_name
@@ -1742,6 +1780,9 @@ drop_clause	: EXCEPTION symbol_exception_name
 			{ $$ = make_node (nod_del_shadow, (int) 1, $2); }
 		| ROLE symbol_role_name
 			{ $$ = make_node (nod_del_role, (int) 1, $2); }
+/* CVC: Prepare for the future.
+		| GENERATOR symbol_generator_name
+			{ $$ = make_node (nod_del_generator, (int) 1, $2); }*/
 		;
 
 
@@ -1978,7 +2019,7 @@ numeric_type	: KW_NUMERIC prec_scale
 				{
 				field->fld_dtype = dtype_long;
 				field->fld_length = sizeof (SLONG);
-				};
+				}
 			}
 		;
 
@@ -2371,7 +2412,7 @@ select_expr	: SELECT distinct_clause
 
 
 distinct_clause	: DISTINCT
-			{ $$ = make_node (nod_flag, 0, NULL); };
+			{ $$ = make_node (nod_flag, 0, NULL); }
 		| all_noise 
 			{ $$ = 0; }
 		;
@@ -2398,6 +2439,9 @@ select_item	: rhs
 
 from_clause	: FROM from_list
 		 	{ $$ = make_list ($2); }
+/*		| FROM '(' select_expr ')'
+			/*{ $$ = make_list ($3); }*./
+			{ $$ = make_node (nod_list, 1, $3); }*/
 		;
 
 from_list	: table_reference
@@ -2903,8 +2947,12 @@ value		: column_name
 			{ $$ = $2; }
 		| '(' column_singleton ')'
 			{ $$ = $2; }
-		| USER
+/*		| USER
 			{ $$ = make_node (nod_user_name, 0, NULL); }
+		| CURRENT_USER
+			{ $$ = make_node (nod_user_name, 0, NULL); }*/
+		| current_user
+		| current_role
 		| DB_KEY
 			{ $$ = make_node (nod_dbkey, 1, NULL); }
 		| symbol_table_alias_name '.' DB_KEY
@@ -3022,11 +3070,14 @@ u_constant	: u_numeric_constant
 constant_list	: constant
 		| parameter
 		| current_user
+		| current_role
 		| constant_list ',' constant
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		| constant_list ',' parameter
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		| constant_list ',' current_user
+			{ $$ = make_node (nod_list, 2, $1, $3); }
+		| constant_list ',' current_role
 			{ $$ = make_node (nod_list, 2, $1, $3); }
 		;
 
@@ -3036,6 +3087,12 @@ parameter	: '?'
 
 current_user	: USER
 			{ $$ = make_node (nod_user_name, 0, NULL); }
+		| CURRENT_USER
+			{ $$ = make_node (nod_user_name, 0, NULL); }
+		;
+
+current_role	: CURRENT_ROLE
+			{ $$ = make_node (nod_current_role, 0, NULL); }
 		;
 
 sql_string	: STRING			/* string in current charset */
@@ -3147,6 +3204,17 @@ function	: COUNT '(' '*' ')'
 			}
 		| EXTRACT '(' timestamp_part FROM value ')'
 			{ $$ = make_node (nod_extract, e_extract_count, $3, $5); }
+		/* CVC: It was easier to provide a constant with maximum value if the
+		third parameter -length- is ommitted than to chase and fix the functions
+		that treat nod_substr as an aggregate and do not expect NULL arguments. */
+		| SUBSTRING '(' value FROM pos_short_integer ')'
+			{ $$ = make_node (nod_substr, e_substr_count, $3,
+				MAKE_constant ((STR) ($5), CONSTANT_SLONG),
+				MAKE_constant ((STR) SHRT_POS_MAX, CONSTANT_SLONG)); }
+		| SUBSTRING '(' value FROM pos_short_integer FOR nonneg_short_integer ')'
+			{ $$ = make_node (nod_substr, e_substr_count, $3,
+				MAKE_constant ((STR) ($5), CONSTANT_SLONG),
+				MAKE_constant ((STR) ($7), CONSTANT_SLONG)); }
 		;
 
 udf		: symbol_UDF_name '(' value_list ')'
@@ -3156,21 +3224,21 @@ udf		: symbol_UDF_name '(' value_list ')'
 		;
 
 timestamp_part	: YEAR
-			{ $$ = MAKE_constant (blr_extract_year, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_year, CONSTANT_SLONG); }
 		| MONTH
-			{ $$ = MAKE_constant (blr_extract_month, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_month, CONSTANT_SLONG); }
 		| DAY
-			{ $$ = MAKE_constant (blr_extract_day, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_day, CONSTANT_SLONG); }
 		| HOUR
-			{ $$ = MAKE_constant (blr_extract_hour, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_hour, CONSTANT_SLONG); }
 		| MINUTE
-			{ $$ = MAKE_constant (blr_extract_minute, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_minute, CONSTANT_SLONG); }
 		| SECOND
-			{ $$ = MAKE_constant (blr_extract_second, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_second, CONSTANT_SLONG); }
 		| WEEKDAY
-			{ $$ = MAKE_constant (blr_extract_weekday, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_weekday, CONSTANT_SLONG); }
 		| YEARDAY
-			{ $$ = MAKE_constant (blr_extract_yearday, CONSTANT_SLONG); };
+			{ $$ = MAKE_constant (blr_extract_yearday, CONSTANT_SLONG); }
 		;
 
 all_noise	: ALL
@@ -3277,6 +3345,7 @@ static FIL	make_file (void);
 static NOD	make_list (NOD);
 static NOD	make_node (NOD_TYPE, int, ...);
 static NOD	make_flag_node (NOD_TYPE, SSHORT, int, ...);
+static void	prepare_console_debug (int);
 static BOOLEAN	short_int (NOD, SLONG *, SSHORT);
 static void	stack_nodes (NOD, LLS *);
 static int	yylex (USHORT, USHORT, USHORT, BOOLEAN *);
@@ -3604,7 +3673,46 @@ while (--count >= 0)
 
 return node;
 }
-
+
+static void prepare_console_debug (int level)
+{
+/*************************************
+ *
+ *	p r e p a r e _ c o n s o l e _ d e b u g
+ * 
+ *************************************
+ *
+ * Functional description
+ *	Activate debug info. In WinNT, redirect the standard
+ *	output so one can see the generated information.
+ *	Feel free to add your platform specific code.
+ *
+ *************************************/
+DSQL_debug = level;
+if (level > 10)
+	yydebug = level;
+/* CVC: I added this code form Mike Nordell to see the output from internal
+operations that's generated in DEV build when DEBUG <n> is typed into isql.exe.
+When n>0, the output console is activated; otherwise it's closed. */
+#if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
+if (level > 0)
+{
+	/* Console debug code inside this scope */
+	if (AllocConsole())
+	{
+    		redirected_output = freopen("CONOUT$", "wt", stdout);
+    		printf("DebugConsole - Yes, it's working.\n");
+	}
+}
+else if (level <= 0 && redirected_output)
+{
+	fclose (redirected_output);
+	redirected_output = 0;
+	FreeConsole();
+}
+#endif
+}
+
 static BOOLEAN short_int (
     NOD		string,
     SLONG	*long_value,
@@ -4148,7 +4256,7 @@ if (class & CHR_LETTER)
 	{
 	yylval = (NOD) sym->sym_object;
 	return sym->sym_keyword;
-	};
+	}
     yylval = (NOD) MAKE_string (string, p - string);
     return SYMBOL;
     }

@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.16 Claudio Valderrama: Wiped out the leading space in
+ * cast(float_expr as char(n)) in dialect 1, reported in SF.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -2176,6 +2178,15 @@ else
    NUMERIC(15, -scale): print it in fixed format with -scale digits
    to the right of the ".". */
 
+/* CVC: Here sprintf was given an extra space in the two formatting
+masks used below, "%- #*.*f" and "%- #*.*g" but certainly with positive
+quantities and CAST it yields an annoying leading space.
+However, by getting rid of the space you get in dialect 1:
+cast(17/13 as char(5))  => 1.308
+cast(-17/13 as char(5)) => -1.31
+Since this is inconsistent with dialect 3, see workaround at the tail
+of this function. */
+
 if ( (dtype_double == from->dsc_dtype) && (from->dsc_scale < 0) )
     chars_printed = sprintf (temp, "%- #*.*f", width, -from->dsc_scale, d);
 else
@@ -2187,7 +2198,8 @@ else
 
 if (chars_printed > width)
     {
-    chars_printed = sprintf (temp, "%- #*.*g", width, precision, d);
+	char num_format[] = "%- #*.*g";
+    chars_printed = sprintf (temp, num_format, width, precision, d);
 
     /* If the full-precision result is too wide for the destination,
        reduce the precision and try again. */
@@ -2201,7 +2213,7 @@ if (chars_printed > width)
 	if (precision < 2)
 	    (*err) (gds__arith_except, 0);
 
-	chars_printed = sprintf (temp, "%- #*.*g", width, precision, d);
+	chars_printed = sprintf (temp, num_format, width, precision, d);
 
 	/* It's possible that reducing the precision caused sprintf to switch
 	   from f-format to e-format, and that the output is still too long
@@ -2213,7 +2225,7 @@ if (chars_printed > width)
 	    precision -= (chars_printed - width);
 	    if (precision < 2)
 		(*err) (gds__arith_except, 0);
-	    chars_printed = sprintf (temp, "%- #*.*g", width, precision, d);
+	    chars_printed = sprintf (temp, num_format, width, precision, d);
 	    }
 	}
     } 
@@ -2224,8 +2236,21 @@ assert(chars_printed <= width);
 MOVE_CLEAR (&intermediate, sizeof (intermediate));
 intermediate.dsc_dtype   = dtype_text;
 intermediate.dsc_ttype   = ttype_ascii;
-intermediate.dsc_address = temp;
-intermediate.dsc_length  = chars_printed;
+/* CVC: If you think this is dangerous, replace the "else" with a call to
+MEMMOVE(temp, temp + 1, chars_printed) or something cleverer.
+Paranoid assumption:
+UCHAR is unsigned char as seen on jrd\common.h => same size. */
+if (d < 0)
+{
+	intermediate.dsc_address = temp;
+	intermediate.dsc_length  = chars_printed;
+}
+else {
+	if (!temp [0])
+		temp [1] = 0;
+	intermediate.dsc_address = temp + 1;
+	intermediate.dsc_length  = chars_printed - 1;
+}
 
 CVT_move (&intermediate, to, err); 
 }

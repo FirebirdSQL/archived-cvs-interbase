@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 27-May-2001 Claudio Valderrama: par_plan() no longer uppercases
+ *			an index's name before doing a lookup of such index.
  */
 /*
 $Id$
@@ -1008,7 +1010,7 @@ LLS_PUSH (node, &(*csb)->csb_dependencies);
 static NOD par_exec_proc (
     TDBB	tdbb,
     CSB		*csb,
-    SSHORT	operator)
+    SSHORT	_operator)
 {
 /**************************************
  *
@@ -1030,7 +1032,7 @@ procedure = NULL;
 TEXT	name [32];
 USHORT	pid;
 
-if (operator == blr_exec_pid)
+if (_operator == blr_exec_pid)
     {
     pid = BLR_WORD;
     if (!(procedure = MET_lookup_procedure_id (tdbb, pid, FALSE, 0)))
@@ -1128,7 +1130,7 @@ return for_node;
 static NOD par_field (
     TDBB	tdbb,
     CSB		*csb,
-    SSHORT	operator)
+    SSHORT	_operator)
 {
 /**************************************
  *
@@ -1162,13 +1164,13 @@ if (context >= (*csb)->csb_count)
 stream = (*csb)->csb_rpt [context].csb_stream;
 flags = 0;
 
-if (operator == blr_fid)
+if (_operator == blr_fid)
     {
     id = BLR_WORD;
     flags = nod_id;
     is_column = TRUE;
     }
-else if (operator == blr_field)
+else if (_operator == blr_field)
     {
     tail = &(*csb)->csb_rpt [stream];
     procedure = tail->csb_procedure;
@@ -1237,7 +1239,7 @@ else if (operator == blr_field)
    id's may not be valid yet */
 
 if ((*csb)->csb_g_flags & csb_get_dependencies)
-    if (operator == blr_fid)
+    if (_operator == blr_fid)
 	par_dependency (tdbb, csb, stream, id, NULL_PTR);
     else
 	par_dependency (tdbb, csb, stream, id, name);
@@ -1328,6 +1330,17 @@ node = PAR_make_node (tdbb, e_fun_length);
 node->nod_count = 1;
 node->nod_arg [e_fun_function] = (NOD) function;
 node->nod_arg [e_fun_args] = par_args (tdbb, csb, VALUE);
+
+
+/* CVC: I will track ufds only if a proc is not being dropped. */
+if ((*csb)->csb_g_flags & csb_get_dependencies)
+{
+	NOD dep_node = PAR_make_node (tdbb, e_dep_length);
+	dep_node->nod_type = nod_dependency;
+	dep_node->nod_arg [e_dep_object] = (NOD) function;
+	dep_node->nod_arg [e_dep_object_type] = (NOD) obj_udf;
+	LLS_PUSH (dep_node, &(*csb)->csb_dependencies);
+}
 
 return node;
 }
@@ -1695,8 +1708,10 @@ if (node_type == blr_retrieve)
 	/* pick up the index name and look up the appropriate ids */
 
 	par_name (csb, name);
+	/* CVC: We can't do that. Index names are identifiers.
 	for (p = name; *p; *p++)
 	    *p = UPPER (*p);
+	*/
 	index_id = MET_lookup_index_name (tdbb, name, &relation_id, &idx_status);
 
         if (idx_status == MET_object_unknown ||
@@ -1773,7 +1788,7 @@ return ((NOD) 0);	/* Added to remove compiler warning */
 static NOD par_procedure (
     TDBB	tdbb,
     CSB		*csb,
-    SSHORT	operator)
+    SSHORT	_operator)
 {
 /**************************************
  *
@@ -1795,7 +1810,7 @@ SET_TDBB (tdbb);
 TEXT	name [32];
 SSHORT	pid;
 
-if (operator == blr_procedure)
+if (_operator == blr_procedure)
     {
     par_name (csb, name);
     procedure = MET_lookup_procedure (tdbb, name);
@@ -1937,7 +1952,7 @@ else if ((input_flag ? procedure->prc_inputs : procedure->prc_outputs) &&
 static NOD par_relation (
     TDBB	tdbb,
     CSB		*csb,
-    SSHORT 	operator,
+    SSHORT 	_operator,
     BOOLEAN	parse_context)
 {
 /**************************************
@@ -1971,10 +1986,10 @@ node->nod_count = 0;
 
 /* Find relation either by id or by name */
 
-if (operator == blr_rid || operator == blr_rid2)
+if (_operator == blr_rid || _operator == blr_rid2)
     {
     id = BLR_WORD;
-    if (operator == blr_rid2)
+    if (_operator == blr_rid2)
 	{
 	length = BLR_PEEK;
 	alias_string = (STR) ALLOCDV (type_str, length + 1);
@@ -1995,10 +2010,10 @@ if (operator == blr_rid || operator == blr_rid2)
     relation = MET_relation (tdbb, id);
 #endif
     }
-else if (operator == blr_relation || operator == blr_relation2)
+else if (_operator == blr_relation || _operator == blr_relation2)
     {
     par_name (csb, name);
-    if (operator == blr_relation2)
+    if (_operator == blr_relation2)
 	{
 	length = BLR_PEEK;
 	alias_string = (STR) ALLOCDV (type_str, length + 1);
@@ -2303,29 +2318,29 @@ static NOD parse (
  *
  **************************************/
 register NOD	node, *arg;
-SSHORT		sub_type, operator;
+SSHORT		sub_type, _operator;
 USHORT		n;
 
 SET_TDBB (tdbb);
 
-operator = BLR_BYTE;
+_operator = BLR_BYTE;
 
-if (!(operator >= 0 && operator < sizeof(type_table)/sizeof(type_table[0])))
+if (!(_operator >= 0 && _operator < sizeof(type_table)/sizeof(type_table[0])))
     syntax_error (*csb, "Invalid BLR code");
 
-sub_type = sub_type_table [operator];
+sub_type = sub_type_table [_operator];
 
-if (expected && expected != type_table [operator])
+if (expected && expected != type_table [_operator])
     syntax_error (*csb, elements [expected]);
 
 /* If there is a length given in the length table, pre-allocate
    the node and set its count.  This saves an enormous amount of
    repetitive code. */
 
-if (n = length_table [operator])
+if (n = length_table [_operator])
     {
     node = PAR_make_node (tdbb, n);
-    node->nod_count = count_table [operator];
+    node->nod_count = count_table [_operator];
     arg = node->nod_arg;
     }    
 else
@@ -2336,7 +2351,7 @@ else
 
 /* Dispatch on operator type. */
 
-switch (operator)
+switch (_operator)
     {
     case blr_any:
     case blr_unique:
@@ -2408,6 +2423,7 @@ switch (operator)
     case blr_null:
     case blr_agg_count:
     case blr_user_name:
+    case blr_current_role:
     case blr_current_date:
     case blr_current_time:
     case blr_current_timestamp:
@@ -2419,7 +2435,7 @@ switch (operator)
     case blr_store2:
 	node->nod_arg [e_sto_relation] = parse (tdbb, csb, RELATION);
 	node->nod_arg [e_sto_statement] = parse (tdbb, csb, sub_type);
-	if (operator == blr_store2)
+	if (_operator == blr_store2)
 	    node->nod_arg [e_sto_statement2] = parse (tdbb, csb, sub_type);
 	break;
 
@@ -2452,12 +2468,12 @@ switch (operator)
 
     case blr_exec_proc:
     case blr_exec_pid:
-	node = par_exec_proc (tdbb, csb, operator);
+	node = par_exec_proc (tdbb, csb, _operator);
 	break;
 
     case blr_pid:
     case blr_procedure:
-	node = par_procedure (tdbb, csb, operator);
+	node = par_procedure (tdbb, csb, _operator);
 	break;
 
     case blr_function:
@@ -2484,13 +2500,13 @@ switch (operator)
 	    BLR_PEEK == (UCHAR) blr_stream)
 	    node->nod_arg [e_for_re] = parse (tdbb, csb, TYPE_RSE);
 	else 
-	    node->nod_arg [e_for_re] = par_rse (tdbb, csb, operator);
+	    node->nod_arg [e_for_re] = par_rse (tdbb, csb, _operator);
 	node->nod_arg [e_for_statement] = parse (tdbb, csb, sub_type);
 	break;
 
     case blr_rse:  
     case blr_rs_stream:  
-	node = par_rse (tdbb, csb, operator);
+	node = par_rse (tdbb, csb, _operator);
 	break;
 
     case blr_singular:  
@@ -2502,7 +2518,7 @@ switch (operator)
     case blr_rid:
     case blr_relation2:
     case blr_rid2:
-	node = par_relation (tdbb, csb, operator, TRUE);
+	node = par_relation (tdbb, csb, _operator, TRUE);
 	break;
 
     case blr_union:
@@ -2522,7 +2538,7 @@ switch (operator)
 
     case blr_field:
     case blr_fid :
-	node = par_field (tdbb, csb, operator);
+	node = par_field (tdbb, csb, _operator);
 	break;
 
 #ifndef GATEWAY
@@ -2541,7 +2557,19 @@ switch (operator)
 		gds_arg_string, ERR_cstring (name), 
 		0);
 	node->nod_arg [e_gen_relation] = (NOD) tmp;
-	node->nod_arg [e_gen_value] = parse (tdbb, csb, VALUE);	
+	node->nod_arg [e_gen_value] = parse (tdbb, csb, VALUE);
+	/* CVC: There're thousand ways to go wrong, but I don't see any value
+	in posting dependencies with set generator since it's DDL, so I will
+	track only gen_id() in both dialects. */
+	if ((_operator == blr_gen_id || _operator == blr_gen_id2)
+		&& ((*csb)->csb_g_flags & csb_get_dependencies))
+	{
+		NOD dep_node = PAR_make_node (tdbb, e_dep_length);
+		dep_node->nod_type = nod_dependency;
+		dep_node->nod_arg [e_dep_object] = (NOD) tmp;
+		dep_node->nod_arg [e_dep_object_type] = (NOD) obj_generator;
+		LLS_PUSH (dep_node, &(*csb)->csb_dependencies);
+	}
 	}
 	break;
 #else
@@ -2636,7 +2664,7 @@ switch (operator)
 	format = (FMT) message->nod_arg [e_msg_format];
 	if (n >= format->fmt_count)
 	    error (*csb, gds__badparnum, 0);
-	if (operator != blr_parameter)
+	if (_operator != blr_parameter)
 	    {
 	    node->nod_arg [e_arg_flag] = temp = PAR_make_node (tdbb, e_arg_length);
 	    node->nod_count = 1;
@@ -2648,7 +2676,7 @@ switch (operator)
 	    if (n >= format->fmt_count)
 		error (*csb, gds__badparnum, 0);
 	    }
-	if (operator == blr_parameter3)
+	if (_operator == blr_parameter3)
 	    {
 	    node->nod_arg [e_arg_indicator] = temp = PAR_make_node (tdbb, e_arg_length);
 	    node->nod_count = 2;
@@ -2673,7 +2701,7 @@ switch (operator)
 
 	while (BLR_PEEK != (UCHAR) blr_end)
 	    {
-	    if (operator == blr_select && BLR_PEEK != blr_receive)
+	    if (_operator == blr_select && BLR_PEEK != blr_receive)
 		syntax_error (*csb, "blr_receive");
 	    LLS_PUSH (parse (tdbb, csb, sub_type), &stack);
 	    }
@@ -2747,9 +2775,9 @@ switch (operator)
  	    node->nod_arg [e_stat_rse] = parse (tdbb, csb, OTHER);
  	else
  	    node->nod_arg [e_stat_rse] = parse (tdbb, csb, TYPE_RSE);
-	if (operator != blr_count)
+	if (_operator != blr_count)
 	    node->nod_arg [e_stat_value] = parse (tdbb, csb, VALUE);
-	if (operator == blr_via)
+	if (_operator == blr_via)
 	    node->nod_arg [e_stat_default] = parse (tdbb, csb, VALUE);
 	break;
 
@@ -2789,7 +2817,7 @@ switch (operator)
 	node->nod_arg [e_find_dbkey_stream] = (NOD) (SLONG) (*csb)->csb_rpt [n].csb_stream;
 	node->nod_arg [e_find_dbkey_dbkey] = parse (tdbb, csb, VALUE);
 
-	if (operator == blr_find_dbkey_version)
+	if (_operator == blr_find_dbkey_version)
 	    node->nod_arg [e_find_dbkey_version] = parse (tdbb, csb, VALUE);
 	break;
 
@@ -2905,9 +2933,9 @@ switch (operator)
     }
 
 if ((*csb)->csb_g_flags & csb_blr_version4)
-    node->nod_type = (NOD_T) (USHORT) blr_table4 [(int) operator];
+    node->nod_type = (NOD_T) (USHORT) blr_table4 [(int) _operator];
 else
-    node->nod_type = (NOD_T) (USHORT) blr_table [(int) operator];
+    node->nod_type = (NOD_T) (USHORT) blr_table [(int) _operator];
 
 return node;
 }

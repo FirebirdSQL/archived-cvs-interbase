@@ -4196,6 +4196,13 @@ request = (BLK) CMP_find_request (tdbb, drq_l_fld_src2, DYN_REQUESTS);
 old_env = (JMP_BUF*) tdbb->tdbb_setjmp;
 tdbb->tdbb_setjmp = (UCHAR*) env;
 
+/* CVC: It seems the logic of this function was changed over time. It's unlikely
+it will cause a failure that leads to call DYN_error_punt(), unless the request finds
+problems due to database corruption or unexpected ODS changes. Under normal
+circumstances, it will return either TRUE or FALSE. When TRUE, we found a field source
+for the view's name/context/field and are loading this value in the last parameter,
+that can be used against rdb$fields' rdb$field_name. */
+
 if (SETJMP (env))
     {
     DYN_rundown_request (old_env, request, -1);

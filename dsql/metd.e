@@ -1256,6 +1256,9 @@ FOR (REQUEST_HANDLE dbb->dbb_requests [irq_relation])
 	strcpy (relation->rel_owner, (TEXT*) X.RDB$OWNER_NAME);
 	if (!(relation->rel_dbkey_length = X.RDB$DBKEY_LENGTH))
 	    relation->rel_dbkey_length = 8;
+	/* CVC: let's see if this is a table or a view. */
+	if (!X.RDB$VIEW_BLR.NULL)
+		relation->rel_flags |= REL_view;
 	}
 
     THREAD_EXIT;

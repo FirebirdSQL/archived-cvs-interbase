@@ -41,6 +41,17 @@
  *            when it encountered a NULL value as the calculation
  *            was trying reference a null pointer.
  * Change:    Test the null flag before trying to expand the value.
+
+ * 2001.6.17 Claudio Valderrama: Fix the annoying behavior that causes silent
+ * overflow in dialect 1. If you define the macro FIREBIRD_AVOID_DIALECT1_OVERFLOW
+ * it will work with double should an overflow happen. Otherwise, an error will be
+ * issued to the user if the overflow happens. The multiplication is done using
+ * SINT64 quantities. I had the impression that casting this SINT64 result to double
+ * when we detect overflow was faster than achieving the failed full multiplication
+ * with double operands again. Usage will tell the truth.
+ * For now, the aforementioned macro is enabled.
+ * 2001.6.18 Claudio Valderrama: substring() is working with international charsets,
+ * thanks to Dave Schnepper's directions.
  */
 
 #include <string.h>
@@ -87,6 +98,8 @@
 #include "../jrd/sort_proto.h"
 #include "../jrd/gds_proto.h"
 #include "../jrd/align.h"
+#include "../jrd/met_proto.h"
+#include "../jrd/cvt_proto.h"
 
 #define TEMP_LENGTH     128
 
@@ -854,6 +867,19 @@ switch (node->nod_type)
 	    impure->vlu_desc.dsc_length = 0;
 	return &impure->vlu_desc;
 
+	/* CVC: Current role will get a validated role; IE one that exists. */
+    case nod_current_role:
+	impure->vlu_desc.dsc_dtype = dtype_text;
+	impure->vlu_desc.dsc_sub_type = 0;
+	impure->vlu_desc.dsc_scale = 0;
+	INTL_ASSIGN_TTYPE (&impure->vlu_desc, ttype_metadata);
+	if (tdbb->tdbb_attachment->att_user)
+	    impure->vlu_desc.dsc_address = (UCHAR*) tdbb->tdbb_attachment->att_user->usr_sql_role_name;
+	if (impure->vlu_desc.dsc_address != NULL)
+	    impure->vlu_desc.dsc_length = strlen (impure->vlu_desc.dsc_address);
+	else
+	    impure->vlu_desc.dsc_length = 0;
+	return &impure->vlu_desc;
 
     case nod_extract:
 	{
@@ -1123,7 +1149,9 @@ if (!format || id >= format->fmt_count || !desc->dsc_length)
 		temp_field->fld_not_null)
 		{
 		if (temp_field->fld_default_value->nod_type ==
-		    nod_user_name)
+		    nod_user_name ||
+		    temp_field->fld_default_value->nod_type ==
+		    nod_current_role)
 		    {
 		    desc->dsc_dtype = dtype_text;
 		    desc->dsc_sub_type = 0;
@@ -3976,7 +4004,7 @@ static DSC* multiply (
  *
  **************************************/
 double  d1, d2;
-SLONG   l1, l2;
+/* SLONG   l1, l2; */
 SSHORT  scale;
 
 DEV_BLKCHK (node, type_nod);
@@ -4015,14 +4043,39 @@ if (node->nod_flags & nod_quad)
 
 /* Everything else defaults to longword */
 
+/* CVC: With so many problems cropping with dialect 1 and multiplication,
+I decided to close this Pandora box by incurring in INT64 performance
+overhead (if noticeable) and try to get the best result. When I read it,
+this function didn't bother even to check for overflow! */
+
+#define FIREBIRD_AVOID_DIALECT1_OVERFLOW
+
+{
+	SINT64 i1, i2, rc;
 scale = NUMERIC_SCALE (value->vlu_desc);
-l1 = MOV_get_long (desc             , node->nod_scale - scale);
-l2 = MOV_get_long (&value->vlu_desc , scale                  );
+i1 = MOV_get_long (desc             , node->nod_scale - scale);
+i2 = MOV_get_long (&value->vlu_desc , scale                  );
 value->vlu_desc.dsc_dtype = dtype_long;
 value->vlu_desc.dsc_length = sizeof (SLONG);
 value->vlu_desc.dsc_scale = node->nod_scale;
-value->vlu_misc.vlu_long = l1 * l2;
-value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_long;
+rc = i1 * i2;
+if (rc < MIN_SLONG || rc > MAX_SLONG)
+{
+#if defined(FIREBIRD_AVOID_DIALECT1_OVERFLOW)
+	value->vlu_misc.vlu_double = (double) rc;
+    value->vlu_desc.dsc_dtype = DEFAULT_DOUBLE;
+    value->vlu_desc.dsc_length = sizeof (double);
+    value->vlu_desc.dsc_scale = 0;
+    value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_double;
+#else
+	ERR_post (isc_exception_integer_overflow, 0);
+#endif
+}
+else {
+    value->vlu_misc.vlu_long = (SLONG) rc; /* l1 * l2;*/
+    value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_long;
+}
+}
 
 return &value->vlu_desc;
 }
@@ -4798,23 +4851,144 @@ static DSC* substring (
 DSC     desc;
 UCHAR   temp [32];
 USHORT  ttype;
+/* CVC: I didn't bother to define a larger buffer because:
+- Native types when converted to string don't reach 31 bytes plus terminator.
+- String types do not need and do not use the buffer ("temp") to be pulled.
+- The types that can cause an error() issued inside the low level MOV/CVT
+routines because the "temp" is not enough are blob and array but at this time
+they aren't accepted, so they will cause error() to be called anyway.
+*/
 
 SET_TDBB (tdbb);
 desc.dsc_dtype = dtype_text;
+
+if (dtype_blob == value->dsc_dtype && (BLOB_text != value->dsc_sub_type
+	|| value->dsc_scale == ttype_ascii || value->dsc_scale == ttype_none))
+{
+    /* Source string is a blob, things get interesting */
+
+	BLB blob = BLB_open (tdbb, tdbb->tdbb_request->req_transaction, value->dsc_address);
+	if (!blob->blb_length || blob->blb_length <= offset)
+	{
+		desc.dsc_length = 0;
+		INTL_ASSIGN_TTYPE (&desc, value->dsc_scale);
+		BLB_close (tdbb, blob);
+		EVL_make_value (tdbb, &desc, impure);
+	}
+	else
+	{
+		USHORT bufflen = MAX (BUFFER_LARGE, length);
+		STR temp_str = (STR) ALLOCDV (type_str, ((SLONG)(sizeof (UCHAR) * (SLONG) bufflen)));
+		UCHAR *buffer = temp_str->str_data;
+		
+		USHORT datalen = 0;
+		while (!(blob->blb_flags & BLB_eof) && offset)
+		{
+			/* Both cases are the same for now. Let's see if we can optimize in the future. */
+			USHORT waste = MIN (bufflen, offset);
+#ifdef STACK_REDUCTION
+			USHORT l1 = BLB_get_segment (tdbb, blob, buffer, waste);
+#else
+			USHORT l1 = BLB_get_segment (tdbb, blob, buffer, waste);
+#endif
+			offset -= l1;
+		}
+		assert (!offset && !(blob->blb_flags & BLB_eof));
+		datalen = BLB_get_data (tdbb, blob, buffer, length);
+		assert (datalen && datalen <= length);
+		desc.dsc_length = datalen;
+		desc.dsc_address = buffer;
+		INTL_ASSIGN_TTYPE (&desc, value->dsc_scale);
+		EVL_make_value (tdbb, &desc, impure);
+		if (temp_str)
+			ALL_release (temp_str);
+	}
+	
+	return &impure->vlu_desc;
+}
+
 desc.dsc_length = MOV_get_string_ptr (value, &ttype, &desc.dsc_address, temp, sizeof (temp));
-desc.dsc_address += offset;
 INTL_ASSIGN_TTYPE (&desc, ttype);
 
-if (offset > desc.dsc_length)
-    desc.dsc_length = 0;
+/* CVC: Why bother? If the offset is greater or equal than the length in bytes,
+it's impossible that the offset be less than the length in an international charset. */
+if (offset >= desc.dsc_length || !length)
+{
+	desc.dsc_length = 0;
+	EVL_make_value (tdbb, &desc, impure);
+}
+/* CVC: God save the king if the engine doesn't protect itself against buffer overruns,
+because intl.h defines UNICODE as the type of most system relations' string fields.
+Also, the field charset can come as 127 (dynamic) when it comes from system triggers,
+but it's resolved by INTL_obj_lookup() to UNICODE_FSS in the cases I observed. Here I cannot
+distinguish between user calls and system calls. Unlike the original ASCII substring(),
+this one will get correctly the amount of UNICODE characters requested. */
+else if (desc.dsc_ttype == ttype_ascii || desc.dsc_ttype == ttype_none
+	 /*|| desc.dsc_ttype == ttype_metadata) */)
+{
+	/* Redundant.
+	if (offset >= desc.dsc_length)
+		desc.dsc_length = 0;
+	else */
+	{
+		desc.dsc_address += offset;
+		desc.dsc_length -= offset;
+		if (length < desc.dsc_length)
+			desc.dsc_length = length;
+	}
+	EVL_make_value (tdbb, &desc, impure);
+}
 else
-    {
-    desc.dsc_length -= offset;
-    if (length < desc.dsc_length)
-	desc.dsc_length = length;
-    }
+{
+	/* CVC: ATTENTION:
+	I couldn't find an appropriate message for this failure among current registered
+	messages, so I will return empty.
+	Finally I decided to use arithmetic exception or numeric overflow. */
+	TEXTTYPE text_obj = NULL;
+	UCHAR *p = (UCHAR*) desc.dsc_address;
+	USHORT pcount = desc.dsc_length;
+	BOOLEAN failure = FALSE;
+	while (offset && pcount)
+	{
+		if (!INTL_getch (tdbb, &text_obj, INTL_TTYPE (&desc), &p, &pcount))
+		{
+			failure = TRUE;
+			break;
+		}
+		--offset;
+	}
+	/* If we failed or we exhausted our available characters before finding the
+	starting position, nothing more to do. */
+	if (failure || !pcount)
+		desc.dsc_length = 0;
+	else
+	{
+		/* Keep our starting pos safe. */
+		(UCHAR*) desc.dsc_address = p;
+		while (length && pcount)
+		{
+			if (!INTL_getch (tdbb, &text_obj, INTL_TTYPE (&desc), &p, &pcount))
+			{
+				failure = TRUE;
+				break;
+			}
+			--length;
+		}
+		/* We can't use length or pcount as error conditions here, since the
+		target string can be shorter, longer or equal length than the requested. */
+		if (failure)
+			desc.dsc_length = 0;
+		else
+		{
+			/* I thought I would need more operations here, but... */
+			desc.dsc_length = p - (USHORT*) desc.dsc_address;
+		}
+	}
+	if (failure)
+		ERR_post (gds__arith_except, 0);
 
-EVL_make_value (tdbb, &desc, impure);
+	EVL_make_value (tdbb, &desc, impure);
+}
 
 return &impure->vlu_desc;
 }

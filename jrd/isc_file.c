@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.06.14: Claudio Valderrama: Possible buffer overrun in
+ * expand_share_name(TEXT*) has been closed. Parameter is return value, too.
+ * This function and its caller in this same file don't report error conditions.
  */
 
 #ifdef SHLIB_DEFS
@@ -2320,10 +2323,17 @@ if (ret == ERROR_MORE_DATA)
 if (ret == ERROR_SUCCESS)
     for (q = data; q && *q; q = (type_code == REG_MULTI_SZ) ? q+strlen(q)+1 : NULL)
 	{
-	  if (!strnicmp (q, "path",4))
+	  if (!strnicmp (q, "path", 4))
 	  {
+	    /* CVC: Paranoid protection against buffer overrun.
+	    MAXPATHLEN minus NULL terminator, the possible backslash and p==db_name.
+	    Otherwise, it's possible to create long share plus long db_name => crash. */
+	    idx = strlen (q + 5);
+	    if (idx + 1 + (q [4 + idx] == '\\' ? 1 : 0) + strlen (p) >= MAXPATHLEN)
+		break;
+
 	    strcpy (workspace, q + 5); /* step past the "Path=" part */
-	    idx = strlen (workspace);
+	    /* idx = strlen (workspace); Done previously. */
 	    if (workspace[idx-1] != '\\')
 		workspace[idx++] = '\\';
 	    strcpy (workspace + idx, p);

@@ -25,12 +25,17 @@
 #ifndef _DSQL_DSQL_H_
 #define _DSQL_DSQL_H_
 
+#if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
+#include <stdio.h>
+#endif
+
 #include "../jrd/ibsetjmp.h"
 #include "../jrd/common.h"
 
 #ifdef	WINDOWS_ONLY
 #include "../jrd/seg_proto.h"
 #endif
+
 
 /* Dynamic SQL Error Status Block */
 
@@ -194,6 +199,7 @@ typedef struct dbb {			/* Database Block */
 #define DBB_no_charset	0x4
 #define DBB_read_only	0x8
 
+
 typedef struct dsql_rel {			/* Relation block */
     struct blk		rel_header;
     struct dsql_rel 	*rel_next;		/* Next relation in database */
@@ -212,7 +218,9 @@ typedef struct dsql_rel {			/* Relation block */
 
 #define REL_new_relation	1	/* relation is newly defined, not committed yet */
 #define REL_dropped		2	/* relation has been dropped */
-       
+#define REL_view	4	/* relation is a view */
+
+
 typedef struct fld {			/* Field block */
     struct blk	fld_header;
     struct fld	*fld_next;		/* Next field in relation */
@@ -538,18 +546,27 @@ typedef struct tsql {
 #endif
 
 #define GET_THREAD_DATA	((TSQL) THD_get_specific())
-
+
 #ifndef SHLIB_DEFS
 #ifdef DSQL_MAIN
 PLB		DSQL_permanent_pool;
 int		DSQL_debug;
-#else
-extern PLB	DSQL_permanent_pool;
-extern int	DSQL_debug;
+#if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
+FILE		*redirected_output;
 #endif
 #else
 extern PLB	DSQL_permanent_pool;
 extern int	DSQL_debug;
+#if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
+extern FILE	*redirected_output;
+#endif
+#endif
+#else
+extern PLB	DSQL_permanent_pool;
+extern int	DSQL_debug;
+#if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
+extern FILE	*redirected_output;
+#endif
 #endif
 
 

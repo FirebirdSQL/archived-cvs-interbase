@@ -54,6 +54,7 @@ extern SLONG		MET_lookup_exception_number (TDBB,
 extern int		MET_lookup_field (TDBB, struct rel *, TEXT *);
 extern BLF		MET_lookup_filter (TDBB, SSHORT, SSHORT);
 extern SLONG		MET_lookup_generator (TDBB, TEXT *);
+extern void		MET_lookup_generator_id (TDBB, SLONG, TEXT *);
 extern void		DLL_EXPORT MET_lookup_index (TDBB, TEXT *, TEXT *, USHORT);
 extern SLONG		MET_lookup_index_name (TDBB, TEXT *, SLONG *, SSHORT *);
 extern int		MET_lookup_partner (TDBB, struct rel *, struct idx *, UCHAR *);

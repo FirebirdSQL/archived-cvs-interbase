@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.6.23 Claudio Valderrama: Add obj_generator and obj_udf.
  */
 
 #ifndef _JRD_OBJ_H_
@@ -41,5 +42,7 @@
 #define obj_count               11
 #define obj_user_group          12
 #define obj_sql_role            13
+#define obj_generator		14
+#define obj_udf			15
 
 #endif /* _JRD_OBJ_H_ */
