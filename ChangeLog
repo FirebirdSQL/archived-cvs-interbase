@@ -1,3 +1,81 @@
+2002-03-18 11:00  paul_reeves
+
+	* interbase/this_build (1.804):
+	
+	inc_build_no
+
+2002-03-18 11:00  paul_reeves
+
+	* interbase/FB_Build_Win32_Build_No.bat (1.8):
+	
+	FB_Build_Win32_Build_no.bat - Set BUILD_TYPE to V
+
+2002-03-18 10:35  paul_reeves
+
+	* interbase/this_build (1.803):
+	
+	inc_build_no
+
+2002-03-18 10:35  paul_reeves
+
+	* interbase/builds_win32/install/: FirebirdInstall.iss (1.5),
+	Readme.txt (1.4):
+	
+	Win32 install script and readme for Fb1.0 final
+
+2002-03-18 08:38  robocop
+
+	* interbase/this_build (1.802):
+	
+	inc_build_no
+
+2002-03-18 08:38  robocop
+
+	* interbase/jrd/cmp.c (1.16):
+	
+	Change the limit for concatenation to 64K-1 but open the engine to
+	some weird behavior due to inconsistencies between JRD and DSQL. 
+	The range 32K-64K-1 is not safe.
+
+2002-03-17 21:11  fsg
+
+	* interbase/gpre/: cob.c (1.8), gpre.c (1.6):
+	
+	Fixed some bugs reported by Andrew Cameron SF No. 526204 fsg
+
+2002-03-17 21:11  fsg
+
+	* interbase/this_build (1.801):
+	
+	inc_build_no
+
+2002-03-16 10:00  robocop
+
+	* interbase/this_build (1.800):
+	
+	inc_build_no
+
+2002-03-16 10:00  robocop
+
+	* interbase/dsql/: parse.c (1.25), parse.y (1.24), pass1.c (1.35):
+	
+	Overcome a bug in legacy IBO applications, without opening the gate
+	to several ill-formed statements, some of which kill the engine,
+	some of which produce unmeaningful error messages and the rest
+	produce wrong results.
+
+2002-03-15 19:54  tmcsys
+
+	* interbase/this_build (1.799):
+	
+	inc_build_no
+
+2002-03-11 15:45  fsg
+
+	* interbase/this_build (1.798):
+	
+	inc_build_no
+
 2002-03-10 18:18  nmcc
 
 	* interbase/dsql/pass1.c (1.34):
