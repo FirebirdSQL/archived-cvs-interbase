@@ -61,10 +61,10 @@ define index RDB$INDEX_0 for RDB$RELATIONS unique
 
 
 /*
-define index RDB$INDEX_1 for RDB$RELATIONS 
+define index RDB$INDEX_1 for RDB$RELATIONS unique
 	RDB$RELATION_ID;
 */
-    INDEX (1, ODS_8_0, rel_relations, 0, 1)
+    INDEX (1, ODS_8_0, rel_relations, idx_unique, 1)
     	SEGMENT (f_rel_id, idx_numeric)		/* relation id */
     }},
 
@@ -178,10 +178,10 @@ define index RDB$INDEX_13 for RDB$REF_CONSTRAINTS unique
 
 
 /*
-define index RDB$INDEX_14 for RDB$CHECK_CONSTRAINTS 
+define index RDB$INDEX_14 for RDB$CHECK_CONSTRAINTS unique
 	RDB$CONSTRAINT_NAME;
 */
-    INDEX (14, ODS_8_0, rel_ccon, 0, 1)
+    INDEX (14, ODS_8_0, rel_ccon, idx_unique, 1)
 	SEGMENT (f_ccon_cname, idx_metadata)   	/* constraint name */
     }},
 
@@ -198,11 +198,11 @@ define index RDB$INDEX_15 for RDB$RELATION_FIELDS unique
 
 
 /*
-define index RDB$INDEX_16 for RDB$FORMATS 
+define index RDB$INDEX_16 for RDB$FORMATS unique
 	RDB$RELATION_ID,
 	RDB$FORMAT;
 */
-    INDEX (16, ODS_8_0, rel_formats, 0, 2)
+    INDEX (16, ODS_8_0, rel_formats, idx_unique, 2)
         SEGMENT (f_fmt_rid, idx_numeric),		/* relation id */
         SEGMENT (f_fmt_format, idx_numeric)		/* format id */
     }},
@@ -271,10 +271,10 @@ define index RDB$INDEX_21 for RDB$PROCEDURES unique
 
 
 /*
-define index RDB$INDEX_22 for RDB$PROCEDURES 
+define index RDB$INDEX_22 for RDB$PROCEDURES unique
 	RDB$PROCEDURE_ID;
 */
-    INDEX (22, ODS_8_0, rel_procedures, 0, 1)
+    INDEX (22, ODS_8_0, rel_procedures, idx_unique, 1)
 	SEGMENT (f_prc_id, idx_numeric)		/* procedure id */
     }},
 
@@ -289,10 +289,10 @@ define index RDB$INDEX_23 for RDB$EXCEPTIONS unique
 
 
 /*
-define index RDB$INDEX_24 for RDB$EXCEPTIONS 
+define index RDB$INDEX_24 for RDB$EXCEPTIONS idx_unique
 	RDB$EXCEPTION_NUMBER;
 */
-    INDEX (24, ODS_8_0, rel_exceptions, 0, 1)
+    INDEX (24, ODS_8_0, rel_exceptions, idx_unique, 1)
 	SEGMENT (f_xcp_number, idx_numeric)	/* exception number */
     }},
 
@@ -409,10 +409,10 @@ define index RDB$INDEX_35 for RDB$TRIGGER_MESSAGES
 
 
 /*
-define index RDB$INDEX_36 for RDB$FIELD_DIMENSIONS 
+define index RDB$INDEX_36 for RDB$FIELD_DIMENSIONS unique
 	RDB$FIELD_NAME;
 */
-    INDEX (36, ODS_8_1, rel_dims, 0, 1)
+    INDEX (36, ODS_8_1, rel_dims, idx_unique, 1)
 	SEGMENT (f_dims_fname, idx_metadata)	/* array name */
     }},
 
