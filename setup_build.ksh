@@ -13,10 +13,19 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): ______________________________________.
+# Contributor(s):
+#	Reed Mideke <rfm@cruzers.com>
+#	______________________________________.
 ##########################################################################
 #set -x
-DB_PATH="toolsdbs:/dbs/source/v6.0" #path to look for db in .e files
+if [ "$1" = "" ] ; then
+	echo "syntax: setup_build.ksh {DB_PATH}"
+	echo "where {DB_PATH} is the root of a directory tree"
+	echo "which contains the build time database. DB_DIR may"
+	echo "include a server name. DB_DIR should not be the"
+	echo "source directory."
+fi
+DB_PATH="$1" #path to look for db in .e files
 OS_NAME="builds_win32" # directory for builds_win32 components
 #Components for refresh
 #note that outliner is a special case, see main loop
@@ -25,7 +34,7 @@ OS_NAME="builds_win32" # directory for builds_win32 components
 #if BITMAP is turned on, we copy svrmgr/*.bmp, svrmgr/*.ico svrmgr/outliner/*.bmp
 #and wisql/*.ico. if icons or bitmaps are added in other dirctories, they
 #should be added to the if bitmap section.
-IB_COMPONENTS="alice burp dsql dudley example5 extlib gpre intl ipserver isql iscguard jrd lock msgs qli remote register utilities wal"
+IB_COMPONENTS="alice burp dsql dudley example5 extlib gpre intl ipserver isql iscguard jrd lock msgs qli remote utilities wal"
 #Files to use from BUILD component
 #Components for marion to extract without headers
 NO_HEADER_COMPS="examples example5"
@@ -33,6 +42,8 @@ NO_HEADER_COMPS="examples example5"
 cd builds_win32/original
 
     echo Delivering files from builds_win32/original
+	echo Setting Database directory in include.mak
+    sed 's@$(DB_DIR)@'${DB_PATH}@ include.mak > ../../include.mak
     #build expand_dbs.bat and compress_dbs.bat in root build dir
     echo CREATING expand_dbs and compress_dbs
     sed 's/$(SYSTEM)/'builds_win32/ expand_dbs.bat > ../../expand_dbs.bat
@@ -43,11 +54,14 @@ cd builds_win32/original
     #check if user wants local metadata database
     sed 's@$(DB_DIR)@'${DB_PATH}@ expand_local.sed > ../expand.sed
     sed 's@$(DB_DIR)@'${DB_PATH}@ compress_local.sed > ../compress.sed
+	# TODO this should move to buildRefDatabases later
     echo Creating local METADATA.GDB for GPRE, also known as yachts.gdb
-    isql -i metadata.sql
+	cd ..
+    isql -i original/metadata.sql
+	cd original
 
     echo DELIVERING ROOT BUILD FILES
-    cp build_lib.bat include.mak std.mk ../..
+    cp build_lib.bat std.mk ../..
     echo DELIVERING MISC FILES
     cp gdsalias.asm ../../jrd
     cp gdsintl.bind ../../intl/gdsintl.bind
@@ -58,7 +72,6 @@ cd builds_win32/original
     cp depends_mak.bat ../..
     cp build_no.ksh ../..
     cp debug_entry.bind ../../jrd
-    cp iblicen.bind     ../../register/iblicen.bind
     cp ib_udf.bind     ../../extlib/ib_udf.bind
     cp ib_util.bind     ../../extlib/ib_util.bind
     echo DELIVERING '*template.bat' FILES
