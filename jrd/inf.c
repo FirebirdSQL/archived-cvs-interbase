@@ -1226,7 +1226,7 @@ p = buffer;
 end = p + length - 6;
 
 for (relation_id = 0, ptr = vector->vcl_long;
-     relation_id < vector->vcl_count && buffer < end; ++relation_id)
+     relation_id < vector->vcl_count && p < end; ++relation_id)
     if (n = *ptr++)
 	{
 	STUFF_WORD (p, relation_id);
