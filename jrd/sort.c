@@ -83,6 +83,8 @@ extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
  --------------------------------------------------*/
 #define MAX_TEMPFILE_SIZE       1900000000
 
+#include <windows.h>
+
 #define DIFF_LONGS(a,b)         ((a) - (b))
 #define SWAP_LONGS(a,b,t)       {t=a; a=b; b=t;}
 
@@ -1390,16 +1392,16 @@ while (length)
                 write_len = write (sfb->sfb_file, address + write_len,
                                    len - write_len);
             if ((SSHORT) write_len == -1 && !SYSCALL_INTERRUPTED(errno))
-	        {
-		THREAD_ENTER;
-                SORT_error (status_vector, sfb, "write", isc_io_write_err, errno);
-                }
+	          {
+             THREAD_ENTER;
+             SORT_error (status_vector, sfb, "write", isc_io_write_err, errno);
+             }
             }
-	}
+	    }
 
     if (i == IO_RETRY)
 	{
-	THREAD_ENTER;
+   THREAD_ENTER;
 	SORT_error (status_vector, sfb, "write", isc_io_write_err, errno);
 	}
     length -= write_len;
@@ -1885,16 +1887,15 @@ file_name [0] = '\0';
 for (sfb_ptr = &scb->scb_sfb; sfb = *sfb_ptr; sfb_ptr = &sfb->sfb_next)
     {
     for (ptr = &sfb->sfb_file_space; space = *ptr; ptr = &(*ptr)->wfs_next)
-	{
-	/* if this is smaller than our previous best, use it */
+	  {
+	  /* if this is smaller than our previous best, use it */
 
-	if (space->wfs_size >= size &&
-	    (!best || (space->wfs_size < (*best)->wfs_size)) )
+	  if (space->wfs_size >= size && (!best || (space->wfs_size < (*best)->wfs_size)) )
 	    {
 	    best = ptr;
 	    best_sfb = sfb;
 	    }
-	}
+	  }
 
     /* Save the previous sfb pointer because when we get out of this
        for loop, sfb would be a NULL pointer. */
@@ -1904,51 +1905,56 @@ for (sfb_ptr = &scb->scb_sfb; sfb = *sfb_ptr; sfb_ptr = &sfb->sfb_next)
 sfb = last_sfb;
 
 /* If we didn't find any space, allocate it at the end of the file. */
-
 if (!best)
     {
     /* if there is no file allocated yet or the size requested is bigger
        than available space in the current directory, create a new file
        and return. */
 
-
     /* -----------------2001-09-24 --------------------
       SJL - Temporary fix for large sort file bug
      --------------------------------------------------*/
-    if (!sfb || !DLS_get_temp_space(size, sfb) || ((scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )
+    if ( (!sfb || !DLS_get_temp_space(size, sfb)) || ((sfb->sfb_file_size + size) >= MAX_TEMPFILE_SIZE) )
+    /* Mike Grover */
+    /*if (!sfb || !DLS_get_temp_space(size, sfb) || ((scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )*/
+    {
+    sfb = (SFB) alloc (scb, (ULONG) sizeof (struct sfb));
+	 /* FREE: scb_sfb chain is freed in local_fini() */
 
-	{
-	sfb = (SFB) alloc (scb, (ULONG) sizeof (struct sfb));
-	/* FREE: scb_sfb chain is freed in local_fini() */
 
-	if (last_sfb)
-	    last_sfb->sfb_next = sfb;
-	else
-	    scb->scb_sfb = sfb;
+    /* Is the last DLS at it's size limit? */
+    /* If so, Add a new DLS dir   M.E.G       */
+    if (last_sfb && last_sfb->sfb_dls->dls_inuse + size >= MAX_TEMPFILE_SIZE)
+     if(!DLS_add_dir(MAX_TEMPFILE_SIZE, last_sfb->sfb_dls->dls_directory))
+      error_memory(scb);
 
-        /* Find a free space */
 
-        sfb->sfb_dls = NULL;
-        if (!DLS_get_temp_space(size, sfb))
-            /* There is not enough space */
-            error_memory(scb);
+	 if (last_sfb)
+	   last_sfb->sfb_next = sfb;
+	 else
+	   scb->scb_sfb = sfb;
 
-	/* Create a scratch file */
+     /* Find a free space */
+     sfb->sfb_dls = NULL;
+      if (!DLS_get_temp_space(size, sfb))
+        error_memory(scb);
 
-	sfb->sfb_file = (int) gds__tmp_file2 (FALSE, SCRATCH, file_name, sfb->sfb_dls->dls_directory);
+	 /* Create a scratch file */
+    sfb->sfb_file = (int) gds__tmp_file2 (FALSE, SCRATCH, file_name, sfb->sfb_dls->dls_directory);
 
-	/* allocate the file name even if the file is not open,
-	   because the error routine depends on it
-	   This is released during local_fini(). */
+	 /* allocate the file name even if the file is not open,
+	    because the error routine depends on it
+	    This is released during local_fini(). */
 
-	sfb->sfb_file_name = (TEXT *) alloc (scb, (ULONG) (strlen (file_name) + 1));
-	/* FREE: sfb_file_name is freed in local_fini() */
+	 sfb->sfb_file_name = (TEXT *) alloc (scb, (ULONG) (strlen (file_name) + 1));
+	 /* FREE: sfb_file_name is freed in local_fini() */
 
-	strcpy (sfb->sfb_file_name, file_name);
+	 strcpy (sfb->sfb_file_name, file_name);
 
-	if (sfb->sfb_file == -1)
+	 if (sfb->sfb_file == -1)
 	    SORT_error (scb->scb_status_vector, sfb, "open", isc_io_open_err, errno);
-	}
+	 }
+
 
     *ret_sfb = sfb;
     sfb->sfb_file_size += size;
@@ -1977,6 +1983,7 @@ space->wfs_size -= size;
 
 return space->wfs_position + space->wfs_size;
 }
+
 
 static void free_file_space (
     SCB         scb,

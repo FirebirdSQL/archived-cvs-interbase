@@ -1,7 +1,6 @@
 
 ==================================
-Firebird 1.0.0 Release Candidate 2
-         (Win32 Build)
+Firebird 1.0.0       (Win32 Build)
 ==================================
 
 
@@ -16,7 +15,7 @@ o Requesting New Features
 Introduction
 ============
 
-Welcome to Firebird 1.0.0 RC2. This represents a feature complete
+Welcome to Firebird 1.0.0. This represents a feature complete
 build of Firebird 1.0. It is the product of many months work by the 
 Firebird team. See the Release Notes document for details of al the 
 new features and the bug-fixes it contains. 

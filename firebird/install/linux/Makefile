@@ -30,7 +30,7 @@ BuildNum=$(shell cat this_build)
 64IO=$(shell cat jrd/64bitio.h)
 64IOTAG=$(shell if [ -z "$(64IO)" ]; then echo ""; else echo ".64IO"; fi )
 BuildVersion=1.0.0.$(BuildNum)
-PackageVersion=0.RC2$(64IOTAG)
+PackageVersion=0$(64IOTAG)
 Version=$(BuildVersion)-$(PackageVersion)
 
 ClassicTarDir=FirebirdCS-$(Version)

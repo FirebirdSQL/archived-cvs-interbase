@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
+ * 01-Feb-2002 Paul Reeves: Removed hard-coded registry path
+ *
  */
 
 #include "../jrd/ib_stdio.h"
@@ -28,6 +31,7 @@
 #include "../jrd/license.h"
 #include "../utilities/install_nt.h"
 #include "../utilities/regis_proto.h"
+#include "../utilities/registry.h"
 
 static USHORT	remove_subkeys (HKEY, USHORT, USHORT (*)());
 
@@ -53,7 +57,8 @@ USHORT	len;
 SLONG	status;
 
 if ((status = RegCreateKeyEx (hkey_node,
-	"SOFTWARE\\Borland\\InterBase\\CurrentVersion",
+	/* "SOFTWARE\\Borland\\InterBase\\CurrentVersion",*/
+	REG_KEY_ROOT_CUR_VER,
 	0,
 	"",
 	REG_OPTION_NON_VOLATILE,
@@ -83,6 +88,26 @@ if ((status = RegSetValueEx (hkey_kit, "RootDirectory", 0,
     return FAILURE;
     }
 
+/* We might as well add ServerDirectory here */
+strcat(path_name,"\\bin");
+len = GetFullPathName (path_name, sizeof (path_name), path_name, &p);
+if (len && path_name [len - 1] != '/' && path_name [len - 1] != '\\')
+    {
+    path_name [len++] = '\\';
+    path_name [len] = 0;
+    }
+
+if ((status = RegSetValueEx (hkey_kit, "ServerDirectory", 0,
+	REG_SZ, path_name, (DWORD) (len + 1))) != ERROR_SUCCESS )
+    {
+    (*err_handler) (status, "RegSetValueEx", hkey_kit);
+    if (disp == REG_CREATED_NEW_KEY)
+	REGISTRY_remove (hkey_node, TRUE, err_handler);
+    return FAILURE;
+    }
+
+
+
 RegCloseKey (hkey_kit);
 
 return SUCCESS;
@@ -108,7 +133,8 @@ USHORT	ret;
 SLONG	status;
 
 if ((status = RegOpenKeyEx (hkey_node,
-	"SOFTWARE\\Borland\\InterBase",
+/*	"SOFTWARE\\Borland\\InterBase",*/
+	REG_KEY_ROOT,
 	0, KEY_ENUMERATE_SUB_KEYS | KEY_QUERY_VALUE | KEY_WRITE,
 	&hkey_kit)) != ERROR_SUCCESS)
     {
@@ -124,7 +150,8 @@ RegCloseKey (hkey_kit);
 if (ret == FAILURE)
     return FAILURE;
 
-if (status = RegDeleteKey (hkey_node, "SOFTWARE\\Borland\\InterBase"))
+/*if (status = RegDeleteKey (hkey_node, "SOFTWARE\\Borland\\InterBase"))*/
+if (status = RegDeleteKey (hkey_node, REG_KEY_ROOT))
     {
     if (silent_flag)
 	return FAILURE;
@@ -216,3 +243,5 @@ if (p)
 
 return SUCCESS;
 }
+
+

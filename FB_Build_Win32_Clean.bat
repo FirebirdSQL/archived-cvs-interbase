@@ -23,13 +23,21 @@
 :: 
 :: This script originally built by Paul Reeves 13-Apr-2001
 ::
-:: Last updated by Paul Reeves 01-Nov-2001
+:: Change History
+:: 10-Dec-2001  Added code to clean out gpre generated files,            PR
+::              .rsp files, .gbk files in example5,
+::              msgs\interbase.msg.
+::
+
 
 if NOT "%1"=="do_it" goto :HELP
 
 echo Cleaning source tree ...
 
 set IB_COMPONENTS=alice burp dsql dudley example5 extlib gpre intl ipserver isql iscguard jrd lock msgs qli remote utilities wal
+
+::Note: Dudley\ddl.c, expand.c, expr.c generate.c hsh.c lex.c parse.c trn.c
+::      are listed as dot_e_files in the Makefile for Dudley. They are NOT!
 
 for %%V in (%IB_COMPONENTS%) do (
   cd %%V
@@ -38,21 +46,44 @@ for %%V in (%IB_COMPONENTS%) do (
   del /q *.pdb
   del /q *.exe
   del /q *.gdb
+  del /q *.rsp
   del /q makefile.lib
-  rmdir /s /q MS_obj
+  del /q .cvsignore
+
+  (if "%%V"=="alice"     (del /q met.c ))
+  (if "%%V"=="burp"      (del /q backup.c restore.c burp.exe ))
+  (if "%%V"=="dsql"      (del /q array.c blob.c metd.c dot_e_files ))
+  (if "%%V"=="dudley"    (del /q exe.c extract.c dudley.exe ))
+  (if "%%V"=="example5"  (del /q *.gbk intlbld.c *.ilk dbs makefile.bc makefile.msc ))
+  (if "%%V"=="extlib"    (del /q *.bind ))
+
+  (if "%%V"=="gpre"      (del /q met.c gpre.exe ))
+  (if "%%V"=="isql"      (del /q extract.c isql.c show.c isql.exe ))
+  (if "%%V"=="iscguard"  (del /q iscguard.exe ))
+  (if "%%V"=="intl"      (del /q gdsintl*.* ))
+
+  (if "%%V"=="jrd"       (del /q blf.c codes.c dfw.c dpm.c dyn.c dyn_def.c dyn_del.c dyn_mod.c dyn_util.c envelope.c fun.c grant.c ini.c met.c pcmet.c scl.c stats.c ))
+  (if "%%V"=="jrd"       (del /q debug_entry.bind dot_e_files gds.h gds32*.bind gdsalias.asm ibeng32*.bind))
+
+  (if "%%V"=="lock"      (del /q iblockpr.exe ))
+  (if "%%V"=="msgs"      (del /q build_file.c change_msgs.c check_msgs.c enter_msgs.c modify_msgs.c interbase.msg *.exe indicator.* ))
+  (if "%%V"=="qli"       (del /q help.c meta.c proc.c show.c qli.exe ))
+  (if "%%V"=="utilities" (del /q dba.c security.c dba.exe gsec.exe install_reg.exe install_svc.exe print_pool.exe ))
+  (if exist MS_obj\nul   (rmdir /s /q MS_obj))
   cd ..
   )
 
-rmdir /s /q interbase
-rmdir /s /q ib_debug
+if exist interbase\nul rmdir /s /q interbase
+if exist ib_debug\nul rmdir /s /q ib_debug
 
-del /q include.mak
-del /q compress_dbs.bat
-del /q expand_dbs.bat
+for %%V in ( include.mak compress_dbs.bat expand_dbs.bat expand_cfile.bat builds_win32\metadata.gdb) do (
+  echo Deleting %%V
+  if exist %%V del /q %%V
+  )
+
 del /q *template.bat
-del /q expand_cfile.bat
 del /q builds_win32\*.sed
-del /q builds_win32\metadata.gdb
+del /q std.mk
 
 (goto :EOF)
 
