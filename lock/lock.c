@@ -3024,7 +3024,7 @@ if (statistics (string, &stat_buf) == -1)
     return FALSE;
     }
 
-if (!(pid = vfork()))
+if (!(pid = fork()))
     {
     if (!vfork())
 	{
