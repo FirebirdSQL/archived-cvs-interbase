@@ -371,3 +371,9 @@ isc_encode_sql_date
 isc_encode_sql_time
 isc_encode_timestamp
 CVT_move
+isc_portable_integer
+DLS_add_dir
+isc_blob_display
+isc_blob_dump
+isc_blob_edit
+isc_blob_load
