@@ -1,6 +1,6 @@
---This file defines the new udfs for firebird.
+/*This file defines the new udfs for firebird.*/
 
---set sql dialect 3;
+set sql dialect 3;
 
 --FBUDF_API paramdsc* iNvl(paramdsc* v, paramdsc* v2)
 declare external function invl
@@ -99,7 +99,7 @@ returns timestamp
 entry_point 'addHour' module_name 'fbudf';
 
 --It will work only with Win32 until it's ported to another OS.
---FBUDF_API ISC_TIMESTAMP* getExactTimestamp(ISC_TIMESTAMP* rc);
+--FBUDF_API ISC_TIMESTAMP* getExactTimestamp(ISC_TIMESTAMP* rc)
 declare external function getExactTimestamp
 timestamp returns parameter 1
 entry_point 'getExactTimestamp' module_name 'fbudf';
