@@ -1,0 +1,54 @@
+/*
+**  Name:		bug_112177_02
+**  Series:		bugs
+**  Meta-Series:
+**  Dependencies:	None
+**  Description:	Invoke default values that include non-english
+**                      characters
+**
+**  Expected result:	ISQL shouldn't abort and second "select * ..."
+**                      should show six rows, not three.
+**                      The three additional rows should show the default
+**                      value from the table definition.
+**			
+**  Author:		Patrick J. P. Griffin
+**  Bugs:		[ Bug #112177 ] error with non-english column defaults
+**  Change history:
+**
+*/
+
+$ CREATE cf_test.sql
+set names win1251;
+create database "WHERE_GDB:cf.gdb";
+
+create table bug_bugbase ( 
+s varchar(20) character set win1251 default 'RôbértNélsôn' not null collate win1251,
+i smallint default '1234' not null
+); 
+
+insert into bug_bugbase (s) values('BruceNélsôn');
+insert into bug_bugbase (s) values('narf');
+insert into bug_bugbase (i) values(4321);
+
+exit;
+
+$ CREATE cf_test2.sql
+connect "WHERE_GDB:cf.gdb";
+select * from bug_bugbase;
+exit;
+
+$ CREATE cf_test3.sql
+connect "WHERE_GDB:cf.gdb";
+
+insert into bug_bugbase (i) values(1);
+insert into bug_bugbase (i) values(2);
+insert into bug_bugbase (i) values(3);
+
+exit;
+
+$ ISQL -m -input cf_test.sql
+$ ISQL -m -input cf_test2.sql
+$ ISQL -m -input cf_test3.sql
+$ ISQL -m -input cf_test2.sql
+$ RUN drop_gdb WHERE_GDB:cf.gdb
+$ DELETE cf_test.sql cf_test2.sql cf_test3.sql

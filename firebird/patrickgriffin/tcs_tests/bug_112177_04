@@ -1,0 +1,60 @@
+/*
+**  Name:		bug_112177_04
+**  Series:		bugs
+**  Meta-Series:
+**  Dependencies:	None
+**  Description:	Create a stored procedure that uses a national character set,
+**                      and then use it in an ISQL session using the NONE
+**                      character set.
+**
+**  Expected result:	"select * ..." should reflect that all names have been
+**                      changed to 'RôbértNélsôn'
+**			
+**  Author:		Patrick J. P. Griffin
+**  Bugs:		[ Bug #112177 ] error with non-english column defaults
+**  Change history:
+**
+*/
+
+$ CREATE cf_test.sql
+set names win1251;
+create database "WHERE_GDB:cf.gdb";
+
+create table bug_bugbase ( 
+s varchar(20) character set win1251 default 'RôbértNélsôn' not null collate win1251,
+i smallint default '1234' not null
+); 
+
+insert into bug_bugbase (s) values('BruceNélsôn');
+insert into bug_bugbase (s) values('narf');
+insert into bug_bugbase (i) values(4321);
+insert into bug_bugbase (i) values(1);
+insert into bug_bugbase (i) values(2);
+insert into bug_bugbase (i) values(3);
+
+set term !! ;
+create procedure alter_some_rows (i_value smallint)
+  as
+  begin
+    update bug_bugbase
+    set s = 'RôbértNélsôn'
+    where i = :i_value;
+  end !!
+set term ; !!
+exit;
+
+$ CREATE cf_test2.sql
+connect "WHERE_GDB:cf.gdb";
+execute procedure alter_some_rows 1234;
+exit;
+
+$ CREATE cf_test3.sql
+connect "WHERE_GDB:cf.gdb";
+select * from bug_bugbase;
+exit;
+
+$ ISQL -m -input cf_test.sql
+$ ISQL -m -input cf_test2.sql
+$ ISQL -m -input cf_test3.sql
+$ RUN drop_gdb WHERE_GDB:cf.gdb
+$ DELETE cf_test.sql cf_test2.sql cf_test3.sql
