@@ -424,8 +424,6 @@ tdsql = GET_THREAD_DATA;
 init = (init_flag == FALSE);
 if (!init_flag)
     {
-    init_flag = TRUE;
-
     pools = (VEC) temp_vector;
     pools->vec_count = 1;
     pools->vec_object [0] = NULL;
@@ -436,7 +434,10 @@ if (!init_flag)
 
     /* Note: ALLD_fini() assumes the this master pool is in vec_object [0] */
     pools->vec_object[0] = (BLK) pool;
+
+    init_flag = TRUE;
     }
+
 
 return init;
 }
@@ -473,11 +474,9 @@ if ((memory = gds__alloc ((SLONG) size)) != NULL)
 
 if (tdsql && tdsql->tsql_setjmp)
     ERRD_post (gds__sys_request, gds_arg_string, "gds__alloc", gds_arg_gds, gds__virmemexh, gds_arg_end);
+else if (tdsql)
+    IBERROR (-1, "out of memory");
 
-/* Commentary:  This expands out to a call to ERRD_error - which
- * promply depends on tdsql being non-NULL.  Knock, knock, anyone home?
- */
-IBERROR (-1, "out of memory");
 return ((UCHAR *) NULL);	/* Added to remove warnings */
 }
 
@@ -777,8 +776,8 @@ size = (size + sizeof (struct hnk) + MIN_ALLOCATION - 1) & ~((ULONG)MIN_ALLOCATI
 block = (BLK) ALLD_malloc (size);
 
 if (SIZE_TO_BLOCKS (size) > MAX_USHORT)
-    BUGCHECK ("too greedy in extend pool of alld.c")
-    ;
+    BUGCHECK ("too greedy in extend pool of alld.c");
+
 block->blk_length = (USHORT)SIZE_TO_BLOCKS (size);
 block->blk_type = (SCHAR) type_frb;
 

@@ -225,7 +225,9 @@ JMP_BUF		env;
 
 SET_THREAD_DATA;
 
-ERROR_INIT (env);
+
+ERROR_INIT(env);
+
 init (NULL_PTR);
 
 /* If we haven't been initialized yet, do it now */
@@ -850,8 +852,11 @@ SET_THREAD_DATA;
 ERROR_INIT (env);
 init (NULL_PTR);
 
-old_request = *req_handle;
-database = old_request->req_dbb;
+if (!(old_request = *req_handle) ||
+    !(database = old_request->req_dbb))
+    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -901,
+	gds_arg_gds, gds__bad_req_handle,
+	0);
 
 /* check to see if old request has an open cursor */
 
@@ -867,6 +872,8 @@ if (old_request && (old_request->req_flags & REQ_cursor_open))
    to prepare the new one. */
 /* It would be really *nice* to know *why* we want to
    keep the old request around -- 1994-October-27 David Schnepper */
+/* Because that's the client's allocated statement handle and we
+   don't want to trash the context in it -- 2001-Oct-27 Ann Harrison */
 
 tdsql->tsql_default = ALLD_pool();
 

@@ -103,15 +103,27 @@ void ERRD_error (
  *	so that strings will be handled.
  *
  **************************************/
-TEXT	s [256];
+TEXT	s [256], *p;
 TSQL	tdsql;
+STATUS	*status_vector;
 
 tdsql = GET_THREAD_DATA;
 
 sprintf (s, "** DSQL error: %s **\n", text);
 TRACE (s);
 
-LONGJMP (tdsql->tsql_setjmp, code);
+if (status_vector = tdsql->tsql_status)
+    {
+    *status_vector++ = gds_arg_gds;
+    *status_vector++ = gds__random;
+    *status_vector++ = gds_arg_cstring;
+    *status_vector++ = strlen (s);
+    *status_vector++ = s;
+    *status_vector++ = gds_arg_end;
+    }
+
+ERRD_punt();
+
 }
 
 BOOLEAN ERRD_post_warning (

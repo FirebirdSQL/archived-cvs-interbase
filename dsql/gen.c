@@ -631,7 +631,8 @@ else
 STUFF (blr_begin);
 
 if (request->req_type == REQ_SELECT ||
-    request->req_type == REQ_SELECT_UPD)
+    request->req_type == REQ_SELECT_UPD ||
+    request->req_type == REQ_EMBED_SELECT)
     gen_select (request, node);
 else
     {
