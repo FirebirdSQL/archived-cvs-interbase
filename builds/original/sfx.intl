@@ -69,7 +69,7 @@ INTL_DEST=	source/interbase/intl
 COMMON_INCLUDES =	\
 		ldcommon.h \
 		charsets.h country_codes.h \
-		langdrv.h ld.h undef.h \
+		langdrv.h ld.h collations/undef.h \
 		source/jrd/gdsassert.h source/jrd/intl.h \
 		source/jrd/intlobj.h source/jrd/jrd.h \
 		source/jrd/kanji.h source/jrd/ods.h \
@@ -177,26 +177,27 @@ gdsintl.a:	$(INTL_OBJECTS)
 	$(CHMOD) $(CHMOD_VAL) gdsintl.a
 
 cs_big5.o:	cs_big5.c	$(COMMON_INCLUDES) \
-		cs_big5.h
+		charsets/cs_big5.h
 	$(SPECIAL_OPT) $(COPT_INTL_CS_JIS) \
 	$(CC) -c $(INTL_CFLAGS) $(VERSION_FLAG) cs_big5.c
 cs_gb2312.o:	cs_gb2312.c	$(COMMON_INCLUDES) \
-		cs_gb2312.h
+		charsets/cs_gb2312.h
 	$(SPECIAL_OPT) $(COPT_INTL_CS_JIS) \
 	$(CC) -c $(INTL_CFLAGS) $(VERSION_FLAG) cs_gb2312.c
 cs_jis.o:	cs_jis.c	$(COMMON_INCLUDES) \
-		cs_jis_0208_1990.h
+		charsets/cs_jis_0208_1990.h
 	$(SPECIAL_OPT) $(COPT_INTL_CS_JIS) \
 	$(CC) -c $(INTL_CFLAGS) $(VERSION_FLAG) cs_jis.c
 cs_ksc.o:	cs_ksc.c	$(COMMON_INCLUDES) \
-		cs_ksc5601.h
+		charsets/cs_ksc5601.h
 	$(SPECIAL_OPT) $(COPT_INTL_CS_JIS) \
 	$(CC) -c $(INTL_CFLAGS) $(VERSION_FLAG) cs_ksc.c
 cs_narrow.o:	cs_narrow.c	$(COMMON_INCLUDES) \
-		cs_437.h cs_850.h cs_852.h cs_857.h cs_860.h \
-		cs_861.h cs_863.h cs_865.h cs_cyrl.h cs_latin1.h cs_latin2.h \
-		cs_w1250.h cs_w1251.h cs_w1252.h cs_w1253.h \
-		cs_w1254.h cs_next.h
+		charsets/cs_437.h charsets/cs_850.h charsets/cs_852.h charsets/cs_857.h \
+		charsets/cs_860.h charsets/cs_861.h charsets/cs_863.h charsets/cs_865.h \
+		charsets/cs_cyrl.h charsets/cs_latin1.h charsets/cs_latin2.h \
+		charsets/cs_w1250.h charsets/cs_w1251.h charsets/cs_w1252.h \
+		charsets/cs_w1253.h charsets/cs_w1254.h charsets/cs_next.h
 cs_unicode.o:	cs_unicode.c	$(COMMON_INCLUDES)
 cs_utffss.o:	cs_utffss.c	$(COMMON_INCLUDES)
 cv_big5.o:	cv_big5.c	$(COMMON_INCLUDES)
@@ -204,21 +205,26 @@ cv_gb2312.o:	cv_gb2312.c	$(COMMON_INCLUDES)
 cv_jis.o:	cv_jis.c	$(COMMON_INCLUDES)
 cv_ksc.o:	cv_ksc.c	$(COMMON_INCLUDES)
 cv_narrow.o:	cv_narrow.c	$(COMMON_INCLUDES) \
-		tx437_865.h tx437_lat1.h tx865_lat1.h
+		conversions/tx437_865.h conversions/tx437_lat1.h conversions/tx865_lat1.h
 lc_ascii.o:	lc_ascii.c	$(COMMON_INCLUDES)
 lc_big5.o:	lc_big5.c	$(COMMON_INCLUDES) \
 		source/jrd/license.h
 lc_dos.o:	lc_dos.c	$(COMMON_INCLUDES) \
-		nordan40.h swedfin.h intl.h	   \
-		db437de0.h db437es1.h db437fi0.h db437fr0.h \
-		db437it0.h db437nl0.h db437sv0.h db437uk0.h \
-		db437us0.h db850cf0.h db850de0.h db850es0.h \
-		db850fr0.h db850it1.h db850nl0.h db850pt0.h \
-		db850sv1.h db850uk0.h db850us0.h db865da0.h \
-		db865no0.h db852cz0.h db852po0.h db852hdc.h \
-		db852sl0.h czech.h polish.h hun852dc.h	\
-		slovene.h db857tr0.h turk.h db860pt0.h	\
-		iceland.h db863cf1.h db866ru0.h cyrr.h
+		collations/db437de0.h collations/db437es1.h collations/db437fi0.h \
+		collations/db437fr0.h collations/db437it0.h collations/db437nl0.h \
+		collations/db437sv0.h collations/db437uk0.h collations/db437us0.h \
+		collations/db850cf0.h collations/db850de0.h collations/db850es0.h \
+		collations/db850fr0.h collations/db850it1.h collations/db850nl0.h \
+		collations/db850pt0.h collations/db850sv1.h collations/db850uk0.h \
+		collations/db850us0.h collations/db865da0.h collations/db865no0.h \
+		collations/db852cz0.h collations/db852po0.h collations/db852hdc.h \
+		collations/db852sl0.h \
+		collations/pd437swedfin.h collations/pd437intl.h \
+		collations/pd852czech.h collations/pd852polish.h \
+		collations/pd852hundc.h collations/pd852slovene.h collations/db857tr0.h \
+		collations/pd857turk.h collations/db860pt0.h collations/pd861iceland.h \
+		collations/db863cf1.h collations/pd865nordan40.h \
+		collations/db866ru0.h collations/pd866cyrr.h
 lc_gb2312.o:	lc_gb2312.c	$(COMMON_INCLUDES) \
 		source/jrd/license.h
 lc_jis.o:	lc_jis.c	$(COMMON_INCLUDES) \
@@ -226,15 +232,18 @@ lc_jis.o:	lc_jis.c	$(COMMON_INCLUDES) \
 lc_ksc.o:	lc_ksc.c	$(COMMON_INCLUDES) \
 		source/jrd/license.h
 lc_latin1.o:	lc_latin1.c	$(COMMON_INCLUDES) \
-		bllt1ca0.h bllt1da0.h bllt1de0.h bllt1es0.h \
-		bllt1fi0.h bllt1fr0.h bllt1is0.h bllt1it0.h \
-		bllt1nl0.h bllt1no0.h bllt1pt0.h bllt1sv0.h \
-		bllt1uk0.h bllt1us0.h anczech.h anhun.h \
-		anhundc.h anpolish.h ansislov.h ancyrr.h \
-		ansiintl.h ansii850.h ansinor4.h ansispan.h \
-		ansiswfn.h angreek1.h anturk.h blnxtus0.h \
-		blnxtde0.h blnxtfr0.h blnxtit0.h
-lc_latin2.o:    lc_latin2.c $(COMMON_INCLUDES) lt2czech.h
+		collations/bl88591ca0.h collations/bl88591da0.h collations/bl88591de0.h \
+		collations/bl88591es0.h collations/bl88591fi0.h collations/bl88591fr0.h \
+		collations/bl88591is0.h collations/bl88591it0.h collations/bl88591nl0.h \
+		collations/bl88591no0.h collations/bl88591pt0.h collations/bl88591sv0.h \
+		collations/bl88591uk0.h collations/bl88591us0.h collations/pw1250czech.h \
+		collations/pw1250hun.h collations/pw1250hundc.h collations/pw1250polish.h \
+		collations/pw1250slov.h collations/pw1251cyrr.h collations/pw1252intl.h \
+		collations/pw1252i850.h collations/pw1252nor4.h collations/pw1252span.h \
+		collations/pw1252swfn.h collations/pw1253greek1.h collations/pw1254turk.h \
+		collations/blNEXTus0.h collations/blNEXTde0.h collations/blNEXTfr0.h \
+		collations/blNEXTit0.h
+lc_latin2.o:    lc_latin2.c $(COMMON_INCLUDES) collations/xx88592czech.h
 lc_narrow.o:	lc_narrow.c	$(COMMON_INCLUDES)
 lc_unicode.o:	lc_unicode.c	$(COMMON_INCLUDES)
 ld.o:		ld.c		$(COMMON_INCLUDES)
