@@ -3992,5 +3992,18 @@ else
 if (req_handle1)
     isc_release_request (req_status, &req_handle1);
 
+/* get the value of the generator RDB$SECURITY which generates
+   names for RDB$SECURITY_CLASS in RDB$FIELDS.  This is done
+   here, rather than with the other generators because in 
+   general system generators are not backed up. */
+
+PUT (rec_generator);
+PUT_TEXT (att_gen_generator, "RDB$SECURITY");
+value = get_gen_id ("RDB$SECURITY");
+PUT_INT64 (att_gen_value_int64, value);
+PUT (att_end);
+BURP_verbose (165, "RDB$SECURITY", (void*) value, NULL, NULL, NULL);
+/* msg 165 writing generator %s value %ld */
+
 
 }

@@ -900,21 +900,25 @@ FOR (REQUEST_HANDLE request)
 	strcpy (s_class, FLD.RDB$SECURITY_CLASS);
 	if (!s_class [0])
 	    {
-	    /* We should never get here (I think) because this
-	       value is set by dyn.e when the rdb$user_privileges
-	       record is stored.  There's also a before store trigger
-	       on rdb$user_privileges, but it isn't so smart.  -- AWH
-	     */
-		    
-	    sprintf (s_class, "%s%" QUADFORMAT "d\0", "SQL$GRANT", 
-		DPM_gen_id (tdbb, MET_lookup_generator (tdbb, "RDB$SECURITY_CLASS"), 
-					 0, (SINT64) 1));
-
+	    /* There is no security class name for this field, then make one.
+	       Note that the field security class name is set here and in the
+	       pre-store trigger for rdb$user_privileges.  This field security
+	       class name is removed in the pre erase trigger for
+	       rdb$user_privileges. */
 	    FOR (REQUEST_HANDLE request2)
 		FLD2 IN RDB$RELATION_FIELDS WITH
 		FLD2.RDB$RELATION_NAME EQ FLD.RDB$RELATION_NAME
 		AND FLD2.RDB$FIELD_NAME EQ FLD.RDB$FIELD_NAME
 		MODIFY FLD2
+#ifndef EXACT_NUMERICS
+    		    sprintf (s_class, "%s%ld\0", "SQL$GRANT", 
+			     DPM_gen_id (tdbb, MET_lookup_generator (tdbb, "RDB$SECURITY_CLASS"), 
+					 0, (SLONG) 1));
+#else
+    		    sprintf (s_class, "%s%" QUADFORMAT "d\0", "SQL$GRANT", 
+			     DPM_gen_id (tdbb, MET_lookup_generator (tdbb, "RDB$SECURITY_CLASS"), 
+					 0, (SINT64) 1));
+#endif
 	    	    jrd_vtof (s_class, FLD2.RDB$SECURITY_CLASS, sizeof (FLD2.RDB$SECURITY_CLASS));
 		END_MODIFY;
 	    END_FOR;

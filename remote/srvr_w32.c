@@ -163,14 +163,23 @@ int	nReturnValue = 0;
 
 hInst = hThisInst;
 
-/* Mike Nordell - 11 Jun 2001: CPU affinity. */
-ISC_get_config (LOCK_HEADER, CPU_affinity_setting);
-SetProcessAffinityMask (GetCurrentProcess (), (DWORD) g_CPU_affinity_mask);
-
 if (ISC_get_ostype()) /* True - NT, False - Win95 */
-    server_flag = (SRVR_multi_client);
+{
+	 /* CVC: This operating system call doesn't exist for W9x. */
+	 BOOL (*SetProcessAffinityMask)(HANDLE, DWORD);
+
+	 server_flag = (SRVR_multi_client);
+	 (FARPROC)SetProcessAffinityMask =
+		GetProcAddress(GetModuleHandle("KERNEL32.DLL"), "SetProcessAffinityMask");
+	 if (SetProcessAffinityMask)
+	 {
+		  /* Mike Nordell - 11 Jun 2001: CPU affinity. */
+		  ISC_get_config (LOCK_HEADER, CPU_affinity_setting);
+		  (*SetProcessAffinityMask) (GetCurrentProcess (), (DWORD) g_CPU_affinity_mask);
+	 }
+}
 else
-    server_flag = (SRVR_multi_client | SRVR_non_service);
+	 server_flag = (SRVR_multi_client | SRVR_non_service);
 
 gds__thread_enable(-1);
 
@@ -180,54 +189,54 @@ protocol_wnet [0] = 0;
 connection_handle = parse_args(lpszArgs, &server_flag);
 
 if (ISC_get_ostype()) /* True - NT, False - Win95 */
-    server_flag |= (SRVR_inet | SRVR_pipe);
+	 server_flag |= (SRVR_inet | SRVR_pipe);
 else
-    server_flag |= SRVR_inet;
+	 server_flag |= SRVR_inet;
 
 server_flag |= SRVR_ipc;
 
 /* Initialize the service and
-   Setup sig_mutex for the process
+	Setup sig_mutex for the process
 */
 ISC_signal_init ();
 ISC_enter();
 if (!(server_flag & SRVR_non_service))
-    {
-    CNTL_init ((FPTR_VOID) start_connections_thread, REMOTE_SERVICE);
-    if (!StartServiceCtrlDispatcher (service_table))
+	 {
+	 CNTL_init ((FPTR_VOID) start_connections_thread, REMOTE_SERVICE);
+	 if (!StartServiceCtrlDispatcher (service_table))
 	{
 	if (GetLastError() != ERROR_CALL_NOT_IMPLEMENTED) {
-	    CNTL_shutdown_service ("StartServiceCtrlDispatcher failed");
+		 CNTL_shutdown_service ("StartServiceCtrlDispatcher failed");
 	}
 	server_flag |= SRVR_non_service;
 	}
-    }
+	 }
 else
-    {
-    if ((server_flag & SRVR_inet) &&
-        ((server_flag & SRVR_pipe) || (server_flag & SRVR_non_service)))
-    {
-        gds__thread_start ((FPTR_INT) inet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
-    }
+	 {
+	 if ((server_flag & SRVR_inet) &&
+		  ((server_flag & SRVR_pipe) || (server_flag & SRVR_non_service)))
+	 {
+		  gds__thread_start ((FPTR_INT) inet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
+	 }
 
-    if ((server_flag & SRVR_pipe) && (server_flag & SRVR_non_service)) {
-        gds__thread_start ((FPTR_INT) wnet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
-    }
+	 if ((server_flag & SRVR_pipe) && (server_flag & SRVR_non_service)) {
+		  gds__thread_start ((FPTR_INT) wnet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
+	 }
 
-    /* No need to waste a thread if we are running as a window.  Just start
-     * the ipc communication
-     */
-        if (server_flag & SRVR_non_service) {
-            nReturnValue = WINDOW_main(hThisInst, nWndMode, server_flag);
-        }
-    }
+	 /* No need to waste a thread if we are running as a window.  Just start
+	  * the ipc communication
+	  */
+		  if (server_flag & SRVR_non_service) {
+				nReturnValue = WINDOW_main(hThisInst, nWndMode, server_flag);
+		  }
+	 }
 
 return nReturnValue;
 }
 
 #ifdef  XNET
-ULONG   SRVR_xnet_start_thread ( 
-    ULONG       client_pid)
+ULONG   SRVR_xnet_start_thread (
+	 ULONG       client_pid)
 {
 /**************************************
  *
