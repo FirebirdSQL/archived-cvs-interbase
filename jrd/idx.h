@@ -202,11 +202,11 @@ define index RDB$INDEX_15 for RDB$RELATION_FIELDS unique
 
 
 /*
-define index RDB$INDEX_16 for RDB$FORMATS unique
+define index RDB$INDEX_16 for RDB$FORMATS
 	RDB$RELATION_ID,
 	RDB$FORMAT;
 */
-    INDEX (16, ODS_8_0, rel_formats, idx_unique, 2)
+    INDEX (16, ODS_8_0, rel_formats, 0, 2)
         SEGMENT (f_fmt_rid, idx_numeric),		/* relation id */
         SEGMENT (f_fmt_format, idx_numeric)		/* format id */
     }},
