@@ -17,6 +17,9 @@
  * Contributor(s): ______________________________________.
  */
 #define APP_NAME        "InterBase Guardian"
+/* One is the window's class; the other is the visible label.
+We want to be compatible at low level without confusing the user. */
+#define APP_LABEL	"Firebird Guardian"
 #define CLASS_NAME      "IB_Guard"
 #define	IBSERVER	    "ibserver.exe"
 #define GUARDIAN_HELP_FILE "ibserver.hlp"

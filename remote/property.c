@@ -63,7 +63,7 @@
 
 #define WIN_TEXTLEN                     128
 #define MSG_STRINGLEN           64
-#define APP_NAME "Firebird Server"
+#define APP_LABEL "Firebird Server"
 
 static HINSTANCE hInstance = NULL;      // Handle to the current app. instance
 static HWND hPSDlg = NULL;              // Handle to the parent prop. sheet window
@@ -145,7 +145,7 @@ PSHdr.DUMMYUNIONNAME.pszIcon = MAKEINTRESOURCE(IDI_IBSVR);
 #else
 PSHdr.pszIcon = MAKEINTRESOURCE(IDI_IBSVR);
 #endif
-PSHdr.pszCaption = (LPSTR) APP_NAME;
+PSHdr.pszCaption = (LPSTR) APP_LABEL;
 PSHdr.nPages = sizeof(PSPages)/sizeof(PROPSHEETPAGE);
 #ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
 PSHdr.DUMMYUNIONNAME2.nStartPage = 0;

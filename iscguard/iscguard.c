@@ -214,7 +214,7 @@ if (hWnd)
     {
     char szMsgString[256];
     LoadString(hInstance_gbl, IDS_ALREADYSTARTED, szMsgString, 256);
-    MessageBox(NULL, szMsgString, APP_NAME, MB_OK | MB_ICONHAND);
+    MessageBox(NULL, szMsgString, APP_LABEL, MB_OK | MB_ICONHAND);
     gds__log (szMsgString);
     return 0;
     }
@@ -235,7 +235,7 @@ if(!RegisterClass(&wcl))
     {
     char szMsgString[256];
     LoadString(hInstance_gbl, IDS_REGERROR, szMsgString, 256);
-    MessageBox(NULL, szMsgString, APP_NAME, MB_OK);
+    MessageBox(NULL, szMsgString, APP_LABEL, MB_OK);
     return 0;
     }
 
@@ -262,7 +262,7 @@ if ((thread_id = _beginthread (start_and_watch_server, 0, IBSERVER)) == -1)
     /* error starting server thread */
     char szMsgString[256];
     LoadString(hInstance_gbl, IDS_CANT_START_THREAD, szMsgString, 256);
-    MessageBox(NULL, szMsgString, APP_NAME, MB_OK);
+    MessageBox(NULL, szMsgString, APP_LABEL, MB_OK);
     gds__log (szMsgString);
     DestroyWindow (hWnd);
     return (FALSE);
@@ -446,7 +446,7 @@ switch (message)
 		nid.uFlags     = NIF_TIP | NIF_ICON | NIF_MESSAGE; 
 		nid.uCallbackMessage = ON_NOTIFYICON; 
 		nid.hIcon      = hIcon;
-		lstrcpy(nid.szTip, APP_NAME);
+		lstrcpy(nid.szTip, APP_LABEL);
 
 		/* This will be true if we are using the explorer interface */	
 		bInTaskBar = Shell_NotifyIcon(NIM_ADD, &nid); 
@@ -564,7 +564,7 @@ else
     {
     char szMsgString[256];
     LoadString(hInstance_gbl, IDS_REGISTRY_INFO_MISSING, szMsgString, 256);
-    MessageBox(NULL, szMsgString, APP_NAME, MB_OK | MB_ICONSTOP);
+    MessageBox(NULL, szMsgString, APP_LABEL, MB_OK | MB_ICONSTOP);
     write_log (IDS_REGISTRY_INFO_MISSING, szMsgString);
     PostMessage(hWndGbl, WM_CLOSE, 0, 0);
     Sleep (100);
@@ -809,7 +809,7 @@ PSHdr.DUMMYUNIONNAME.pszIcon = MAKEINTRESOURCE(IDI_IBGUARD);
 #else
 PSHdr.pszIcon = MAKEINTRESOURCE(IDI_IBGUARD);
 #endif
-PSHdr.pszCaption = (LPSTR) APP_NAME;
+PSHdr.pszCaption = (LPSTR) APP_LABEL;
 PSHdr.nPages = sizeof(PSPages)/sizeof(PROPSHEETPAGE);
 #ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
 PSHdr.DUMMYUNIONNAME2.nStartPage = 0;
@@ -1091,7 +1091,7 @@ if (log_action >= IDS_LOG_START && log_action <= IDS_LOG_TERM)
 if (service_flag == TRUE) /* on NT */
     {
     HANDLE hLog;
-    hLog = RegisterEventSource (NULL, "InterBase Guardian");
+    hLog = RegisterEventSource (NULL, "Firebird Guardian");
     if (!hLog)
         gds__log ("Error opening Windows NT Event Log");
     else
@@ -1141,7 +1141,7 @@ if (service_flag == TRUE) /* on NT */
         }
     }
 
-/* Write to the interbase log */
+/* Write to the Firebird log */
 if (*buff)
     gds__log (buff);
 }

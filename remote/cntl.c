@@ -250,9 +250,9 @@ void CNTL_shutdown_service (
 UCHAR	buffer [256], *strings [2];
 HANDLE	event_source;
 
-sprintf (buffer, "%s error: %d", service_name, GetLastError());
+sprintf (buffer, "%s error: %d", "Firebird Server", GetLastError());
 
-event_source = RegisterEventSource (NULL, service_name);
+event_source = RegisterEventSource (NULL, "Firebird Server");
 if (event_source)
     {
     strings [0] = buffer;
