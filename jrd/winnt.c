@@ -26,7 +26,9 @@
  *
  * 17-Oct-2001 Mike Nordell: Non-shared file access
  *
- * 20-Nov-2001 Ann Harrison: More non-shared file access
+ * 20-Nov-2001 Ann Harrison: Make page count work on db with forced write
+ * 
+ * 21-Nov-2001 Ann Harrison: Allow read sharing so gstat works 
  */
 
 #ifdef _MSC_VER
@@ -84,13 +86,13 @@ static FIL	setup_file (DBB, TEXT *, USHORT, HANDLE);
 static USHORT	ostype;
 
 #ifdef SUPERSERVER_V2
-static const DWORD g_dwShareFlags = 0;	/* no sharing */
+static const DWORD g_dwShareFlags = FILE_SHARE_READ;	/* no write sharing */
 static const DWORD g_dwExtraFlags = FILE_FLAG_OVERLAPPED |
-									FILE_FLAG_NO_BUFFERING |
-									FILE_FLAG_RANDOM_ACCESS;
+				FILE_FLAG_NO_BUFFERING |
+				FILE_FLAG_RANDOM_ACCESS;
 #elif SUPERSERVER
 /* TMN: Disable file sharing */
-static const DWORD g_dwShareFlags = 0;	/* no sharing */
+static const DWORD g_dwShareFlags = FILE_SHARE_READ;	/* no write sharing */
 static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
 #else
 static const DWORD g_dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
