@@ -259,7 +259,23 @@ static RI_ACTIONS ri_actions_all [] = {
    0, 0, 0
    };
     
-
+
+typedef struct tok_name {
+/*    USHORT	tok_ident;*/
+    CONST SCHAR	*tok_string;
+/*    CONST USHORT tok_version;*/
+} TOK_NAME;
+
+#define DSQL_KEYWORD(tok_nr, tok_str, tok_ver) tok_str,
+
+static CONST TOK_NAME tokens [] = {
+#include "../dsql/keywords.h"
+    0
+    };
+
+#undef DSQL_KEYWORD
+
+
 #ifndef GUI_TOOLS
 int CLIB_ROUTINE main (
     int		argc,
@@ -731,8 +747,18 @@ if (escape_char == DBL_QUOTE)
 	}
 	if (!need_quotes)
 	{
-		*q1 = '\0';
-		return;
+		CONST TOK_NAME *tok_ptr = tokens;
+		while (tok_ptr -> tok_string && !need_quotes)
+		{
+			if (!strcmp(tok_ptr -> tok_string, in_str))
+				need_quotes = TRUE;
+			++tok_ptr;
+		}
+		if (!need_quotes)
+		{
+			*q1 = '\0';
+			return;
+		}
 	}
 }
 
