@@ -1616,7 +1616,7 @@ TEXT            *comm_ptr;
 	    &handle,
 	    length,
 	    string,
-	    (dialect * 10) + parser_version,
+	    (USHORT)((dialect * 10) + parser_version),
 	    in_blr_length,
 	    in_blr,
 	    in_msg_type,
@@ -2547,7 +2547,7 @@ TEXT            *comm_ptr;
 	    &statement->isr_handle,
 	    length,
 	    string,
-	    (dialect * 10) + parser_version,
+	    (USHORT)((dialect * 10) + parser_version),
 	    item_length,
 	    items,
 	    buffer_length,
@@ -2913,7 +2913,7 @@ if (!GDS_RECONNECT (status_vector,
     else
 	{
 	gds__handle_cleanup (status_vector,
-		GDS_REF (handle));
+		(struct hndl**)GDS_REF (handle));
 	NOT_NULL (transaction, TRUE);
 	}
     }
@@ -3669,7 +3669,7 @@ for (idb = icc->icc_databases; idb; idb = nextidb)
 			  GDS_REF (idb->idb_transactions->itr_handle));
 	    else
 		gds__handle_cleanup (status_vector,
-			  GDS_REF (idb->idb_transactions->itr_handle));
+			  (struct hndl**)GDS_REF (idb->idb_transactions->itr_handle));
 
 	    release_transaction (idb->idb_transactions);
 	    }
