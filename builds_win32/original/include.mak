@@ -178,7 +178,8 @@ DLLENTRY=               @12
 CONLIBSDLL=             msvcrt.lib kernel32.lib
 ADVAPILIB=              advapi32.lib
 MPRLIB=                 mpr.lib
-WSOCKLIB=               wsock32.lib
+#WSOCKLIB=               wsock32.lib
+WSOCKLIB=               ws2_32.lib
 
 SVR_STATIC_LIB=		eng32lib.lib
 CLIENT_STATIC_LIB=	gds32lib.lib

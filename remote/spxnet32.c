@@ -565,7 +565,8 @@ if (!SPXNET32_initialized)
     {
     WORD	version;
 
-    version = MAKEWORD (1, 1);
+    /* version = MAKEWORD (1, 1); */
+    version = MAKEWORD (2, 0);
     if (WSAStartup (version, &SPXNET32_wsadata))
 	{
 	if (parent)

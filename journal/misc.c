@@ -31,7 +31,7 @@
 #endif
 #ifdef WIN_NT
 #include <sys/timeb.h>
-#include <winsock.h>
+#include <winsock2.h>
 #define TEXT	SCHAR
 #endif
 #ifdef OS2_ONLY

@@ -75,7 +75,7 @@ TSTOBJS=$(TSTSRCS:.c=.obj)
 
 LIBS=mathw$(MODEL) import cw$(MODEL)
 RMTLIBS=$(ROOT)\jrd\$(.path.obj)\gds.lib $(ROOT)\jrd\$(.path.obj)\iutls.lib
-TSTLIBS=$(RMTLIBS) $(ROOT)\remote\$(.path.obj)\remote.lib $(TPATH)\devkit\netbcc3.0\winsock.lib
+TSTLIBS=$(RMTLIBS) $(ROOT)\remote\$(.path.obj)\remote.lib $(TPATH)\devkit\netbcc3.0\ws2_32.lib
 
 #---------------------------- TARGET LIST --------------------------------
 ALLBIN = remote.dll nlmtst.exe

@@ -154,7 +154,7 @@ extern int	h_errno;
 #ifdef WINDOWS_ONLY
 #define NOMSG
 #define MAX_PTYPE	ptype_batch_send
-#include <winsock.h>
+#include <winsock2.h>
 /* 
 ** Winsock has a typedef for socket, so #define SOCKET to the typedef here
 ** so that it won't be redefined below.
@@ -1899,7 +1899,7 @@ if (!INET_initialized)
     {
     WORD	version;
 
-    version = MAKEWORD (1, 1);
+    version = MAKEWORD (2, 0);
     if (WSAStartup (version, &INET_wsadata))
 	{
 	if (parent)
@@ -4768,7 +4768,7 @@ return DefWindowProc (hwnd, message, wParam, lParam);
 					     isc_arg_gds, \
 					     isc_loadlib_failure, \
 					     isc_arg_string, \
-					     "winsock.dll", \
+					     "ws2_32.dll", \
 					     0); \
 			     FreeLibrary (hWinsockDLL); \
 			     hWinsockDLL = 0; \
@@ -4789,6 +4789,7 @@ static int initWSA (PORT port)
 struct WSAData	W;
 int		i, ret;
 HTASK		hTask;
+WORD		version;
 
 extern HINSTANCE      LoadDll (UCHAR *);
 extern TaskInfoType   Tasks[MAX_TASKS];
@@ -4800,7 +4801,7 @@ extern HINSTANCE      hWinsockDLL;
 
 if (!INET_initialized)
     {
-    hWinsockDLL = LoadDll ("winsock.dll");
+    hWinsockDLL = LoadDll ("ws2_32.dll");
 
     if (hWinsockDLL)
 	{
@@ -4840,7 +4841,7 @@ if (!INET_initialized)
 			isc_arg_gds,
                         isc_loadlib_failure,
 			isc_arg_string,
-                        "winsock.dll",
+                        "ws2_32.dll",
                         0);
         return FAILURE;
         }
@@ -4859,7 +4860,9 @@ for (i = 0; i < MAX_TASKS && Tasks[i].hId != 0; i++)
 
 /* Call WSA Startup with version highword=1, low word=1, i.e. ver 1.1 */
 
-ret = WSAStartup (((1 << 8) | 1), &W);
+/* ret = WSAStartup (((1 << 8) | 1), &W); */
+version = MAKEWORD (2, 0);
+ret = WSAStartup (version, &W);
 if (ret)
     { 
     inet_error (port, "WSAStartup", isc_net_init_error, ret);
