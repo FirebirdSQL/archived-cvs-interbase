@@ -4519,7 +4519,7 @@ for (n = 0; n < SUBSYSTEMS; n++)
 
 SUBSYSTEM_USAGE_DECR;
 if (status[1] == isc_unavailable)
-    status[1] == isc_service_att_err;
+    status[1] = isc_service_att_err;
 return error (status, local);
 }
 

@@ -422,9 +422,9 @@ switch (node->nod_type)
 				<string> - <string>	 */
 
 			if (IS_DTYPE_ANY_TEXT (dtype1))
-			    dtype == dtype_timestamp;
+			    dtype = dtype_timestamp;
 			else if (IS_DTYPE_ANY_TEXT (dtype2))
-			    dtype == dtype_timestamp;
+			    dtype = dtype_timestamp;
 			else if (dtype1 == dtype2)
 			    dtype = dtype1;
 		 	else if ((dtype1 == dtype_timestamp) && 

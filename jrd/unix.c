@@ -80,10 +80,10 @@
 #undef THD_MUTEX_UNLOCK
 #undef THD_MUTEX_DESTROY
 
-#define THD_MUTEX_INIT
-#define THD_MUTEX_LOCK
-#define THD_MUTEX_UNLOCK
-#define THD_MUTEX_DESTROY
+#define THD_MUTEX_INIT(mutx)
+#define THD_MUTEX_LOCK(mutx)
+#define THD_MUTEX_UNLOCK(mutx)
+#define THD_MUTEX_DESTROY(mutx)
 #endif
 
 #define MAXPATHLEN	1024
