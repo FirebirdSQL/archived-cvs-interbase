@@ -149,7 +149,7 @@ static SSHORT	print_sets (void);
 static SSHORT	help (TEXT *);
 static SSHORT	input (TEXT *);
 static BOOLEAN	isyesno (TEXT *);
-static SSHORT	newdb (TEXT *, TEXT *, TEXT *, TEXT *, TEXT *, BOOL);
+static SSHORT	newdb (TEXT *, TEXT *, TEXT *, TEXT *, TEXT *, BOOLEAN);
 static SSHORT	newoutput (TEXT *);
 static SSHORT	newsize (TEXT *, TEXT *);
 static SSHORT	newtrans (TEXT *);
@@ -5823,7 +5823,7 @@ static SSHORT newdb (
     TEXT	*psw,
     TEXT	*numbufs,
     TEXT	*sql_role_nm,
-	BOOL	start_user_trans)
+    BOOLEAN	start_user_trans)
 {
 /**************************************
  *
