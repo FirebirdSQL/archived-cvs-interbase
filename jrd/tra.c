@@ -1895,8 +1895,7 @@ if (trans->tra_flags & TRA_restart_requests)
    transaction bitmap growth. It can be turned on for external use
    by removing the test for TDBB_sweeper. */
 
-if (tdbb->tdbb_flags & TDBB_sweeper &&
-    trans->tra_flags & TRA_readonly &&
+if (trans->tra_flags & TRA_readonly &&
     trans->tra_flags & TRA_read_committed)
     {
     TRA_set_state (tdbb, trans, trans->tra_number, tra_committed);
