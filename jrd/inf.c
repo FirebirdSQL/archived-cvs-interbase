@@ -30,7 +30,9 @@
  * 2001.11.28 Ann Harrison - the dbb has to be refreshed before reporting
  *      oldest_transaction, oldest_active, oldest_snapshot and next_transaction.
  *
- * 2001.11.29 Experience
+ * 2001.11.29 Paul Reeves - Added refresh of dbb to ensure forced_writes 
+ *      reports correctly when called immediately after a create database 
+ *      operation.
  */
 
 #include <string.h>
