@@ -38,11 +38,6 @@ BOOL APIENTRY DllMain( HANDLE ,//hModule,
 */
 #endif
 
-/* 
-CVC: Please define here the initialization code for your platform
-so you can load the current locale by calling ANSI setlocale(),
-the entry point above is for Windows only.
-*/
 
 
 const long seconds_in_day = 86400;
@@ -183,26 +178,31 @@ namespace internal
 			break;
 		}
 	}
+
+	bool isnull(const paramdsc* v)
+	{
+		return !v || !v->dsc_address || (v->dsc_flags & DSC_null);
+	}
 } // namespace internal
 
 
 FBUDF_API paramdsc* iNvl(paramdsc* v, paramdsc* v2)
 {
-	if (v)
+	if (!internal::isnull(v))
 		return v;
 	return v2;
 }
 
 FBUDF_API paramdsc* sNvl(paramdsc* v, paramdsc* v2, paramdsc* rc)
 {
-	if (v)
+	if (!internal::isnull(v))
 	{
 		unsigned char *sv = 0;
 		short len = internal::get_string_type(v, sv);
 		internal::set_string_type(rc, len, sv);
 		return rc;
 	}
-	if (v2)
+	if (!internal::isnull(v2))
 	{
 		unsigned char *sv2 = 0;
 		short len = internal::get_string_type(v2, sv2);
@@ -215,7 +215,7 @@ FBUDF_API paramdsc* sNvl(paramdsc* v, paramdsc* v2, paramdsc* rc)
 
 FBUDF_API paramdsc* iNullIf(paramdsc* v, paramdsc* v2)
 {
-	if (!v || !v2 || !v->dsc_address || !v2->dsc_address)
+	if (internal::isnull(v) || internal::isnull(v2))
 		return 0;
 	ISC_INT64 iv, iv2;
 	short rc = internal::get_int_type(v, iv);
@@ -229,7 +229,7 @@ FBUDF_API paramdsc* iNullIf(paramdsc* v, paramdsc* v2)
 
 FBUDF_API paramdsc* sNullIf(paramdsc* v, paramdsc* v2, paramdsc* rc)
 {
-	if (!v || !v2 || !v->dsc_address || !v2->dsc_address)
+	if (internal::isnull(v) || internal::isnull(v2))
 		return 0;
 	unsigned char *sv, *sv2;
 	short len = internal::get_string_type(v, sv);
@@ -293,7 +293,7 @@ FBUDF_API char* SDOW(ISC_TIMESTAMP *v, char* rc)
 
 FBUDF_API paramdsc* right(paramdsc* v, short* rl, paramdsc* rc)
 {
-	if (!v)
+	if (internal::isnull(v))
 		return 0;
 	unsigned char* text = 0;
 	short len = internal::get_string_type(v, text), diff = static_cast<short>(len - *rl);
@@ -394,22 +394,34 @@ FBUDF_API ISC_TIMESTAMP* addHour(ISC_TIMESTAMP* v, int& nhours)
 	return internal::addTenthMSec(v, nhours, 3600 * ISC_TIME_SECONDS_PRECISION);
 }
 
-#if defined(_WIN32)
 FBUDF_API ISC_TIMESTAMP* getExactTimestamp(ISC_TIMESTAMP* rc)
 {
 	//time_t now;
 	//time(&now);
+#if defined(_WIN32)
 	_timeb timebuffer;
 	_ftime(&timebuffer);
+	// localtime uses thread local storage in NT, no need to lock threads.
+	// Of course, this facility is only available in multithreaded builds.
 	tm times = *localtime(&timebuffer.time);
 	isc_encode_timestamp(&times, rc);
 	rc->timestamp_time += timebuffer.millitm * 10;
+#else
+	timeval tv;
+	gettimeofday(&tv, NULL);
+	pthread_mutex_lock(&loctimelock);  // ctime critical section start
+	tm times = *localtime(&tv.tv_sec);
+	pthread_mutex_unlock(&loctimelock);  // ctime critical section end
+	isc_encode_timestamp(&times, rc);
+	rc->timestamp_time += tv.tv_usec / 100;
+#endif
 	return rc;
 }
-#endif
 
 FBUDF_API paramdsc* truncate(paramdsc* v)
 {
+	if (internal::isnull(v))
+		return 0;
 	ISC_INT64 iv;
 	short rc = internal::get_int_type(v, iv);
 	if (rc < 0 || v->dsc_scale > 0)
@@ -444,6 +456,8 @@ FBUDF_API paramdsc* truncate(paramdsc* v)
 
 FBUDF_API paramdsc* round(paramdsc* v)
 {
+	if (internal::isnull(v))
+		return 0;
 	ISC_INT64 iv;
 	short rc = internal::get_int_type(v, iv);
 	if (rc < 0 || v->dsc_scale > 0)
@@ -483,7 +497,7 @@ FBUDF_API paramdsc* round(paramdsc* v)
 
 FBUDF_API blobcallback* string2blob(paramdsc* v, blobcallback* outblob)
 {
-	if (!v)
+	if (internal::isnull(v))
 		return 0;
 	unsigned char* text = 0;
 	short len = internal::get_string_type(v, text);
