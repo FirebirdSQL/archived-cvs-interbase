@@ -308,9 +308,9 @@ static BOOLEAN	drop_files (FIL);
 static STATUS	error (STATUS *);
 static void	find_intl_charset (TDBB, ATT, DPB *);
 static TRA	find_transaction (TDBB, TRA, STATUS);
-static void	get_options (UCHAR *, USHORT, TEXT **, DPB *);
+static void	get_options (UCHAR *, USHORT, TEXT **, ULONG, DPB *);
 static SLONG	get_parameter (UCHAR **);
-static TEXT	*get_string_parameter (UCHAR **, TEXT **);
+static TEXT	*get_string_parameter (UCHAR **, TEXT **, ULONG *);
 static STATUS	handle_error (STATUS *, STATUS, TDBB);
 #if defined (WIN_NT) && !defined(SERVER_SHUTDOWN)
 static BOOLEAN  handler_NT (SSHORT);
@@ -599,7 +599,7 @@ opt_ptr = opt_buffer;
 
 /* Process database parameter block */
 
-get_options ((UCHAR *) dpb, dpb_length, &opt_ptr, &options);
+get_options ((UCHAR *) dpb, dpb_length, &opt_ptr, DPB_EXPAND_BUFFER, &options);
 
 #ifndef NO_NFS
 /* Don't check nfs if single user */
@@ -1659,7 +1659,7 @@ opt_ptr         = allocated_space;
 opt_ptr = opt_buffer;
 #endif
 
-get_options ((UCHAR *)dpb, dpb_length, &opt_ptr, &options);
+get_options ((UCHAR *)dpb, dpb_length, &opt_ptr, DPB_EXPAND_BUFFER, &options);
 
 if (invalid_client_SQL_dialect == FALSE && options.dpb_sql_dialect == 99)
     options.dpb_sql_dialect = 0;
@@ -4664,6 +4664,7 @@ static void get_options (
     UCHAR	*dpb,
     USHORT	dpb_length,
     TEXT	**scratch,
+    ULONG	buf_size,
     DPB		*options)
 {
 /**************************************
@@ -4701,13 +4702,13 @@ if ((dpb == NULL) && (dpb_length > 0))
 if (p < end_dpb && *p++ != gds__dpb_version1)
     ERR_post (gds__bad_dpb_form, gds_arg_gds, gds__wrodpbver, 0);
 
-while (p < end_dpb)
+while (p < end_dpb && buf_size)
     switch (*p++)
 	{
 	case isc_dpb_working_directory:
 	    {
 	    char *t_data;
-	    options->dpb_working_directory = get_string_parameter (&p, scratch);
+	    options->dpb_working_directory = get_string_parameter (&p, scratch, &buf_size);
             /* just to be sure initialize it (thanks to Brad Pepers)  FSG 6 May 2001*/
             t_data=NULL;
 	    THD_getspecific_data((void**)&t_data);
@@ -4725,16 +4726,26 @@ while (p < end_dpb)
 		    passwd = getpwnam (t_data);
    		if (passwd)
 		    {
-		    strcpy (*scratch, passwd->pw_dir);
 		    l = strlen (passwd->pw_dir) + 1;
+		    if (l <= buf_size)
+			strcpy (*scratch, passwd->pw_dir);
+		    else
+			{
+			**scratch = 0;
+			l = buf_size;
+			}
 		    }
                 else /*No home dir for this users here. Default to server dir*/
 		    {
-                    getcwd (*scratch, MAXPATHLEN);
-		    l = strlen (*scratch) + 1;
+		    **scratch = 0;
+                    if (getcwd (*scratch, MIN (MAXPATHLEN, buf_size)))
+		        l = strlen (*scratch) + 1;
+		    else
+			l = buf_size;	
 		    }
 		options->dpb_working_directory = *scratch;
 		*scratch += l;
+		buf_size -= l;
 	    }
 #endif
 	    /* Only free it, if it is assigned (thanks to Brad Pepers) FSG 6 May 2001*/
@@ -4793,11 +4804,11 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_enable_journal:
-	    options->dpb_journal = get_string_parameter (&p, scratch);
+	    options->dpb_journal = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_wal_backup_dir:
-	    options->dpb_wal_backup_dir = get_string_parameter (&p, scratch);
+	    options->dpb_wal_backup_dir = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_drop_walfile:
@@ -4836,7 +4847,7 @@ while (p < end_dpb)
 	    if (num_old_files >= MAX_OLD_FILES)
 		ERR_post (gds__num_old_files, 0);
 
-	    options->dpb_old_file [num_old_files] = get_string_parameter (&p, scratch);
+	    options->dpb_old_file [num_old_files] = get_string_parameter (&p, scratch, &buf_size);
 	    num_old_files++;
 	    break;
 
@@ -4861,28 +4872,28 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_sys_user_name:
-	    options->dpb_sys_user_name = get_string_parameter (&p, scratch);
+	    options->dpb_sys_user_name = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case isc_dpb_sql_role_name:
-	    options->dpb_role_name = get_string_parameter (&p, scratch);
+	    options->dpb_role_name = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_user_name:
-	    options->dpb_user_name = get_string_parameter (&p, scratch);
+	    options->dpb_user_name = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_password:
-	    options->dpb_password = get_string_parameter (&p, scratch);
+	    options->dpb_password = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_password_enc:
-	    options->dpb_password_enc = get_string_parameter (&p, scratch);
+	    options->dpb_password_enc = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_encrypt_key:
 #ifdef ISC_DATABASE_ENCRYPTION
-	    options->dpb_key = get_string_parameter (&p, scratch);
+	    options->dpb_key = get_string_parameter (&p, scratch, &buf_size);
 #else
 	    /* Just in case there WAS a customer using this unsupported
 	     * feature - post an error when they try to access it in 4.0
@@ -4923,7 +4934,7 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_begin_log:
-	    options->dpb_log = get_string_parameter (&p, scratch);
+	    options->dpb_log = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_quit_log:
@@ -4942,11 +4953,11 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_lc_messages:
-	    options->dpb_lc_messages = get_string_parameter (&p, scratch);
+	    options->dpb_lc_messages = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_lc_ctype:
-	    options->dpb_lc_ctype = get_string_parameter (&p, scratch);
+	    options->dpb_lc_ctype = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case gds__dpb_shutdown:
@@ -4964,8 +4975,8 @@ while (p < end_dpb)
 	    break;
 
 	case isc_dpb_reserved:
-	    single = get_string_parameter (&p, scratch);
-	    if (!strcmp (single, "YES"))
+	    single = get_string_parameter (&p, scratch, &buf_size);
+	    if (single && !strcmp (single, "YES"))
 		options->dpb_single_user = TRUE;
 	    break;
 
@@ -4980,7 +4991,7 @@ while (p < end_dpb)
 	    break;
 
 	case isc_dpb_gbak_attach:
-	    options->dpb_gbak_attach = get_string_parameter (&p, scratch);
+	    options->dpb_gbak_attach = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	case isc_dpb_gstat_attach:
@@ -5061,7 +5072,8 @@ return parameter;
 
 static TEXT* get_string_parameter (
     UCHAR	**dpb_ptr,
-    TEXT	**opt_ptr)
+    TEXT	**opt_ptr,
+    ULONG	*buf_avail)
 {
 /**************************************
  *
@@ -5078,12 +5090,24 @@ TEXT	*opt;
 UCHAR	*dpb;
 USHORT	l;
 
+if (!*buf_avail)  /* Because "l" may be zero but the NULL term still is set. */
+    return 0;
+
 opt = *opt_ptr;
 dpb = *dpb_ptr;
 
 if (l = *(dpb++))
+{
+    if (l >= *buf_avail) /* >= to count the NULL term. */
+    {
+	*buf_avail = 0;
+	return 0;
+    }
+    *buf_avail -= l;
     do *opt++ = *dpb++; while (--l);
+}
 
+--*buf_avail;
 *opt++ = 0;
 *dpb_ptr = dpb;
 dpb = (UCHAR *) *opt_ptr;
