@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
  */
 
 #include "../jrd/gds.h"
@@ -184,24 +185,24 @@ for (attribute = NULL;;)
 	default:
 	    if (c != PYXIS__KEY_ENTER && c != '\n')
 		PYXIS_return_char (window, c);
-	    CASE_MENU (MENU_HANDLE MENU1 HORIZONTAL) "Edit options: "
+	    CASE_MENU (MENU_HANDLE MENU1 HORIZONTAL) 'Edit options: '
 
-		MENU_ENTREE "SELECT":
+		MENU_ENTREE 'SELECT':
 		    continue;
 
-		MENU_ENTREE "MOVE":
+		MENU_ENTREE 'MOVE':
 		    if (!object)
 			break;
 		    change |= move (window, form, object, attribute);
 
-		MENU_ENTREE "ADD":
+		MENU_ENTREE 'ADD':
 		    if (next = add_object (window, form, object, dbb, transaction))
           		{
           		attribute = next;
           		change = TRUE;
           		}
 
-		MENU_ENTREE "CHANGE":
+		MENU_ENTREE 'CHANGE':
 		    if (!object)
 			break;
 		    x = GET_VALUE (object, att_display_x);
@@ -218,7 +219,7 @@ for (attribute = NULL;;)
 		    else
 			edit_field (window, object, x, y, dbb, transaction);
 
-		MENU_ENTREE "DELETE":
+		MENU_ENTREE 'DELETE':
 		    if (!object)
 			break;
 		    if (!(next = (ATT) PYXIS_find_object (form, attribute, att_any, TRUE)))
@@ -227,7 +228,7 @@ for (attribute = NULL;;)
 		    attribute = next;
 		    change = TRUE;
 
-		MENU_ENTREE "REVERSE":
+		MENU_ENTREE 'REVERSE':
 		    if (object)
 			if (attribute->att_name == att_label)
 			    {
@@ -238,10 +239,10 @@ for (attribute = NULL;;)
 			else
 			    change |= reverse (object);
 
-		MENU_ENTREE "SAVE":
+		MENU_ENTREE 'SAVE':
 		    save_form (window, form, dbb, transaction);
 
-		MENU_ENTREE "Exit":
+		MENU_ENTREE 'Exit':
 		    /* set_prototypes (form, TRUE); */
 		    return change;
 	    END_MENU;
@@ -316,8 +317,8 @@ static ATT add_object (window, form, object, dbb, transaction)
 OBJ	field;
 USHORT	c, x, y, change;
 
-CASE_MENU (MENU_HANDLE MENU2 HORIZONTAL) "Add options: ";
-    MENU_ENTREE "TEXT":
+CASE_MENU (MENU_HANDLE MENU2 HORIZONTAL) 'Add options: ';
+    MENU_ENTREE 'TEXT':
 	x = y = 0;
 	if (object)
 	    {
@@ -330,7 +331,7 @@ CASE_MENU (MENU_HANDLE MENU2 HORIZONTAL) "Add options: ";
 	PYXIS_pop_form (window);
 	return (ATT) field;
 
-    MENU_ENTREE "FIELD":
+    MENU_ENTREE 'FIELD':
 	field = (OBJ) PYXIS_create_object (NULL_PTR, 0);
 	default_position (form, att_field, &x, &y);
 	edit_field (window, field, x, y, dbb, transaction);
@@ -341,13 +342,13 @@ CASE_MENU (MENU_HANDLE MENU2 HORIZONTAL) "Add options: ";
 		}
 	 return add_field (form, field);
 	
-    MENU_ENTREE "DATABASE FIELDS":
+    MENU_ENTREE 'DATABASE FIELDS':
 	 return (ATT) copy_fields (window, form, object, dbb, transaction);
 
-    MENU_ENTREE "REPEATING SUB-FORM":
+    MENU_ENTREE 'REPEATING SUB-FORM':
 	return (ATT) add_repeating (window, form, object, dbb, transaction);
 
-    MENU_ENTREE "Exit":
+    MENU_ENTREE 'Exit':
 	 return NULL;
 
 END_MENU;
@@ -712,9 +713,9 @@ BOOLEAN fnam_upd, edstr_upd, fstr_upd, scale_upd, w_upd;
 /* If this is a sub-form, just re-size it for now */
 
 if (prototype = GET_OBJECT (field, att_prototype))
-    CASE_MENU (MENU_HANDLE MENU3 HORIZONTAL) "Change: "
+    CASE_MENU (MENU_HANDLE MENU3 HORIZONTAL) 'Change: '
 
-	MENU_ENTREE "CHARACTERISTICS":
+	MENU_ENTREE 'CHARACTERISTICS':
             manual_load (&NAME_PROMPT, form_field_name);
 	    FOR_FORM (TAG FORM_HANDLE NAME_PROMPT) F IN FIELD_NAME
                 strcpy (F.FIELD_NAME, GET_VALUE (field, att_field_name));
@@ -724,29 +725,29 @@ if (prototype = GET_OBJECT (field, att_prototype))
 	    END_FORM;
             return;
 
-	MENU_ENTREE "REGION":
+	MENU_ENTREE 'REGION':
 	    size_form (window, field);
 	    return;
 	
-	MENU_ENTREE "SUB-ITEM":
+	MENU_ENTREE 'SUB-ITEM':
 	    PYXIS_edit (window, prototype, dbb, transaction);
 	    return;
 	
-	MENU_ENTREE "SIZE":
+	MENU_ENTREE 'SIZE':
 	    size_form (window, prototype);
 	    return;
 	
-	MENU_ENTREE "Exit":
+	MENU_ENTREE 'Exit':
 	    return;
     END_MENU
 else
-    CASE_MENU (MENU_HANDLE MENU4 HORIZONTAL) "Change: "
-	MENU_ENTREE "CHARACTERISTICS":
+    CASE_MENU (MENU_HANDLE MENU4 HORIZONTAL) 'Change: '
+	MENU_ENTREE 'CHARACTERISTICS':
 	
-	MENU_ENTREE "ENUMERATIONS":
+	MENU_ENTREE 'ENUMERATIONS':
 	    return edit_enumerations (window, field);
 
-	MENU_ENTREE "EXIT":
+	MENU_ENTREE 'EXIT':
 	    return;
     END_MENU;
 
@@ -1003,20 +1004,20 @@ OPT_T	option;
 USHORT	c, change, reverse;
 SLONG	x, y, min_x, min_y, delta_x, delta_y;
 
-CASE_MENU (MENU_HANDLE MENU5 HORIZONTAL) "Move options: "
-    MENU_ENTREE "ITEM":
+CASE_MENU (MENU_HANDLE MENU5 HORIZONTAL) 'Move options: '
+    MENU_ENTREE 'ITEM':
 	return move_item (window, form, object);
 
-    MENU_ENTREE "SOME":
+    MENU_ENTREE 'SOME':
 	option = e_some;
 
-    MENU_ENTREE "MOST":
+    MENU_ENTREE 'MOST':
 	option = e_most;
 
-    MENU_ENTREE "ALL":
+    MENU_ENTREE 'ALL':
 	option = e_all;
 
-    MENU_ENTREE "Exit":
+    MENU_ENTREE 'Exit':
 	return FALSE;
 END_MENU;
 
@@ -1243,23 +1244,23 @@ static reverse (object)
  **************************************/
 SLONG	value;
 
-CASE_MENU (MENU_HANDLE MENU6 HORIZONTAL) "Reverse options: "
-    MENU_ENTREE "INVERT":
+CASE_MENU (MENU_HANDLE MENU6 HORIZONTAL) 'Reverse options: '
+    MENU_ENTREE 'INVERT':
 	value = !GET_VALUE (object, att_reverse_video);
 	REPLACE_ATTRIBUTE (object, att_reverse_video, attype_numeric, value);
 	return TRUE;
     
-    MENU_ENTREE "REVERSE ON UPDATE":
+    MENU_ENTREE 'REVERSE ON UPDATE':
 	REPLACE_ATTRIBUTE (object, att_reverse_for_update, attype_numeric, TRUE);
 	PYXIS_delete_named_attribute (object, att_reverse_video);
 	return TRUE;
 
-    MENU_ENTREE "NORMAL":
+    MENU_ENTREE 'NORMAL':
 	PYXIS_delete_named_attribute (object, att_reverse_for_update);
 	PYXIS_delete_named_attribute (object, att_reverse_video);
 	return TRUE;
     
-    MENU_ENTREE "Exit":
+    MENU_ENTREE 'Exit':
 	return FALSE;
 
 END_MENU;
