@@ -1549,7 +1549,8 @@ if (return_length != slice_length)
 	    }
 	else if (field->fld_type == blr_short ||
 	    field->fld_type == blr_long ||
-	    field->fld_type == blr_quad) 
+	    field->fld_type == blr_quad ||
+	    field->fld_type == blr_int64) 
             {
 	    STUFF (field->fld_type);
 	    STUFF (field->fld_scale);
@@ -1773,7 +1774,8 @@ else
         }
     else if (field->fld_type == blr_short ||
         field->fld_type == blr_long ||
-        field->fld_type == blr_quad)
+        field->fld_type == blr_quad ||
+        field->fld_type == blr_int64)
         {
         STUFF (field->fld_type);
         STUFF (field->fld_scale);

@@ -1086,7 +1086,8 @@ STUFF (field->fld_type);
 
 if (field->fld_type == blr_short ||
     field->fld_type == blr_long ||
-    field->fld_type == blr_quad)
+    field->fld_type == blr_quad ||
+    field->fld_type == blr_int64)
     STUFF (field->fld_scale);
 
 if (field->fld_type == blr_text ||
