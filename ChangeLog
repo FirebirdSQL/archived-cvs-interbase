@@ -1,3 +1,22 @@
+2001-09-25 21:08  bellardo
+
+	* interbase/pipe/head.c:
+	
+	Added include to pull in the new platform implementation
+	enumerations.
+
+2001-09-25 20:52  bellardo
+
+	* interbase/jrd/sort.c:
+	
+	Fixed unbalanced ()'s that broke the build.
+
+2001-09-25 01:47  seanleyne
+
+	* interbase/jrd/sort.c:
+	
+	Temporary fix for large sort file bug
+
 2001-09-24 07:47  robocop
 
 	* interbase/remote/server.ico:
