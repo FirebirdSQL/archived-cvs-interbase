@@ -1,3 +1,34 @@
+2001-10-30 23:23  awharrison
+
+	* interbase/dsql/ddl.c:
+	
+	
+	Get information for view_relations from both contexts and
+	union_contexts.
+
+2001-10-30 20:59  awharrison
+
+	* interbase/dsql/: alld.c, dsql.c, errd.c, gen.c:
+	
+	
+	Beefed up the BUGCHECK handling in DSQL which sometimes returned
+	success when it meant failure.	Also check in dsql8_prepare to fail
+	when passed an inadequate request handle.
+
+2001-10-30 17:33  bellardo
+
+	* interbase/jrd/common.h:
+	
+	Fixed [my] LSEEK_OFFSET_CAST build problem with Windows.
+
+2001-10-30 08:30  robocop
+
+	* interbase/jrd/: isc_file.c, jrd.c, why.c:
+	
+	Make database file names consistent in Win32.  Use name sanctioned
+	and returned by the system, not the name given by the user in some
+	places.  Use short names for now.
+
 2001-10-29 20:45  bellardo
 
 	* interbase/: jrd/common.h, jrd/unix.c, utilities/analyse.c,
