@@ -1520,7 +1520,7 @@ void* open_security_db (
  **************************************/
 short	dpb_length, l = 0;
 char	dpb_buffer [256], *dpb, *p;
-TEXT	default_security_db [512], connect_string[1024], *database;
+TEXT	default_security_db [MAXPATHLEN], connect_string[1024], *database;
 void	*db_handle;
 TEXT    sec_server[256];
 
