@@ -1914,7 +1914,7 @@ if (!best)
     /* -----------------2001-09-24 --------------------
       SJL - Temporary fix for large sort file bug
      --------------------------------------------------*/
-    if (!sfb || !DLS_get_temp_space(size, sfb) || (scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )
+    if (!sfb || !DLS_get_temp_space(size, sfb) || ((scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )
 
 	{
 	sfb = (SFB) alloc (scb, (ULONG) sizeof (struct sfb));
