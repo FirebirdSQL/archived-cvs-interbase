@@ -989,8 +989,9 @@ if (input_cursor[0] == '\"')
 else
     {
     USHORT i;
-    length = name_length (input_cursor);
-    for (i=0; i<length && i< sizeof(cursor)-1; i++)
+    for (i=0; i < sizeof(cursor)-1		/* PJPG 20001013 */
+              && input_cursor[i]		/* PJPG 20001013 */
+              && input_cursor[i] != ' '; i++)	/* PJPG 20001013 */
 	cursor [i] = UPPER7 (input_cursor [i]);
     cursor [i] = '\0';
     }
