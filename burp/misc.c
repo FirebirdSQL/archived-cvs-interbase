@@ -22,6 +22,7 @@
  */
 
 #include "../jrd/ib_stdio.h"
+#include <memory.h>
 #ifdef UNIXWARE
 #include <sys/fcntl.h>
 #endif
@@ -116,10 +117,10 @@ if (free != NULL)
 }
 
 void MISC_terminate (
-    register SCHAR	*from,
-    register SCHAR	*to,
-    register SSHORT	length,
-    SSHORT		max_length)
+    UCHAR	*from,
+    UCHAR	*to,
+    ULONG	length,
+    ULONG	max_length)
 {
 /**************************************
  *

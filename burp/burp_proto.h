@@ -30,18 +30,19 @@ extern "C" {
 
 typedef int (DLL_EXPORT* OUTPUTPROC) (SLONG, UCHAR *);
 
-extern int  BURP_gbak (int, char **, OUTPUTPROC, SLONG);
+extern int	BURP_gbak (int, char **, OUTPUTPROC, SLONG);
 extern void	BURP_abort (void);
 extern void	BURP_svc_error (USHORT, USHORT, void *, USHORT, void *, USHORT, void *, USHORT, void *, USHORT, void *);
-extern void	BURP_error (USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
+extern void	BURP_error (USHORT, void *, void *, void *, void *, void *);
 extern void	BURP_print_status (STATUS *);
-extern void	BURP_error_redirect (STATUS *, USHORT, TEXT *, TEXT *);
-extern void	BURP_msg_partial (USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
-extern void	BURP_msg_put (USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
-extern void	BURP_msg_get (USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
+extern void	BURP_error_redirect (STATUS *, USHORT, void *, void *);
+extern void	BURP_msg_partial (USHORT, void *, void *, void *, void *, void *);
+extern void	BURP_msg_put (USHORT, void *, void *, void *, void *, void *);
+extern void	BURP_msg_get (USHORT, void *, void *, void *, void *, void *, void *);
 extern void	BURP_output_version (TEXT *, TEXT *);
-extern void	BURP_print (USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
-extern void	BURP_verbose (USHORT, TEXT *, TEXT *, TEXT *, TEXT *, TEXT *);
+extern void	BURP_print (USHORT, void *, void *, void *, void *, void *);
+extern void	BURP_print_warning (STATUS*);
+extern void	BURP_verbose (USHORT, void *, void *, void *, void *, void *);
 
 #ifdef __cplusplus
 };

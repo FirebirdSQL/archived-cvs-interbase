@@ -130,13 +130,13 @@ static CONST struct s_t_cvtbl {
 	};
 
 static void	add_files (UCHAR *);
-static void	bad_attribute (UCHAR, USHORT, USHORT);
+static void	bad_attribute (UCHAR, ATT_TYPE, USHORT);
 static USHORT	check_db_version (void);
 static void	create_database (UCHAR *);
 static void	decompress (UCHAR *, USHORT);
 static void	eat_blob (void);
 static REL	find_relation (TEXT *);
-static int	get_acl (TEXT *, SLONG [2], SLONG [2]);
+static int	get_acl (TEXT *, ISC_QUAD *, ISC_QUAD *);
 static void	get_array (REL, UCHAR *);
 static void	get_blob (FLD, UCHAR *);
 static void	get_blr_blob (ISC_QUAD *, USHORT);
@@ -150,7 +150,7 @@ static BOOLEAN	get_field_dimensions (void);
 static BOOLEAN	get_files (void);
 static BOOLEAN	get_filter (void);
 static BOOLEAN	get_function (void);
-static void	get_function_arg (GDS_NAME *);
+static void	get_function_arg (GDS_NAME);
 static BOOLEAN	get_generator (void);
 static BOOLEAN	get_global_field (void);
 static BOOLEAN	get_index (REL);
@@ -158,7 +158,7 @@ static void	get_misc_blob (ISC_QUAD *, USHORT, USHORT);
 static SLONG	get_numeric (void);
 static SINT64   get_int64 (void);
 static BOOLEAN	get_procedure (void);
-static BOOLEAN	get_procedure_prm (GDS_NAME *);
+static BOOLEAN	get_procedure_prm (GDS_NAME );
 static BOOLEAN	get_ref_constraint (void);
 static BOOLEAN	get_rel_constraint (void);
 static BOOLEAN	get_relation (void);
@@ -166,7 +166,7 @@ static BOOLEAN	get_relation_data (void);
 static BOOLEAN	get_sql_roles (void);
 static BOOLEAN	get_security_class (void);
 static void	get_source_blob (ISC_QUAD *, USHORT);
-static ULONG	get_text (TEXT *, SSHORT);
+static USHORT	get_text (TEXT *, ULONG);
 static BOOLEAN	get_trigger (void);
 static BOOLEAN	get_trigger_message (void);
 static BOOLEAN	get_trigger_old (REL);
@@ -250,7 +250,7 @@ isc_req_handle  req_handle1 = NULL, req_handle2 = NULL, req_handle4 = NULL;
 long            req_status [20];
 TGBL		tdgbl;
 long		db_handle;
-SCHAR		dpb[128], *d, *q;
+UCHAR		dpb[128], *d, *q;
 SSHORT		l;
 isc_req_handle	req_handle3 = NULL;
 TEXT		index_name[32];
@@ -536,18 +536,18 @@ MVOL_fini_read (&cumul_count_kb);
 /* attach database again to put it online */
 
 d = dpb;
-*d++ = gds__dpb_version1;
+*d++ = (UCHAR) gds__dpb_version1;
 
 if (flag_on_line)
     {
-    *d++ = gds__dpb_online;
+    *d++ = (UCHAR) gds__dpb_online;
     *d++ = 0;
     }
 
 if (tdgbl->gbl_sw_user)
     {
-    *d++ = gds__dpb_user_name;
-    *d++ = strlen (tdgbl->gbl_sw_user);
+    *d++ = (UCHAR) gds__dpb_user_name;
+    *d++ = (UCHAR) strlen (tdgbl->gbl_sw_user);
     for (q = tdgbl->gbl_sw_user; *q;)
 	*d++ = *q++;
     }
@@ -555,18 +555,18 @@ if (tdgbl->gbl_sw_user)
 if (tdgbl->gbl_sw_password)
     {
     if (!tdgbl->gbl_sw_service_thd)
-        *d++ = gds__dpb_password;
+        *d++ = (UCHAR) gds__dpb_password;
     else
-    	*d++ = gds__dpb_password_enc;
-    *d++ = strlen (tdgbl->gbl_sw_password);
+    	*d++ = (UCHAR) gds__dpb_password_enc;
+    *d++ = (UCHAR) strlen (tdgbl->gbl_sw_password);
     for (q = tdgbl->gbl_sw_password; *q;)
 	*d++ = *q++;
     }
 
 /* set sync writes to engine default */
-*d++ = gds__dpb_force_write;
+*d++ = (UCHAR) gds__dpb_force_write;
 *d++ = 1;
-*d++ = tdgbl->hdr_forced_writes;	/* set forced writes to the value which was in the header */
+*d++ = (UCHAR) tdgbl->hdr_forced_writes;	/* set forced writes to the value which was in the header */
 
 l = d - dpb;
 db_handle = 0;
@@ -598,11 +598,11 @@ if (tdgbl->gbl_sw_mode == TRUE && tdgbl->gbl_sw_mode_val == TRUE)
     /* msg 280: setting database to read-only access */
 
     d = dpb;
-    *d++ = gds__dpb_version1;
+    *d++ = (UCHAR) gds__dpb_version1;
     if (tdgbl->gbl_sw_user)
 	{
-	*d++ = gds__dpb_user_name;
-	*d++ = strlen (tdgbl->gbl_sw_user);
+	*d++ = (UCHAR) gds__dpb_user_name;
+	*d++ = (UCHAR) strlen (tdgbl->gbl_sw_user);
 	for (q = tdgbl->gbl_sw_user; *q;)
 	    *d++ = *q++;
 	}
@@ -610,15 +610,15 @@ if (tdgbl->gbl_sw_mode == TRUE && tdgbl->gbl_sw_mode_val == TRUE)
     if (tdgbl->gbl_sw_password)
 	{
 	if (!tdgbl->gbl_sw_service_thd)
-	    *d++ = gds__dpb_password;
+	    *d++ = (UCHAR) gds__dpb_password;
 	else
-	    *d++ = gds__dpb_password_enc;
-	*d++ = strlen (tdgbl->gbl_sw_password);
+	    *d++ = (UCHAR) gds__dpb_password_enc;
+	*d++ = (UCHAR) strlen (tdgbl->gbl_sw_password);
 	for (q = tdgbl->gbl_sw_password; *q;)
 	    *d++ = *q++;
 	}
 
-    *d++ = isc_dpb_set_db_readonly;
+    *d++ = (UCHAR) isc_dpb_set_db_readonly;
     *d++ = 1;
     *d++ = TRUE;	/* set database to readOnly mode */
     l = d - dpb;
@@ -678,14 +678,14 @@ for (file = tdgbl->gbl_sw_files; file; file = file->fil_next)
     END_ERROR;
     if (req_handle1)
         isc_release_request (req_status, &req_handle1);
-	BURP_verbose (57, file->fil_name, (TEXT*) start, NULL_PTR, NULL_PTR, NULL_PTR);
+	BURP_verbose (57, file->fil_name, (void*) start, NULL_PTR, NULL_PTR, NULL_PTR);
 		/* msg 57 adding file %s, starting at page %ld */
 	}
-    else if (file->fil_length >= start - 1)
-	file->fil_length -= start - 1;
+    else if (((signed long )file->fil_length) >= start - 1)
+	((signed long )file->fil_length) -= start - 1;
     else
 	{
-	BURP_print (96, (TEXT*) file->fil_length, (TEXT*) (start - 1), NULL_PTR, NULL_PTR, NULL_PTR);
+	BURP_print (96, (void*) file->fil_length, (void*) (start - 1), NULL_PTR, NULL_PTR, NULL_PTR);
 	    /* msg 96  length given for initial file (%ld) is less than minimum (%ld) */
 	file->fil_length = 0;
 	}
@@ -717,7 +717,7 @@ if (count)
 
 static void bad_attribute (
     UCHAR	scan_next_attr,
-    USHORT	bad_attr,
+    ATT_TYPE	bad_attr,
     USHORT	type)
 {
 /**************************************
@@ -740,10 +740,12 @@ TGBL	    tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
+skip_count = 0;
+
 if (!tdgbl->gbl_sw_skip_count)	
     {
     gds__msg_format (NULL_PTR, 12, type, sizeof (t_name), t_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
-    BURP_print (80, t_name, (TEXT*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
+    BURP_print (80, t_name, (void*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
 	/* msg 80  don't recognize %s attribute %ld -- continuing */
     skip_l = GET();
     if (skip_l)
@@ -755,13 +757,13 @@ else
 	{
 	skip_count = tdgbl->gbl_sw_skip_count;
 	GET_SKIP (skip_count);
-	BURP_print (203, (TEXT*) skip_count, (TEXT*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
+	BURP_print (203, (void*) skip_count, (void*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
 	    /*msg 203: skipped %d bytes after reading a bad attribute %d */
 	}
     else
 	{
 	skip_count ++;
-	BURP_print (205, (TEXT*) skip_count, (TEXT*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
+	BURP_print (205, (void*) skip_count, (void*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
 	    /* msg 205: skipped %d bytes looking for next valid attribute, encountered attribute %d */
 	}
     scan_next_attr = AFTER_SKIP;
@@ -831,8 +833,9 @@ SSHORT		l;
 STATUS		status_vector [ISC_STATUS_LENGTH];
 REC_TYPE	record;
 ATT_TYPE	attribute;
-SCHAR		dpb [128], *d, *q;
-int		page_size, sweep_interval, no_reserve, forced_writes, page_buffers;
+UCHAR		dpb [128], *d, *q;
+ULONG		page_size, sweep_interval, page_buffers;
+USHORT		no_reserve, forced_writes;
 TGBL		tdgbl;
 USHORT		SQL_dialect;
 BOOLEAN		db_read_only, SQL_dialect_flag = FALSE;
@@ -855,7 +858,7 @@ if (GET_RECORD (record) == rec_physical_db)
 	    {
 	    case att_SQL_dialect:
 		SQL_dialect_flag = TRUE;
-		SQL_dialect = get_numeric();
+		SQL_dialect = (USHORT) get_numeric();
 		break;
 
 	    case att_page_size:
@@ -867,16 +870,16 @@ if (GET_RECORD (record) == rec_physical_db)
 		break;
 
 	    case att_forced_writes:
-		forced_writes = get_numeric();
+		forced_writes = (USHORT) get_numeric();
 		break;
 
 	    case att_no_reserve:
-		no_reserve = get_numeric();
+		no_reserve = (USHORT) get_numeric();
 		break;
 
 #ifdef READONLY_DATABASE
 	    case att_db_read_only:
-		db_read_only = get_numeric();
+		db_read_only = (UCHAR) get_numeric();
 		break;
 #endif  /* READONLY_DATABASE */
 
@@ -900,7 +903,7 @@ if (record != rec_database)
 if (tdgbl->gbl_sw_page_size &&
     (tdgbl->gbl_sw_page_size < page_size))
     {
-    BURP_print (110, (TEXT*) page_size, (TEXT*) tdgbl->gbl_sw_page_size, NULL_PTR, NULL_PTR, NULL_PTR);
+    BURP_print (110, (void*) page_size, (void*) tdgbl->gbl_sw_page_size, NULL_PTR, NULL_PTR, NULL_PTR);
 /* msg 110 Reducing the database page size from %ld bytes to %ld bytes */
     }
 
@@ -930,24 +933,24 @@ if (tdgbl->gbl_sw_page_buffers)
     page_buffers = tdgbl->gbl_sw_page_buffers;
 
 d = dpb;
-*d++ = isc_dpb_version1;
-*d++ = isc_dpb_page_size;
+*d++ = (UCHAR) isc_dpb_version1;
+*d++ = (UCHAR) isc_dpb_page_size;
 *d++ = 2;
 *d++ = 0;
-*d++ = page_size >> 8;
-*d++ = isc_dpb_gbak_attach;
-*d++ = strlen(GDS_VERSION);
+*d++ = (UCHAR) (page_size >> 8);
+*d++ = (UCHAR) isc_dpb_gbak_attach;
+*d++ = (UCHAR) strlen(GDS_VERSION);
     for (q = GDS_VERSION; *q;)
 	*d++ = *q++;
 
 if (sweep_interval != -1)
     {
-    *d++ = isc_dpb_sweep_interval;
+    *d++ = (UCHAR) isc_dpb_sweep_interval;
     *d++ = 4;
-    *d++ = sweep_interval;
-    *d++ = sweep_interval >> 8;
-    *d++ = sweep_interval >> 16;
-    *d++ = sweep_interval >> 24;
+    *d++ = (UCHAR) sweep_interval;
+    *d++ = (UCHAR) (sweep_interval >> 8);
+    *d++ = (UCHAR) (sweep_interval >> 16);
+    *d++ = (UCHAR) (sweep_interval >> 24);
     }
 #ifdef READONLY_DATABASE
 /* If the database is to be restored "read_only", fillup the data pages */
@@ -956,39 +959,39 @@ if (no_reserve || db_read_only)
 if (no_reserve)
 #endif  /* READONLY_DATABASE */
     {
-    *d++ = isc_dpb_no_reserve;
+    *d++ = (UCHAR) isc_dpb_no_reserve;
     *d++ = 1;
     *d++ = TRUE;
     }
 if (tdgbl->gbl_sw_user)
     {
-    *d++ = isc_dpb_user_name;
-    *d++ = strlen (tdgbl->gbl_sw_user);
+    *d++ = (UCHAR) isc_dpb_user_name;
+    *d++ = (UCHAR) strlen (tdgbl->gbl_sw_user);
     for (q = tdgbl->gbl_sw_user; *q;)
 	*d++ = *q++;
     }
 if (tdgbl->gbl_sw_password)
     {
     if (!tdgbl->gbl_sw_service_thd)
-	*d++ = isc_dpb_password;
+	*d++ = (UCHAR) isc_dpb_password;
     else
-	*d++ = isc_dpb_password_enc;
-    *d++ = strlen (tdgbl->gbl_sw_password);
+	*d++ = (UCHAR) isc_dpb_password_enc;
+    *d++ = (UCHAR) strlen (tdgbl->gbl_sw_password);
     for (q = tdgbl->gbl_sw_password; *q;)
 	*d++ = *q++;
     }
 if (page_buffers)
     {
-    *d++ = isc_dpb_set_page_buffers;
+    *d++ = (UCHAR) isc_dpb_set_page_buffers;
     *d++ = 4;
-    *d++ = page_buffers;
-    *d++ = page_buffers >> 8;
-    *d++ = page_buffers >> 16;
-    *d++ = page_buffers >> 24;
+    *d++ = (UCHAR) page_buffers;
+    *d++ = (UCHAR) (page_buffers >> 8);
+    *d++ = (UCHAR) (page_buffers >> 16);
+    *d++ = (UCHAR) (page_buffers >> 24);
     }
 
 /* Turn off sync writes during restore */
-*d++ = isc_dpb_force_write;
+*d++ = (UCHAR) isc_dpb_force_write;
 *d++ = 1;
 *d++ = 0;
 
@@ -1000,18 +1003,18 @@ if (page_buffers)
 **
 */
 
-*d++ = isc_dpb_sql_dialect;
+*d++ = (UCHAR) isc_dpb_sql_dialect;
 *d++ = 1;
 if (SQL_dialect_flag == TRUE)
-    *d++ = SQL_dialect;
+    *d++ = (UCHAR) SQL_dialect;
 else
-    *d++ = SQL_DIALECT_V5;
+    *d++ = (UCHAR) SQL_DIALECT_V5;
     
 /* start database up shut down */
-*d++ = isc_dpb_shutdown;
+*d++ = (UCHAR) isc_dpb_shutdown;
 *d++ = 1;
-*d++ = isc_dpb_shut_attachment;
-*d++ = isc_dpb_shutdown_delay;
+*d++ = (UCHAR) isc_dpb_shut_attachment;
+*d++ = (UCHAR) isc_dpb_shutdown_delay;
 *d++ = 2;
 *d++ = 0;
 *d++ = 0;
@@ -1035,7 +1038,7 @@ if (tdgbl->gbl_sw_version)
     isc_version (&tdgbl->db_handle, BURP_output_version, "\t%s\n");
     }
     
-BURP_verbose (74, file_name, (TEXT*) page_size, NULL_PTR, NULL_PTR, NULL_PTR);	
+BURP_verbose (74, file_name, (void*) page_size, NULL_PTR, NULL_PTR, NULL_PTR);	
 /* msg 74 created database %s, page_size %ld bytes */
 }
 
@@ -1072,7 +1075,7 @@ while (p < end)
 	{
 	if (end - p < count)
 	    {
-	    BURP_print (202, (TEXT*) count, (TEXT*) (end - p), NULL_PTR, NULL_PTR, NULL_PTR);
+	    BURP_print (202, (void*) count, (void*) (end - p), NULL_PTR, NULL_PTR, NULL_PTR);
 	    /* msg 202: adjusting a decompression length error: invalid length  %d was adjusted to %d */
 	    count = end - p;
 	    }
@@ -1082,7 +1085,7 @@ while (p < end)
 	{
 	if (end + count < p)
 	    {
-	    BURP_print(202, (TEXT*) count, (TEXT*) (p - end), NULL_PTR, NULL_PTR, NULL_PTR);
+	    BURP_print(202, (void*) count, (void*) (p - end), NULL_PTR, NULL_PTR, NULL_PTR);
 	    /* msg 202: adjusting a decompression length error: invalid length %d was adjusted to %d */
 	    count = p - end;
 	    }
@@ -1146,6 +1149,8 @@ for (relation = tdgbl->relations; relation; relation = relation->rel_next)
 
 BURP_error_redirect (NULL_PTR, 35, name, 0); 
 /* msg 35 can't find relation %s */
+
+return NULL;
 }
 
 static void general_on_error (void)
@@ -1170,8 +1175,8 @@ BURP_abort ();
 
 static int get_acl (
     TEXT	*owner_nm,
-    SLONG	blob_id [2],
-    SLONG	new_blob_id [2])
+    ISC_QUAD 	*blob_id,
+    ISC_QUAD	*new_blob_id)
 {
 /**************************************
  *
@@ -1200,8 +1205,8 @@ UCHAR	*p, blob_info [32], item, *buffer, static_buffer [1024],
 	*new_buffer, *end_buffer;
 USHORT	l, max_segment, num_segments, new_len = 0;
 TGBL	tdgbl;
-UCHAR	*c_1, *from, *to;
-SLONG	id_person_len, owner_nm_len, cnt;
+UCHAR	*c_1, *from, *to, owner_nm_len;
+SLONG	id_person_len, cnt;
 isc_blob_handle	blob_handle = NULL;
 
 tdgbl = GET_THREAD_DATA;
@@ -1209,7 +1214,7 @@ new_buffer = NULL_PTR;
 
 /* If the blob is null, don't store it.  It will be restored as null. */
 
-if (!blob_id [0] && !blob_id [1])
+if (!blob_id->isc_quad_high && !blob_id->isc_quad_low)
     return FALSE;
 
 /* Open the blob and get it's vital statistics */
@@ -1223,7 +1228,7 @@ if (isc_open_blob (status_vector, GDS_REF (tdgbl->db_handle),
     BURP_error_redirect (status_vector, 24, NULL, NULL); 
 
 if (isc_blob_info (status_vector, GDS_REF (blob), sizeof (blr_items), 
-	           blr_items, sizeof (blob_info), blob_info))
+	           (UCHAR *) blr_items, sizeof (blob_info), blob_info))
 	/* msg 20 gds__blob_info failed */
     BURP_error_redirect (status_vector, 20, NULL, NULL); 
 
@@ -1232,14 +1237,14 @@ p = blob_info;
 
 while ((item = *p++) != gds__info_end)
     {
-    l = gds__vax_integer (p, 2);
+    l = (USHORT) gds__vax_integer (p, 2);
     p += 2;
     n = gds__vax_integer (p, l);
     p += l;
     switch (item)
 	{
 	case isc_info_blob_max_segment:
-	    max_segment = n;
+	    max_segment = (USHORT) n;
 	    break;
 
 	case isc_info_blob_total_length:
@@ -1247,7 +1252,7 @@ while ((item = *p++) != gds__info_end)
 	    break;
 
 	case isc_info_blob_num_segments:
-	    num_segments = n;
+	    num_segments = (USHORT) n;
 	    /* 
 	    ** we assume that the ACL list was written out as 
 	    ** in one big segment
@@ -1259,7 +1264,7 @@ while ((item = *p++) != gds__info_end)
 
 	default:
 		/* msg 79 don't understand blob info item %ld  */
-	    BURP_print (79, (TEXT*) item, NULL, NULL, NULL, NULL);
+	    BURP_print (79, (void*) item, NULL, NULL, NULL, NULL);
 	    return FALSE;
 	}
     }
@@ -1399,7 +1404,7 @@ STATUS		status_vector [ISC_STATUS_LENGTH];
 SLONG		last_element_dim[MAX_DIMENSION];
 SLONG		fld_ranges[2*MAX_DIMENSION];
 SLONG		*blob_id, return_length, slice_length, *range, *end_ranges,
-		total_elements, returned_elements, lcount;
+		lcount;
 USHORT		blr_length, count, field_number, field_length;
 UCHAR		*buffer, *p;
 SCHAR		*blr, blr_buffer [200]; /* enough for a sdl with 16 dimensions */
@@ -1882,7 +1887,7 @@ static void get_blob (
  *
  * Functional description
  *	Read blob attributes and copy data from input file to nice,
- *	shiney, new blob.
+ *	shiny, new blob.
  *
  **************************************/
 FLD		field;
@@ -2099,50 +2104,50 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_character_sets_req_handle1)
         switch (attribute)
             {
 
-	    att_charset_name:
+	    case att_charset_name:
 		X.RDB$CHARACTER_SET_NAME.NULL = FALSE;
 		get_text (X.RDB$CHARACTER_SET_NAME, sizeof (X.RDB$CHARACTER_SET_NAME));
 		BURP_verbose (msgVerbose_restore_charset, X.RDB$CHARACTER_SET_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 		break;
 
-	    att_charset_form:
+	    case att_charset_form:
 		X.RDB$FORM_OF_USE.NULL = FALSE;
         	get_text (X.RDB$FORM_OF_USE, sizeof (X.RDB$FORM_OF_USE));
 		break;
 
-	    att_charset_numchar:
+	    case att_charset_numchar:
 		X.RDB$NUMBER_OF_CHARACTERS.NULL = FALSE;
-		X.RDB$NUMBER_OF_CHARACTERS = get_numeric();
+		X.RDB$NUMBER_OF_CHARACTERS = (USHORT) get_numeric();
 		break;
 
-	    att_charset_coll:
+	    case att_charset_coll:
 		X.RDB$DEFAULT_COLLATE_NAME.NULL = FALSE;
 		get_text (X.RDB$DEFAULT_COLLATE_NAME, sizeof (X.RDB$DEFAULT_COLLATE_NAME));
 		break;
 
-	    att_charset_id:
+	    case att_charset_id:
 	        X.RDB$CHARACTER_SET_ID.NULL = FALSE;
-	        X.RDB$CHARACTER_SET_ID = get_numeric();
+	        X.RDB$CHARACTER_SET_ID = (USHORT) get_numeric();
 		break;
 
-	    att_charset_sysflag:
+	    case att_charset_sysflag:
         	X.RDB$SYSTEM_FLAG.NULL = FALSE;
-        	X.RDB$SYSTEM_FLAG = get_numeric();
+        	X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		break;
 
-	    att_charset_description:
+	    case att_charset_description:
 		X.RDB$DESCRIPTION.NULL = FALSE;
 		get_source_blob (&X.RDB$DESCRIPTION, 0);
 		break;
 
-	    att_charset_funct:
+	    case att_charset_funct:
 		X.RDB$FUNCTION_NAME.NULL = FALSE;
 		get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
 		break;
 
-	    att_charset_bytes_char:
+	    case att_charset_bytes_char:
 		X.RDB$BYTES_PER_CHARACTER.NULL = FALSE;
-		X.RDB$BYTES_PER_CHARACTER = get_numeric();
+		X.RDB$BYTES_PER_CHARACTER = (USHORT) get_numeric();
 		break;
 
             default:
@@ -2240,44 +2245,44 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_collation_req_handle1)
         switch (attribute)
             {
 
-	    att_collation_name:
+	    case att_coll_name:
 		X.RDB$COLLATION_NAME.NULL = FALSE;
 		get_text (X.RDB$COLLATION_NAME, sizeof (X.RDB$COLLATION_NAME));
 		BURP_verbose (msgVerbose_restore_collation, X.RDB$COLLATION_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 		break;
 
-	    att_collation_id:
+	    case att_coll_id:
 		X.RDB$COLLATION_ID.NULL = FALSE;
-		X.RDB$COLLATION_ID = get_numeric();
+		X.RDB$COLLATION_ID = (USHORT) get_numeric();
 		break;
 
-	    att_collation_charset_id:
+	    case att_coll_cs_id:
 		X.RDB$CHARACTER_SET_ID.NULL = FALSE;
-		X.RDB$CHARACTER_SET_ID = get_numeric();
+		X.RDB$CHARACTER_SET_ID = (USHORT) get_numeric();
 		break;
 
-	    att_collation_attrs:
+	    case att_coll_attr:
 		X.RDB$COLLATION_ATTRIBUTES.NULL = FALSE;
-		X.RDB$COLLATION_ATTRIBUTES = get_numeric();
+		X.RDB$COLLATION_ATTRIBUTES = (USHORT) get_numeric();
 		break;
 
-	    att_collation_subtype:	/* No longer used: 93-11-15 DBS */
+	    case att_coll_subtype:	/* No longer used: 93-11-15 DBS */
 					/* still present to handle V4 R&D
 					   gbak files */
 		(void) get_numeric();
 		break;
 
-	    att_collation_sysflag:
+	    case att_coll_sysflag:
         	X.RDB$SYSTEM_FLAG.NULL = FALSE;
-        	X.RDB$SYSTEM_FLAG = get_numeric();
+        	X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		break;
 
-	    att_collation_description:
+	    case att_coll_description:
 		X.RDB$DESCRIPTION.NULL = FALSE;
 		get_source_blob (&X.RDB$DESCRIPTION, 0);
 		break;
 
-	    att_collation_funct:
+	    case att_coll_funct:
 		X.RDB$FUNCTION_NAME.NULL = FALSE;
 		get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
 		break;
@@ -2313,7 +2318,8 @@ int		*request, records;
 TEXT		*p;
 SCHAR		*blr, *blr_buffer;
 RCRD_OFFSET	offset;
-ULONG		l, length, old_length;
+USHORT		l;
+ULONG		length, old_length;
 SSHORT		count, blr_length, alignment, dtype;
 SSHORT		*buffer;
 LSTRING		data;
@@ -2334,7 +2340,8 @@ if (tdgbl->gbl_sw_meta)
 
 /* Start by counting the interesting fields */
 
-count = offset = length = 0;
+offset = length = 0;
+count = 0;
 
 for (field = relation->rel_fields; field; field = field->fld_next)
     if (!(field->fld_flags & FLD_computed))
@@ -2420,7 +2427,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	    BURP_svc_error (26, isc_arg_number, field->fld_type,
 			    0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-	    BURP_error (26, (TEXT*) field->fld_type, 0, 0, 0, 0);
+	    BURP_error (26, (void*) field->fld_type, 0, 0, 0, 0);
             /* msg 26 datatype %ld not understood */
 #endif
 	    break;
@@ -2522,7 +2529,7 @@ while (TRUE)
     if (GET() != att_data_length)
 	BURP_error_redirect (NULL_PTR, 39, 0, 0);
 /* msg 39 expected record length */
-    l = get_numeric();
+    l = (USHORT) get_numeric();
     if (!tdgbl->gbl_sw_transportable && l != length)
     	{
 	if (!old_length)
@@ -2532,7 +2539,7 @@ while (TRUE)
 	    BURP_svc_error (40, isc_arg_number, length, isc_arg_number, l,
 			    0, NULL, 0, NULL, 0, NULL);
 #else
-	    BURP_error (40, (TEXT*) length, (TEXT*) l, 0, 0, 0);
+	    BURP_error (40, (void*) length, (void*) l, 0, 0, 0);
 /* msg 40 wrong length record, expected %ld encountered %ld */
 #endif
 	}
@@ -2545,7 +2552,7 @@ while (TRUE)
 /* msg 55 Expected XDR record length */
 	else
 	    {
-	    data.lstr_length = l = get_numeric();
+	    data.lstr_length = l = (USHORT) get_numeric();
 	    if (l > data.lstr_allocated)
 		{
  		data.lstr_allocated = l;
@@ -2569,15 +2576,15 @@ while (TRUE)
 	}
 
     if (old_length)
-	realign (buffer, relation);
+	realign ((UCHAR *)buffer, relation);
 
     if (tdgbl->gbl_sw_transportable)
-	CAN_encode_decode (relation, &data, buffer, FALSE);
+	CAN_encode_decode (relation, &data, (UCHAR *)buffer, FALSE);
 	
     records++;
     
     if ((records % RESTORE_VERBOSE_INTERVAL)==0) 
-     BURP_verbose(107,(TEXT*) records,NULL_PTR,NULL_PTR,NULL_PTR,NULL_PTR);
+     BURP_verbose(107,(void*) records,NULL_PTR,NULL_PTR,NULL_PTR,NULL_PTR);
     
     for (field = relation->rel_fields; field; field = field->fld_next)
 	if ((field->fld_type == blr_blob) || (field->fld_flags & FLD_array))
@@ -2590,10 +2597,10 @@ while (TRUE)
     while (record == rec_blob || record == rec_array)
 	{     
 	if (record == rec_blob)
-	    get_blob (relation->rel_fields, buffer);
+	    get_blob (relation->rel_fields, (UCHAR *) buffer);
 
 	else if (record == rec_array)
-	    get_array (relation, buffer);
+	    get_array (relation, (UCHAR *) buffer);
 
 	GET_RECORD (record);
 	}
@@ -2603,7 +2610,7 @@ while (TRUE)
 	    GDS_REF (request), 
 	    GDS_REF (gds__trans),
 	    0, 
-	    length, 
+	    (USHORT) length, 
 	    GDS_VAL (buffer),
 	    0))
 	if (status_vector [1] == gds__not_valid)
@@ -2703,7 +2710,7 @@ if (tdgbl->gbl_sw_incremental)
     if (gds__status [1])
         EXEC SQL SET TRANSACTION;
     }
-BURP_verbose (107, (TEXT*) records, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
+BURP_verbose (107, (void*) records, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 /* msg 107 %ld records restored */
 
 return record;
@@ -2723,7 +2730,7 @@ static BOOLEAN get_exception(void)
  **************************************/
 ATT_TYPE	attribute;
 TEXT		temp [32];
-SSHORT		l;
+ULONG		l;
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
 
@@ -2817,8 +2824,8 @@ switch (dtype)
 	    {
 	    *character_set_id = CS_JIS_0208;
 	    *collation_id = 0;
-	    BURP_verbose (237, (TEXT*) *scale, (TEXT*) *character_set_id, 
-			   (TEXT*) *collation_id, NULL_PTR, NULL_PTR);
+	    BURP_verbose (237, (void*) *scale, (void*) *character_set_id, 
+			   (void*) *collation_id, NULL_PTR, NULL_PTR);
 		    /* msg 237: Converted V3 scale: %d to 
 		       character_set_id: %d and callate_id: %d. */
 	    *scale = 0;
@@ -2830,8 +2837,8 @@ switch (dtype)
 	    {
 	    *character_set_id = CS_EUCJ;
 	    *collation_id = 0;
-	    BURP_verbose (237, (TEXT*) *scale, (TEXT*) *character_set_id, 
-			    (TEXT*) *collation_id, NULL_PTR, NULL_PTR);
+	    BURP_verbose (237, (void*) *scale, (void*) *character_set_id, 
+			    (void*) *collation_id, NULL_PTR, NULL_PTR);
 		    /* msg 237: Converted V3 scale: %d to 
 		       character_set_id: %d and callate_id: %d. */
 	    *scale = 0;
@@ -2854,8 +2861,8 @@ switch (dtype)
 		*character_set_id = sub_type_cvtbl [i].character_set_id;
 		*collation_id = sub_type_cvtbl [i].collation_id;
 
-		BURP_verbose (236, (TEXT*) *sub_type, (TEXT*) *character_set_id, 
-				(TEXT*) *collation_id, NULL_PTR, NULL_PTR);
+		BURP_verbose (236, (void*) *sub_type, (void*) *character_set_id, 
+				(void*) *collation_id, NULL_PTR, NULL_PTR);
 			/* msg 236: Converted V3 sub_type: %d to 
 			   character_set_id: %d and callate_id: %d. */
 
@@ -2886,7 +2893,7 @@ static FLD get_field (
  **************************************/
 FLD		field;
 ATT_TYPE	attribute;
-SSHORT		n,
+USHORT		n,
 		global_tr = FALSE;
 SLONG		*rp;
 UCHAR	    scan_next_attr;
@@ -2967,36 +2974,36 @@ STORE (TRANSACTION_HANDLE local_trans
 
 	    case att_field_position:
 		X.RDB$FIELD_POSITION.NULL = FALSE;
-		X.RDB$FIELD_POSITION = get_numeric();
+		X.RDB$FIELD_POSITION = (USHORT) get_numeric();
 		break;
 
 	    case att_field_number:
-		field->fld_number = get_numeric();
+		field->fld_number = (USHORT) get_numeric();
 		break;
 
 	    case att_field_type:
-		field->fld_type = get_numeric();
+		field->fld_type = (USHORT) get_numeric();
 		break;
 
 	    case att_field_length:
-		field->fld_length = get_numeric();
+		field->fld_length = (USHORT) get_numeric();
 		break;
 
 	    case att_field_scale:
-		field->fld_scale = get_numeric();
+		field->fld_scale = (USHORT) get_numeric();
 		break;
 
 	    case att_field_sub_type:
-		field->fld_sub_type = get_numeric();
+		field->fld_sub_type = (USHORT) get_numeric();
 		break;
 
 	    case att_field_system_flag:
-		X.RDB$SYSTEM_FLAG = get_numeric();
+		X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		X.RDB$SYSTEM_FLAG.NULL = FALSE;
 		break;
 
 	    case att_view_context:
-		X.RDB$VIEW_CONTEXT = get_numeric();
+		X.RDB$VIEW_CONTEXT = (USHORT) get_numeric();
 		X.RDB$VIEW_CONTEXT.NULL = FALSE;
 		break;
 
@@ -3017,7 +3024,7 @@ STORE (TRANSACTION_HANDLE local_trans
 
 	    case att_field_description2:
 		X.RDB$DESCRIPTION.NULL = FALSE;
-		get_source_blob (&X.RDB$DESCRIPTION, global_tr);
+		get_source_blob (&X.RDB$DESCRIPTION, (UCHAR) global_tr);
 		break;
 
 	    case att_field_complex_name:
@@ -3026,7 +3033,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_field_dimensions:
-		field->fld_dimensions = get_numeric();
+		field->fld_dimensions = (USHORT) get_numeric();
 		field->fld_flags |= FLD_array;
 		for (rp = field->fld_ranges, n = field->fld_dimensions; n; rp+=2, n--)
 		    {
@@ -3045,11 +3052,11 @@ STORE (TRANSACTION_HANDLE local_trans
 
 	    case att_field_update_flag:
 		X.RDB$UPDATE_FLAG.NULL = FALSE;
-		X.RDB$UPDATE_FLAG = get_numeric();
+		X.RDB$UPDATE_FLAG = (USHORT) get_numeric();
 		break;
 
 	    case att_field_character_length:
-		field->fld_character_length = get_numeric();
+		field->fld_character_length = (USHORT) get_numeric();
 		break;
 
 	    case att_field_default_source:
@@ -3064,15 +3071,15 @@ STORE (TRANSACTION_HANDLE local_trans
 
 	    case att_field_null_flag:
 		X.RDB$NULL_FLAG.NULL = FALSE;
-		X.RDB$NULL_FLAG = get_numeric();
+		X.RDB$NULL_FLAG = (USHORT) get_numeric();
 		break;
 
 	    case att_field_character_set:
-		field->fld_character_set_id = get_numeric();
+		field->fld_character_set_id = (USHORT) get_numeric();
 		break;
 
 	    case att_field_collation_id:
-		field->fld_collation_id = get_numeric();
+		field->fld_collation_id = (USHORT) get_numeric();
 		X.RDB$COLLATION_ID.NULL = FALSE;
 		X.RDB$COLLATION_ID = field->fld_collation_id;
 		break;
@@ -3140,7 +3147,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_field_dimensions_req_handle1)
 		break;
 
 	    case att_field_dimensions:
-		X.RDB$DIMENSION = get_numeric();
+		X.RDB$DIMENSION = (USHORT) get_numeric();
 		break;
 
 	    case att_field_range_low:
@@ -3199,7 +3206,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_files_req_handle1)
 		break;
                                                    
 	    case att_file_sequence:
-		X.RDB$FILE_SEQUENCE = get_numeric();
+		X.RDB$FILE_SEQUENCE = (USHORT) get_numeric();
 		break;
                                                    
 	    case att_file_start:
@@ -3215,7 +3222,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_files_req_handle1)
 		break;
                                                    
 	    case att_shadow_number:
-		X.RDB$SHADOW_NUMBER = get_numeric();
+		X.RDB$SHADOW_NUMBER = (USHORT) get_numeric();
 		if (tdgbl->gbl_sw_kill && X.RDB$SHADOW_NUMBER)
 		    X.RDB$FILE_FLAGS |= FILE_inactive;
 		break;
@@ -3284,11 +3291,11 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_filter_req_handle1)
 		break;
 
 	    case att_filter_input_sub_type:
-		X.RDB$INPUT_SUB_TYPE = get_numeric();
+		X.RDB$INPUT_SUB_TYPE = (USHORT) get_numeric();
 		break;
 
 	    case att_filter_output_sub_type:
-		X.RDB$OUTPUT_SUB_TYPE = get_numeric();
+		X.RDB$OUTPUT_SUB_TYPE = (USHORT) get_numeric();
 		break;
 
             default:
@@ -3356,7 +3363,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_function_req_handle1)
 		break;
                                                    
 	    case att_function_return_arg:
-		X.RDB$RETURN_ARGUMENT = get_numeric();
+		X.RDB$RETURN_ARGUMENT = (USHORT) get_numeric();
 		break;
                                                    
             case att_function_query_name:
@@ -3364,7 +3371,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_function_req_handle1)
 		break;
 
 	    case att_function_type:
-		X.RDB$FUNCTION_TYPE = get_numeric();
+		X.RDB$FUNCTION_TYPE = (USHORT) get_numeric();
 		break;
                                                    
 	    default:
@@ -3386,7 +3393,7 @@ return TRUE;
 }
 
 static void get_function_arg (
-    GDS_NAME	*funcptr)
+    GDS_NAME	funcptr)
 {
 /**************************************
  *
@@ -3427,38 +3434,38 @@ if (tdgbl->RESTORE_format >= 6)
 		    break;
 
 		case att_functionarg_position:
-		    X.RDB$ARGUMENT_POSITION = get_numeric();
+		    X.RDB$ARGUMENT_POSITION = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_mechanism:
-		    X.RDB$MECHANISM = get_numeric();
+		    X.RDB$MECHANISM = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_type:
-		    X.RDB$FIELD_TYPE = get_numeric();
+		    X.RDB$FIELD_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_scale:
-		    X.RDB$FIELD_SCALE = get_numeric();
+		    X.RDB$FIELD_SCALE = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_length:
-		    X.RDB$FIELD_LENGTH = get_numeric();
+		    X.RDB$FIELD_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_sub_type:
 		    X.RDB$FIELD_SUB_TYPE.NULL = FALSE;
-		    X.RDB$FIELD_SUB_TYPE = get_numeric();
+		    X.RDB$FIELD_SUB_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_character_set:
 		    X.RDB$CHARACTER_SET_ID.NULL = FALSE;
-		    X.RDB$CHARACTER_SET_ID = get_numeric();
+		    X.RDB$CHARACTER_SET_ID = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_precision:
 		    X.RDB$FIELD_PRECISION.NULL = FALSE;
-		    X.RDB$FIELD_PRECISION = get_numeric();
+		    X.RDB$FIELD_PRECISION = (USHORT) get_numeric();
 		    break;
 
 		default:
@@ -3491,33 +3498,33 @@ else
 		    break;
 
 		case att_functionarg_position:
-		    X.RDB$ARGUMENT_POSITION = get_numeric();
+		    X.RDB$ARGUMENT_POSITION = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_mechanism:
-		    X.RDB$MECHANISM = get_numeric();
+		    X.RDB$MECHANISM = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_type:
-		    X.RDB$FIELD_TYPE = get_numeric();
+		    X.RDB$FIELD_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_scale:
-		    X.RDB$FIELD_SCALE = get_numeric();
+		    X.RDB$FIELD_SCALE = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_length:
-		    X.RDB$FIELD_LENGTH = get_numeric();
+		    X.RDB$FIELD_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_field_sub_type:
 		    X.RDB$FIELD_SUB_TYPE.NULL = FALSE;
-		    X.RDB$FIELD_SUB_TYPE = get_numeric();
+		    X.RDB$FIELD_SUB_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_functionarg_character_set:
 		    X.RDB$CHARACTER_SET_ID.NULL = FALSE;
-		    X.RDB$CHARACTER_SET_ID = get_numeric();
+		    X.RDB$CHARACTER_SET_ID = (USHORT) get_numeric();
 		    break;
 
 		default:
@@ -3670,25 +3677,25 @@ if (tdgbl->RESTORE_format >= 6)
 		    break;
 
 		case att_field_type:
-		    X.RDB$FIELD_TYPE = get_numeric();
+		    X.RDB$FIELD_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_field_length:
-		    X.RDB$FIELD_LENGTH = get_numeric();
+		    X.RDB$FIELD_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_field_scale:
-		    X.RDB$FIELD_SCALE = get_numeric();
+		    X.RDB$FIELD_SCALE = (USHORT) get_numeric();
 		    X.RDB$FIELD_SCALE.NULL = FALSE;
 		    break;
 
 		case att_field_sub_type:
-		    X.RDB$FIELD_SUB_TYPE = get_numeric();
+		    X.RDB$FIELD_SUB_TYPE = (USHORT) get_numeric();
 		    X.RDB$FIELD_SUB_TYPE.NULL = FALSE;
 		    break;
 
 		case att_field_segment_length:
-		    X.RDB$SEGMENT_LENGTH = get_numeric();
+		    X.RDB$SEGMENT_LENGTH = (USHORT) get_numeric();
 		    if (X.RDB$SEGMENT_LENGTH)
 			X.RDB$SEGMENT_LENGTH.NULL = FALSE;
 		    break;
@@ -3794,12 +3801,12 @@ if (tdgbl->RESTORE_format >= 6)
 		    break;
 
 		case att_field_system_flag:
-		    X.RDB$SYSTEM_FLAG = get_numeric();
+		    X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		    X.RDB$SYSTEM_FLAG.NULL = FALSE;
 		    break;
 
 		case att_field_null_flag:
-		    X.RDB$NULL_FLAG = get_numeric();
+		    X.RDB$NULL_FLAG = (USHORT) get_numeric();
 		    X.RDB$NULL_FLAG.NULL = FALSE;
 		    break;
 
@@ -3815,27 +3822,27 @@ if (tdgbl->RESTORE_format >= 6)
 
 		case att_field_external_length:
 		    X.RDB$EXTERNAL_LENGTH.NULL = FALSE;
-		    X.RDB$EXTERNAL_LENGTH = get_numeric();
+		    X.RDB$EXTERNAL_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_field_external_scale:
 		    X.RDB$EXTERNAL_SCALE.NULL = FALSE;
-		    X.RDB$EXTERNAL_SCALE = get_numeric();
+		    X.RDB$EXTERNAL_SCALE = (USHORT) get_numeric();
 		    break;
 
 		case att_field_external_type:
 		    X.RDB$EXTERNAL_TYPE.NULL = FALSE;
-		    X.RDB$EXTERNAL_TYPE = get_numeric();
+		    X.RDB$EXTERNAL_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_field_dimensions:
 		    X.RDB$DIMENSIONS.NULL = FALSE;
-		    X.RDB$DIMENSIONS = get_numeric();
+		    X.RDB$DIMENSIONS = (USHORT) get_numeric();
 		    break;
 
 		case att_field_character_length:
 		    X.RDB$CHARACTER_LENGTH.NULL = FALSE;
-		    X.RDB$CHARACTER_LENGTH = get_numeric();
+		    X.RDB$CHARACTER_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_field_default_source:
@@ -3850,17 +3857,17 @@ if (tdgbl->RESTORE_format >= 6)
 
 		case att_field_character_set:
 		    X.RDB$CHARACTER_SET_ID.NULL = FALSE;
-		    X.RDB$CHARACTER_SET_ID = get_numeric();
+		    X.RDB$CHARACTER_SET_ID = (USHORT) get_numeric();
 		    break;
 
 		case att_field_collation_id:
 		    X.RDB$COLLATION_ID.NULL = FALSE;
-		    X.RDB$COLLATION_ID = get_numeric();
+		    X.RDB$COLLATION_ID = (USHORT) get_numeric();
 		    break;
 
 		case att_field_precision:
 		    X.RDB$FIELD_PRECISION.NULL = FALSE;
-		    X.RDB$FIELD_PRECISION = get_numeric();
+		    X.RDB$FIELD_PRECISION = (USHORT) get_numeric();
 		    break;
 
 		default:
@@ -3903,7 +3910,7 @@ if (tdgbl->RESTORE_format >= 6)
 		     * global field
 		     */
 
-		    f = BURP_ALLOC_ZERO (sizeof(struct fld));
+		    f = (FLD) BURP_ALLOC_ZERO (sizeof(struct fld));
 		    strcpy (f->fld_name, X.RDB$FIELD_NAME);
 		    f->fld_sub_type = X.RDB$FIELD_SUB_TYPE;
 		    f->fld_scale = X.RDB$FIELD_SCALE;
@@ -3981,25 +3988,25 @@ else /* RESTORE_format < 6 */
 		    break;
 
 		case att_field_type:
-		    X.RDB$FIELD_TYPE = get_numeric();
+		    X.RDB$FIELD_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_field_length:
-		    X.RDB$FIELD_LENGTH = get_numeric();
+		    X.RDB$FIELD_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_field_scale:
-		    X.RDB$FIELD_SCALE = get_numeric();
+		    X.RDB$FIELD_SCALE = (USHORT) get_numeric();
 		    X.RDB$FIELD_SCALE.NULL = FALSE;
 		    break;
 
 		case att_field_sub_type:
-		    X.RDB$FIELD_SUB_TYPE = get_numeric();
+		    X.RDB$FIELD_SUB_TYPE = (USHORT) get_numeric();
 		    X.RDB$FIELD_SUB_TYPE.NULL = FALSE;
 		    break;
 
 		case att_field_segment_length:
-		    X.RDB$SEGMENT_LENGTH = get_numeric();
+		    X.RDB$SEGMENT_LENGTH = (USHORT) get_numeric();
 		    if (X.RDB$SEGMENT_LENGTH)
 			X.RDB$SEGMENT_LENGTH.NULL = FALSE;
 		    break;
@@ -4105,12 +4112,12 @@ else /* RESTORE_format < 6 */
 		    break;
 
 		case att_field_system_flag:
-		    X.RDB$SYSTEM_FLAG = get_numeric();
+		    X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		    X.RDB$SYSTEM_FLAG.NULL = FALSE;
 		    break;
 
 		case att_field_null_flag:
-		    X.RDB$NULL_FLAG = get_numeric();
+		    X.RDB$NULL_FLAG = (USHORT) get_numeric();
 		    X.RDB$NULL_FLAG.NULL = FALSE;
 		    break;
 
@@ -4126,27 +4133,27 @@ else /* RESTORE_format < 6 */
 
 		case att_field_external_length:
 		    X.RDB$EXTERNAL_LENGTH.NULL = FALSE;
-		    X.RDB$EXTERNAL_LENGTH = get_numeric();
+		    X.RDB$EXTERNAL_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_field_external_scale:
 		    X.RDB$EXTERNAL_SCALE.NULL = FALSE;
-		    X.RDB$EXTERNAL_SCALE = get_numeric();
+		    X.RDB$EXTERNAL_SCALE = (USHORT) get_numeric();
 		    break;
 
 		case att_field_external_type:
 		    X.RDB$EXTERNAL_TYPE.NULL = FALSE;
-		    X.RDB$EXTERNAL_TYPE = get_numeric();
+		    X.RDB$EXTERNAL_TYPE = (USHORT) get_numeric();
 		    break;
 
 		case att_field_dimensions:
 		    X.RDB$DIMENSIONS.NULL = FALSE;
-		    X.RDB$DIMENSIONS = get_numeric();
+		    X.RDB$DIMENSIONS = (USHORT) get_numeric();
 		    break;
 
 		case att_field_character_length:
 		    X.RDB$CHARACTER_LENGTH.NULL = FALSE;
-		    X.RDB$CHARACTER_LENGTH = get_numeric();
+		    X.RDB$CHARACTER_LENGTH = (USHORT) get_numeric();
 		    break;
 
 		case att_field_default_source:
@@ -4161,12 +4168,12 @@ else /* RESTORE_format < 6 */
 
 		case att_field_character_set:
 		    X.RDB$CHARACTER_SET_ID.NULL = FALSE;
-		    X.RDB$CHARACTER_SET_ID = get_numeric();
+		    X.RDB$CHARACTER_SET_ID = (USHORT) get_numeric();
 		    break;
 
 		case att_field_collation_id:
 		    X.RDB$COLLATION_ID.NULL = FALSE;
-		    X.RDB$COLLATION_ID = get_numeric();
+		    X.RDB$COLLATION_ID = (USHORT) get_numeric();
 		    break;
 
 		default:
@@ -4209,7 +4216,7 @@ else /* RESTORE_format < 6 */
 		     * global field
 		     */
 
-		    f = BURP_ALLOC_ZERO (sizeof(struct fld));
+		    f = (FLD) BURP_ALLOC_ZERO (sizeof(struct fld));
 		    strcpy (f->fld_name, X.RDB$FIELD_NAME);
 		    f->fld_sub_type = X.RDB$FIELD_SUB_TYPE;
 		    f->fld_scale = X.RDB$FIELD_SCALE;
@@ -4285,15 +4292,15 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle1)
 		break;
 
 	    case att_segment_count:
-		X.RDB$SEGMENT_COUNT = segments = get_numeric();
+		X.RDB$SEGMENT_COUNT = segments = (USHORT) get_numeric();
 		break;
 
 	    case att_index_unique_flag:
-		X.RDB$UNIQUE_FLAG = get_numeric();
+		X.RDB$UNIQUE_FLAG = (USHORT) get_numeric();
 		break;
 
 	    case att_index_inactive:
-		X.RDB$INDEX_INACTIVE = get_numeric();
+		X.RDB$INDEX_INACTIVE = (USHORT) get_numeric();
 		/* Defer foreign key index activation */
 		/* Modified by Toni Martir, all index deferred when verbose */
 		if (tdgbl->gbl_sw_verbose)
@@ -4312,7 +4319,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle1)
 
 	    case att_index_type:
                 X.RDB$INDEX_TYPE.NULL = FALSE;
-		X.RDB$INDEX_TYPE = get_numeric();
+		X.RDB$INDEX_TYPE = (USHORT) get_numeric();
 		break;
 
 	    case att_index_field_name:
@@ -4501,9 +4508,9 @@ static SLONG get_numeric (void)
 SLONG	value [2];
 SSHORT	length;
 
-length = get_text (value, sizeof (value));
+length = get_text ((UCHAR *) value, sizeof (value));
 
-return isc_vax_integer (value, length);
+return isc_vax_integer ((UCHAR *) value, length);
 }
 
 static SINT64 get_int64 (void)
@@ -4521,9 +4528,9 @@ static SINT64 get_int64 (void)
 SLONG	value [4];
 SSHORT	length;
 
-length = get_text (value, sizeof (value));
+length = get_text ((UCHAR *) value, sizeof (value));
 
-return isc_portable_integer (value, length);
+return isc_portable_integer ((UCHAR *) value, length);
 }
 
 static BOOLEAN get_procedure (void)
@@ -4612,7 +4619,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_procedure_inputs:
-		X.RDB$PROCEDURE_INPUTS = get_numeric();
+		X.RDB$PROCEDURE_INPUTS = (USHORT) get_numeric();
                 if (X.RDB$PROCEDURE_INPUTS == 0)
                     X.RDB$PROCEDURE_INPUTS.NULL = TRUE;
                 else
@@ -4620,7 +4627,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_procedure_outputs:
-		X.RDB$PROCEDURE_OUTPUTS = get_numeric();
+		X.RDB$PROCEDURE_OUTPUTS = (USHORT) get_numeric();
 		break;
 
 	    default:
@@ -4643,7 +4650,7 @@ return TRUE;
 }
 
 static BOOLEAN get_procedure_prm (
-    GDS_NAME	*procptr)
+    GDS_NAME	procptr)
 {
 /**************************************
  *
@@ -4686,11 +4693,11 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_procedureprm_type:
-		X.RDB$PARAMETER_TYPE= get_numeric();
+		X.RDB$PARAMETER_TYPE= (USHORT) get_numeric();
 		break;
 
 	    case att_procedureprm_number:
-		X.RDB$PARAMETER_NUMBER= get_numeric();
+		X.RDB$PARAMETER_NUMBER= (USHORT) get_numeric();
 		break;
 
 	    case att_procedureprm_field_source:
@@ -4818,7 +4825,7 @@ TGBL		tdgbl;
 SLONG		rel_flags, sys_flag;
 short		rel_flags_null, sys_flag_null;
 GDS_QUAD	view_blr, view_src, rel_desc, ext_desc;
-short		view_blr_null, view_src_null, rel_desc_null, ext_desc_null;
+USHORT		view_blr_null, view_src_null, rel_desc_null, ext_desc_null;
 char		sec_class[32];
 short		sec_class_null;
 TEXT		ext_file_name [253];
@@ -4888,22 +4895,22 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 
 	case att_relation_view_source:
 	    view_src_null = FALSE;
-	    get_misc_blob (&view_src, 1, !view_blr_null);
+	    get_misc_blob (&view_src, 1, (USHORT) !view_blr_null);
 		break;
 
 	case att_relation_view_source2:
 	    view_src_null = FALSE;
-	    get_source_blob(&view_src, !view_blr_null);
+	    get_source_blob(&view_src, (USHORT) !view_blr_null);
 	    break;
 
 	case att_relation_description:
 	    rel_desc_null = FALSE;
-	    get_misc_blob(&rel_desc, 1, !view_blr_null);
+	    get_misc_blob(&rel_desc, 1, (USHORT) !view_blr_null);
 	    break;
 
 	case att_relation_description2:
 	    rel_desc_null = FALSE;
-	    get_source_blob(&rel_desc, !view_blr_null);
+	    get_source_blob(&rel_desc, (USHORT) !view_blr_null);
 	    break;
 
 
@@ -4919,12 +4926,12 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 
 	case att_relation_ext_description:
 	    ext_desc_null = FALSE;
-	    get_misc_blob(&ext_desc, 1, !view_blr_null);
+	    get_misc_blob(&ext_desc, 1, (USHORT) !view_blr_null);
 	    break;
 
 	case att_relation_ext_description2:
 	    ext_desc_null = FALSE;
-	    get_source_blob(&ext_desc, !view_blr_null);
+	    get_source_blob(&ext_desc, (USHORT) !view_blr_null);
 	    break;
 
 	case att_relation_owner_name:
@@ -4963,8 +4970,8 @@ STORE (TRANSACTION_HANDLE local_trans
 	X.RDB$EXTERNAL_DESCRIPTION.NULL = ext_desc_null;
 	X.RDB$EXTERNAL_FILE.NULL = ext_file_name_null;
 
-	X.RDB$SYSTEM_FLAG = sys_flag;
-	X.RDB$FLAGS = rel_flags;
+	X.RDB$SYSTEM_FLAG = (USHORT) sys_flag;
+	X.RDB$FLAGS = (USHORT) rel_flags;
 	X.RDB$VIEW_BLR = view_blr;
 	X.RDB$VIEW_SOURCE = view_src;
 	X.RDB$DESCRIPTION = rel_desc;
@@ -5023,7 +5030,7 @@ while (GET_RECORD (record) != rec_data)
 	    BURP_svc_error (43, isc_arg_number, (void *) record,
 			    0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-	    BURP_error (43, (TEXT*) record, 0, 0, 0, 0);
+	    BURP_error (43, (void*) record, 0, 0, 0, 0);
 	    /* msg 43 don't recognize record type %ld */
 #endif
             break;
@@ -5463,9 +5470,9 @@ if (buffer != static_buffer)
     BURP_FREE (buffer);
 }
 
-static ULONG get_text (
+static USHORT get_text (
     TEXT	*text,
-    SSHORT	length)
+    ULONG	length)
 {
 /**************************************
  *
@@ -5493,7 +5500,7 @@ if (l)
 
 *text = 0;
 
-return l2;
+return (USHORT) l2;
 }
 
 static BOOLEAN get_trigger_old (
@@ -5655,11 +5662,11 @@ STORE (TRANSACTION_HANDLE local_trans
 	switch (attribute)
 	    {
 	    case att_trig_type:
-		X.RDB$TRIGGER_TYPE = get_numeric();
+		X.RDB$TRIGGER_TYPE = (USHORT) get_numeric();
 		break;
 
 	    case att_trig_flags:
-		X.RDB$FLAGS = get_numeric();
+		X.RDB$FLAGS = (USHORT) get_numeric();
                 X.RDB$FLAGS.NULL = FALSE;
 		break;
 
@@ -5690,7 +5697,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_trig_sequence:
-		X.RDB$TRIGGER_SEQUENCE = get_numeric();
+		X.RDB$TRIGGER_SEQUENCE = (USHORT) get_numeric();
 		break;
 
 	    case att_trig_description:
@@ -5704,12 +5711,12 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_trig_system_flag:
-		X.RDB$SYSTEM_FLAG = get_numeric();
+		X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		X.RDB$SYSTEM_FLAG.NULL = FALSE;
 		break;
 
 	    case att_trig_inactive:
-		X.RDB$TRIGGER_INACTIVE = get_numeric();
+		X.RDB$TRIGGER_INACTIVE = (USHORT) get_numeric();
 		break;
 
 	    default:
@@ -5790,7 +5797,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 	    break;
 
 	case att_trigmsg_number:
-	    number = get_numeric();
+	    number = (USHORT) get_numeric();
 	    break;
 
 	case att_trigmsg_text:
@@ -5854,7 +5861,7 @@ static BOOLEAN get_type (void)
  *
  **************************************/
 ATT_TYPE	attribute;
-SSHORT		l;
+ULONG		l;
 TEXT		temp [32];
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
@@ -5875,7 +5882,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_type_req_handle1)
 		break;
 
 	    case att_type_type:
-		X.RDB$TYPE = get_numeric();
+		X.RDB$TYPE = (USHORT) get_numeric();
 		break;
 
 	    case att_type_field_name:
@@ -5893,7 +5900,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_type_req_handle1)
 		break;
 
 	    case att_type_system_flag:
-		X.RDB$SYSTEM_FLAG = get_numeric();
+		X.RDB$SYSTEM_FLAG = (USHORT) get_numeric();
 		X.RDB$SYSTEM_FLAG.NULL = FALSE;
 		break;
 
@@ -5974,7 +5981,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 
 	case att_priv_grant_option:
 	    flags |= USER_PRIV_GRANT_OPTION;
-	    grant_option = get_numeric();
+	    grant_option = (USHORT) get_numeric();
 	    break;
 
 	case att_priv_object_name:
@@ -5990,12 +5997,12 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 
 	case att_priv_user_type:
 	    flags |= USER_PRIV_USER_TYPE;
-	    user_type = get_numeric();
+	    user_type = (USHORT) get_numeric();
 	    break;
 
 	case att_priv_obj_type:
 	    flags |= USER_PRIV_OBJECT_TYPE;
-	    object_type = get_numeric();
+	    object_type = (USHORT) get_numeric();
 	    break;
 
 	default:
@@ -6167,7 +6174,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_view_context_id:
-		X.RDB$VIEW_CONTEXT = get_numeric();
+		X.RDB$VIEW_CONTEXT = (USHORT) get_numeric();
 		break;
 
 	    default:
@@ -6217,7 +6224,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_blob_data)
     switch (attribute)
 	{
 	case att_blob_field_number:
-	    field_number = get_numeric();
+	    field_number = (USHORT) get_numeric();
 	    for (field = relation->rel_fields; field; field = field->fld_next)
 		if (field->fld_number == field_number)
 		    break;
@@ -6290,7 +6297,6 @@ static void ignore_blob (void)
  *	Skip over blob data records.
  *
  **************************************/
-FLD		field;
 ATT_TYPE	attribute;
 SLONG		segments;
 USHORT		length;
@@ -6367,13 +6373,13 @@ while (TRUE)
     if (GET () != att_data_length)
 	BURP_error_redirect (NULL_PTR, 39, 0, 0);
 /* msg 39 expected record length */
-    l = get_numeric();
+    l = (USHORT) get_numeric();
     if (tdgbl->gbl_sw_transportable) 
 	if (GET () != att_xdr_length)
 	    BURP_error_redirect (NULL_PTR, 55, 0, 0);
 /* msg 55 Expected XDR record length */
 	else
-	    l = get_numeric();
+	    l = (USHORT) get_numeric();
     if (GET () != att_data_data)
 	BURP_error_redirect (NULL_PTR, 41, 0, 0);
 /* msg 41 expected data attribute */
@@ -6400,7 +6406,7 @@ while (TRUE)
 	break;
     }
 
-BURP_verbose (106, (TEXT*) records, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
+BURP_verbose (106, (void*) records, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 /* msg 106 %ld records ignored */
 
 return record;
@@ -6581,7 +6587,7 @@ if (tdgbl->RESTORE_format < 1 || tdgbl->RESTORE_format > ATT_BACKUP_FORMAT)
     BURP_svc_error (44, isc_arg_number, tdgbl->RESTORE_format,
 		    0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-    BURP_error (44, (TEXT*) tdgbl->RESTORE_format, 0, 0, 0, 0);
+    BURP_error (44, (void*) tdgbl->RESTORE_format, 0, 0, 0, 0);
 /* msg 44 Expected backup version 1, 2, or 3.  Found %ld */
 #endif
 
@@ -6604,7 +6610,7 @@ if (db_version < DB_VERSION_CURRENT)
     BURP_svc_error (51, isc_arg_number, db_version,
 		    0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-    BURP_error (51, (TEXT*) db_version, 0, 0, 0, 0);
+    BURP_error (51, (void*) db_version, 0, 0, 0, 0);
 /* msg 51 database format %ld is too old to restore to */
 #endif
 
@@ -6823,7 +6829,7 @@ while (GET_RECORD (record) != rec_end)
 	    BURP_svc_error (43, isc_arg_number, (void *) record,
 			    0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-	    BURP_error (43, (TEXT*) record, 0, 0, 0, 0);
+	    BURP_error (43, (void*) record, 0, 0, 0, 0);
 	    /* msg 43 don't recognize record type %ld */
 #endif
 	    break;
@@ -6959,7 +6965,7 @@ END_ERROR;
 
 if (!value)
     {
-    BURP_verbose (185, gen_name, (TEXT*) value, NULL_PTR, NULL_PTR, NULL_PTR);
+    BURP_verbose (185, gen_name, (void*) value, NULL_PTR, NULL_PTR, NULL_PTR);
 	/* msg 185 restoring generator %s value: %ld */
     return;
     }                                                       
@@ -7029,7 +7035,7 @@ if (isc_start_request (
 /* msg 42 Failed in store_blr_gen_id */
     }
 
-BURP_verbose (185, gen_name, (TEXT*) value, NULL_PTR, NULL_PTR, NULL_PTR);
+BURP_verbose (185, gen_name, (void*) value, NULL_PTR, NULL_PTR, NULL_PTR);
 /* msg 185 restoring generator %s value: %ld */
 
 isc_release_request (status_vector, 
@@ -7193,7 +7199,7 @@ static BOOLEAN bug_8183 (
  **************************************/
 
 UCHAR   tmp[sizeof(ULONG) + 1], *p;
-int     io_cnt, i;
+USHORT  io_cnt, i;
 UCHAR   *io_ptr;
 ULONG   len1, len2;
 BOOLEAN result = FALSE;

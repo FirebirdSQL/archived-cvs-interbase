@@ -25,7 +25,9 @@
 $Id$
 */
 
-#include <stdio.h>
+#include "../jrd/ib_stdio.h"
+#include <memory.h>
+#include <string.h>
 #include "../burp/burp.h"
 #include "../jrd/ods.h"
 #include "../jrd/align.h"
@@ -52,7 +54,7 @@ typedef struct bid {
 DATABASE
     DB = STATIC FILENAME "yachts.lnk" RUNTIME *dbb_file;
 #define DB          tdgbl->db_handle
-#define gds__trans  tdgbl->tr_handle
+#define isc_trans  tdgbl->tr_handle
 #define isc_status  tdgbl->status
 
 /*
@@ -74,21 +76,21 @@ DATABASE
 #define PUT_INT64(attribute, value)     put_int64 ((attribute), (value))
 #define PUT_TEXT(attribute, text)	put_text ((attribute), (text), sizeof (text))
 
-static void	compress (SCHAR *, USHORT);
-static int	copy (TEXT *, TEXT *, SSHORT);
+static void	compress (UCHAR *, ULONG);
+static int	copy (TEXT *, TEXT *, ULONG);
 static FLD	get_fields (REL);
 static SINT64	get_gen_id (TEXT *);
 static void	get_ranges (FLD);
-static void	put_array (FLD, REL, SLONG [2]);
+static void	put_array (FLD, REL, ISC_QUAD *);
 static void	put_asciz (SCHAR, TEXT *);
-static void	put_blob (FLD, SLONG [2]);
-static int	put_blr_blob (SCHAR, SLONG [2]);
+static void	put_blob (FLD, ISC_QUAD *, ULONG);
+static int	put_blr_blob (SCHAR, ISC_QUAD *);
 static void	put_data (REL);
 static void	put_index (REL);
-static int	put_message (SCHAR, TEXT *, SSHORT);
-static void	put_numeric (SCHAR, int);
+static int	put_message (SCHAR, TEXT *, ULONG);
+static void	put_numeric (SCHAR, SLONG);
 static void	put_relation (REL);
-static int	put_source_blob (SCHAR, SCHAR, SLONG [2]);
+static int	put_source_blob (SCHAR, SCHAR, ISC_QUAD *);
 static int	put_text (SCHAR, TEXT *, SSHORT);
 static void	put_trigger (enum trig_t, GDS__QUAD *, GDS__QUAD *, GDS_NAME);
 static void	set_capabilities (void);
@@ -101,12 +103,12 @@ static void	write_exceptions (void);
 static void	write_field_dimensions (void);
 static void	write_filters (void);
 static void	write_functions (void);
-static void	write_function_args (GDS_NAME *);
+static void	write_function_args (GDS_NAME);
 static void	write_generators (void);
 static void	write_sql_roles  (void);
 static void	write_global_fields (void);
 static void	write_procedures (void);
-static void	write_procedure_prms (GDS_NAME *);
+static void	write_procedure_prms (GDS_NAME);
 static void	write_ref_constraints (void);
 static void	write_rel_constraints (void);
 static void	write_relations (void);
@@ -171,20 +173,20 @@ static CONST struct rfr_tab_t rfr_table [] =
 
 static CONST SCHAR	
 	blob_items [] = 
-		{gds__info_blob_max_segment, gds__info_blob_num_segments},
+		{isc_info_blob_max_segment, isc_info_blob_num_segments},
 	blr_items [] =
-		{gds__info_blob_max_segment, gds__info_blob_total_length},
+		{isc_info_blob_max_segment, isc_info_blob_total_length},
 	source_items [] =
-		{gds__info_blob_max_segment, gds__info_blob_total_length, gds__info_blob_num_segments},		
+		{isc_info_blob_max_segment, isc_info_blob_total_length, isc_info_blob_num_segments},		
 	db_info_items [] =
-		{isc_info_db_sql_dialect,  gds__info_page_size, 
-		 gds__info_sweep_interval, gds__info_forced_writes,
-		 gds__info_no_reserve,     isc_info_set_page_buffers, 
-		 isc_info_db_read_only,    gds__info_end},
+		{isc_info_db_sql_dialect,  isc_info_page_size, 
+		 isc_info_sweep_interval, isc_info_forced_writes,
+		 isc_info_no_reserve,     isc_info_set_page_buffers, 
+		 isc_info_db_read_only,    isc_info_end},
 	limbo_tpb [] =
-		{gds__tpb_version1, gds__tpb_ignore_limbo},
+		{isc_tpb_version1, isc_tpb_ignore_limbo},
 	limbo_nau_tpb [] =
-		{gds__tpb_version1, gds__tpb_ignore_limbo, gds__tpb_no_auto_undo};
+		{isc_tpb_version1, isc_tpb_ignore_limbo, isc_tpb_no_auto_undo};
 
 
 int BACKUP_backup (
@@ -201,15 +203,13 @@ int BACKUP_backup (
  *	Backup a database.
  *
  **************************************/
-ULONG	temp_buffer_size;
 REL	relation;
 STATUS	status_vector [ISC_STATUS_LENGTH];
-SSHORT	l;
+ULONG	l;
 TEXT	temp [32];
-SLONG	cumul_count_kb;
+ULONG	cumul_count_kb;
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
-long            tr_status [20];
 TGBL	tdgbl;
 FIL	fil;
 
@@ -222,23 +222,23 @@ tdgbl->io_cnt = 0;
 tdgbl->relations = (REL) NULL;
 cumul_count_kb = tdgbl->BCK_capabilities = 0;
 
-gds__trans = NULL;
+isc_trans = NULL;
 
 BURP_verbose (130, NULL, NULL, NULL, NULL, NULL);
 	/* msg 130 starting transaction */
 
 if (tdgbl->gbl_sw_ignore_limbo)
     {
-    if (gds__start_transaction (
+    if (isc_start_transaction (
             status_vector,
-            GDS_REF (gds__trans),
+            GDS_REF (isc_trans),
             1,
             GDS_REF (tdgbl->db_handle),
             sizeof (limbo_nau_tpb),
             limbo_nau_tpb))
-        gds__start_transaction (
+        isc_start_transaction (
             status_vector,
-            GDS_REF (gds__trans),
+            GDS_REF (isc_trans),
             1,
             GDS_REF (tdgbl->db_handle),
             sizeof (limbo_tpb),
@@ -247,9 +247,19 @@ if (tdgbl->gbl_sw_ignore_limbo)
 else
     {
     EXEC SQL SET TRANSACTION NO_AUTO_UNDO;
-    if (gds__status [1])
+    if (isc_status [1])
         EXEC SQL SET TRANSACTION;
     }
+
+if (!isc_trans)
+    {
+    EXEC SQL SET TRANSACTION NAME isc_trans NO_AUTO_UNDO;
+    if (isc_status [1])
+        EXEC SQL SET TRANSACTION NAME isc_trans;
+    }
+
+
+
 
 /* decide what type of database we've got */
 
@@ -386,8 +396,8 @@ if (tdgbl->BCK_capabilities & BCK_security)
 	    MISC_terminate (X.RDB$SECURITY_CLASS, temp, l, sizeof(temp));
 	    BURP_verbose (155, temp, NULL, NULL, NULL, NULL);
 		/* msg 155 writing security class %s */
-	    put_blr_blob (att_class_acl, &X.RDB$ACL);
-	    put_source_blob (att_class_description2, att_class_description, &X.RDB$DESCRIPTION);
+	    put_blr_blob (att_class_acl, (ISC_QUAD *)&X.RDB$ACL);
+	    put_source_blob (att_class_description2, att_class_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
 	    PUT (att_end);
     END_FOR;
     ON_ERROR
@@ -434,6 +444,13 @@ COMMIT;
 ON_ERROR
     general_on_error ();
 END_ERROR;
+
+if (isc_trans)
+    COMMIT isc_trans;
+ON_ERROR
+    general_on_error ();
+END_ERROR;
+
 FINISH;
 ON_ERROR
     general_on_error ();
@@ -443,8 +460,8 @@ return FINI_OK;
 }
 
 static void compress (
-    SCHAR	*data,
-    USHORT	length)
+    UCHAR	*data,
+    ULONG	length)
 {
 /**************************************
  *
@@ -456,7 +473,7 @@ static void compress (
  *	Write out data in compressed form.
  *
  **************************************/
-SCHAR	*p, *q, *end;
+UCHAR	*p, *q, *end;
 USHORT	l, run;
 TGBL	tdgbl;
 
@@ -505,7 +522,7 @@ while (p < end)
 static int copy (
     TEXT	*from,
     TEXT	*to,
-    SSHORT	length)
+    ULONG	length)
 {
 /**************************************
  *
@@ -519,7 +536,7 @@ static int copy (
  *
  **************************************/
 TEXT	*p;
-SSHORT	l = 0;
+ULONG	l = 0;
 
 /* find end of string */
 p = from;
@@ -575,9 +592,8 @@ static FLD get_fields (
  *
  **************************************/
 FLD		field, fields;
-GDS__QUAD	*blob_id;
-SSHORT		l, length, count;
-long            req_status [20];
+ISC_QUAD *	blob_id;
+USHORT		count;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -916,12 +932,12 @@ else
     
 #ifdef DEBUG    
 if (debug_on)
-    gds__print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
+    isc_print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
 #endif
 
 blr_length = blr - blr_buffer;
 
-if (gds__compile_request (
+if (isc_compile_request (
         status_vector, 
         GDS_REF (tdgbl->db_handle),
         GDS_REF (gen_id_reqh),
@@ -930,17 +946,17 @@ if (gds__compile_request (
     /* if there's no gen_id, never mind ... */
     return 0;
 
-if (gds__start_request (
+if (isc_start_request (
         status_vector,
         GDS_REF (gen_id_reqh),
-        GDS_REF (gds__trans), /* use the same one generated by gpre */
+        GDS_REF (isc_trans), /* use the same one generated by gpre */
         0))
     BURP_error_redirect (status_vector, 25, NULL, NULL);
     /* msg 25 Failed in put_blr_gen_id */
 
 if (tdgbl->BCK_capabilities & BCK_ods10)
   {
-    if (gds__receive (
+    if (isc_receive (
 		      status_vector,
 		      GDS_REF (gen_id_reqh),
 		      0,
@@ -952,7 +968,7 @@ if (tdgbl->BCK_capabilities & BCK_ods10)
   }
 else
   {
-    if (gds__receive (
+    if (isc_receive (
 		      status_vector,
 		      GDS_REF (gen_id_reqh),
 		      0,
@@ -964,7 +980,7 @@ else
     read_msg1 = (SINT64) read_msg0;
   }
 
-gds__release_request ( status_vector, GDS_REF (gen_id_reqh) );
+isc_release_request ( status_vector, GDS_REF (gen_id_reqh) );
                       
 return read_msg1;
 }
@@ -985,7 +1001,6 @@ static void get_ranges (
  **************************************/
 SLONG	*rp;
 USHORT	count;
-long            req_status [20];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -1020,7 +1035,7 @@ if (count != field->fld_dimensions)
 static void put_array (
     FLD		field,
     REL		relation,
-    SLONG	blob_id [2])
+    ISC_QUAD *	blob_id)
 {
 /**************************************
  *
@@ -1033,13 +1048,13 @@ static void put_array (
  *
  **************************************/
 STATUS	status_vector [ISC_STATUS_LENGTH];
-SLONG	length, *range, *end_ranges,
+SLONG	*range, *end_ranges,
 	returned_elements;
 ULONG	return_length, slice_length;
 SLONG	*returned_range, range_buffer [16];	/* enough for 16 dimensions */
 LSTRING	xdr_buffer, xdr_slice;
 UCHAR	blr_buffer [200];	/* enough for a sdl with 16 dimensions */
-UCHAR	*blr, *sdl, *slice, *p;
+UCHAR	*blr, *slice, *p;
 USHORT	blr_length, count, field_length;
 TGBL	tdgbl;
 
@@ -1047,7 +1062,7 @@ tdgbl = GET_THREAD_DATA;
 
 /* If the array is null, don't store it.  It will be restored as null. */
 
-if (!blob_id [0] && !blob_id [1])
+if (!blob_id->isc_quad_low && !blob_id->isc_quad_high)
     return;
 
 xdr_buffer.lstr_allocated = 0;
@@ -1061,9 +1076,9 @@ if (tdgbl->gbl_sw_transportable)
 
 /* build the sdl */
 
-STUFF (gds__sdl_version1);
+STUFF (isc_sdl_version1);
 
-STUFF (gds__sdl_struct); STUFF (1);
+STUFF (isc_sdl_struct); STUFF (1);
 
 STUFF (field->fld_type);
 
@@ -1079,28 +1094,28 @@ if (field->fld_type == blr_text ||
 if (field->fld_type == blr_varying)
     field_length += sizeof (USHORT);
 
-STUFF (gds__sdl_rid);
+STUFF (isc_sdl_rid);
 STUFF_WORD (relation->rel_id);
-STUFF (gds__sdl_fid);
+STUFF (isc_sdl_fid);
 STUFF_WORD (field->fld_id);
 
 for (range = field->fld_ranges, count = 0; range < end_ranges; range += 2, count++)
     {
-    STUFF (gds__sdl_do2); STUFF (count);
-    STUFF (gds__sdl_long_integer); STUFF_LONG (range [0]);
-    STUFF (gds__sdl_long_integer); STUFF_LONG (range [1]); 
+    STUFF (isc_sdl_do2); STUFF (count);
+    STUFF (isc_sdl_long_integer); STUFF_LONG (range [0]);
+    STUFF (isc_sdl_long_integer); STUFF_LONG (range [1]); 
     }        
 
-STUFF (gds__sdl_element); STUFF (1);
-STUFF (gds__sdl_scalar); STUFF (0); STUFF (field->fld_dimensions);
+STUFF (isc_sdl_element); STUFF (1);
+STUFF (isc_sdl_scalar); STUFF (0); STUFF (field->fld_dimensions);
 
 for (count = 0; count < field->fld_dimensions; count++)
     {
-    STUFF (gds__sdl_variable); 
+    STUFF (isc_sdl_variable); 
     STUFF (count);
     }
 
-STUFF (gds__sdl_eoc);
+STUFF (isc_sdl_eoc);
     
 #ifdef DEBUG
 if (debug_on)
@@ -1128,14 +1143,14 @@ if (tdgbl->gbl_sw_transportable)
     xdr_buffer.lstr_allocated = xdr_buffer.lstr_length;
     }
        
-if (gds__get_slice (status_vector,
+if (isc_get_slice (status_vector,
 	GDS_REF (tdgbl->db_handle), 
-	GDS_REF (gds__trans), 
+	GDS_REF (isc_trans), 
 	GDS_VAL (blob_id),
         blr_length,
         blr_buffer,
         0, 		/* param length for subset of an array handling */
-        (SCHAR*) 0, 	/* param for subset of an array handling */
+        (ULONG*) 0, 	/* param for subset of an array handling */
         slice_length,
         GDS_VAL (slice),
         GDS_REF (return_length)))
@@ -1228,7 +1243,7 @@ static void put_asciz (
  *	Write an attribute starting with a null terminated string.
  *
  **************************************/
-SSHORT	l;
+ULONG	l;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -1243,7 +1258,8 @@ if (l)
 
 static void put_blob (
     FLD		field,
-    SLONG	blob_id [2])
+    ISC_QUAD *	blob_id,
+    ULONG	count)
 {
 /**************************************
  *
@@ -1257,25 +1273,25 @@ static void put_blob (
  **************************************/
 STATUS	status_vector [ISC_STATUS_LENGTH];
 void	*blob;
-SLONG	segments, n;
+ULONG	segments;
 UCHAR	*p, blob_info [32], item, *buffer, static_buffer [1024];
-USHORT	l, max_segment;
+USHORT	l, max_segment, n;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
 /* If the blob is null, don't store it.  It will be restored as null. */
 
-if (!blob_id [0] && !blob_id [1])
+if (!blob_id->isc_quad_high && !blob_id->isc_quad_low)
     return;
 
 /* Open the blob and get it's vital statistics */
 
 blob = NULL;
 
-if (gds__open_blob (status_vector, 
+if (isc_open_blob (status_vector, 
 	GDS_REF (tdgbl->db_handle), 
-	GDS_REF (gds__trans), 
+	GDS_REF (isc_trans), 
 	GDS_REF (blob), 
 	GDS_VAL (blob_id)))
     {
@@ -1285,44 +1301,45 @@ if (gds__open_blob (status_vector,
     return;
     }
 
-if (gds__blob_info (status_vector, 
+if (isc_blob_info (status_vector, 
 	GDS_REF (blob), 
 	sizeof (blob_items), 
-	blob_items, 
+	(SCHAR *) blob_items, 
 	sizeof (blob_info), 
 	blob_info))
     BURP_error_redirect (status_vector, 20, NULL, NULL);
-     /* msg 20 gds__blob_info failed */
+     /* msg 20 isc_blob_info failed */
 
 PUT (rec_blob);
 PUT_NUMERIC (att_blob_field_number, field->fld_number);
-max_segment = segments = 0;
+
+segments = max_segment = 0;
 p = blob_info;
 
-while ((item = *p++) != gds__info_end)
+while ((item = *p++) != isc_info_end)
     {
-    l = gds__vax_integer (p, 2);
+    l = (USHORT) isc_vax_integer (p, 2);
     p += 2;
-    n = gds__vax_integer (p, l);
+    n = (USHORT) isc_vax_integer (p, l);
     p += l;
     switch (item)
 	{
-	case gds__info_blob_max_segment:
+	case isc_info_blob_max_segment:
 	    PUT_NUMERIC (att_blob_max_segment, (int)n);
 	    max_segment = n;
 	    break;
 
-	case gds__info_blob_type:
+	case isc_info_blob_type:
 	    PUT_NUMERIC (att_blob_type, (int)n);
 	    break;
 
-	case gds__info_blob_num_segments:
+	case isc_info_blob_num_segments:
 	    PUT_NUMERIC (att_blob_number_segments, (int)n);
 	    segments = n;
 	    break;
 
 	default:
-	    BURP_error_redirect (NULL_PTR, 21, (TEXT*) item, NULL);
+	    BURP_error_redirect (NULL_PTR, 21, (void*) item, NULL);
 	    /* msg 21 don't understand blob info item %ld */
 	}
     }
@@ -1338,13 +1355,13 @@ PUT (att_blob_data);
 
 while (--segments >= 0)
     {
-    if (gds__get_segment (status_vector, 
+    if (isc_get_segment (status_vector, 
 	    GDS_REF (blob), 
 	    GDS_REF (l), 
 	    max_segment, 
 	    GDS_VAL (buffer)))
-	BURP_error_redirect (status_vector, 22, NULL, NULL);
-	 /* msg 22 gds__get_segment failed */
+        BURP_error_redirect (status_vector, 22, NULL, NULL);
+         /* msg 22 gds__get_segment failed */
 
     PUT (l);
     PUT (l >> 8);
@@ -1352,10 +1369,10 @@ while (--segments >= 0)
 	(void) PUT_BLOCK (buffer, l);
     }
 
-if (gds__close_blob (status_vector, 
+if (isc_close_blob (status_vector, 
 	GDS_REF (blob)))
     BURP_error_redirect (status_vector, 23, NULL, NULL);
-     /* msg 23 gds__close_blob failed */
+     /* msg 23 isc_close_blob failed */
 
 if (buffer != static_buffer)
     BURP_FREE (buffer);
@@ -1363,7 +1380,7 @@ if (buffer != static_buffer)
 
 static int put_blr_blob (
     SCHAR	attribute,
-    SLONG	blob_id [2])
+    ISC_QUAD *	blob_id)
 {
 /**************************************
  *
@@ -1377,61 +1394,62 @@ static int put_blr_blob (
  *
  **************************************/
 STATUS	status_vector [ISC_STATUS_LENGTH];
-SLONG	length, n;
+ULONG	length, n;
 void	*blob;
 UCHAR	*p, blob_info [32], item, *buffer, static_buffer [1024];
-USHORT	l, max_segment;
+ULONG	max_segment;
+USHORT	l;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
 /* If the blob is null, don't store it.  It will be restored as null. */
 
-if (!blob_id [0] && !blob_id [1])
+if (!blob_id->isc_quad_high && !blob_id->isc_quad_low)
     return FALSE;
 
 /* Open the blob and get it's vital statistics */
 
 blob = NULL;
 
-if (gds__open_blob (status_vector, 
+if (isc_open_blob (status_vector, 
 	GDS_REF (tdgbl->db_handle), 
-	GDS_REF (gds__trans), 
+	GDS_REF (isc_trans), 
 	GDS_REF (blob), 
 	GDS_VAL (blob_id)))
     BURP_error_redirect (status_vector, 24, NULL, NULL);
-    /* msg 24 gds__open_blob failed */
+    /* msg 24 isc_open_blob failed */
 
-if (gds__blob_info (status_vector, 
+if (isc_blob_info (status_vector, 
 	GDS_REF (blob), 
 	sizeof (blr_items), 
-	blr_items, 
+	(SCHAR *) blr_items, 
 	sizeof (blob_info), 
 	blob_info))
     BURP_error_redirect (status_vector, 20, NULL, NULL);
-    /* msg 20 gds__blob_info failed */
+    /* msg 20 isc_blob_info failed */
 
 length = 0;
 p = blob_info;
 
-while ((item = *p++) != gds__info_end)
+while ((item = *p++) != isc_info_end)
     {
-    l = gds__vax_integer (p, 2);
+    l = (USHORT) isc_vax_integer (p, 2);
     p += 2;
-    n = gds__vax_integer (p, l);
+    n = (USHORT) isc_vax_integer (p, l);
     p += l;
     switch (item)
 	{
-	case gds__info_blob_max_segment:
+	case isc_info_blob_max_segment:
 	    max_segment = n;
 	    break;
 
-	case gds__info_blob_total_length:
+	case isc_info_blob_total_length:
 	    length = n;
 	    break;
 
 	default:
-	    BURP_print (79, (TEXT*) item, NULL, NULL, NULL, NULL);
+	    BURP_print (79, (void*) item, NULL, NULL, NULL, NULL);
 	    /* msg 79 don't understand blob info item %ld  */
 	    return FALSE;
 	}
@@ -1439,10 +1457,10 @@ while ((item = *p++) != gds__info_end)
 
 if (!length)
     {
-    if (gds__close_blob (status_vector, 
+    if (isc_close_blob (status_vector, 
 	    GDS_REF (blob)))
 	BURP_error_redirect (status_vector, 23, NULL, NULL);
-	/* msg 23 gds__close_blob failed */
+	/* msg 23 isc_close_blob failed */
     return FALSE;
     }
 
@@ -1460,20 +1478,20 @@ if (!max_segment || max_segment <= sizeof (static_buffer))
 else
     buffer = BURP_ALLOC (max_segment);
 
-while (!gds__get_segment (status_vector, 
+while (!isc_get_segment (status_vector, 
 	    GDS_REF (blob), 
 	    GDS_REF (l), 
-	    max_segment, 
+	    (USHORT) max_segment, 
 	    GDS_VAL (buffer)))
     {
     if (l)
 	(void) PUT_BLOCK (buffer, l);
     }
 
-if (gds__close_blob (status_vector, 
+if (isc_close_blob (status_vector, 
 	GDS_REF (blob)))
     BURP_error_redirect (status_vector, 23, NULL, NULL);
-    /* msg 23 gds__close_blob failed */
+    /* msg 23 isc_close_blob failed */
 
 if (buffer != static_buffer)
     BURP_FREE (buffer);
@@ -1497,7 +1515,6 @@ static void put_data (
 FLD		field;
 int		*request, records;
 UCHAR		*p, *blr, *blr_buffer, *buffer;
-UCHAR		**ptr;
 LSTRING		xdr_buffer;
 STATUS		status_vector [ISC_STATUS_LENGTH];
 RCRD_OFFSET	offset, eof_offset, record_length;
@@ -1608,7 +1625,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	    break;
 
 	default:
-	    BURP_error_redirect (NULL_PTR, 26, (TEXT*) field->fld_type, NULL);
+	    BURP_error_redirect (NULL_PTR, 26, (void*) field->fld_type, NULL);
 	    /* msg 26 datatype %ld not understood */
 	    break;
 	}
@@ -1638,7 +1655,7 @@ STUFF (0);			/* scale for eof field */
 record_length = offset;
 eof_parameter = count++;
 eof_offset = FB_ALIGN(offset, sizeof (SSHORT));
-length = eof_offset + sizeof (SSHORT);
+length = (USHORT) (eof_offset + sizeof (SSHORT));
 
 /* Build FOR loop, body, and eof handler */
 
@@ -1679,7 +1696,7 @@ STUFF (blr_eoc);
 
 #ifdef DEBUG
 if (debug_on)
-    gds__print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
+    isc_print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
 #endif
 
 
@@ -1687,15 +1704,15 @@ if (debug_on)
 
 request = NULL;
 blr_length = blr - blr_buffer;
-if (gds__compile_request (status_vector, 
+if (isc_compile_request (status_vector, 
 	GDS_REF (tdgbl->db_handle), 
 	GDS_REF (request), 
 	blr_length, 
 	GDS_VAL (blr_buffer)))
     {
     BURP_error_redirect (status_vector, 27, NULL, NULL);
-    /* msg 27 gds__compile_request failed */
-    gds__print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
+    /* msg 27 isc_compile_request failed */
+    isc_print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
     }    
    
 BURP_FREE (blr_buffer);
@@ -1703,12 +1720,12 @@ records = 0;
 BURP_verbose (142, relation->rel_name, NULL, NULL, NULL, NULL);
     /* msg 142  writing data for relation %s */
 
-if (gds__start_request (status_vector, 
+if (isc_start_request (status_vector, 
 	GDS_REF (request), 
-	GDS_REF (gds__trans),
+	GDS_REF (isc_trans),
 	0))
     BURP_error_redirect (status_vector, 28, NULL, NULL);
-    /* msg 28 gds__start_request failed */
+    /* msg 28 isc_start_request failed */
 
 /* Here is the crux of the problem -- writing data.  All this work
    for the following small loop. */
@@ -1727,20 +1744,20 @@ else
 
 while (TRUE)
     {
-    if (gds__receive (status_vector, 
+    if (isc_receive (status_vector, 
 	    GDS_REF (request), 
 	    0, 
 	    length, 
 	    GDS_VAL (buffer),
 	    0))
 	BURP_error_redirect (status_vector, 29, NULL, NULL);
-	/* msg 29 gds__receive failed */
+	/* msg 29 isc_receive failed */
     if (!*eof)
 	break;
     records++;
 	/* Verbose records */
 	if ((records % BACKUP_VERBOSE_INTERVAL)==0)
-		BURP_verbose (108, (TEXT*) records, NULL, NULL, NULL, NULL);
+		BURP_verbose (108, (void*) records, NULL, NULL, NULL, NULL);
 
     PUT (rec_data);
     PUT_NUMERIC (att_data_length, record_length);
@@ -1764,13 +1781,13 @@ while (TRUE)
     for (field = relation->rel_fields; field; field = field->fld_next)
 	if (field->fld_type == blr_blob && !(field->fld_flags & FLD_computed) &&
                                !(field->fld_flags & FLD_array))
-	    put_blob (field, (TEXT*) buffer + field->fld_offset);
+	    put_blob (field, (ISC_QUAD *) (buffer + field->fld_offset), records);
 
     /* Look for any array to write */
-    /* we got back the blob_id for the array from gds__receive in the second param. */
+    /* we got back the blob_id for the array from isc_receive in the second param. */
     for (field = relation->rel_fields; field; field = field->fld_next)
 	if (field->fld_flags & FLD_array)
-	    put_array (field, relation, (TEXT*) buffer + field->fld_offset);
+	    put_array (field, relation, (ISC_QUAD *) (buffer + field->fld_offset));
     }
 
 BURP_FREE (buffer);
@@ -1778,13 +1795,13 @@ BURP_FREE (buffer);
 if (xdr_buffer.lstr_address)
     BURP_FREE (xdr_buffer.lstr_address);
 
-BURP_verbose (108, (TEXT*) records, NULL, NULL, NULL, NULL);
+BURP_verbose (108, (void*) records, NULL, NULL, NULL, NULL);
 /* msg 108 %ld records written */
 
-if (gds__release_request (status_vector, 
+if (isc_release_request (status_vector, 
 	GDS_REF (request)))
     BURP_error_redirect (status_vector, 30, NULL, NULL);
-    /* msg 30 gds__release_request failed */
+    /* msg 30 isc_release_request failed */
 }
 
 static void put_index (
@@ -1802,9 +1819,8 @@ static void put_index (
  *	index exist.
  *
  **************************************/
-SSHORT	l, count, match;
+ULONG	l, count, match;
 TEXT	temp [32];
-long            req_status [20];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -1838,9 +1854,9 @@ if ((tdgbl->BCK_capabilities & BCK_idx_inactive) &&
             general_on_error ();
         END_ERROR;
 
-        if (count != X.RDB$SEGMENT_COUNT) 
+        if (count != (ULONG) X.RDB$SEGMENT_COUNT) 
 	    {
-	    BURP_print (180, X.RDB$INDEX_NAME, (TEXT*) count, (TEXT*) X.RDB$SEGMENT_COUNT, NULL, NULL);
+	    BURP_print (180, X.RDB$INDEX_NAME, (void*) count, (void*) X.RDB$SEGMENT_COUNT, NULL, NULL);
 	    continue; 
 	    }
 
@@ -1865,13 +1881,13 @@ if ((tdgbl->BCK_capabilities & BCK_idx_inactive) &&
             general_on_error ();
         END_ERROR;
 
-        put_source_blob (att_index_description2, att_index_description, &X.RDB$DESCRIPTION);
+        put_source_blob (att_index_description2, att_index_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
         PUT_NUMERIC (att_index_type, X.RDB$INDEX_TYPE);
 
 	if (!X.RDB$EXPRESSION_SOURCE.NULL)
-	    put_source_blob (att_index_expression_source, att_index_expression_source, &X.RDB$EXPRESSION_SOURCE);
+	    put_source_blob (att_index_expression_source, att_index_expression_source, (ISC_QUAD *)&X.RDB$EXPRESSION_SOURCE);
 	if (!X.RDB$EXPRESSION_BLR.NULL)
-	    put_blr_blob (att_index_expression_blr, &X.RDB$EXPRESSION_BLR);
+	    put_blr_blob (att_index_expression_blr, (ISC_QUAD *)&X.RDB$EXPRESSION_BLR);
 	if (!X.RDB$FOREIGN_KEY.NULL)
 	    PUT_TEXT (att_index_foreign_key, X.RDB$FOREIGN_KEY);
         PUT (att_end);
@@ -1911,9 +1927,9 @@ else
              general_on_error ();
         END_ERROR;
 
-        if (count != X.RDB$SEGMENT_COUNT) 
+        if (count != (ULONG) X.RDB$SEGMENT_COUNT) 
 	    {
-	    BURP_print (180, X.RDB$INDEX_NAME, (TEXT*) count, (TEXT*) X.RDB$SEGMENT_COUNT, NULL, NULL);
+	    BURP_print (180, X.RDB$INDEX_NAME, (void*) count, (void*) X.RDB$SEGMENT_COUNT, NULL, NULL);
 	    continue; 
 	    }
 
@@ -1940,7 +1956,7 @@ else
         ON_ERROR
             general_on_error ();
         END_ERROR;
-        put_source_blob (att_index_description2, att_index_description, &X.RDB$DESCRIPTION);
+        put_source_blob (att_index_description2, att_index_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
         if (tdgbl->BCK_capabilities & BCK_attributes_v3)
             FOR (REQUEST_HANDLE tdgbl->handles_put_index_req_handle6)
                 I IN RDB$INDICES WITH I.RDB$INDEX_NAME = X.RDB$INDEX_NAME
@@ -1953,9 +1969,9 @@ else
             FOR (REQUEST_HANDLE tdgbl->handles_put_index_req_handle7)
                 I IN RDB$INDICES WITH I.RDB$INDEX_NAME = X.RDB$INDEX_NAME
 	        if (!I.RDB$EXPRESSION_SOURCE.NULL)
-		    put_source_blob (att_index_expression_source, att_index_expression_source, &I.RDB$EXPRESSION_SOURCE);
+		    put_source_blob (att_index_expression_source, att_index_expression_source, (ISC_QUAD *)&I.RDB$EXPRESSION_SOURCE);
 	        if (!I.RDB$EXPRESSION_BLR.NULL)
-		    put_blr_blob (att_index_expression_blr, &I.RDB$EXPRESSION_BLR);
+		    put_blr_blob (att_index_expression_blr, (ISC_QUAD *)&I.RDB$EXPRESSION_BLR);
 	        if (!I.RDB$FOREIGN_KEY.NULL)
 		    PUT_TEXT (att_index_foreign_key, I.RDB$FOREIGN_KEY);
             END_FOR;
@@ -1974,7 +1990,7 @@ else
 static int put_message (
     SCHAR	attribute,
     TEXT	*text,
-    SSHORT	length)
+    ULONG	length)
 {
 /**************************************
  *
@@ -1988,7 +2004,7 @@ static int put_message (
  *
  **************************************/
 TEXT	*p;
-SSHORT	l;
+ULONG	l;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -2007,7 +2023,7 @@ return length;
 
 static void put_numeric (
     SCHAR	attribute,
-    int		value)
+    SLONG	value)
 {
 /**************************************
  *
@@ -2020,12 +2036,12 @@ static void put_numeric (
  *	low byte first, high byte last, as in VAX.
  *
  **************************************/
-ULONG	vax_value;
+SLONG	vax_value;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
-vax_value = gds__vax_integer (&value, sizeof (value));
+vax_value = (SLONG) isc_vax_integer ((UCHAR *)&value, sizeof (value));
 
 PUT (attribute);
 PUT (sizeof (value));
@@ -2054,7 +2070,7 @@ TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
-le_value = isc_portable_integer (&value, sizeof (value));
+le_value = (UINT64) isc_portable_integer ((UCHAR *) (&value), sizeof (value));
 
 PUT (attribute);
 PUT (sizeof (value));
@@ -2076,9 +2092,8 @@ static void put_relation (
  **************************************/
 FLD	fields, field, aligned, unaligned, aligned4, aligned8;
 TEXT	temp [32];
-SSHORT	count, l, length, n;
+USHORT	l, n;
 SLONG	*rp;
-long            req_status [20];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -2168,8 +2183,8 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	PUT_TEXT (att_field_complex_name, field->fld_complex_name);
     if (field->fld_edit_string [0])
 	PUT_TEXT (att_field_edit_string, field->fld_edit_string);
-    put_source_blob (att_field_description2, att_field_description, &field->fld_description);
-    put_source_blob (att_field_query_header, att_field_query_header, &field->fld_query_header);
+    put_source_blob (att_field_description2, att_field_description, (ISC_QUAD *)&field->fld_description);
+    put_source_blob (att_field_query_header, att_field_query_header, (ISC_QUAD *)&field->fld_query_header);
     if (field->fld_security_class [0])
 	PUT_TEXT (att_field_security_class, field->fld_security_class);
     if (!(field->fld_flags & FLD_position_missing))
@@ -2188,8 +2203,8 @@ for (field = relation->rel_fields; field; field = field->fld_next)
        	PUT_NUMERIC (att_field_character_set, field->fld_character_set_id);
    if (field->fld_flags & FLD_collate_flag)
        	PUT_NUMERIC (att_field_collation_id, field->fld_collation_id);
-    put_blr_blob (att_field_default_value, &field->fld_default_value);
-    put_source_blob (att_field_default_source, att_field_default_source, &field->fld_default_source);
+    put_blr_blob (att_field_default_value, (ISC_QUAD *)&field->fld_default_value);
+    put_source_blob (att_field_default_source, att_field_default_source, (ISC_QUAD *)&field->fld_default_source);
     if (relation->rel_flags & REL_view)
 	{
 	PUT_NUMERIC (att_view_context, field->fld_view_context);
@@ -2242,7 +2257,7 @@ PUT (rec_relation_end);
 static int put_source_blob (
     SCHAR	attribute,
     SCHAR	old_attribute,
-    SLONG	blob_id [2])
+    ISC_QUAD *	blob_id)
 {
 /**************************************
  *
@@ -2256,7 +2271,7 @@ static int put_source_blob (
  *
  **************************************/
 STATUS	status_vector [ISC_STATUS_LENGTH];
-SLONG	segments, length, n;
+SLONG	length, n;
 void	*blob;
 UCHAR	*p, blob_info [48], item, *buffer, static_buffer [1024];
 USHORT	l, max_segment, num_seg;
@@ -2266,58 +2281,58 @@ tdgbl = GET_THREAD_DATA;
 
 /* If the blob is null, don't store it.  It will be restored as null. */
 
-if (!blob_id [0] && !blob_id [1])
+if (!blob_id->isc_quad_high && !blob_id->isc_quad_low)
     return FALSE;
 
 if (tdgbl->gbl_sw_old_descriptions && attribute != att_field_query_header)
-    return put_blr_blob (old_attribute, blob_id);
+    return put_blr_blob (old_attribute, (ISC_QUAD *)blob_id);
 
 /* Open the blob and get it's vital statistics */
 
 blob = NULL;
 
-if (gds__open_blob (status_vector, 
+if (isc_open_blob (status_vector, 
 	GDS_REF (tdgbl->db_handle), 
-	GDS_REF (gds__trans), 
+	GDS_REF (isc_trans), 
 	GDS_REF (blob), 
 	GDS_VAL (blob_id)))
     BURP_error_redirect (status_vector, 24, NULL, NULL);
-	 /* msg 24 gds__open_blob failed */
+	 /* msg 24 isc_open_blob failed */
 
-if (gds__blob_info (status_vector, 
+if (isc_blob_info (status_vector, 
 	GDS_REF (blob), 
 	sizeof (source_items), 
-	source_items, 
+	(SCHAR *) source_items, 
 	sizeof (blob_info), 
 	blob_info))
     BURP_error_redirect (status_vector, 20, NULL, NULL);
-	 /* msg 20 gds__blob_info failed */
+	 /* msg 20 isc_blob_info failed */
 
 length = 0;
 p = blob_info;
 
-while ((item = *p++) != gds__info_end)
+while ((item = *p++) != isc_info_end)
     {
-    l = gds__vax_integer (p, 2);
+    l = (USHORT) isc_vax_integer (p, 2);
     p += 2;
-    n = gds__vax_integer (p, l);
+    n = (USHORT) isc_vax_integer (p, l);
     p += l;
     switch (item)
 	{
-	case gds__info_blob_max_segment:
-	    max_segment = n;
+	case isc_info_blob_max_segment:
+	    max_segment = (USHORT) n;
 	    break;
 
-	case gds__info_blob_total_length:
+	case isc_info_blob_total_length:
 	    length = n;
 	    break;
 
-	case gds__info_blob_num_segments:
-	    num_seg = n;
+	case isc_info_blob_num_segments:
+	    num_seg = (USHORT) n;
 	    break;
 
 	default:
-	    BURP_print (79, (TEXT*) item, NULL, NULL, NULL, NULL);
+	    BURP_print (79, (void*) item, NULL, NULL, NULL, NULL);
 	    /* msg 79 don't understand blob info item %ld  */
 	    return FALSE;
 	}
@@ -2325,10 +2340,10 @@ while ((item = *p++) != gds__info_end)
 
 if (!length)
     {
-    if (gds__close_blob (status_vector, 
+    if (isc_close_blob (status_vector, 
 	    GDS_REF (blob)))
 	BURP_error_redirect (status_vector, 23, NULL, NULL);
-	 /* msg 23 gds__close_blob failed */
+	 /* msg 23 isc_close_blob failed */
     return FALSE;
     }
 
@@ -2346,7 +2361,7 @@ if (!max_segment || max_segment <= sizeof (static_buffer))
 else
     buffer = BURP_ALLOC (max_segment);
 
-while (!gds__get_segment (status_vector, 
+while (!isc_get_segment (status_vector, 
 	    GDS_REF (blob), 
 	    GDS_REF (l), 
 	    max_segment, 
@@ -2357,10 +2372,10 @@ while (!gds__get_segment (status_vector,
     PUT (NULL);
     }
 
-if (gds__close_blob (status_vector, 
+if (isc_close_blob (status_vector, 
 	GDS_REF (blob)))
     BURP_error_redirect (status_vector, 23, NULL, NULL);
-    /* msg 23 gds__close_blob failed */
+    /* msg 23 isc_close_blob failed */
 
 if (buffer != static_buffer)
     BURP_FREE (buffer);
@@ -2436,8 +2451,8 @@ if (!blob_ident->gds_quad_low)
 
 PUT (rec_trigger);
 PUT_NUMERIC (att_trig_type, type);
-put_blr_blob (att_trig_blr, blob_ident);
-put_source_blob (att_trig_source2, att_trig_source, source_blob);
+put_blr_blob (att_trig_blr, (ISC_QUAD *)blob_ident);
+put_source_blob (att_trig_source2, att_trig_source, (ISC_QUAD *)source_blob);
 PUT (att_end);
 }
 
@@ -2456,9 +2471,9 @@ static void set_capabilities (void)
  *	unpleasantness later.
  *
  **************************************/
-STATUS	status_vector [ISC_STATUS_LENGTH];
 ULONG	*req;
 RFR_TAB	rel_field_table;
+TEXT	*relation, *field;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -2467,11 +2482,13 @@ req = NULL;
 
 /* Look for desireable fields in system relations */
 
-for (rel_field_table = rfr_table; rel_field_table->relation; rel_field_table++)
+for (rel_field_table = (RFR_TAB) rfr_table; rel_field_table->relation; rel_field_table++)
     {
+    field = (TEXT *)rel_field_table->field;
+    relation = (TEXT *)rel_field_table->relation;
     FOR (REQUEST_HANDLE req) x IN RDB$RELATION_FIELDS 
-	    WITH x.RDB$RELATION_NAME = rel_field_table->relation
-	    AND x.RDB$FIELD_NAME = rel_field_table->field
+	    WITH x.RDB$RELATION_NAME = relation
+	    AND x.RDB$FIELD_NAME = field
 	tdgbl->BCK_capabilities |= rel_field_table->bit_mask;
     END_FOR;
     ON_ERROR
@@ -2479,7 +2496,7 @@ for (rel_field_table = rfr_table; rel_field_table->relation; rel_field_table++)
     END_ERROR;
     }
        
-gds__release_request (gds__status, GDS_REF (req));
+isc_release_request (isc_status, GDS_REF (req));
 }
 
 static int symbol_length (
@@ -2535,7 +2552,7 @@ FOR (REQUEST_HANDLE req_handle1)
     if (X.RDB$SYSTEM_FLAG)
         PUT_NUMERIC (att_charset_sysflag, X.RDB$SYSTEM_FLAG);
     if (!X.RDB$DESCRIPTION.NULL)
-        put_source_blob (att_charset_description, att_charset_description, &X.RDB$DESCRIPTION);
+        put_source_blob (att_charset_description, att_charset_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     if (!X.RDB$FUNCTION_NAME.NULL)
         PUT_TEXT (att_charset_funct, X.RDB$FUNCTION_NAME);
     PUT_NUMERIC (att_charset_bytes_char, X.RDB$BYTES_PER_CHARACTER);
@@ -2615,7 +2632,7 @@ FOR (REQUEST_HANDLE req_handle1)
     if (X.RDB$SYSTEM_FLAG)
         PUT_NUMERIC (att_coll_sysflag, X.RDB$SYSTEM_FLAG);
     if (!X.RDB$DESCRIPTION.NULL)
-        put_source_blob (att_coll_description, att_coll_description, &X.RDB$DESCRIPTION);
+        put_source_blob (att_coll_description, att_coll_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     if (!X.RDB$FUNCTION_NAME.NULL)
         PUT_TEXT (att_coll_funct, X.RDB$FUNCTION_NAME);
 
@@ -2644,8 +2661,9 @@ static void write_database (
  *
  **************************************/
 STATUS	status_vector [ISC_STATUS_LENGTH];
-int	page_size, sweep_interval, forced_writes, no_reserve, page_buffers, 
+USHORT	page_size, forced_writes, no_reserve,  
 	length, SQL_dialect, db_read_only;
+ULONG	sweep_interval, page_buffers;
 SCHAR	buffer [256], *d, item;
 isc_req_handle  req_handle1 = NULL, req_handle2 = NULL, req_handle3 = NULL;
 long            req_status [20];
@@ -2656,47 +2674,47 @@ tdgbl = GET_THREAD_DATA;
 PUT (rec_physical_db);
 
 page_size = 0;
-if (gds__database_info (status_vector, 
+if (isc_database_info (status_vector, 
 		GDS_REF (tdgbl->db_handle), 
 		sizeof (db_info_items),
-		db_info_items, 
+		(UCHAR *) db_info_items, 
 		sizeof (buffer), 
 		buffer))
     BURP_error_redirect (status_vector, 31, NULL, NULL);
-    /* msg 31 gds__database_info failed */
+    /* msg 31 isc_database_info failed */
 
-for (d = buffer; *d != gds__info_end; d += length)
+for (d = buffer; *d != isc_info_end; d += length)
     {
     item = *d++;
-    length = isc_vax_integer (d, 2);
+    length = (USHORT) isc_vax_integer (d, 2);
     d += 2;
     switch (item)
         {
-        case gds__info_end:
+        case isc_info_end:
             break;
 
-        case gds__info_page_size:
-	    page_size = gds__vax_integer (d, length); 
+        case isc_info_page_size:
+	    page_size = (USHORT) isc_vax_integer (d, length); 
 	    PUT_NUMERIC (att_page_size, page_size);
 	    break;
 
-	case gds__info_sweep_interval:
-	    sweep_interval = gds__vax_integer (d, length); 
+	case isc_info_sweep_interval:
+	    sweep_interval = isc_vax_integer (d, length); 
 	    PUT_NUMERIC (att_sweep_interval, sweep_interval);
 	    break;
             
-	case gds__info_forced_writes:
-	    forced_writes = gds__vax_integer (d, length);
+	case isc_info_forced_writes:
+	    forced_writes = (USHORT) isc_vax_integer (d, length);
 	    PUT_NUMERIC (att_forced_writes, forced_writes);
 	    break;
 
-	case gds__info_no_reserve:
-	    if (no_reserve = gds__vax_integer (d, length))
+	case isc_info_no_reserve:
+	    if (no_reserve = (USHORT) isc_vax_integer (d, length))
 		PUT_NUMERIC (att_no_reserve, no_reserve);
 	    break;
 
 	case isc_info_set_page_buffers:
-	    if (page_buffers = gds__vax_integer (d, length))
+	    if (page_buffers = isc_vax_integer (d, length))
 	        PUT_NUMERIC (att_page_buffers, page_buffers);
 	    break;
 
@@ -2704,27 +2722,27 @@ for (d = buffer; *d != gds__info_end; d += length)
 	    break;        /* parametere and returns isc_info_error. skip it */
 
 	case isc_info_db_sql_dialect:
-	    SQL_dialect = gds__vax_integer (d, length);
+	    SQL_dialect = (USHORT) isc_vax_integer (d, length);
 	    PUT_NUMERIC (att_SQL_dialect, SQL_dialect);
 	    break;
 
 #ifdef READONLY_DATABASE
 	case isc_info_db_read_only:
-	    if (db_read_only = gds__vax_integer (d, length))
+	    if (db_read_only = (USHORT) isc_vax_integer (d, length))
 		PUT_NUMERIC (att_db_read_only, db_read_only);
 	    break;
 #endif  /* READONLY_DATABASE */
 
 	default:
 	    BURP_error_redirect (status_vector, 31, NULL, NULL);
-	    /* msg 31 gds__database_info failed */
+	    /* msg 31 isc_database_info failed */
 	    break;
 	}
     }
 
 PUT_ASCIZ (att_file_name, dbb_file);
 
-BURP_verbose (77, dbb_file, (TEXT*) page_size, NULL, NULL, NULL);
+BURP_verbose (77, dbb_file, (void*) page_size, NULL, NULL, NULL);
 /* msg 77 database %s has a page size of %ld bytes. */
 
 PUT (att_end);
@@ -2746,7 +2764,7 @@ if ((tdgbl->BCK_capabilities & BCK_security) &&
 
         if (!D.RDB$SECURITY_CLASS.NULL)
             PUT_TEXT (att_database_security_class, D.RDB$SECURITY_CLASS);
-    	put_source_blob (att_database_description2, att_database_description, &D.RDB$DESCRIPTION);
+    	put_source_blob (att_database_description2, att_database_description, (ISC_QUAD *)&D.RDB$DESCRIPTION);
 	if (!D.RDB$CHARACTER_SET_NAME.NULL)
 	    PUT_TEXT (att_database_dfl_charset, D.RDB$CHARACTER_SET_NAME);
 
@@ -2770,7 +2788,7 @@ else
     if (tdgbl->BCK_capabilities & BCK_db_description)
         FOR (REQUEST_HANDLE req_handle2)
             D IN RDB$DATABASE
-    	    put_source_blob (att_database_description2, att_database_description, &D.RDB$DESCRIPTION);
+    	    put_source_blob (att_database_description2, att_database_description, (ISC_QUAD *)&D.RDB$DESCRIPTION);
         END_FOR; 
         ON_ERROR
             general_on_error ();
@@ -2811,7 +2829,6 @@ static void write_exceptions (void)
  *
  **************************************/
 SSHORT		l;
-GDS_NAME	proc;
 TEXT		temp [32];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
@@ -2827,7 +2844,7 @@ FOR (REQUEST_HANDLE req_handle1)
     BURP_verbose (198, temp, NULL, NULL, NULL, NULL);
     /* msg 198 writing exception %s */
     PUT_MESSAGE (att_exception_msg, X.RDB$MESSAGE);
-    put_source_blob (att_exception_description2, att_procedure_description, &X.RDB$DESCRIPTION);
+    put_source_blob (att_exception_description2, att_procedure_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     PUT (att_end);
 END_FOR;
 ON_ERROR
@@ -2902,7 +2919,7 @@ FOR (REQUEST_HANDLE req_handle1)
     MISC_terminate (X.RDB$FUNCTION_NAME, temp, l, sizeof (temp));
     BURP_verbose (145, temp, NULL, NULL, NULL, NULL);
 	 /* msg 145 writing filter %s */
-    put_source_blob (att_filter_description2, att_filter_description, &X.RDB$DESCRIPTION);
+    put_source_blob (att_filter_description2, att_filter_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     PUT_TEXT (att_filter_module_name, X.RDB$MODULE_NAME);
     PUT_TEXT (att_filter_entrypoint, X.RDB$ENTRYPOINT);
     PUT_NUMERIC (att_filter_input_sub_type, X.RDB$INPUT_SUB_TYPE);
@@ -2946,7 +2963,7 @@ FOR (REQUEST_HANDLE req_handle1)
     MISC_terminate (X.RDB$FUNCTION_NAME, temp, l, sizeof (temp));
     BURP_verbose (147, temp, NULL, NULL, NULL, NULL);
 	 /* msg 147 writing function %.*s */
-    put_source_blob (att_function_description2, att_function_description, &X.RDB$DESCRIPTION);
+    put_source_blob (att_function_description2, att_function_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     PUT_TEXT (att_function_module_name, X.RDB$MODULE_NAME);
     PUT_TEXT (att_function_entrypoint, X.RDB$ENTRYPOINT);
     PUT_NUMERIC (att_function_return_arg, X.RDB$RETURN_ARGUMENT);
@@ -2966,7 +2983,7 @@ if (req_handle1)
 }
 
 static void write_function_args (
-	GDS_NAME	*funcptr)
+	GDS_NAME	funcptr)
 {
 /**************************************
  *
@@ -2980,7 +2997,6 @@ static void write_function_args (
  **************************************/
 SSHORT	l;
 TEXT	temp [32];
-long            req_status [20];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -2995,7 +3011,7 @@ if (tdgbl->BCK_capabilities & BCK_ods10)
     {
     FOR (REQUEST_HANDLE tdgbl->handles_write_function_args_req_handle1)
         X IN RDB$FUNCTION_ARGUMENTS WITH 
-        X.RDB$FUNCTION_NAME EQ *funcptr
+        X.RDB$FUNCTION_NAME EQ funcptr
 
         PUT (rec_function_arg);
         l = PUT_TEXT (att_functionarg_name, X.RDB$FUNCTION_NAME);
@@ -3024,7 +3040,7 @@ else
     {
     FOR (REQUEST_HANDLE tdgbl->handles_write_function_args_req_handle1)
         X IN RDB$FUNCTION_ARGUMENTS WITH 
-        X.RDB$FUNCTION_NAME EQ *funcptr
+        X.RDB$FUNCTION_NAME EQ funcptr
 
         PUT (rec_function_arg);
         l = PUT_TEXT (att_functionarg_name, X.RDB$FUNCTION_NAME);
@@ -3042,7 +3058,7 @@ else
 	    {
 	    FOR (REQUEST_HANDLE tdgbl->handles_write_function_args_req_handle2)
                 X2 IN RDB$FUNCTION_ARGUMENTS WITH 
-	        X2.RDB$FUNCTION_NAME EQ *funcptr AND 
+	        X2.RDB$FUNCTION_NAME EQ funcptr AND 
 	        X2.RDB$ARGUMENT_POSITION = X.RDB$ARGUMENT_POSITION;
 
                 if (!(X2.RDB$CHARACTER_SET_ID.NULL))
@@ -3091,7 +3107,7 @@ FOR (REQUEST_HANDLE req_handle1)
     value = get_gen_id (X.RDB$GENERATOR_NAME);
     PUT_INT64 (att_gen_value_int64, value);
     PUT (att_end);
-    BURP_verbose (165, X.RDB$GENERATOR_NAME, (TEXT*) value, NULL, NULL, NULL);
+    BURP_verbose (165, X.RDB$GENERATOR_NAME, (void*) value, NULL, NULL, NULL);
     /* msg 165 writing generator %s value %ld */
 END_FOR;
 ON_ERROR
@@ -3148,22 +3164,22 @@ if ((tdgbl->BCK_capabilities & BCK_attributes_v3) &&
             PUT_TEXT (att_field_query_name, X.RDB$QUERY_NAME);
         if (X.RDB$EDIT_STRING [0] != ' ')
 	    PUT_TEXT (att_field_edit_string, X.RDB$EDIT_STRING);
-        put_source_blob (att_field_query_header, att_field_query_header, &X.RDB$QUERY_HEADER);
+        put_source_blob (att_field_query_header, att_field_query_header, (ISC_QUAD *)&X.RDB$QUERY_HEADER);
         PUT_NUMERIC (att_field_type, X.RDB$FIELD_TYPE);
         PUT_NUMERIC (att_field_length, X.RDB$FIELD_LENGTH);
         PUT_NUMERIC (att_field_sub_type, X.RDB$FIELD_SUB_TYPE);
         PUT_NUMERIC (att_field_scale, X.RDB$FIELD_SCALE);
-        put_blr_blob (att_field_missing_value, &X.RDB$MISSING_VALUE);
-        put_blr_blob (att_field_default_value, &X.RDB$DEFAULT_VALUE);
-        put_blr_blob (att_field_validation_blr, &X.RDB$VALIDATION_BLR);
-        put_source_blob (att_field_validation_source2, att_field_validation_source, &X.RDB$VALIDATION_SOURCE);
+        put_blr_blob (att_field_missing_value, (ISC_QUAD *)&X.RDB$MISSING_VALUE);
+        put_blr_blob (att_field_default_value, (ISC_QUAD *)&X.RDB$DEFAULT_VALUE);
+        put_blr_blob (att_field_validation_blr, (ISC_QUAD *)&X.RDB$VALIDATION_BLR);
+        put_source_blob (att_field_validation_source2, att_field_validation_source, (ISC_QUAD *)&X.RDB$VALIDATION_SOURCE);
         put_blr_blob (att_field_computed_blr, &X.RDB$COMPUTED_BLR);
-        put_source_blob (att_field_computed_source2, att_field_computed_source, &X.RDB$COMPUTED_SOURCE);
+        put_source_blob (att_field_computed_source2, att_field_computed_source, (ISC_QUAD *)&X.RDB$COMPUTED_SOURCE);
         if (X.RDB$SEGMENT_LENGTH)
 	    PUT_NUMERIC (att_field_segment_length, X.RDB$SEGMENT_LENGTH);
         if (X.RDB$SYSTEM_FLAG)
 	    PUT_NUMERIC (att_field_system_flag, X.RDB$SYSTEM_FLAG);
-        put_source_blob (att_field_description2, att_field_description, &X.RDB$DESCRIPTION);
+        put_source_blob (att_field_description2, att_field_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
 
         if (X.RDB$EXTERNAL_LENGTH)
             PUT_NUMERIC (att_field_external_length, X.RDB$EXTERNAL_LENGTH);
@@ -3178,9 +3194,9 @@ if ((tdgbl->BCK_capabilities & BCK_attributes_v3) &&
         if (!(X.RDB$CHARACTER_LENGTH.NULL))
             PUT_NUMERIC (att_field_character_length, X.RDB$CHARACTER_LENGTH);
         if (!(X.RDB$DEFAULT_SOURCE.NULL))
-            put_source_blob (att_field_default_source, att_field_default_source, &X.RDB$DEFAULT_SOURCE);
+            put_source_blob (att_field_default_source, att_field_default_source, (ISC_QUAD *)&X.RDB$DEFAULT_SOURCE);
         if (!(X.RDB$MISSING_SOURCE.NULL))
-            put_source_blob (att_field_missing_source, att_field_missing_source, &X.RDB$MISSING_SOURCE);
+            put_source_blob (att_field_missing_source, att_field_missing_source, (ISC_QUAD *)&X.RDB$MISSING_SOURCE);
         if (!(X.RDB$CHARACTER_SET_ID.NULL))
             PUT_NUMERIC (att_field_character_set, X.RDB$CHARACTER_SET_ID);
         if (!(X.RDB$COLLATION_ID.NULL))
@@ -3212,22 +3228,22 @@ else
             PUT_TEXT (att_field_query_name, X.RDB$QUERY_NAME);
         if (X.RDB$EDIT_STRING [0] != ' ')
 	    PUT_TEXT (att_field_edit_string, X.RDB$EDIT_STRING);
-        put_source_blob (att_field_query_header, att_field_query_header, &X.RDB$QUERY_HEADER);
+        put_source_blob (att_field_query_header, att_field_query_header, (ISC_QUAD *)&X.RDB$QUERY_HEADER);
         PUT_NUMERIC (att_field_type, X.RDB$FIELD_TYPE);
         PUT_NUMERIC (att_field_length, X.RDB$FIELD_LENGTH);
         PUT_NUMERIC (att_field_sub_type, X.RDB$FIELD_SUB_TYPE);
         PUT_NUMERIC (att_field_scale, X.RDB$FIELD_SCALE);
-        put_blr_blob (att_field_missing_value, &X.RDB$MISSING_VALUE);
-        put_blr_blob (att_field_default_value, &X.RDB$DEFAULT_VALUE);
-        put_blr_blob (att_field_validation_blr, &X.RDB$VALIDATION_BLR);
-        put_source_blob (att_field_validation_source2, att_field_validation_source, &X.RDB$VALIDATION_SOURCE);
-        put_blr_blob (att_field_computed_blr, &X.RDB$COMPUTED_BLR);
-        put_source_blob (att_field_computed_source2, att_field_computed_source, &X.RDB$COMPUTED_SOURCE);
+        put_blr_blob (att_field_missing_value, (ISC_QUAD *)&X.RDB$MISSING_VALUE);
+        put_blr_blob (att_field_default_value, (ISC_QUAD *)&X.RDB$DEFAULT_VALUE);
+        put_blr_blob (att_field_validation_blr, (ISC_QUAD *)&X.RDB$VALIDATION_BLR);
+        put_source_blob (att_field_validation_source2, att_field_validation_source, (ISC_QUAD *)&X.RDB$VALIDATION_SOURCE);
+        put_blr_blob (att_field_computed_blr, (ISC_QUAD *)&X.RDB$COMPUTED_BLR);
+        put_source_blob (att_field_computed_source2, att_field_computed_source, (ISC_QUAD *)&X.RDB$COMPUTED_SOURCE);
         if (X.RDB$SEGMENT_LENGTH)
 	    PUT_NUMERIC (att_field_segment_length, X.RDB$SEGMENT_LENGTH);
         if (X.RDB$SYSTEM_FLAG)
 	    PUT_NUMERIC (att_field_system_flag, X.RDB$SYSTEM_FLAG);
-        put_source_blob (att_field_description2, att_field_description, &X.RDB$DESCRIPTION);
+        put_source_blob (att_field_description2, att_field_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
         if (tdgbl->BCK_capabilities & BCK_attributes_v3)
             FOR (REQUEST_HANDLE req_handle2)
                 F IN RDB$FIELDS WITH F.RDB$FIELD_NAME = X.RDB$FIELD_NAME
@@ -3253,9 +3269,9 @@ else
                 if (!(F.RDB$CHARACTER_LENGTH.NULL))
         	    PUT_NUMERIC (att_field_character_length, F.RDB$CHARACTER_LENGTH);
                 if (!(F.RDB$DEFAULT_SOURCE.NULL))
-        	    put_source_blob (att_field_default_source, att_field_default_source, &F.RDB$DEFAULT_SOURCE);
+        	    put_source_blob (att_field_default_source, att_field_default_source, (ISC_QUAD *)&F.RDB$DEFAULT_SOURCE);
                 if (!(F.RDB$MISSING_SOURCE.NULL))
-        	    put_source_blob (att_field_missing_source, att_field_missing_source, &F.RDB$MISSING_SOURCE);
+        	    put_source_blob (att_field_missing_source, att_field_missing_source, (ISC_QUAD *)&F.RDB$MISSING_SOURCE);
                 if (!(F.RDB$CHARACTER_SET_ID.NULL))
         	    PUT_NUMERIC (att_field_character_set, F.RDB$CHARACTER_SET_ID);
                 if (!(F.RDB$COLLATION_ID.NULL))
@@ -3326,9 +3342,9 @@ FOR (REQUEST_HANDLE req_handle1)
 	 /* msg 193 writing stored procedure %.*s */
     PUT_NUMERIC (att_procedure_inputs, X.RDB$PROCEDURE_INPUTS);
     PUT_NUMERIC (att_procedure_outputs, X.RDB$PROCEDURE_OUTPUTS);
-    put_source_blob (att_procedure_description2, att_procedure_description, &X.RDB$DESCRIPTION);
-    put_source_blob (att_procedure_source2, att_procedure_source, &X.RDB$PROCEDURE_SOURCE);
-    put_blr_blob (att_procedure_blr, &X.RDB$PROCEDURE_BLR);
+    put_source_blob (att_procedure_description2, att_procedure_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
+    put_source_blob (att_procedure_source2, att_procedure_source, (ISC_QUAD *)&X.RDB$PROCEDURE_SOURCE);
+    put_blr_blob (att_procedure_blr, (ISC_QUAD *)&X.RDB$PROCEDURE_BLR);
     if (!X.RDB$SECURITY_CLASS.NULL)
 	PUT_TEXT (att_procedure_security_class, X.RDB$SECURITY_CLASS);
     if (!X.RDB$SECURITY_CLASS.NULL)
@@ -3347,7 +3363,7 @@ if (req_handle1)
 }
 
 static void write_procedure_prms (
-	GDS_NAME	*procptr)
+	GDS_NAME	procptr)
 {
 /**************************************
  *
@@ -3361,13 +3377,12 @@ static void write_procedure_prms (
  **************************************/
 SSHORT	l;
 TEXT	temp [32];
-long            req_status [20];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
 FOR (REQUEST_HANDLE tdgbl->handles_write_procedure_prms_req_handle1)
-    X IN RDB$PROCEDURE_PARAMETERS WITH X.RDB$PROCEDURE_NAME EQ *procptr
+    X IN RDB$PROCEDURE_PARAMETERS WITH X.RDB$PROCEDURE_NAME EQ procptr
     PUT (rec_procedure_prm);
     l = PUT_TEXT (att_procedureprm_name, X.RDB$PARAMETER_NAME);
     MISC_terminate (X.RDB$PARAMETER_NAME, temp, l, sizeof (temp));
@@ -3376,7 +3391,7 @@ FOR (REQUEST_HANDLE tdgbl->handles_write_procedure_prms_req_handle1)
     PUT_NUMERIC (att_procedureprm_number, X.RDB$PARAMETER_NUMBER);
     PUT_NUMERIC (att_procedureprm_type, X.RDB$PARAMETER_type);
     PUT_TEXT (att_procedureprm_field_source, X.RDB$FIELD_SOURCE);
-    put_source_blob (att_procedureprm_description2, att_procedureprm_description, &X.RDB$DESCRIPTION);
+    put_source_blob (att_procedureprm_description2, att_procedureprm_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     PUT (att_end);
 END_FOR;
 ON_ERROR
@@ -3514,7 +3529,7 @@ if ((tdgbl->BCK_capabilities & BCK_ods8) &&
          * RESTORE.E makes this assumption in get_relation().
          */
 
-        if (put_blr_blob (att_relation_view_blr, &X.RDB$VIEW_BLR))
+        if (put_blr_blob (att_relation_view_blr, (ISC_QUAD *)&X.RDB$VIEW_BLR))
 	    flags |= REL_view;
         if (X.RDB$SYSTEM_FLAG)
 	    PUT_NUMERIC (att_relation_system_flag, X.RDB$SYSTEM_FLAG);
@@ -3523,10 +3538,10 @@ if ((tdgbl->BCK_capabilities & BCK_ods8) &&
 	if (!X.RDB$SECURITY_CLASS.NULL)
 	    PUT_TEXT (att_relation_security_class, X.RDB$SECURITY_CLASS);
 
-        put_source_blob (att_relation_description2, att_relation_description, &X.RDB$DESCRIPTION);
-        put_source_blob (att_relation_view_source2, att_relation_view_source, &X.RDB$VIEW_SOURCE);
+        put_source_blob (att_relation_description2, att_relation_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
+        put_source_blob (att_relation_view_source2, att_relation_view_source, (ISC_QUAD *)&X.RDB$VIEW_SOURCE);
 
-        put_source_blob (att_relation_ext_description2, att_relation_ext_description, &X.RDB$EXTERNAL_DESCRIPTION);
+        put_source_blob (att_relation_ext_description2, att_relation_ext_description, (ISC_QUAD *)&X.RDB$EXTERNAL_DESCRIPTION);
         put_text (att_relation_owner_name, X.RDB$OWNER_NAME, 31);
 	if (!X.RDB$EXTERNAL_FILE.NULL)
 	    if (!tdgbl->gbl_sw_convert_ext_tables)
@@ -3561,11 +3576,11 @@ else
         BURP_verbose (153, temp, NULL, NULL, NULL, NULL);
 	     /* msg 153 writing relation %.*s */
 
-        /* RDB$VIEW_BLR must be the forst blob field in the backup file.
+        /* RDB$VIEW_BLR must be the first blob field in the backup file.
          * RESTORE.E makes this assumption in get_relation().
          */
 
-        if (put_blr_blob (att_relation_view_blr, &X.RDB$VIEW_BLR))
+        if (put_blr_blob (att_relation_view_blr, (ISC_QUAD *)&X.RDB$VIEW_BLR))
 	    flags |= REL_view;
         if (X.RDB$SYSTEM_FLAG)
 	    PUT_NUMERIC (att_relation_system_flag, X.RDB$SYSTEM_FLAG);
@@ -3589,12 +3604,12 @@ else
         ON_ERROR
             general_on_error ();
         END_ERROR;
-        put_source_blob (att_relation_description2, att_relation_description, &X.RDB$DESCRIPTION);
-        put_source_blob (att_relation_view_source2, att_relation_view_source, &X.RDB$VIEW_SOURCE);
+        put_source_blob (att_relation_description2, att_relation_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
+        put_source_blob (att_relation_view_source2, att_relation_view_source, (ISC_QUAD *)&X.RDB$VIEW_SOURCE);
         if (tdgbl->BCK_capabilities & BCK_attributes_v3)
             FOR (REQUEST_HANDLE req_handle4)
                 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME = X.RDB$RELATION_NAME
-                put_source_blob (att_relation_ext_description2, att_relation_ext_description, &R.RDB$EXTERNAL_DESCRIPTION);
+                put_source_blob (att_relation_ext_description2, att_relation_ext_description, (ISC_QUAD *)&R.RDB$EXTERNAL_DESCRIPTION);
                 put_text (att_relation_owner_name, R.RDB$OWNER_NAME, 31);
 	        if (!R.RDB$EXTERNAL_FILE.NULL)
 		    if (!tdgbl->gbl_sw_convert_ext_tables)
@@ -3757,9 +3772,9 @@ if (tdgbl->BCK_capabilities & BCK_ods8)
         PUT_TEXT (att_trig_relation_name, X.RDB$RELATION_NAME);
         PUT_NUMERIC (att_trig_sequence, X.RDB$TRIGGER_SEQUENCE);
         PUT_NUMERIC (att_trig_type, X.RDB$TRIGGER_TYPE);
-        put_blr_blob (att_trig_blr, &X.RDB$TRIGGER_BLR);
-        put_source_blob (att_trig_source2, att_trig_source, &X.RDB$TRIGGER_SOURCE);
-        put_source_blob (att_trig_description2, att_trig_description, &X.RDB$DESCRIPTION);
+        put_blr_blob (att_trig_blr, (ISC_QUAD *)&X.RDB$TRIGGER_BLR);
+        put_source_blob (att_trig_source2, att_trig_source, (ISC_QUAD *)&X.RDB$TRIGGER_SOURCE);
+        put_source_blob (att_trig_description2, att_trig_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
         PUT_NUMERIC (att_trig_system_flag, X.RDB$SYSTEM_FLAG);
         PUT_NUMERIC (att_trig_inactive, X.RDB$TRIGGER_INACTIVE);
 
@@ -3789,9 +3804,9 @@ else
         PUT_TEXT (att_trig_relation_name, X.RDB$RELATION_NAME);
         PUT_NUMERIC (att_trig_sequence, X.RDB$TRIGGER_SEQUENCE);
         PUT_NUMERIC (att_trig_type, X.RDB$TRIGGER_TYPE);
-        put_blr_blob (att_trig_blr, &X.RDB$TRIGGER_BLR);
-        put_source_blob (att_trig_source2, att_trig_source, &X.RDB$TRIGGER_SOURCE);
-        put_source_blob (att_trig_description2, att_trig_description, &X.RDB$DESCRIPTION);
+        put_blr_blob (att_trig_blr, (ISC_QUAD *)&X.RDB$TRIGGER_BLR);
+        put_source_blob (att_trig_source2, att_trig_source, (ISC_QUAD *)&X.RDB$TRIGGER_SOURCE);
+        put_source_blob (att_trig_description2, att_trig_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
         PUT_NUMERIC (att_trig_system_flag, X.RDB$SYSTEM_FLAG);
         PUT_NUMERIC (att_trig_inactive, X.RDB$TRIGGER_INACTIVE);
 
@@ -3895,7 +3910,7 @@ FOR (REQUEST_HANDLE req_handle1)
     BURP_verbose (160, X.RDB$TYPE_NAME, X.RDB$FIELD_NAME, NULL, NULL, NULL);
         /* msg 160 writing type %s for field %s */
     PUT_NUMERIC (att_type_type, X.RDB$TYPE);
-    put_source_blob (att_type_description2, att_type_description, &X.RDB$DESCRIPTION);
+    put_source_blob (att_type_description2, att_type_description, (ISC_QUAD *)&X.RDB$DESCRIPTION);
     if (X.RDB$SYSTEM_FLAG)
 	PUT_NUMERIC (att_type_system_flag, X.RDB$SYSTEM_FLAG);
     PUT (att_end);

@@ -112,7 +112,7 @@ static void	put_asciz (SCHAR, SCHAR *);
 static void	put_numeric (SCHAR, int);
 static BOOLEAN	read_header (DESC, ULONG *, USHORT *, USHORT);
 static BOOLEAN	write_header (DESC, ULONG, USHORT);
-static int	next_volume (DESC, int, USHORT);
+static void *	next_volume (DESC, int, USHORT);
 
 void MVOL_fini_read (
     int		*count_kb)
@@ -127,14 +127,24 @@ void MVOL_fini_read (
  *
  **************************************/
 TGBL	tdgbl;
+FIL	file;
 
 tdgbl = GET_THREAD_DATA;
 
 if (strcmp (tdgbl->mvol_old_file, "stdin") != 0)
+    {
     CLOSE (tdgbl->file_desc);
 
+    for (file = tdgbl->gbl_sw_backup_files; file; file = file->fil_next)
+	{
+	if (file->fil_fd == tdgbl->file_desc)
+	    file->fil_fd = INVALID_HANDLE_VALUE;
+	}
+    }
 tdgbl->file_desc = INVALID_HANDLE_VALUE;
+
 *count_kb = tdgbl->mvol_cumul_count_kb;
+
 BURP_FREE (tdgbl->mvol_io_buffer);
 tdgbl->mvol_io_buffer = NULL;
 tdgbl->io_cnt = 0;
@@ -156,13 +166,22 @@ void MVOL_fini_write (
  *
  **************************************/
 TGBL	tdgbl;
+FIL	file;
 
 tdgbl = GET_THREAD_DATA;
 
 (void) MVOL_write (rec_end, io_cnt, io_ptr);
 FLUSH (tdgbl->file_desc);
 if (strcmp (tdgbl->mvol_old_file, "stdout") != 0)
+    {
     CLOSE (tdgbl->file_desc);
+    for (file = tdgbl->gbl_sw_backup_files; file; file = file->fil_next)
+	{
+	if (file->fil_fd == tdgbl->file_desc)
+	    file->fil_fd = INVALID_HANDLE_VALUE;
+	}
+    }
+
 tdgbl->file_desc = INVALID_HANDLE_VALUE;
 *count_kb = tdgbl->mvol_cumul_count_kb;
 BURP_FREE (tdgbl->mvol_io_header);
@@ -595,6 +614,8 @@ UCHAR	*ptr;
 int	left, cnt, size_to_write;
 USHORT	full_buffer;
 TGBL	tdgbl;
+FIL	file;
+
 #ifdef WIN_NT
 DWORD	err;
 #endif /* WIN_NT */
@@ -615,7 +636,13 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 	    {
 	    if (tdgbl->action->act_file->fil_next)
 		{
-		CLOSE (tdgbl->file_desc);
+		CLOSE (tdgbl->file_desc);    
+		for (file = tdgbl->gbl_sw_backup_files; file; file = file->fil_next)
+		    {
+		    if (file->fil_fd == tdgbl->file_desc)
+			file->fil_fd = INVALID_HANDLE_VALUE;
+		    }
+
 		tdgbl->action->act_file->fil_fd = INVALID_HANDLE_VALUE;
 		tdgbl->action->act_file = tdgbl->action->act_file->fil_next;
 		tdgbl->file_desc = tdgbl->action->act_file->fil_fd;
@@ -675,6 +702,12 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 		if (tdgbl->action->act_file->fil_next)
 		    {
 		    CLOSE (tdgbl->file_desc);
+		    for (file = tdgbl->gbl_sw_backup_files; file; file = file->fil_next)
+			{
+			if (file->fil_fd == tdgbl->file_desc)
+			    file->fil_fd = INVALID_HANDLE_VALUE;
+			}
+
 		    tdgbl->action->act_file->fil_fd = INVALID_HANDLE_VALUE;
 		    BURP_print (272, tdgbl->action->act_file->fil_name,
 			        (TEXT *)tdgbl->action->act_file->fil_length,
@@ -909,7 +942,7 @@ if (l)
 return l2;
 }
 
-static int next_volume (
+static void * next_volume (
     DESC	handle,
     int		mode,
     USHORT	full_buffer)
@@ -1344,9 +1377,9 @@ USHORT	i;
 UCHAR	*p, *q;
 TGBL	tdgbl;
 #ifdef WIN_NT
-DWORD	bytes_written,err;
+SLONG	bytes_written,err;
 #else
-ULONG	bytes_written;
+SLONG	bytes_written;
 #endif
 
 tdgbl = GET_THREAD_DATA;
@@ -1393,7 +1426,7 @@ if (full_buffer)
     err = WriteFile (handle, tdgbl->mvol_io_header, tdgbl->mvol_io_buffer_size,
 		     &bytes_written, NULL);
 #endif /* WIN_NT */
-    if (bytes_written != tdgbl->mvol_io_buffer_size)
+    if (bytes_written != (SLONG) tdgbl->mvol_io_buffer_size)
 	return FALSE;
 
     if (tdgbl->action->act_action == ACT_backup_split)

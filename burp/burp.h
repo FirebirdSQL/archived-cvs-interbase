@@ -831,12 +831,12 @@ typedef struct tgbl {
 extern struct tgbl *gdgbl;
 
 #define GET_THREAD_DATA	        (gdgbl)
-#define SET_THREAD_DATA         gdgbl = tdgbl; \
-				tdgbl->tgbl_thd_data.thdd_type = THDD_TYPE_TGBL
+#define SET_THREAD_DATA         gdgbl = (struct tgbl *) tdgbl; \
+				tdgbl->tgbl_thd_data.thdd_type = (volatile) THDD_TYPE_TGBL
 #define RESTORE_THREAD_DATA     
 #endif
 
-#define EXIT(code)	            {  tdgbl->exit_code = (code);          \
+#define EXIT(code)	            {  tdgbl->exit_code = ((volatile int)code);          \
 												if (tdgbl->burp_env != NULL)        \
 											  		LONGJMP(tdgbl->burp_env, 1);  }
 
@@ -917,5 +917,6 @@ extern struct tgbl *gdgbl;
 #define msgErr_restore_collation	215
 #define msgVerbose_restore_collation	216
 
+#define GDS_VERSION "Firebird-W32-V1.0"
 
 #endif /* _BURP_BURP_H_ */

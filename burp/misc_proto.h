@@ -26,6 +26,6 @@
 
 extern UCHAR	*MISC_alloc_burp (ULONG);
 extern void	MISC_free_burp (void *);
-extern void	MISC_terminate (register SCHAR *, register SCHAR *, register SSHORT, SSHORT);
+extern void	MISC_terminate (UCHAR *, UCHAR *, ULONG, ULONG);
 
 #endif	/* _BURP_MISC_PROTO_H_ */

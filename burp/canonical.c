@@ -26,7 +26,19 @@ $Id$
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
-#include "../remote/remote.h"
+
+typedef struct bid {
+    ULONG	bid_relation_id;	/* Relation id (or null) */
+    ULONG	bid_number;		/* Record number */
+} *BID;
+
+typedef struct vary {
+    USHORT	vary_length;
+    UCHAR	vary_string[1];
+} *VARY;
+
+#include "../remote/protocol.h"
+#include "../remote/xdr.h"
 #include "../burp/burp.h"
 #include "../jrd/align.h"
 #include "../jrd/sdl.h"

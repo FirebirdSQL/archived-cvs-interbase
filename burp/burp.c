@@ -21,6 +21,8 @@
  * Contributor(s): ______________________________________.
  */
 
+
+
 #include "../jrd/ib_stdio.h"
 #include <stdlib.h>
 #include <string.h>
@@ -152,7 +154,7 @@ struct tgbl *gdgbl;
 #define OUTPUT_SUPPRESS	"SUPPRESS"
 #define BURP_MSG_FAC    12
 
-static void	close_out_transaction (SSHORT, isc_tr_handle *);
+static void	close_out_transaction (VOLATILE SSHORT, isc_tr_handle *);
 static void	enable_signals (void);
 static void	excp_handler (void);
 static SLONG	get_number (SCHAR *);
@@ -176,8 +178,8 @@ static int	api_gbak (int, char **, USHORT, TEXT *, TEXT *, TEXT *, BOOLEAN, BOOL
    
 #define	DB		tdgbl->db_handle
 
-#define GBAK_STDIN_DESC		0
-#define GBAK_STDOUT_DESC	1
+#define GBAK_STDIN_DESC		(int) 0
+#define GBAK_STDOUT_DESC	(int) 1
 
 #define KBYTE	1024
 #define	MBYTE	KBYTE * KBYTE
@@ -494,7 +496,7 @@ IB_FILE		*tmp_outfile;
 
 /* TMN: This variable should probably be removed, but I left it in */
 /* in case some platform should redefine the BURP SET_THREAD_DATA. */
-/* struct tgbl	thd_context; */
+struct tgbl	thd_context; 
 
 tdgbl = (struct tgbl *) gds__alloc (sizeof(*tdgbl));
 /* NOMEM: return error, FREE: during function exit in the SETJMP */
@@ -509,7 +511,7 @@ if (tdgbl == NULL)
 SET_THREAD_DATA;
 SVC_PUTSPECIFIC_DATA;
 memset((void *)tdgbl, 0, sizeof(*tdgbl));
-tdgbl->burp_env = env;
+tdgbl->burp_env = (UCHAR *)env;
 tdgbl->file_desc = INVALID_HANDLE_VALUE;
 tdgbl->output_proc = output_proc;
 tdgbl->output_data = output_data;
@@ -541,10 +543,10 @@ if (SETJMP (env))
     /* Detach from database to release system resources */
     if (tdgbl->db_handle != 0)
         {
-        close_out_transaction (action, &tdgbl->tr_handle);
-        close_out_transaction (action, &tdgbl->global_trans);
-        if (isc_detach_database (tdgbl->status_vector, &tdgbl->db_handle))
-	        BURP_print_status (tdgbl->status_vector);
+        close_out_transaction (action, (isc_tr_handle *)&tdgbl->tr_handle);
+        close_out_transaction (action, (isc_tr_handle *)&tdgbl->global_trans);
+        if (isc_detach_database ((STATUS *)tdgbl->status_vector, (isc_db_handle)&tdgbl->db_handle))
+	        BURP_print_status ((STATUS *)tdgbl->status_vector);
         }
 
     /* Close the status output file */
@@ -591,7 +593,7 @@ argc = VMS_parse (&argv, argc);
 tdgbl->gbl_sw_service_gbak = FALSE;
 tdgbl->gbl_sw_service_thd = FALSE;
 tdgbl->service_blk = NULL;
-tdgbl->status = tdgbl->status_vector;
+tdgbl->status = (ULONG *)tdgbl->status_vector;
 
 if (argc > 1 && !strcmp (argv [1], "-svc"))
     {
@@ -658,7 +660,7 @@ tdgbl->gbl_sw_mode = FALSE;
 tdgbl->gbl_sw_skip_count = 0;
 tdgbl->gbl_sw_bug8183 = FALSE;
 tdgbl->action = NULL;
-dpb = tdgbl->dpb_string;
+dpb = (UCHAR *)tdgbl->dpb_string;
 tdgbl->dpb_length = 0;
 file1 = file2 = NULL;
 file = file_list = NULL;
@@ -735,7 +737,7 @@ while (argv < end)
 	    {
 	    if (argv >= end)
 		BURP_error (2, 0, 0, 0, 0, 0);/* msg 2 page size parameter missing */
-	    tdgbl->gbl_sw_page_size = get_number (*argv);
+	    tdgbl->gbl_sw_page_size = (USHORT) get_number (*argv);
 	    if (!tdgbl->gbl_sw_page_size)
 		BURP_error (12, *argv, 0, 0, 0, 0);/* msg 12 expected page size, encountered "%s" */
 	    argv++;
@@ -786,7 +788,7 @@ while (argv < end)
 	    {
 	    if (argv >= end)
 		BURP_error (182, 0, 0, 0, 0, 0); /* msg 182 blocking factor parameter missing */
-	    tdgbl->gbl_sw_blk_factor = get_number (*argv);
+	    tdgbl->gbl_sw_blk_factor = (volatile USHORT) get_number (*argv);
 	    if (!tdgbl->gbl_sw_blk_factor)
 		BURP_error (183, *argv, 0, 0, 0, 0); /* msg 183 expected blocking factor, encountered "%s"  */
 	    argv++;
@@ -1065,29 +1067,29 @@ if (!sw_replace)
 
 if (tdgbl->gbl_sw_page_size) 
     {
+    int curr_pg_size = 1024;
     if (sw_replace == IN_SW_BURP_B)
 	BURP_error (8, 0, 0, 0, 0, 0); /* msg 8 page size is allowed only on restore or create */
     temp = tdgbl->gbl_sw_page_size;
+    while (curr_pg_size <= MAX_PAGE_SIZE) 
 	{
-		int curr_pg_size = 1024;
-		while (curr_pg_size <= MAX_PAGE_SIZE) {
-			if (temp <= curr_pg_size) {
-				temp = curr_pg_size;
-				break;
-			}
-			curr_pg_size <<= 1;
-		}
+	if (temp <= curr_pg_size) 
+	    {
+	    temp = curr_pg_size;
+	    break;
+	    }
+	curr_pg_size <<= 1;
 	}
-	if (temp > MAX_PAGE_SIZE)
+    if (temp > MAX_PAGE_SIZE)
 #ifdef SUPERSERVER
 	BURP_svc_error (3, isc_arg_number, tdgbl->gbl_sw_page_size,
 			   0, NULL, 0, NULL, 0, NULL, 0, NULL);
 #else
-	BURP_error (3, (TEXT *) tdgbl->gbl_sw_page_size, 0, 0, 0, 0); /* msg 3 Page size specified (%ld) greater than limit (MAX_PAGE_SIZE bytes) */
+	BURP_error (3, (void *) tdgbl->gbl_sw_page_size, 0, 0, 0, 0); /* msg 3 Page size specified (%ld) greater than limit (8192 bytes) */
 #endif
     if (temp != tdgbl->gbl_sw_page_size)
 	{
-	BURP_print (103, (TEXT *) tdgbl->gbl_sw_page_size, (TEXT *)temp, 0, 0, 0); /* msg 103 page size specified (%ld bytes) rounded up to %ld bytes */
+	BURP_print (103, (void *) tdgbl->gbl_sw_page_size, (void *)temp, 0, 0, 0); /* msg 103 page size specified (%ld bytes) rounded up to %ld bytes */
 	tdgbl->gbl_sw_page_size = temp;
 	}
     }	
@@ -1131,8 +1133,8 @@ enable_signals();
 #endif
 
 clock = time (NULL_PTR);
-strcpy (tdgbl->gbl_backup_start_time, ctime (&clock));
-p = tdgbl->gbl_backup_start_time + strlen (tdgbl->gbl_backup_start_time) - 1;
+strcpy ((UCHAR *)tdgbl->gbl_backup_start_time, ctime (&clock));
+p = (UCHAR *)tdgbl->gbl_backup_start_time + strlen ((UCHAR *)tdgbl->gbl_backup_start_time) - 1;
 if (*p == '\n')
     *p = 0;
 
@@ -1170,12 +1172,12 @@ switch (action)
 	BURP_abort();
 	break;
     }
-if (result == FINI_OK || result == FINI_DB_NOT_ONLINE)
-    EXIT (result)
-else
+if (result != FINI_OK && result != FINI_DB_NOT_ONLINE)
     BURP_abort();
 
-return 0;	/* silence compiler warning */
+EXIT (result);
+return result;
+
 }
 
 void BURP_abort (void)
@@ -1209,11 +1211,11 @@ EXIT (FINI_ERROR);
 
 void BURP_error (
     USHORT	errcode,
-    TEXT	*arg1,
-    TEXT	*arg2,
-    TEXT	*arg3,
-    TEXT	*arg4,
-    TEXT	*arg5)
+    void	*arg1,
+    void	*arg2,
+    void	*arg3,
+    void	*arg4,
+    void	*arg5)
 {
 /**************************************
  *
@@ -1340,8 +1342,8 @@ if (status_vector)
 void BURP_error_redirect (
     STATUS	*status_vector,
     USHORT	errcode,
-    TEXT	*arg1,
-    TEXT	*arg2)
+    void	*arg1,
+    void	*arg2)
 {
 /**************************************
  *
@@ -1360,11 +1362,11 @@ BURP_error (errcode, arg1, arg2, NULL, NULL, NULL);
 
 void BURP_msg_partial (
     USHORT	number,
-    TEXT	*arg1,
-    TEXT	*arg2,
-    TEXT	*arg3,
-    TEXT	*arg4,
-    TEXT	*arg5)
+    void	*arg1,
+    void	*arg2,
+    void	*arg3,
+    void	*arg4,
+    void	*arg5)
 {
 /**************************************
  *
@@ -1385,11 +1387,11 @@ burp_output ("%s", buffer);
 
 void BURP_msg_put (
     USHORT	number,
-    TEXT	*arg1,
-    TEXT	*arg2,
-    TEXT	*arg3,
-    TEXT	*arg4,
-    TEXT	*arg5)
+    void	*arg1,
+    void	*arg2,
+    void	*arg3,
+    void	*arg4,
+    void	*arg5)
 {
 /**************************************
  *
@@ -1411,11 +1413,11 @@ burp_output ("%s\n", buffer);
 void BURP_msg_get (
     USHORT	number,
     TEXT	*msg,
-    TEXT	*arg1,
-    TEXT	*arg2,
-    TEXT	*arg3,
-    TEXT	*arg4,
-    TEXT	*arg5)
+    void	*arg1,
+    void	*arg2,
+    void	*arg3,
+    void	*arg4,
+    void	*arg5)
 {
 /**************************************
  *
@@ -1456,11 +1458,11 @@ burp_output (arg1, arg2);
 
 void BURP_print (
     USHORT	number,
-    TEXT	*arg1,
-    TEXT	*arg2,
-    TEXT	*arg3,
-    TEXT	*arg4,
-    TEXT	*arg5)
+    void	*arg1,
+    void	*arg2,
+    void	*arg3,
+    void	*arg4,
+    void	*arg5)
 {
 /**************************************
  *
@@ -1481,11 +1483,11 @@ BURP_msg_put (number, arg1, arg2, arg3, arg4, arg5);
 
 void BURP_verbose (
     USHORT	number,
-    TEXT	*arg1,
-    TEXT	*arg2,
-    TEXT	*arg3,
-    TEXT	*arg4,
-    TEXT	*arg5)
+    void	*arg1,
+    void	*arg2,
+    void	*arg3,
+    void	*arg4,
+    void	*arg5)
 {
 /**************************************
  *
@@ -1510,8 +1512,8 @@ else
 }   
 
 static void close_out_transaction (
-    SSHORT	  action,
-    isc_tr_handle *handle) 
+    VOLATILE SSHORT	  action,
+    isc_tr_handle   *handle) 
 {
 /**************************************
  *
@@ -1542,7 +1544,7 @@ if (*handle != 0)
 	     * we need to close all outstanding transactions before
 	     * we can detach from the database.
 	     */
-	    isc_rollback_transaction (status_vector, handle);
+	    isc_rollback_transaction (status_vector,  handle);
 	    if (status_vector[1])
 		BURP_print_status (status_vector);
 	    }
@@ -1760,7 +1762,7 @@ if (sw_replace == IN_SW_BURP_B)
 #ifndef WIN_NT
 	    signal (SIGPIPE, SIG_IGN);
 #endif
-	    fil->fil_fd = GBAK_STDOUT_DESC ;
+	    fil->fil_fd = (void *)(GBAK_STDOUT_DESC);
 	    break;
 	    }
 	else
@@ -1807,7 +1809,7 @@ if (sw_replace == IN_SW_BURP_B)
 			    isc_arg_number, MIN_SPLIT_SIZE,
 			    0, NULL, 0, NULL, 0, NULL);
 #else
-	    BURP_error (271, (TEXT *)fil->fil_length, (TEXT *)MIN_SPLIT_SIZE, 0, 0, 0);
+	    BURP_error (271, (void *)fil->fil_length, (void *)MIN_SPLIT_SIZE, 0, 0, 0);
 		/* msg file size given (%d) is less than minimum allowed (%d) */
 #endif
 	    flag = QUIT;
