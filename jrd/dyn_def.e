@@ -3132,6 +3132,9 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		if (!DYN_REQUEST (drq_l_view_rels))
 		    DYN_REQUEST (drq_l_view_rels) = request;
 
+		/* CVC: This never matches so it causes unnecessary calls to verify,
+		so I included a call to strip trailing blanks. */
+		DYN_terminate (PREL.RDB$OWNER_NAME, sizeof (PREL.RDB$OWNER_NAME));
 		if (strcmp (PREL.RDB$OWNER_NAME, owner_name))
 		    {
 		    if (DYN_UTIL_get_prot (tdbb, gbl, PREL.RDB$RELATION_NAME,

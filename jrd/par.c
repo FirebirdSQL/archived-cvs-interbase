@@ -395,7 +395,7 @@ NOD PAR_make_field (
  **************************************/
 SSHORT	id;
 USHORT	stream;
-TEXT	name [32], *p;
+TEXT	name [32];
 FLD     field;
 REL     temp_rel;
 NOD     temp_node;
@@ -404,9 +404,16 @@ SET_TDBB (tdbb);
 
 stream = csb->csb_rpt [context].csb_stream;
 
-for (p = name; *base_field && *base_field != ' ';)
-    *p++ = *base_field++;
-*p = 0;
+/* CVC: This is just another case of a custom function that isn't prepared
+for quoted identifiers and that causes views with fields names like "z x"
+to fail miserably. Since this function was truncating field names like "z x",
+MET_lookup_field() call below failed and hence the function returned NULL
+so only caller MET_scan_relation() did field->fld_source = 0;
+This means a field without entry in rdb$fields. This is the origin of the
+mysterious message "cannot access column z x in view VF" when selecting from
+such view that has field "z x". This closes Firebird Bug #227758. */
+strcpy (name, base_field);
+MET_exact_name (name);
 
 id = MET_lookup_field (tdbb, csb->csb_rpt [stream].csb_relation, name);
 

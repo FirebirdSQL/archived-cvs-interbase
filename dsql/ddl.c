@@ -41,6 +41,8 @@
  * is called from several places and there are more functions, even in metd.c,
  * playing the same nonsense game with the field's length, so it needs more
  * careful examination. For now, the new checks in DYN_MOD should catch most anomalies.
+ * 2001.7.3 Claudio Valderrama: fix Firebird Bug #223059 with mismatch between number
+ * of declared fields for a VIEW and effective fields in the SELECT statement.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -3201,13 +3203,20 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
     /* determine the proper field name, replacing the default if necessary */
 
     if (field)
-	field_string = field->fld_name;
-    if (ptr && ptr < end)
+		field_string = field->fld_name;
+	/* CVC: Small modification here to catch any mismatch between number of
+	explicit field names in a view and number of fields in the select expression,
+	see comment below. This closes Firebird Bug #223059. */
+    if (ptr)
 	{
-	field_name = (STR) (*ptr)->nod_arg [1];
-	field_string = (TEXT*) field_name->str_data;
-	ptr++;
+		if (ptr < end)
+		{
+			field_name = (STR) (*ptr)->nod_arg [1];
+			field_string = (TEXT*) field_name->str_data;
+		}
+		ptr++;
 	}
+
 
     /* if not an expression, point to the proper base relation field,
        else make up an SQL field with generated global field for calculations */
@@ -3235,6 +3244,8 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
     STUFF (gds__dyn_end);
     }
 
+/* CVC: This message was not catching the case when
+#fields<items in select list, see comment above. */
 if (ptr != end)
     ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
         gds_arg_gds, gds__dsql_command_err, 
