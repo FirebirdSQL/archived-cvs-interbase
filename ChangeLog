@@ -1,3 +1,9 @@
+2003-04-24 13:19  paul_reeves
+
+	* interbase/jrd/inf.c:
+	
+	Add get_counts buffer overrun fix from Oleg Loa
+
 2003-04-09 10:01  paul_reeves
 
 	* interbase/jrd/gds.c:
