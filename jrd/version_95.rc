@@ -19,26 +19,29 @@
 #include <winver.h>
 #include "../jrd/build_no.h"
 
+
 VS_VERSION_INFO VERSIONINFO
 FILEFLAGSMASK   VS_FF_PRERELEASE
 FILEFLAGS       VS_FF_PRERELEASE | VS_FF_SPECIALBUILD
 FILEVERSION     WIN_FILE_VER_NUMBER
 PRODUCTVERSION  FILE_VER_NUMBER
 FILEOS          VOS_NT_WINDOWS32
-
+	
 FILETYPE        VFT_APP
 BEGIN
   BLOCK "StringFileInfo"
   BEGIN
     BLOCK "040904E4"
     BEGIN
+      VALUE "Comments", "Original Code created by Inprise Corporation and its predecessors. Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation. Portions created by others are Copyright (C) 2000-2001 themslevs and/or the FirebirdSQL Project. \0"	
       VALUE "CompanyName", "FirebirdSQL Project\0"
       VALUE "FileDescription", "Firebird Database Server\0"
       VALUE "FileVersion", FILE_VER_STRING
-      VALUE "InternalName", "IBSERVER60\0"
-      VALUE "LegalCopyright", "Original Code created by Inprise Corporation and its predecessors.\n Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation.\n Portions created by others are Copyright (C) 2000-2001 FirebirdSQL Project.  \0"
+      VALUE "InternalName", "Firebird\0"
+      VALUE "LegalCopyright", "Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation."
       VALUE "ProductName", "Firebird Database Server\0"
       VALUE "ProductVersion", PRODUCT_VER_STRING
+      VALUE "SpecialBuild", "Release Candidate 1"
     END
   END
 

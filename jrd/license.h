@@ -20,6 +20,13 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Id$
+ *
+ * NOTE:	No dynamic values should be defined in this file.
+ *			Dynamic values are values which change from release
+ *			to release. These values are taken from build_no.h, 
+ *			which is generated automatically during the build 
+ *			process.
+ *
  * Revision 1.5  2000/12/08 16:18:21  fsg
  * Preliminary changes to get IB_BUILD_NO automatically
  * increased on commits.
@@ -251,8 +258,6 @@
 #endif
 
 #ifndef GDS_VERSION
-#define ISC_MAJOR_VER	"6"
-#define ISC_MINOR_VER	"2"
 #define GDS_VERSION	FB_PLATFORM "-" FB_BUILD_TYPE ISC_MAJOR_VER "." ISC_MINOR_VER "." FB_BUILD_NO " " FB_BUILD_SUFFIX
 #endif
 

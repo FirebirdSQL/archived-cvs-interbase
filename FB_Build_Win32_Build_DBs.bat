@@ -15,6 +15,13 @@
 :: Contributor(s): Dmitri Kuzmenko_________________________________.
 ::
 ::
+::  27-NOV-2001 Copy *.gbk files to the appropriate destination directorties
+::              This allows the subsequent build process to compare
+::              the file date of the latest backup with the one used to build
+::              the build-time databases. If the date is different it is time
+::              to re-build the build-time databases. Currently only
+::              msgs/msg.gbak is tested at build-time.                       PR
+::
 @echo off
 
 goto :BUILD_DBS
@@ -110,8 +117,15 @@ SET OUTFILE=%DB_DIR%\jrd\isc.gdb
 del /q %DB_DIR%\jrd\isc4.gbk
 call :COPY_DB
 
+:: FSG had to do this - haven't had time to find out why as
+:: the database should actually be built from an isql script.  - PR 27-NOV-2001
+::SET OUTFILE=builds_win32\metadata.gdb
+::SET GBKFILE=misc\metadata.gbak
+::call :MAKE_DB
+
 SET OUTFILE=%DB_DIR%\msgs\msg.gdb
 SET GBKFILE=msgs\msg.gbak
+copy %GBKFILE% %DB_DIR%\msgs
 call :MAKE_DB
 
 SET OUTFILE=%DB_DIR%\msgs\master_msg_db
@@ -119,6 +133,7 @@ call :MAKE_DB
 
 SET OUTFILE=%DB_DIR%\qli\help.gdb
 SET GBKFILE=.\misc\help.gbak
+copy %GBKFILE% %DB_DIR%\qli
 gbak -r -user builder -password builder %GBKFILE% %OUTFILE%
 if not errorlevel 1 (@echo created %OUTFILE% in build_db dir tree) else (@echo Failed to create %OUTFILE%)
 
@@ -126,7 +141,7 @@ SET OUTFILE=%DB_DIR%\qli\master_help_db
 gbak -r -user builder -password builder %GBKFILE% %OUTFILE%
 if not errorlevel 1 (@echo created %OUTFILE% in build_db dir tree) else (@echo Failed to create %OUTFILE%)
 
-goto :BUILD_EXAMPLE5
+goto :BUILD_EXAMPLE_FIVE
 
 :BUILD_EXAMPLES
 :: We could do this, if we wanted to
@@ -144,7 +159,7 @@ cd ..
 endlocal
 
 
-:BUILD_EXAMPLE5
+:BUILD_EXAMPLE_FIVE
 del /q %DB_DIR%\example5\*.gdb
 copy example5\*.sql %DB_DIR%\example5
 

@@ -20,12 +20,17 @@
  *
  * Release Notes
  *
+ *
+ * See the change history at the top of the FB_Build_Win32.bat 
+ * for details of new features and changed behaviour.
+ *
  */
 
 
 CONTENTS
 --------
 
+o WHAT'S NEW?
 o INTRODUCTION
 o REQUIREMENTS
 o PREPARING TO BUILD
@@ -92,7 +97,7 @@ o Other tools
   You will also require a small subset of Unix Tools compiled for
   Win32. These are available from:
 
-    http://firebird.sourceforge.net/downloads
+    http://firebird.sourceforge.net/download
 
   Filename:
 
@@ -177,8 +182,10 @@ build. You can delete it and recreate it as required.
 
 Once it is built you can move it somewhere else if you wish.
 The build takes the location of the build databases as a separate
-parameter and any valid Firebird location (server:drive:/path) is
-allowed.
+parameter and any valid Firebird location (server:drive:\path) is
+allowed. However, it is recommended that you leave this database 
+tree in a location that can be accessed locally from a command 
+prompt.
 
 
 SETTING UP THE BUILD ENVIRONMENT
@@ -189,17 +196,13 @@ final step - preparing the source for the build. This is done by
 running FB_Build_Win32.bat from the console. Here is a typical
 command line:
 
-  FB_Build_Win32.bat server:x:/path/to/build_dbs
+  FB_Build_Win32.bat x:\path\to\build_dbs
 
 There are a couple of points to note here.
 
- o The database path must be specified using forward slashes.
-   Sed gets confused otherwise. You do not have to specify a
-   server if the databases are stored locally.
-
-   If you have created the database tree in the previous step
-   then just type the same drive:/path - and don't forget the
-   forward slashes.
+ o You can specify a remote database path in the normal manner.
+   However, this should be avoided if possible, as it will not be
+   possible to test if the messages database is up-to-date.
 
  o Optionally you can add a second parameter -DDEV if you wish
    to do a debug build. There is a glitch in the Win32 build
@@ -222,11 +225,15 @@ However, if any error is triggered the build will immediately stop.
 
 When build_lib.bat stops you will see either BUILD_FAIL or BUILD_OK
 somewhere on the screen. If the build has failed then open up
-build_lib_PROD.log or build_lib_DEV.log (depending on which build type
-you have chosen) and check for the error at the end. Once you have
-remedied the problem just close the secondary console windows,
+build_lib_PROD_nnn.log or build_lib_DEV_nnn.log (depending on which
+build type you have chosen) and check for the error at the end. Once
+you have remedied the problem just close the secondary console windows,
 'up arrow' in the main console window and re-run your FB_Build_Win32
 command.
+
+If you have done a DEV build the source browser database will now be 
+automatically built for you. You can use this to help debug the new
+server.
 
 
 WHAT NEXT
@@ -253,9 +260,17 @@ This will have the following effect
 
     NOTE: The Build logs will remain at the root of the 
     source directory. Rename, delete, or move them as required.
-    They are automatically overwritten by subsequent builds.
+    They are automatically overwritten by subsequent builds of
+    the same build number.
 
   o The Build_DBs tree is left untouched.
+
+Alternatively, you can run
+
+  FB_build_Win32.bat CLEAN ENV
+
+and clear just the environment variables that were set by the 
+build process.
 
 
 TIPS for working at the Command Prompt

@@ -34,16 +34,19 @@
 ::
 ::
 ::  Changelog
-::    Add .cvsignore for each component to      - 02-Nov-2001  - PR
-::      block cvs committing the Win32
-::      specific depends.mak files
-::    Removed need to pass build number param   - 01-Nov-2001  - PR
-::    Added better environment checking         - 06-Sep-2001  - PR
-::    Added :CLEAN to clean things up.          - 06-Sep-2001  - PR
-::    Corrected error processing of parameters  - 06-Sep-2001  - PR
-::    Added support for building the build-dbs  - 29-Aug-2001  - PR
-::    Added support for using the build_no      - 29-Aug-2001  - PR
-::    Script first created                      - 12-Apr-2001  - PR
+::  o Log files now include the build number in - 29-Nov-2001  - PR
+::    the file name. Preserves some history, but
+::    not infallible
+::  o Added CLEAN ENV to clean environment only - 28-Nov-2001  - PR
+::  o Added detection of up-to-date messages    - 27-Nov-2001  - PR
+::    database.
+::  o Removed need to pass build number param   - 01-Nov-2001  - PR
+::  o Added better environment checking         - 06-Sep-2001  - PR
+::  o Added :CLEAN to clean things up.          - 06-Sep-2001  - PR
+::  o Corrected error processing of parameters  - 06-Sep-2001  - PR
+::  o Added support for building the build-dbs  - 29-Aug-2001  - PR
+::  o Added support for using the build_no      - 29-Aug-2001  - PR
+::  o Script first created                      - 12-Apr-2001  - PR
 
 @echo off
 
@@ -62,16 +65,20 @@ goto :CHECKPARMS
 @if "%INTERBASE%"=="" (goto :HELP2) else (set IBSERVER="%INTERBASE%")
 
 @if "%2"=="-DDEV" (set BUILDTYPE=DEV) else (set BUILDTYPE=PROD)
-@if not "%2"=="" then if not "%2"=="-DDEV" (goto :HELP3)
+@if /I "%2" NEQ "" (if /I "%2" NEQ "-DDEV" (if /I "%2" NEQ "ENV" (goto :HELP3)))
 @if /I "%1"=="-DDEV" goto :HELP3
 @if "%1"=="" goto :HELP1
 @if /I "%1"=="CLEAN" (goto :CLEAN) else (goto :CHECKTOOLS)
 
 ::=====================================
 :CLEAN
-:: clear out all the env vars we have set.
-call FB_Build_Win32_Clean.bat do_it
+::If param 2 is not ENV then clean the object files etc.
+@if /I "%2" NEQ "ENV" (call FB_Build_Win32_Clean.bat do_it)
 
+:: clear out all the env vars we have set.
+@echo:
+@echo Cleaning the environment
+@echo:
 set BUILDTYPE=
 set IBSERVER=
 set BUILD_SUFFIX=
@@ -87,6 +94,18 @@ set OS_NAME=
 set PRODUCT_VER_STRING=
 set REV_NO=
 set THISBUILD=
+
+set WIN_FILE_VER_NUMBER=
+set WIN_MAJOR_VER=
+set WIN_MINOR_VER=
+
+set DB_PATH=
+set DB_DIR=
+set DOS_DB_PATH=
+
+set INFILE=
+set OUTFILE=
+set GBKFILE=
 
 @echo:
 @echo Finished cleaning Win32 build environment
@@ -117,8 +136,6 @@ echo tail located on path
 
 
 ::=====================================
-
-
 :CHECK_MAKE
 :: Verify make, touch etc are available
 
@@ -143,7 +160,32 @@ echo %PATH% | find "%INTERBASE%\bin" > nul
 @echo "%INTERBASE%\bin" exists on path)
 
 ::=====================================
+::Try and check that Build-time databases are up-to-date
+::First, make sure that the path given is using backslashes, not forward slashes
+for /f "tokens=*" %%a in ('echo %1') do ((set DOS_DB_PATH=%%a))
+for /f "tokens=*" %%a in ('@echo %DOS_DB_PATH:\=/%') do ((set DOS_DB_PATH=%%a))
 
+
+:: Now see if destination exists. If so, test for a newer backup file in the
+:: msgs directory. If test fails signal a warning. It will fail either because
+:: a remote server is specified or a non-existent path is specified. Not much
+:: that we can do about either of those.
+if exist %DOS_DB_PATH% (
+  (@xcopy /L /D msgs\msg.gbak %DOS_DB_PATH%\msgs | find "1" >nul && ((@echo:) & (@echo    ERROR: The Messages database is not up-to-date.) & (goto :HELP_BUILD_DBS)))
+  (@echo Messages Database is up-to-date)
+  ) else (
+  (@echo: )& (@echo   WARNING: Cannot test for messages database) & (@echo   You may wish to manually check if it is up-to-date.  ) & (@echo: )
+  )
+
+
+::=====================================
+:SYS_VER_COMPLETE
+@echo:
+@echo   Completed System verification successfully
+@echo:
+
+
+::=====================================
 :BUILD_NO
 :: set up build number etc
 for /f "tokens=*" %%a in ('cat THIS_BUILD') do set THISBUILD=%%a
@@ -165,22 +207,22 @@ gsec -add BUILDER -pw builder 2>nul
 
 ::=====================================
 ::Check DB_PATH has forward slashes
-@echo "%1" | find "\" >nul && ((@echo:) & (@echo Build_Db must not contain backslashes.) & (goto :HELP1))
+::This check is DEPRECATED
+::@echo "%1" | find "\" >nul && ((@echo:) & (@echo Build_Db must not contain backslashes.) & (goto :HELP1))
+
+
+::=====================================
+::Make sure that the db path is set to a style that wont break SED
+for /f "tokens=*" %%a in ('echo %1') do ((set DB_PATH=%%a) & (set DB_DIR=%%a))
+for /f "tokens=*" %%a in ('@echo %DB_PATH:\=/%') do ((set DB_PATH=%%a) & (set DB_DIR=%%a))
 
 ::=====================================
 :SETUP_ENV
 
-:: path to look for db in .e files
-SET DB_PATH="%1"
-SET DB_DIR="%1"
-
-:: Start tail in another console and watch the show.
-::start "Preparing Firebird build environment" "cmd /k tail -f FB_Build_Win32.log"
-
-
-:: move the first parameters out of the way. We don't need them anymore.
+:: move the first parameter out of the way. We don't need it anymore.
 shift
 
+:: run through each component and do some stuff
 for %%V in (%IB_COMPONENTS%) do (
   (@echo creating component %%V ...)
   (mkdir %%V 2>nul)
@@ -196,7 +238,9 @@ for %%V in (%IB_COMPONENTS%) do (
 
   )
 
+
 setlocal
+
 set DIRS=bin lib intl UDF include examples examples\v4 examples\v5 help
 
 mkdir ib_debug 2> nul
@@ -259,7 +303,6 @@ cd ..\..
 ::
 
 :: Modify component depends.mak files for NT
-
 setlocal
 @echo Expanding depends.mak
 set IB_COMPONENTS=alice burp dsql dudley gpre intl isql jrd lock msgs qli remote utilities wal
@@ -288,8 +331,8 @@ if exist %INTERBASE%\SDK\lib_ms\gds32_ms.lib (copy %INTERBASE%\SDK\lib_ms\gds32_
 :BUILD_LIB
 :: This is where it all happens
 @echo Setup Complete. Now running Firebird Build...
-start "Running Firebird Build" "cmd /k tail -f build_lib_%BUILDTYPE%.log"
-call build_lib.bat %1 %2 > build_lib_%BUILDTYPE%.log 2>&1
+start "Running Firebird Build" "cmd /k tail -f build_lib_%BUILDTYPE%_%THISBUILD%.log"
+call build_lib.bat %1 %2 > build_lib_%BUILDTYPE%_%THISBUILD%.log 2>&1
 goto :END_COMPLETED
 
 
@@ -311,10 +354,10 @@ goto :EOF
 @echo   the build time database. DB_PATH may include a server name.
 @echo   DB_PATH should not be the same as the source directory.
 @echo:
-@echo   DB_PATH must be specified with forward slashes, even if
-@echo   the server is running under windows ie use:
-@echo       SERVER:driveletter:/path/to/databases
 @echo   If DB_PATH is not correctly specified the build will fail.
+@echo:
+@echo   If a remote database server is specified the setup will fail
+@echo   because it will fail to detect t
 @echo:
 @echo   You may optionally specify -DDEV to create a debug build.
 @echo:
@@ -352,7 +395,7 @@ goto :EOF
 @echo   Please check that these utilities programs are
 @echo   all on your path:
 @echo:
-@echo     sed.exe cat.exe cp.exe tail.exe
+@echo     sed.exe cat.exe cp.exe tail.exe tr.exe
 @echo:
 @echo   If you do not have these utilities they may be downloaded
 @echo   via ftp from the Firebird Project on Sourceforge:
@@ -361,6 +404,8 @@ goto :EOF
 @echo:
 @echo   filename:  Firebird_Unix_Tools_for_Win32.zip
 @echo:
+@echo   NOTE: tr.exe has recently been added. This is to support
+@echo   detection of the need to rebuild the build-time databases.
 @echo:
 @goto :EOF
 
@@ -381,13 +426,26 @@ goto :EOF
 ::-------------------------------------
 :HELP_SYNTAX
 @echo:
-@echo Curly brackets are not required.
-@echo They are only part of the syntax diagram,
-@echo indicating required parameters
+@echo   Curly brackets are not required.
+@echo   They are only part of the syntax diagram,
+@echo   indicating required parameters
 @echo:
 set curly=
 goto :EOF
 
+::-------------------------------------
+:HELP_BUILD_DBS
+@echo:
+@echo    The Messages database has been updated in the
+@echo    source tree. You must rebuild the build-time
+@echo    databases before continuing. Call:
+@echo:
+@echo      FB_Build_Win32_Build_DBs.bat %DOS_DB_PATH%
+@echo:
+@echo    and then re-run this batch file.
+@echo:
+set DOS_DB_PATH=
+goto :EOF
 
 ::=====================================
 :CHECK_CURLIES
