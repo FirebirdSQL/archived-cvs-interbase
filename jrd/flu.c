@@ -34,7 +34,7 @@ $Id$
 #include "../jrd/gds_proto.h"
 #include "../jrd/dls_proto.h"
 #include <string.h>
-
+
 /* VMS Specific Stuff */
 
 #ifdef VMS
@@ -45,7 +45,7 @@ $Id$
 static int	condition_handler (int *, int *, int *);
 
 #endif
-
+
 /* HP-UX specific stuff */
 
 #if (defined HP700 || defined HP10)
@@ -61,7 +61,7 @@ static int	condition_handler (int *, int *, int *);
 #include <dl.h>
 #include <shl.h>
 #endif
-
+
 /* SGI, EPSON, UNIXWARE, M88K, DECOSF specific stuff */
 
 #if (defined SOLARIS || defined sgi || defined EPSON || defined M88K || defined UNIXWARE || defined NCR3000 || defined DECOSF || defined SCO_EV || defined linux || defined AIX_PPC)
@@ -72,11 +72,19 @@ static int	condition_handler (int *, int *, int *);
 #define IB_UDF_DIR              "UDF/"
 #endif
 
+#ifdef DARWIN
+#include <unistd.h>
+#define IB_UDF_DIR		"UDF/"
+#endif
+
 #if defined FREEBSD || defined NETBSD
 #include <dlfcn.h>
 #define DYNAMIC_SHARED_LIBRARIES
 #include <unistd.h>
 #define IB_UDF_DIR              "UDF/"
+#endif
+
+#if defined FREEBSD || defined NETBSD || defined DARWIN
 /*
  * Define our own dirname(), because we don't have a syscall for it.
  * !! WARNING !! WARNING !! WARNING !!
@@ -107,7 +115,7 @@ const char *dirname(const char *fname) {
     return result;
 }
 #endif
-
+
 /* DG specific stuff */
 
 #ifdef DGUX
@@ -120,14 +128,14 @@ const char *dirname(const char *fname) {
 #include <dlfcn.h>
 #endif
 #endif
-
+
 /* MS/DOS / OS2 Junk */
 
 #ifdef OS2_ONLY
 #define INCL_DOSMODULEMGR
 #include <os2.h>
 #endif
-
+
 /* Apollo specific Stuff */
 
 #ifdef APOLLO
@@ -136,7 +144,7 @@ std_$call FPTR_INT	kg_$lookup();
 #include <apollo/task.h>
 #include <apollo/loader.h>
 #endif
-
+
 /* Windows NT stuff */
 
 #ifdef WIN_NT
@@ -147,7 +155,7 @@ std_$call FPTR_INT	kg_$lookup();
 /* Where is the international character set module found? */
 #define IB_INTL_DIR		"intl\\"
 #endif
-
+
 /* Windows 3.1 stuff */
 
 #ifdef WINDOWS_ONLY
@@ -189,7 +197,7 @@ static MOD search_for_module ( TEXT *, TEXT * );
 static void adjust_loadlib_name ( TEXT *, TEXT * );
 #endif
 
-
+
 MOD FLU_lookup_module (
     TEXT	*module)
 {
@@ -222,7 +230,7 @@ for (mod = FLU_modules; mod; mod = mod->mod_next)
 
 return NULL_PTR;
 }
-
+
 void FLU_unregister_module (
     MOD		module)
 {
@@ -238,6 +246,10 @@ void FLU_unregister_module (
  *
  **************************************/
 MOD	*mod;
+#ifdef DARWIN
+NSSymbol symbol;
+void (*fini)(void);
+#endif
 
 /* Module is in-use by other databases.*/
 
@@ -264,9 +276,20 @@ dlclose (module->mod_handle);
 FreeLibrary (module->mod_handle);
 #endif
 
+#ifdef DARWIN
+/* Make sure the fini function gets called, if there is one */
+symbol = NSLookupSymbolInModule(module->mod_handle, "__fini");
+if (symbol != NULL)
+{
+    fini = NSAddressOfSymbol(symbol);
+    fini();
+}
+NSUnLinkModule (module->mod_handle, 0);
+#endif
+
 gds__free (module);
 }
-
+
 #ifdef APOLLO
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -305,7 +328,7 @@ loader_$kg_lookup (name, len, global_type, lookup_opts, &function);
 return (FPTR_INT) function;
 }
 #endif
-
+
 #ifdef OS2_ONLY
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -348,7 +371,7 @@ if (DosQueryProcAddr (module_handle, 0, name, &function))
 return (FPTR_INT) function;
 }
 #endif
-
+
 #ifdef VMS
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -400,7 +423,7 @@ if (!(lib$find_image_symbol (&mod_desc, &nam_desc, &function, NULL) & 1))
 return function;
 }
 #endif
-
+
 /*
   The commented #if which immediately follows has been replaced.
   The OLD_AIX and OLD_AIX_PPC #if has been added to disable the
@@ -452,7 +475,7 @@ function = load (absolute_module, 0, NULL);
 return function;
 }
 #endif
-
+
 #if (defined HP700 || defined HP10)
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -532,7 +555,7 @@ if (shl_findsym (&mod->mod_handle, name, TYPE_PROCEDURE, &function))
 
 return function;
 }
-
+
 static MOD search_for_module ( TEXT *module,
 			       TEXT *name )
 {
@@ -668,7 +691,7 @@ else
 return mod;
 }
 #endif
-
+
 #ifdef HM300
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -721,7 +744,7 @@ if (!(handle = shl_load (absolute_module, BIND_DEFERRED, 0L)) ||
 return function;
 }
 #endif
-
+
 #ifdef DYNAMIC_SHARED_LIBRARIES
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -802,7 +825,7 @@ if (!(mod = FLU_lookup_module (module)))
 return dlsym (mod->mod_handle, name);
 #endif /* NON_DL_COMPATIBLE */
 }
-
+
 static MOD search_for_module ( TEXT *module,
 			       TEXT *name )
 {
@@ -935,7 +958,7 @@ else
 return mod;
 }
 #endif
-
+
 #ifdef DGUX
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -994,7 +1017,7 @@ return dlsym (handle, name);
 #endif
 }
 #endif
-
+
 #ifdef WIN_NT
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -1086,7 +1109,7 @@ TEXT		ib_lib_path[MAXPATHLEN];
 
  return function;
 }
-
+
 static MOD search_for_module ( TEXT *module,
 			       TEXT *name )
 {
@@ -1229,7 +1252,7 @@ BOOLEAN         found_module;
      } /* else module name includes a directory path, so ... */
  return mod;
 }
-
+
 static void adjust_loadlib_name ( TEXT *access_path,
 				  TEXT *load_path )
 {
@@ -1274,7 +1297,7 @@ static void adjust_loadlib_name ( TEXT *access_path,
       }
 }
 #endif
-
+
 #ifdef WINDOWS_ONLY
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -1394,7 +1417,7 @@ if (!(function = (FPTR_INT) GetProcAddress (handle, buffer)))
 return function;
 }
 #endif
-
+
 #ifdef mpexl
 #define LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
@@ -1454,7 +1477,313 @@ HPGETPROCPLABEL (procname, (int*) &function, &status, module, FALSE);
 return function;
 }
 #endif
-
+
+#ifdef DARWIN
+#define LOOKUP
+FPTR_INT ISC_lookup_entrypoint (
+    TEXT        *module,
+    TEXT        *name,
+    TEXT        *ib_path_env_var)
+{
+/**************************************
+ *
+ *      I S C _ l o o k u p _ e n t r y p o i n t  ( D A R W I N )
+ *
+ **************************************
+ *
+ * Functional description
+ *      Lookup entrypoint of function.
+ *
+ **************************************/
+FPTR_INT        function;
+int		lastSpace, i, len;
+MOD             mod;
+TEXT            absolute_module[MAXPATHLEN];
+NSSymbol	symbol;
+
+if (function = FUNCTIONS_entrypoint (module, name))
+    return function;
+
+/* Remove TRAILING spaces from path names; spaces within the path are valid */
+for (i = strlen(module) - 1, lastSpace = 0; i >= 0; i--)
+    if (module[i] == ' ')
+        lastSpace = i;
+    else 
+        break;
+if (module[lastSpace] == ' ')
+    module[lastSpace] = 0;
+
+for (i = strlen(name) - 1, lastSpace = 0; i >= 0; i--)   
+    if (name[i] == ' ')    
+        lastSpace = i;
+    else
+        break;
+if (name[lastSpace] == ' ')
+    name[lastSpace] = 0; 
+
+if (!*module || !*name)
+    return NULL;
+
+/*printf("names truncated: %s, function %s.\n", module, name);*/
+/* Check if external function module has already been loaded */
+if (!(mod = FLU_lookup_module (module)))
+    {
+    USHORT length ;
+
+#ifdef EXT_LIB_PATH
+    if (ib_path_env_var == NULL)
+        strcpy (absolute_module, module);
+    else if (!gds__validate_lib_path (module, ib_path_env_var, absolute_module,
+sizeof(absolute_module)))
+        return NULL;
+#else
+    strcpy (absolute_module, module);
+#endif /* EXT_LIB_PATH */
+
+    length = strlen (absolute_module);
+
+    /* call search_for_module with the supplied name,
+       and if unsuccessful, then with <name>.so . */
+    mod = search_for_module (absolute_module, name);
+    if (!mod)
+        {
+        strcat (absolute_module, ".so");
+        mod = search_for_module (absolute_module, name);
+        }
+    if (!mod)
+    {
+        /*printf("Couldn't find module: %s\n", absolute_module);*/
+        return NULL;
+    }
+
+    assert (mod->mod_handle);   /* assert that we found the module */
+    mod->mod_use_count = 0;
+    mod->mod_length = length;
+    strcpy (mod->mod_name, module);
+    mod->mod_next = FLU_modules;
+    FLU_modules = mod;
+    }
+
+/* Look for the symbol and return a pointer to the function if found */
+mod->mod_use_count++;
+symbol = NSLookupSymbolInModule(mod->mod_handle, name);
+if (symbol == NULL)
+{
+    /*printf("Failed to find function: %s in module %s, trying _%s\n", name, module, name);*/
+    strcpy(absolute_module, "_");
+    strncat(absolute_module, name, sizeof(absolute_module) - 2);
+    symbol = NSLookupSymbolInModule(mod->mod_handle, absolute_module);
+    if (symbol == NULL)
+    {
+        /*printf("Failed to find symbol %s.  Giving up.\n", absolute_module);*/
+        return NULL;
+    }
+}
+return NSAddressOfSymbol(symbol);
+
+}
+
+static MOD search_for_module ( TEXT *module,
+                               TEXT *name )
+{
+/**************************************
+ *
+ *      s e a r c h _ f o r _ m o d u l e       ( D A R W I N )
+ *
+ **************************************
+ *
+ * Functional description
+ *      Look for a module (as named in a 'DECLARE EXTERNAL FUNCTION'
+ *      statement.
+ *
+ **************************************/
+MOD             mod;
+char           *dirp;
+TEXT            ib_lib_path[MAXPATHLEN];
+TEXT            absolute_module[MAXPATHLEN];  /* for _access()  ???   */
+FDLS            *dir_list;
+BOOLEAN         found_module;
+
+strcpy (absolute_module, module);
+
+if (!(mod = (MOD) gds__alloc (sizeof (struct mod) +
+                              strlen (absolute_module))))
+    return NULL;
+dirp = dirname (absolute_module);
+if (('.' == dirp[0]) && ('\0' == dirp[1]))
+    {
+    /*  We have a simple module name without a directory. */
+
+    gds__prefix (ib_lib_path, IB_UDF_DIR);
+    strncat (ib_lib_path, module,
+             MAXPATHLEN - strlen (ib_lib_path) - 1);
+    if (!access (ib_lib_path, R_OK))
+        {
+        /* Module is in the standard UDF directory: load it. */
+        if (!(mod->mod_handle = ISC_link_with_module (ib_lib_path)))
+            {
+            gds__free (mod);
+            return NULL;
+            }
+        }
+    else
+        {
+        gds__prefix (ib_lib_path, IB_INTL_DIR);
+        strncat (ib_lib_path, module,
+                 MAXPATHLEN - strlen (ib_lib_path) - 1);
+        /*printf("intl file: %s\n", ib_lib_path);*/
+        if (!access (ib_lib_path, R_OK))
+            {
+            /* Module is in the default directory: load it. */
+            if (!(mod->mod_handle = ISC_link_with_module (ib_lib_path)))
+                {
+                gds__free (mod);
+                return NULL;
+                }
+            }
+        else
+            {
+            /*  The module is not in the default directory, so ...
+             *  use the EXTERNAL_FUNCTION_DIRECTORY lines from isc_config.
+             */
+            dir_list = DLS_get_func_dirs();
+            found_module = FALSE;
+            while (dir_list && !found_module)
+                {
+                strcpy (ib_lib_path, dir_list->fdls_directory);
+                strcat (ib_lib_path, "/");
+                strncat (ib_lib_path, module,
+                         MAXPATHLEN - strlen (ib_lib_path) - 1);
+                if (!access (ib_lib_path, R_OK))
+                    {
+                    if (!(mod->mod_handle = ISC_link_with_module (ib_lib_path)))
+                        {
+                        gds__free (mod);
+                        return NULL;
+                        }
+                    found_module = TRUE;
+                    }
+                dir_list = dir_list->fdls_next;
+                }
+            if (!found_module)
+                {
+                gds__free (mod);
+                return NULL;
+                }
+            } /* else module is not in the INTL directory */
+        } /* else module is not in the default directory, so ... */
+    } /* if *dirp is "." */
+else
+    {
+    /*  The module name includes a directory path.
+     *  The directory must be the standard UDF directory, or the
+     *  standard international directory, or listed in
+     *  an EXTERNAL_FUNCTION_DIRECTORY line in isc_config,
+     *  and the module must be accessible in that directory.
+     */
+    gds__prefix (ib_lib_path, IB_UDF_DIR); 
+    ib_lib_path [strlen(ib_lib_path) - 1] = '\0'; /* drop trailing "/" */
+    found_module = ! strcmp (ib_lib_path, dirp);
+    if (!found_module) 
+        {       
+        gds__prefix (ib_lib_path, IB_INTL_DIR);
+        ib_lib_path [strlen(ib_lib_path) - 1] = '\0'; /* drop trailing / */
+        found_module = ! strcmp (ib_lib_path, dirp);
+        }   
+    if (!found_module)
+        {    
+        /* It's not the default directory, so try the ones listed
+         * in EXTERNAL_FUNCTION_DIRECTORY lines in isc_config.
+         */ 
+        dir_list = DLS_get_func_dirs();
+        while (dir_list && !found_module)
+            {   
+            if (! strcmp (dir_list->fdls_directory, dirp))
+              found_module = TRUE;
+            dir_list = dir_list->fdls_next;
+            }       
+        }
+    if (found_module)
+        found_module = (!access (module, R_OK)) &&
+          (0 !=  (mod->mod_handle = ISC_link_with_module (module)));
+    if (!found_module)
+        {
+        gds__free (mod);
+        return NULL;
+        }
+    } /* else module name includes a directory path, so ... */
+return mod;
+}
+
+NSModule ISC_link_with_module (
+    TEXT	*fileName)
+{
+/**************************************
+ *
+ *	I S C _ l i n k _ w i t h _ m o d u l e  ( D A R W I N )
+ *
+ **************************************
+ *
+ * Functional description
+ *	Given the file system path to a module, load it and link it into
+ *         our address space.  Assumes all security checks have been
+ *         performed.
+ *
+ **************************************/
+ NSObjectFileImage image;
+ NSObjectFileImageReturnCode retVal;
+ NSModule mod_handle;
+ NSSymbol initSym;
+ void (*init)(void);
+
+ /* Create an object file image from the given path */
+ retVal = NSCreateObjectFileImageFromFile(fileName, &image);
+ if(retVal != NSObjectFileImageSuccess)
+ {
+     switch(retVal)
+     {
+         case NSObjectFileImageFailure:
+                /*printf("object file setup failure");*/
+                return NULL;
+            case NSObjectFileImageInappropriateFile:
+                /*printf("not a Mach-O MH_BUNDLE file type");*/
+                return NULL;
+            case NSObjectFileImageArch:
+                /*printf("no object for this architecture");*/
+                return NULL;
+            case NSObjectFileImageFormat:
+                /*printf("bad object file format");*/
+                return NULL;
+            case NSObjectFileImageAccess:
+                /*printf("can't read object file");*/
+                return NULL;
+            default:
+                /*printf("unknown error from NSCreateObjectFileImageFromFile()");*/
+                return NULL;
+      }
+ }
+
+ /* link the image */
+ mod_handle = NSLinkModule(image, fileName, NSLINKMODULE_OPTION_PRIVATE);
+ NSDestroyObjectFileImage(image) ;
+ if(mod_handle == NULL)
+ {
+     /*printf("NSLinkModule() failed for dlopen()");*/
+     return NULL;
+ }
+
+ initSym = NSLookupSymbolInModule(mod_handle, "__init");
+ if (initSym != NULL)
+ {
+     init = NSAddressOfSymbol(initSym);
+     init();
+ }
+
+ return mod_handle;
+}
+
+#endif
+
 #ifndef LOOKUP
 FPTR_INT ISC_lookup_entrypoint (
     TEXT	*module,
@@ -1479,7 +1808,7 @@ if (function = FUNCTIONS_entrypoint (module, name))
 return NULL;
 }
 #endif
-
+
 #ifdef WINDOWS_ONLY
 void    FLU_wep( void)
 {
@@ -1499,7 +1828,7 @@ TRACE ("flu.c FLU_wep:  calling cleanup_cache()\n");
 cleanup_cache( NULL);
 TRACE ("Returning from flu.c FLU_wep...\n");
 }
-
+
 static void cleanup (
     void	*handle)
 {
@@ -1518,7 +1847,7 @@ static void cleanup (
 FreeLibrary ((HINSTANCE) handle);
 
 }
-
+
 static void cleanup_cache (
     void        *handle)
 {
@@ -1551,7 +1880,7 @@ load_cache[0].handle = 0;
 TRACE ("Returning from flu.c cleanup_cache...\r\n");
 }
 #endif
-
+
 #ifdef VMS
 static int condition_handler (
     int		*sig,
