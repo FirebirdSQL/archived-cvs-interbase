@@ -296,19 +296,17 @@ then
         mkdir UDF
         mkdir -p examples/v5
         mkdir include
-# this is now done by buildRefDatabases
 # create metadata.gdb (run one level above root) 
-#        if [ ! -f ../metadata.gdb ]; then
-#                $INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
-#        fi
+        if [ ! -f ../metadata.gdb ]; then
+                $INTERBASE/bin/isql -i ../builds_win32/original/metadata.sql
+        fi
 #
         cd ..
 #
 # for purely legal reasons
-# this is now done by buildRefDatabases
-#        rmIfExists isc.gdb
-#        cp $INTERBASE/isc4.gdb isc.gdb
-#        rmIfExists jrd/isc.gdb
+        rmIfExists isc.gdb
+        cp $INTERBASE/isc4.gdb isc.gdb
+        rmIfExists jrd/isc.gdb
 # replace old "yachts"
         cd jrd
         rmIfExists yachts.gdb
