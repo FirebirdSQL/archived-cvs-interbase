@@ -1,3 +1,137 @@
+2001-01-14 16:36  gspeicher
+
+	* interbase/firebird/gspeicher/: README, firebird/Makefile,
+	firebird/distinfo, firebird/pkg-comment, firebird/pkg-descr,
+	firebird/pkg-install, firebird/pkg-message, firebird/pkg-plist,
+	firebird/files/RELNOTES, firebird/files/patch-aa,
+	firebird/files/patch-ab, firebird/files/patch-ac,
+	firebird/scripts/addservice, firebird/scripts/createuser,
+	firebird/scripts/post-install, firebird/scripts/pre-build,
+	firebird/scripts/pre-install, firebird/scripts/rmservice:
+	
+	- Here's my own little directory to hold any work that I do that
+	other	people might want to see and/or should be under revision
+	control with   the rest of Firebird in case I get hit by a bus. 
+	For now, it just   holds the files from the FreeBSD 'port' (as in,
+	the stuff that was   submitted to the FreeBSD ports tree).
+
+2001-01-12 19:18  gspeicher
+
+	* interbase/builds/original/prefix.freebsd:
+	
+	- The original version of this file assumed Interbase was installed
+	  and running already.	This one doesn't, so that it works with the
+	  boot build.
+
+2001-01-08 17:07  patrickgriffin
+
+	* interbase/isql/: extra_proto.h, extract.e, isql.e, isql_proto.h,
+	show.e:
+	
+	[ Bug #127473 ] ISQL Always ignores charset NONE in metadata
+	extraction.
+	
+	This patch will change ISQL Extract and Show commands to display
+	the character set definition for all fields:
+	
+	1)  Not using the database default character set 2)  With an
+	explicit definition for collation.
+	
+	This patch also changes the ISQL COPY command (only available in
+	development builds) to list every character set definition.
+	
+	...pat
+
+2001-01-07 19:18  nmcc
+
+	* interbase/jrd/evl.c:
+	
+	Firebird Bug 127375 Grouping on derived fields processing NULL data
+	kills IB
+	
+	Test the null flag before trying to expand a value (via pointer)
+	which does not exist when it is a NULL.
+
+2001-01-07 18:24  nmcc
+
+	* interbase/builds/original/sfx.interbase:
+	
+	Add explicit path to run check_messages script. Removes need to add
+	. to path.
+
+2001-01-07 18:17  nmcc
+
+	* interbase/builds/original/install.unix:
+	
+	Fix problem of Solaris inetd.conf sym link broken on superserver
+	install.
+
+2001-01-06 16:36  patrickgriffin
+
+	* interbase/gpre/cob.c:
+	
+	COBOL programs randomly return a -901 request synchronization
+	error.
+	
+	Alternate title: COBOL programs lose SQLCODE values during UPDATE.
+	
+	During 'UPDATE SET ... WHERE x=.. ' ('Mass Update') error codes
+	returned by the update are not returned to the program, instead the
+	program will see a -901 request synchronization error.
+	
+	It appears that the other language modules do not have this same
+	problem.
+	
+	...pat
+
+2001-01-05 20:13  nmcc
+
+	* interbase/jrd/svc_undoc.h:
+	
+	Fix broken comment syntax.
+
+2001-01-05 05:34  skywalker
+
+	* interbase/misc/msg.gbak:
+	
+	Somehow I committed a broken version of this file in the last
+	commit for T0.9-4 Test1 release. it wasn't obvious since I was
+	using a set of reference databases that were already built.  I've
+	replaced it with the original 1.1 version.
+
+2001-01-01 16:24  skywalker
+
+	* interbase/jrd/qatest.c:
+	
+	Changed the password
+
+2000-12-30 06:10  rfm
+
+	* interbase/builds_win32/original/: build_no.ksh, make.jrd:
+	
+	get the \0 in the version resource instead of \\0 remove qatest.c
+	from make.jrd (for fsg's changes)
+
+2000-12-29 21:06  skywalker
+
+	* interbase/: builds_win32/original/build_no.ksh,
+	firebird/skywalker/install/Makefile,
+	firebird/skywalker/install/classic/CSrpmheader.txt,
+	firebird/skywalker/install/super/SSrpmheader.txt, jrd/build_no.h,
+	jrd/inf.c, jrd/license.h, misc/msg.gbak:
+	
+	Changes to scripts to build version "T0.9-4 Firebird Test1" This
+	also includes changes to build_no.ksh to use internally the 0.9
+	number instead of the 6.0 number.  The macro IBSERVER_BASE_LEVEL
+	was also defined as 6.0 and used in jrd/inf.c to maintain feature
+	compatibility.
+
+2000-12-29 14:05  skywalker
+
+	* interbase/jrd/: builtin.c, gds.c:
+	
+	Changing names
+
 2000-12-27 22:58  rfm
 
 	* interbase/build_docs/: ibbuild-unix-overview.txt,
@@ -72,7 +206,7 @@
 
 	* interbase/: builds/original/bind_gds_s.im,
 	builds/original/bind_gds_s.sco, builds/original/sfx.jrd,
-	jrd/builtin.c, jrd/flu_proto.h, jrd/opt.c:
+	jrd/flu_proto.h, jrd/opt.c:
 	
 	Removed ugly security hole from jrd/builtins.c related to this I
 	removed qatest from bind_gds_s.sco, bind_gds_s.im and jrd.sfx
@@ -637,12 +771,12 @@
 
 	* interbase/: setup_dirs, builds/original/prefix.netbsd,
 	builds/original/sfx.interbase, gpre/cob.c, gpre/ftn.c,
-	jrd/common.h, jrd/file_params.h, jrd/flu.c, jrd/gds.c,
-	jrd/isc_file.c, jrd/isc_ipc.c, jrd/isc_sync.c, jrd/license.h,
-	jrd/pag.c, jrd/pwd.c, jrd/sort.c, jrd/svc.c, jrd/utl.c, jrd/why.c,
-	lock/fparamv3.h, lock/lock.c, lock/lockv3.h, pyxis/cdm.c,
-	remote/inet_server.c, remote/protocol.h, remote/remote_def.h,
-	utilities/dba.e, utilities/drop.c:
+	jrd/common.h, jrd/file_params.h, jrd/flu.c, jrd/isc_file.c,
+	jrd/isc_ipc.c, jrd/isc_sync.c, jrd/license.h, jrd/pag.c, jrd/pwd.c,
+	jrd/sort.c, jrd/svc.c, jrd/utl.c, jrd/why.c, lock/fparamv3.h,
+	lock/lock.c, lock/lockv3.h, pyxis/cdm.c, remote/inet_server.c,
+	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
+	utilities/drop.c:
 	
 	NetBSD support. Thanks to Geoffrey C. Speicher for the FreeBSD
 	port, which made this much easier.
@@ -724,15 +858,6 @@
 	* interbase/jrd/flu.c:
 	
 	AIX_PPC
-
-2000-09-23 06:39  rfm
-
-	* interbase/jrd/gds.c:
-	
-	define V4_THREADING for all superserver platfroms, as recommended
-	by Charlie Caro. See my message '[Firebird-devel] Re: IB Super
-	Server on Linux Crash (borland bug #114840)' on firebird-devel for
-	some thoughts on V4_THREADING in general.
 
 2000-09-23 05:54  rfm
 
@@ -1117,7 +1242,7 @@
 	* interbase/: setup_dirs, builds/original/buildRefDatabases,
 	builds/original/prefix.freebsd, builds/original/sfx.interbase,
 	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h, jrd/flu.c,
-	jrd/gds.c, jrd/ids.h, jrd/isc.gdb, jrd/isc_file.c, jrd/isc_sync.c,
+	jrd/ids.h, jrd/isc.gdb, jrd/isc_file.c, jrd/isc_sync.c,
 	jrd/license.h, jrd/pag.c, jrd/pwd.c, jrd/sort.c, jrd/svc.c,
 	jrd/utl.c, jrd/why.c, lock/fparamv3.h, lock/lock.c, lock/lockv3.h,
 	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
@@ -1316,13 +1441,6 @@
 	builds/original/sfx.interbase:
 	
 	Tom Colemans changes script changes for easy linux install.
-
-2000-08-05 18:26  tamlin
-
-	* interbase/jrd/gds.c:
-	
-	Win32 path search *real* "Program Files" before falling back to
-	hardcoded.
 
 2000-08-05 18:13  tamlin
 
@@ -1592,28 +1710,27 @@
 	jrd/bkm_proto.h, jrd/blb.c, jrd/blb.h, jrd/blb_proto.h, jrd/blf.e,
 	jrd/blf.h, jrd/blf_proto.h, jrd/blk.h, jrd/blp.h, jrd/blr.h,
 	jrd/blrtable.c, jrd/blrtable.h, jrd/btr.c, jrd/btr.h,
-	jrd/btr_proto.h, jrd/build_no.h, jrd/builtin.c, jrd/cch.c,
-	jrd/cch.h, jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c,
-	jrd/cmp_proto.h, jrd/codes.e, jrd/codes.h, jrd/codetext.h,
-	jrd/common.h, jrd/constants.h, jrd/cvt.c, jrd/cvt2.c,
-	jrd/cvt2_proto.h, jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h,
-	jrd/dbg_proto.h, jrd/dbt.c, jrd/depends.mak, jrd/dfloat_stub.c,
-	jrd/dflt.gdl, jrd/dflt.h, jrd/dfw.e, jrd/dfw_proto.h,
-	jrd/divor_proto.h, jrd/divorce.c, jrd/dllshell.c, jrd/dls.c,
-	jrd/dls_proto.h, jrd/dmp.c, jrd/dmp_proto.h, jrd/doserr.h,
-	jrd/dpm.e, jrd/dpm_proto.h, jrd/drq.h, jrd/dsc.c, jrd/dsc.h,
-	jrd/dsc_proto.h, jrd/dyn.e, jrd/dyn.h, jrd/dyn_def.e,
-	jrd/dyn_def.sed, jrd/dyn_del.e, jrd/dyn_df_proto.h,
-	jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h, jrd/dyn_mod.e,
-	jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e, jrd/enc.c,
-	jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
+	jrd/btr_proto.h, jrd/build_no.h, jrd/cch.c, jrd/cch.h,
+	jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c, jrd/cmp_proto.h,
+	jrd/codes.e, jrd/codes.h, jrd/codetext.h, jrd/common.h,
+	jrd/constants.h, jrd/cvt.c, jrd/cvt2.c, jrd/cvt2_proto.h,
+	jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h, jrd/dbg_proto.h, jrd/dbt.c,
+	jrd/depends.mak, jrd/dfloat_stub.c, jrd/dflt.gdl, jrd/dflt.h,
+	jrd/dfw.e, jrd/dfw_proto.h, jrd/divor_proto.h, jrd/divorce.c,
+	jrd/dllshell.c, jrd/dls.c, jrd/dls_proto.h, jrd/dmp.c,
+	jrd/dmp_proto.h, jrd/doserr.h, jrd/dpm.e, jrd/dpm_proto.h,
+	jrd/drq.h, jrd/dsc.c, jrd/dsc.h, jrd/dsc_proto.h, jrd/dyn.e,
+	jrd/dyn.h, jrd/dyn_def.e, jrd/dyn_def.sed, jrd/dyn_del.e,
+	jrd/dyn_df_proto.h, jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h,
+	jrd/dyn_mod.e, jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e,
+	jrd/enc.c, jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
 	jrd/err_proto.h, jrd/event.c, jrd/event.h, jrd/event_proto.h,
 	jrd/everything.h, jrd/evl.c, jrd/evl_like.c, jrd/evl_proto.h,
 	jrd/exe.c, jrd/exe.h, jrd/exe_proto.h, jrd/ext.c, jrd/ext.h,
 	jrd/ext_proto.h, jrd/extvms.c, jrd/fields.h, jrd/fil.h,
 	jrd/file_params.h, jrd/filte_proto.h, jrd/filters.c, jrd/flags.h,
 	jrd/flu.c, jrd/flu.h, jrd/flu_proto.h, jrd/fun.e, jrd/fun_proto.h,
-	jrd/functions.c, jrd/gds.bas, jrd/gds.c, jrd/gds.def, jrd/gds.hxx,
+	jrd/functions.c, jrd/gds.bas, jrd/gds.def, jrd/gds.hxx,
 	jrd/gds.pas, jrd/gds.pli, jrd/gds.vpas, jrd/gds5entry.mar,
 	jrd/gds_aix.f, jrd/gds_apollo.f, jrd/gds_h3.f, jrd/gds_hp.f,
 	jrd/gds_proto.h, jrd/gds_sun.f, jrd/gds_vms.f, jrd/gdsassert.h,
@@ -1651,36 +1768,35 @@
 	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
 	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
 	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
-	jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
-	jrd/quad_proto.h, jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h,
-	jrd/rdbcodes.h, jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c,
-	jrd/rdbint.c, jrd/rec.c, jrd/rec_proto.h, jrd/relations.h,
-	jrd/req.h, jrd/rlck.c, jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h,
-	jrd/rng_proto.h, jrd/rse.c, jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c,
-	jrd/sbm.h, jrd/sbm_proto.h, jrd/sch.c, jrd/sch_proto.h, jrd/scl.e,
-	jrd/scl.h, jrd/scl_proto.h, jrd/scroll_cursors.h, jrd/sdl.c,
-	jrd/sdl.h, jrd/sdl_proto.h, jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h,
-	jrd/seg.c, jrd/seg_proto.h, jrd/shdef.h, jrd/shrfinit.c,
-	jrd/shrinit.c, jrd/shut.c, jrd/shut_proto.h, jrd/sort.c,
-	jrd/sort.h, jrd/sort_proto.h, jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h,
-	jrd/sqz_proto.h, jrd/stats.e, jrd/stored_proc.gdl, jrd/stubs.c,
-	jrd/sun_ftn.c, jrd/svc.c, jrd/svc.h, jrd/svc_proto.h,
-	jrd/svc_undoc.h, jrd/syidef.h, jrd/sym.c, jrd/sym_proto.h,
-	jrd/termtype.h, jrd/thd.c, jrd/thd.h, jrd/thd_proto.h,
-	jrd/thin.asm, jrd/thread.mar, jrd/time.h, jrd/tpc.c, jrd/tpc.h,
-	jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h, jrd/tra_proto.h, jrd/trig.h,
-	jrd/types.h, jrd/unix.c, jrd/utl.c, jrd/utl_proto.h, jrd/utls.def,
-	jrd/utlswep.c, jrd/v2_triggers.gdl, jrd/val.c, jrd/val.h,
-	jrd/val_proto.h, jrd/version.rc, jrd/version_95.rc, jrd/vio.c,
-	jrd/vio_debug.h, jrd/vio_proto.h, jrd/vms.c, jrd/vms.h,
-	jrd/vms_command.c, jrd/vmsevent.c, jrd/vmslo_proto.h,
-	jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c, jrd/why_proto.h,
-	jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c, jrd/yachts.gdb,
-	lock/config_params, lock/depends.mak, lock/driver.c,
-	lock/fparamv3.h, lock/lock.c, lock/lock.h, lock/lock_header_mmap,
-	lock/lock_header_shmem, lock/lock_proto.h, lock/lockv3.h,
-	lock/lockv3s4.h, lock/manager.c, lock/pls.c, lock/plserver.c,
-	lock/plserver.h, lock/print.c, lock/printv3.c:
+	jrd/pwd_proto.h, jrd/quad.c, jrd/quad.h, jrd/quad_proto.h,
+	jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h, jrd/rdbcodes.h,
+	jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c, jrd/rdbint.c,
+	jrd/rec.c, jrd/rec_proto.h, jrd/relations.h, jrd/req.h, jrd/rlck.c,
+	jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h, jrd/rng_proto.h, jrd/rse.c,
+	jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c, jrd/sbm.h, jrd/sbm_proto.h,
+	jrd/sch.c, jrd/sch_proto.h, jrd/scl.e, jrd/scl.h, jrd/scl_proto.h,
+	jrd/scroll_cursors.h, jrd/sdl.c, jrd/sdl.h, jrd/sdl_proto.h,
+	jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h, jrd/seg.c, jrd/seg_proto.h,
+	jrd/shdef.h, jrd/shrfinit.c, jrd/shrinit.c, jrd/shut.c,
+	jrd/shut_proto.h, jrd/sort.c, jrd/sort.h, jrd/sort_proto.h,
+	jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h, jrd/sqz_proto.h, jrd/stats.e,
+	jrd/stored_proc.gdl, jrd/stubs.c, jrd/sun_ftn.c, jrd/svc.c,
+	jrd/svc.h, jrd/svc_proto.h, jrd/svc_undoc.h, jrd/syidef.h,
+	jrd/sym.c, jrd/sym_proto.h, jrd/termtype.h, jrd/thd.c, jrd/thd.h,
+	jrd/thd_proto.h, jrd/thin.asm, jrd/thread.mar, jrd/time.h,
+	jrd/tpc.c, jrd/tpc.h, jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h,
+	jrd/tra_proto.h, jrd/trig.h, jrd/types.h, jrd/unix.c, jrd/utl.c,
+	jrd/utl_proto.h, jrd/utls.def, jrd/utlswep.c, jrd/v2_triggers.gdl,
+	jrd/val.c, jrd/val.h, jrd/val_proto.h, jrd/version.rc,
+	jrd/version_95.rc, jrd/vio.c, jrd/vio_debug.h, jrd/vio_proto.h,
+	jrd/vms.c, jrd/vms.h, jrd/vms_command.c, jrd/vmsevent.c,
+	jrd/vmslo_proto.h, jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c,
+	jrd/why_proto.h, jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c,
+	jrd/yachts.gdb, lock/config_params, lock/depends.mak,
+	lock/driver.c, lock/fparamv3.h, lock/lock.c, lock/lock.h,
+	lock/lock_header_mmap, lock/lock_header_shmem, lock/lock_proto.h,
+	lock/lockv3.h, lock/lockv3s4.h, lock/manager.c, lock/pls.c,
+	lock/plserver.c, lock/plserver.h, lock/print.c, lock/printv3.c:
 	
 	Initial revision
 
@@ -1721,28 +1837,27 @@
 	jrd/bkm_proto.h, jrd/blb.c, jrd/blb.h, jrd/blb_proto.h, jrd/blf.e,
 	jrd/blf.h, jrd/blf_proto.h, jrd/blk.h, jrd/blp.h, jrd/blr.h,
 	jrd/blrtable.c, jrd/blrtable.h, jrd/btr.c, jrd/btr.h,
-	jrd/btr_proto.h, jrd/build_no.h, jrd/builtin.c, jrd/cch.c,
-	jrd/cch.h, jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c,
-	jrd/cmp_proto.h, jrd/codes.e, jrd/codes.h, jrd/codetext.h,
-	jrd/common.h, jrd/constants.h, jrd/cvt.c, jrd/cvt2.c,
-	jrd/cvt2_proto.h, jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h,
-	jrd/dbg_proto.h, jrd/dbt.c, jrd/depends.mak, jrd/dfloat_stub.c,
-	jrd/dflt.gdl, jrd/dflt.h, jrd/dfw.e, jrd/dfw_proto.h,
-	jrd/divor_proto.h, jrd/divorce.c, jrd/dllshell.c, jrd/dls.c,
-	jrd/dls_proto.h, jrd/dmp.c, jrd/dmp_proto.h, jrd/doserr.h,
-	jrd/dpm.e, jrd/dpm_proto.h, jrd/drq.h, jrd/dsc.c, jrd/dsc.h,
-	jrd/dsc_proto.h, jrd/dyn.e, jrd/dyn.h, jrd/dyn_def.e,
-	jrd/dyn_def.sed, jrd/dyn_del.e, jrd/dyn_df_proto.h,
-	jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h, jrd/dyn_mod.e,
-	jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e, jrd/enc.c,
-	jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
+	jrd/btr_proto.h, jrd/build_no.h, jrd/cch.c, jrd/cch.h,
+	jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c, jrd/cmp_proto.h,
+	jrd/codes.e, jrd/codes.h, jrd/codetext.h, jrd/common.h,
+	jrd/constants.h, jrd/cvt.c, jrd/cvt2.c, jrd/cvt2_proto.h,
+	jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h, jrd/dbg_proto.h, jrd/dbt.c,
+	jrd/depends.mak, jrd/dfloat_stub.c, jrd/dflt.gdl, jrd/dflt.h,
+	jrd/dfw.e, jrd/dfw_proto.h, jrd/divor_proto.h, jrd/divorce.c,
+	jrd/dllshell.c, jrd/dls.c, jrd/dls_proto.h, jrd/dmp.c,
+	jrd/dmp_proto.h, jrd/doserr.h, jrd/dpm.e, jrd/dpm_proto.h,
+	jrd/drq.h, jrd/dsc.c, jrd/dsc.h, jrd/dsc_proto.h, jrd/dyn.e,
+	jrd/dyn.h, jrd/dyn_def.e, jrd/dyn_def.sed, jrd/dyn_del.e,
+	jrd/dyn_df_proto.h, jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h,
+	jrd/dyn_mod.e, jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e,
+	jrd/enc.c, jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
 	jrd/err_proto.h, jrd/event.c, jrd/event.h, jrd/event_proto.h,
 	jrd/everything.h, jrd/evl.c, jrd/evl_like.c, jrd/evl_proto.h,
 	jrd/exe.c, jrd/exe.h, jrd/exe_proto.h, jrd/ext.c, jrd/ext.h,
 	jrd/ext_proto.h, jrd/extvms.c, jrd/fields.h, jrd/fil.h,
 	jrd/file_params.h, jrd/filte_proto.h, jrd/filters.c, jrd/flags.h,
 	jrd/flu.c, jrd/flu.h, jrd/flu_proto.h, jrd/fun.e, jrd/fun_proto.h,
-	jrd/functions.c, jrd/gds.bas, jrd/gds.c, jrd/gds.def, jrd/gds.hxx,
+	jrd/functions.c, jrd/gds.bas, jrd/gds.def, jrd/gds.hxx,
 	jrd/gds.pas, jrd/gds.pli, jrd/gds.vpas, jrd/gds5entry.mar,
 	jrd/gds_aix.f, jrd/gds_apollo.f, jrd/gds_h3.f, jrd/gds_hp.f,
 	jrd/gds_proto.h, jrd/gds_sun.f, jrd/gds_vms.f, jrd/gdsassert.h,
@@ -1780,36 +1895,35 @@
 	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
 	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
 	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
-	jrd/pwd_proto.h, jrd/qatest.c, jrd/quad.c, jrd/quad.h,
-	jrd/quad_proto.h, jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h,
-	jrd/rdbcodes.h, jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c,
-	jrd/rdbint.c, jrd/rec.c, jrd/rec_proto.h, jrd/relations.h,
-	jrd/req.h, jrd/rlck.c, jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h,
-	jrd/rng_proto.h, jrd/rse.c, jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c,
-	jrd/sbm.h, jrd/sbm_proto.h, jrd/sch.c, jrd/sch_proto.h, jrd/scl.e,
-	jrd/scl.h, jrd/scl_proto.h, jrd/scroll_cursors.h, jrd/sdl.c,
-	jrd/sdl.h, jrd/sdl_proto.h, jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h,
-	jrd/seg.c, jrd/seg_proto.h, jrd/shdef.h, jrd/shrfinit.c,
-	jrd/shrinit.c, jrd/shut.c, jrd/shut_proto.h, jrd/sort.c,
-	jrd/sort.h, jrd/sort_proto.h, jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h,
-	jrd/sqz_proto.h, jrd/stats.e, jrd/stored_proc.gdl, jrd/stubs.c,
-	jrd/sun_ftn.c, jrd/svc.c, jrd/svc.h, jrd/svc_proto.h,
-	jrd/svc_undoc.h, jrd/syidef.h, jrd/sym.c, jrd/sym_proto.h,
-	jrd/termtype.h, jrd/thd.c, jrd/thd.h, jrd/thd_proto.h,
-	jrd/thin.asm, jrd/thread.mar, jrd/time.h, jrd/tpc.c, jrd/tpc.h,
-	jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h, jrd/tra_proto.h, jrd/trig.h,
-	jrd/types.h, jrd/unix.c, jrd/utl.c, jrd/utl_proto.h, jrd/utls.def,
-	jrd/utlswep.c, jrd/v2_triggers.gdl, jrd/val.c, jrd/val.h,
-	jrd/val_proto.h, jrd/version.rc, jrd/version_95.rc, jrd/vio.c,
-	jrd/vio_debug.h, jrd/vio_proto.h, jrd/vms.c, jrd/vms.h,
-	jrd/vms_command.c, jrd/vmsevent.c, jrd/vmslo_proto.h,
-	jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c, jrd/why_proto.h,
-	jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c, jrd/yachts.gdb,
-	lock/config_params, lock/depends.mak, lock/driver.c,
-	lock/fparamv3.h, lock/lock.c, lock/lock.h, lock/lock_header_mmap,
-	lock/lock_header_shmem, lock/lock_proto.h, lock/lockv3.h,
-	lock/lockv3s4.h, lock/manager.c, lock/pls.c, lock/plserver.c,
-	lock/plserver.h, lock/print.c, lock/printv3.c:
+	jrd/pwd_proto.h, jrd/quad.c, jrd/quad.h, jrd/quad_proto.h,
+	jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h, jrd/rdbcodes.h,
+	jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c, jrd/rdbint.c,
+	jrd/rec.c, jrd/rec_proto.h, jrd/relations.h, jrd/req.h, jrd/rlck.c,
+	jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h, jrd/rng_proto.h, jrd/rse.c,
+	jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c, jrd/sbm.h, jrd/sbm_proto.h,
+	jrd/sch.c, jrd/sch_proto.h, jrd/scl.e, jrd/scl.h, jrd/scl_proto.h,
+	jrd/scroll_cursors.h, jrd/sdl.c, jrd/sdl.h, jrd/sdl_proto.h,
+	jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h, jrd/seg.c, jrd/seg_proto.h,
+	jrd/shdef.h, jrd/shrfinit.c, jrd/shrinit.c, jrd/shut.c,
+	jrd/shut_proto.h, jrd/sort.c, jrd/sort.h, jrd/sort_proto.h,
+	jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h, jrd/sqz_proto.h, jrd/stats.e,
+	jrd/stored_proc.gdl, jrd/stubs.c, jrd/sun_ftn.c, jrd/svc.c,
+	jrd/svc.h, jrd/svc_proto.h, jrd/svc_undoc.h, jrd/syidef.h,
+	jrd/sym.c, jrd/sym_proto.h, jrd/termtype.h, jrd/thd.c, jrd/thd.h,
+	jrd/thd_proto.h, jrd/thin.asm, jrd/thread.mar, jrd/time.h,
+	jrd/tpc.c, jrd/tpc.h, jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h,
+	jrd/tra_proto.h, jrd/trig.h, jrd/types.h, jrd/unix.c, jrd/utl.c,
+	jrd/utl_proto.h, jrd/utls.def, jrd/utlswep.c, jrd/v2_triggers.gdl,
+	jrd/val.c, jrd/val.h, jrd/val_proto.h, jrd/version.rc,
+	jrd/version_95.rc, jrd/vio.c, jrd/vio_debug.h, jrd/vio_proto.h,
+	jrd/vms.c, jrd/vms.h, jrd/vms_command.c, jrd/vmsevent.c,
+	jrd/vmslo_proto.h, jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c,
+	jrd/why_proto.h, jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c,
+	jrd/yachts.gdb, lock/config_params, lock/depends.mak,
+	lock/driver.c, lock/fparamv3.h, lock/lock.c, lock/lock.h,
+	lock/lock_header_mmap, lock/lock_header_shmem, lock/lock_proto.h,
+	lock/lockv3.h, lock/lockv3s4.h, lock/manager.c, lock/pls.c,
+	lock/plserver.c, lock/plserver.h, lock/print.c, lock/printv3.c:
 	
 	Save the whale, feed the poor, and set the sources free.
 
