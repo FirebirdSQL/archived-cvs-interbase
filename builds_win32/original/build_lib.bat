@@ -166,7 +166,13 @@ make %FLAGS% -fmakefile.lib ib_util.dll
 if errorlevel 1 goto fail
 make %FLAGS% -fmakefile.lib ib_udf.dll 
 if errorlevel 1 goto fail
-cd ..
+
+::Add in command-line build of fbudf
+cd fbudf
+nmake %FLAGS% -ffbudf.mak
+if errorlevel 1 goto fail
+cd ..\..
+
 
 cd example5
 make %FLAGS% -DCLIENT -fmakefile.lib all
@@ -195,6 +201,7 @@ cd example5
 make %FLAGS% -fmakefile.lib install
 if errorlevel 1 goto fail
 cd ..
+
 
 goto success
 

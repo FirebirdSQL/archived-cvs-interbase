@@ -30,7 +30,8 @@ Before Installation
   Stopping the Server
 
   o If it is running as a service stop it via 'Control Panel | Services'.
-  o If it is an application just close it.
+  o If it is running as an application just close it by right-clicking on 
+    the taskbar icon and selecting 'Shutdown'.
 
 
   Removing an existing server
@@ -95,6 +96,14 @@ Uninstallation
   indicates that no other application is using it.
 
   The registry keys that were created will be removed.
+
+  The uninstallation routine will not stop a server running as an application. 
+  It will leave the server running but continue with the uninstall. The server 
+  (and probably the Guardian, too) will need to be stopped and deleted manually.
+
+  The uninstallation routine will stop and delete a server that has been installed
+  as a service.
+
 
 Other Notes
 -----------

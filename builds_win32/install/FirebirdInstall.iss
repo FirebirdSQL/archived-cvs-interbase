@@ -14,26 +14,42 @@
 ;
 ;  All Rights Reserved.
 ;
-;  Contributor(s):
+;   Contributor(s):
 ;     Tilo Muetze, Theo ? and Michael Rimov for improved detection
 ;     of an existing install directory.
 ;     Simon Carter for the WinSock2 detection.
 
-;   Usage Notes
+;   Usage Notes:
 ;
-;   This script must be compiled with My InnoSetup extensions
+;   This script must be compiled with My InnoSetup extensions 3.0.4-beta or later
 ;
-;   You must copy msvcrt.dll from your system32 directory
+;   You may need to copy msvcrt.dll from your system32 directory
 ;   to the script directory before trying to compile.
 
 ;   To Do:
-; o Detect if InterBase is installed and recommend its removal
-;   This is because our examples dir. structure may not match
-;   theirs. Currently, we are allowing a new install over an
-;   existing install.
 ;
-; o Better support for Win9x needed. We could set ibserver to
-;   run automatically, for instance.
+;   o Detect if InterBase is installed and recommend its removal
+;     This is because our examples dir. structure may not match
+;     theirs. Currently, we are allowing a new install over an
+;     existing install.
+;
+;
+;   Known bugs:
+;
+;   o Uninstallation is likely to remove the registration entries for the
+;     server even if the server is shared by another application. This is
+;     because the registration utility does not make any checks for a
+;     shared installation.
+;
+;     Until that is fixed the choices are:
+;     o Don't remove the registry key at all
+;     o Don't use instreg and manually specify the registry keys in the install script
+;
+;   o Inno Setup doesn't appear to provide a reliable way to detect and kill a
+;     running server application when it does an uninstall. This means that the
+;     server will remain running after the uninstall has completed. The uninstall
+;     does uninstall all other components.
+;
 ;
 
 
@@ -50,109 +66,124 @@ AppUpdatesURL=http://www.firebirdsql.org
 DefaultDirName={code:InstallDir|{pf}\Firebird}
 DefaultGroupName=Firebird
 AllowNoIcons=true
-AlwaysCreateUninstallIcon=true
+;AlwaysCreateUninstallIcon=true
 SourceDir=..\..\..\interbase
 LicenseFile=builds_win32\install\IPLicense.txt
 InfoBeforeFile=builds_win32\install\installation_readme.txt
 InfoAfterFile=builds_win32\install\readme.txt
 AlwaysShowComponentsList=true
-BackColor=clBlue
-BackColor2=clNavy
 WizardImageFile=builds_win32\install\firebird_install_logo1.bmp
-AdminPrivilegesRequired=true
+PrivilegesRequired=admin
 UninstallDisplayIcon={app}\bin\ibserver.exe
 OutputDir=builds_win32\install\install_image
 OutputBaseFilename=Firebird-1.0.0-Win32
 Compression=bzip
-;WizardDebug=true
 
 [Types]
-Name: Server; Description: Full installation of server and development tools.
-Name: Developer; Description: Installation of Client tools for Developers.
-Name: Client; Description: Minimum client install.
+Name: ServerInstall; Description: Full installation of server and development tools.
+Name: DeveloperInstall; Description: Installation of Client tools for Developers and database administrators.
+Name: ClientInstall; Description: Minimum client install - no server, no tools.
 
 [Components]
-Name: Server; Description: Server; Types: Server
-Name: DevTools; Description: Tools; Types: Server Developer
-Name: Client; Description: Client; Types: Server Developer Client; Flags: fixed disablenouninstallwarning
+Name: ServerComponent; Description: Server component; Types: ServerInstall
+Name: DevAdminComponent; Description: Tools component; Types: ServerInstall DeveloperInstall
+Name: ClientComponent; Description: Client component; Types: ServerInstall DeveloperInstall ClientInstall; Flags: fixed disablenouninstallwarning
 
 [Tasks]
-Name: group; Description: Create a Menu &Group; Components: Server DevTools Client
-Name: desktopicon; Description: Create a &desktop icon; Components: Server DevTools Client; MinVersion: 4.0,0
-;Name: SetupRegistry; Description: "Install registry settings"; Components: Server DevTools Client;
-Name: InstallService; Description: "Install IBServer as a standalone service"; Components: Server; MinVersion: 0,4; GroupDescription: "Use the guardian service?"; Flags: Exclusive;
-Name: InstallGuardian; Description: "Install IBServer using the guardian service"; Components: Server; MinVersion: 0,4; GroupDescription: "Use the guardian service?"; Flags: Exclusive;
-Name: StartService; Description: "Start Firebird service when setup complete?"; Components: Server; MinVersion: 0,4;
+;Server tasks
+Name: UseGuardianTask; Description: "Use the &Guardian to control the server?"; Components: ServerComponent; MinVersion: 4.0,4.0
+Name: UseApplicationTask; Description: An &Application?; GroupDescription: "Run Firebird server as:"; Components: ServerComponent; MinVersion: 4,4; Flags: exclusive
+Name: UseServiceTask; Description: A &Service?; GroupDescription: "Run Firebird server as:"; Components: ServerComponent; MinVersion: 0,4; Flags: exclusive
+Name: AutoStartTask; Description: "Start &Firebird automatically everytime you boot up?"; Components: ServerComponent; MinVersion: 4,4;
+;Developer Tasks
+Name: MenuGroupTask; Description: Create a Menu &Group; Components: ServerComponent; MinVersion: 4,4;
+;One for Ron
+;Name: MenuGroupTask\desktopicon; Description: Create a &desktop icon; Components: ServerComponent; MinVersion: 4.0,4.0;
 
-[Files]
-Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: Server DevTools; CopyMode: alwaysoverwrite
-;Source: builds_win32\install\IDPLicense.txt; DestDir: {app}; Components: Server DevTools Client; CopyMode: alwaysoverwrite; Tasks: odbc_driver1
-Source: builds_win32\install\readme.txt; DestDir: {app}; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\ibconfig; DestDir: {app}; Components: Server; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
-Source: interbase\isc4.gdb; DestDir: {app}; Components: Server; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
-Source: interbase\isc4.gbk; DestDir: {app}; Components: Server; CopyMode: alwaysoverwrite
-Source: interbase\interbase.log; DestDir: {app}; Components: Server; CopyMode: dontcopy; Flags: uninsneveruninstall skipifsourcedoesntexist external
-Source: interbase\interbase.msg; DestDir: {app}; Components: Server DevTools Client; CopyMode: alwaysoverwrite
-Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gdef.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gpre.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gstat.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\ibguard.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\iblockpr.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\ibserver.exe; DestDir: {app}\bin; Components: Server; CopyMode: alwaysoverwrite; Flags: restartreplace
-Source: interbase\bin\ib_util.dll; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: Server DevTools Client; CopyMode: alwaysoverwrite
-Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: Server DevTools; CopyMode: alwaysoverwrite
-;Source: interbase\bin\*.pdb; DestDir: {app}\bin; Components: Server; CopyMode: alwaysoverwrite
-;Source: interbase\bin\*.bsc; DestDir: {app}\bin; Components: Server; CopyMode: alwaysoverwrite
-Source: interbase\doc\*.*; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite; Flags: skipifsourcedoesntexist external
-Source: interbase\help\*.*; DestDir: {app}\help; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\include\*.*; DestDir: {app}\include; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\intl\*.*; DestDir: {app}\intl; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\lib\*.*; DestDir: {app}\lib; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\UDF\*.*; DestDir: {app}\UDF; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\examples\v5\*.*; DestDir: {app}\examples; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: Server; CopyMode: normal; Flags: overwritereadonly sharedfile;
-Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: DevTools Client; CopyMode: normal; Flags: overwritereadonly sharedfile;
-Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: Server DevTools Client; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall sharedfile;
-Source: extlib\fbudf\Release\fbudf.dll; DestDir: {app}\UDF; Components: Server DevTools; CopyMode: alwaysoverwrite;
-Source: extlib\fbudf\fbudf.sql; DestDir: {app}\examples; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: firebird\install\doc_all_platforms\Firebird_v1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
-Source: firebird\install\doc_all_platforms\Firebird_v1_*.html; DestDir: {app}\doc; Components: Server DevTools; CopyMode: alwaysoverwrite
+[Run]
+;Always register Firebird
+Filename: "{app}\bin\instreg.exe"; Parameters: "install ""{app}"" "; StatusMsg: Updating the registry; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized
 
-[Icons]
-Name: {group}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: group; IconIndex: 0
-Name: {userdesktop}\Firebird; Filename: {app}\bin\ibserver.exe; MinVersion: 4.0,0; Tasks: desktopicon; IconIndex: 0
+;If on NT/Win2k etc and 'Install and start service' requested
+Filename: "{app}\bin\instsvc.exe"; Parameters: "install ""{app}"" {code:ServiceStartFlags|""""}"; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
+Filename: "{app}\bin\instsvc.exe"; Description: "Start Firebird Service now?"; Parameters: start; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized postinstall; Tasks: UseServiceTask
+
+;If 'start as application' requested
+Filename: "{code:StartApp|{app}\bin\ibserver.exe}"; Description: "Start Firebird now?"; Parameters: "-a"; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: ServerComponent; Flags: nowait postinstall; Tasks: UseApplicationTask
+
 
 [Registry]
 ;These will be the future Firebird entries
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: Server DevTools;
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty; Components: ClientComponent
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey; Components: ClientComponent
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey; Components: ClientComponent
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}; Components: ClientComponent
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: ClientComponent
 
-[Run]
-;Register Firebird
-Filename: {app}\bin\instreg.exe; Parameters: "install ""{app}"" "; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: Server DevTools Client; Flags: runminimized;
-;Install and start service if on NT/Win2k etc
-Filename: {app}\bin\instsvc.exe; Parameters: "install ""{app}"" -auto"; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: InstallService;
-Filename: {app}\bin\instsvc.exe; Parameters: "install ""{app}"" -auto -g"; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: InstallGuardian;
-Filename: {app}\bin\instsvc.exe; Parameters: start; StatusMsg: "Starting the server"; MinVersion: 0,4.0; Components: Server; Flags: runminimized; Tasks: StartService;
+; If user has chosen to use guardian and not to install as service then we need to make sure that the guardian flag is set.
+Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Components: ServerComponent
+Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Components: ServerComponent
+
+;If use has chosen to start as App they may well want to start automatically. That is handled by a function below.
+;Unless we set a marker here the uninstall will leave some annoying debris.
+Root: HKLM; Subkey: SOFTWARE\Microsoft\Windows\CurrentVersion\Run; ValueType: string; ValueName: Firebird; ValueData: ""; Flags: uninsdeletevalue; Tasks: UseApplicationTask;
+
+[Icons]
+Name: "{group}\Firebird Server"; Filename: {app}\bin\ibserver.exe; Parameters: "-a"; Flags: runminimized; MinVersion: 4.0,4.0; Tasks: MenuGroupTask; Check: InstallServerIcon; IconIndex: 0; Comment: "Run Firebird server (without guardian)";
+Name: "{group}\Firebird Guardian"; Filename: {app}\bin\ibguard.exe; Parameters: "-a"; Flags: runminimized; MinVersion: 4.0,4.0; Tasks: MenuGroupTask; Check: InstallGuardianIcon; IconIndex: 1; Comment: "Run Firebird server (with guardian)";
+Name: "{group}\Firebird 1.0 Release Notes"; Filename: {app}\doc\Firebird_v1_ReleaseNotes.pdf; MinVersion: 4.0,4.0; Tasks: MenuGroupTask; IconIndex: 1; Comment: "Firebird 1.0 release notes. (Requires Acrobat Reader.)";
+Name: "{group}\Firebird 1.0 Readme"; Filename: {app}\readme.txt; MinVersion: 4.0,4.0; Tasks: MenuGroupTask;
+Name: "{group}\Uninstall Firebird"; Filename: {uninstallexe}; Comment: "Uninstall Firebird"
+
+[Files]
+Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: ClientComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: builds_win32\install\readme.txt; DestDir: {app}; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\ibconfig; DestDir: {app}; Components: ServerComponent; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
+Source: interbase\isc4.gdb; DestDir: {app}; Components: ServerComponent; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
+Source: interbase\isc4.gbk; DestDir: {app}; Components: ServerComponent; CopyMode: alwaysoverwrite
+Source: interbase\interbase.log; DestDir: {app}; Components: ServerComponent; CopyMode: dontcopy; Flags: uninsneveruninstall skipifsourcedoesntexist external
+Source: interbase\interbase.msg; DestDir: {app}; Components: ClientComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite;
+Source: interbase\bin\gdef.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite;
+Source: interbase\bin\gpre.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\gstat.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\ibguard.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\iblockpr.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\ibserver.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile;
+Source: interbase\bin\ib_util.dll; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: ClientComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\doc\*.*; DestDir: {app}\doc; Components: DevAdminComponent; CopyMode: alwaysoverwrite; Flags: skipifsourcedoesntexist external
+Source: interbase\help\*.*; DestDir: {app}\help; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\include\*.*; DestDir: {app}\include; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\intl\gdsintl.dll; DestDir: {app}\intl; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\lib\*.*; DestDir: {app}\lib; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\UDF\*.*; DestDir: {app}\UDF; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: interbase\examples\v5\*.*; DestDir: {app}\examples; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: ClientComponent; CopyMode: normal; Flags: overwritereadonly sharedfile
+Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: ClientComponent; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall sharedfile
+Source: extlib\fbudf\Release\fbudf.dll; DestDir: {app}\UDF; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
+Source: extlib\fbudf\fbudf.sql; DestDir: {app}\examples; Components: ServerComponent; CopyMode: alwaysoverwrite
+Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: ServerComponent; CopyMode: alwaysoverwrite
+Source: extlib\ib_util.pas; DestDir: {app}\include; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: firebird\install\doc_all_platforms\Firebird_v1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: firebird\install\doc_all_platforms\Firebird_v1_*.html; DestDir: {app}\doc; Components: DevAdminComponent; CopyMode: alwaysoverwrite
 
 [UninstallRun]
-Filename: {app}\bin\instsvc.exe; Parameters: stop; StatusMsg:  "Stopping the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
-Filename: {app}\bin\instsvc.exe; Parameters: remove -g; StatusMsg:  "Removing the service"; MinVersion: 0,4.0; Components: Server; Flags: runminimized;
-Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg:  "Updating the registry"; MinVersion: 4.0,4.0; Components: Server DevTools Client; Flags: runminimized;
+Filename: {app}\bin\instsvc.exe; Parameters: stop; StatusMsg: "Stopping the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
+Filename: {app}\bin\instsvc.exe; Parameters: remove -g; StatusMsg: "Removing the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
+Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized;
 
 [UninstallDelete]
-Type: files; Name: "{app}\{%COMPUTERNAME}.lck"
-Type: files; Name: "{app}\{%COMPUTERNAME}.evn"
+Type: files; Name: {app}\*.lck
+Type: files; Name: {app}\*.evn
 
 [_ISTool]
 EnableISX=true
@@ -174,7 +205,6 @@ begin
   Result := True;
   //Check if Winsock 2 is installed (win 95 only)
   if (not UsingWinNt) and (not FileExists(AddBackslash(GetSystemDir) + sWinSock2)) then begin
-    //MsgBox(sNoWinsock2, mbError, MB_OK);
     Winsock2Failure := True;
     Result := False;
     end
@@ -191,16 +221,15 @@ begin
     // Ask user if they want to visit the Winsock2 update web page.
   	if MsgBox(sWinsock2Web, mbInformation, MB_YESNO) = idYes then
   	  // User wants to visit the web page
-      InstShellExec(sMSWinsock2Update, sBlank, sBlank, SW_SHOWNORMAL, ErrCode);
+      InstShellExec(sMSWinsock2Update, '', '', SW_SHOWNORMAL, ErrCode);
 end;
-
 
 function InitializeSetup(): Boolean;
 var
   i: Integer;
 begin
   result := true;
-  
+
   if not CheckWinsock2 then
     exit;
 
@@ -216,7 +245,7 @@ begin
     MsgBox('An existing Firebird or InterBase Server is running. You must close the '+
            'application or stop the service before continuing.', mbError, MB_OK);
     end;
-    
+
   //sooner or later Firebird will have its own class name for the server
   if i<>0 then begin
     i:=0;
@@ -255,9 +284,78 @@ begin
   if (sRootDir = '') then
     sRootDir := Default;
 
-  Result := ChangeDirConst(sRootDir);
+  Result := ExpandConstant(sRootDir);
 
 end;
+
+function UseGuardian(Default: String): String;
+begin
+if ShouldProcessEntry('ServerComponent', 'UseGuardianTask')= srYes then
+  Result := '1'
+else
+  Result := '0';
+end;
+
+function ServiceStartFlags(Default: String): String;
+begin
+  Result := '';
+  if ShouldProcessEntry('ServerComponent', 'UseGuardianTask')= srYes then begin
+    if ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes then
+      Result := ' -auto -g '
+    else
+      Result := ' -g ';
+    end
+  else
+    if ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes then
+      Result := ' -auto ';
+
+end;
+
+function InstallGuardianIcon(): Boolean;
+begin
+  result := false;
+  if ShouldProcessEntry('ServerComponent', 'UseApplicationTask')= srYes then
+    if ShouldProcessEntry('ServerComponent', 'UseGuardianTask')= srYes then
+      result := true;
+end;
+
+function InstallServerIcon(): Boolean;
+begin
+  result := false;
+  if ShouldProcessEntry('ServerComponent', 'UseApplicationTask')= srYes then
+    if ShouldProcessEntry('ServerComponent', 'UseGuardianTask')= srNo then
+      result := true;
+end;
+
+function StartApp(Default: String): String;
+var
+  AppPath: String;
+begin
+  AppPath:=ExpandConstant('{app}');
+  //Now start the app as
+  if ShouldProcessEntry('ServerComponent', 'UseGuardianTask')= srYes then
+    Result := AppPath+'\bin\ibguard.exe'
+  else
+    Result := AppPath+'\bin\ibserver.exe';
+end;
+
+procedure CurStepChanged(CurStep: Integer);
+var
+  AppStr: String;
+begin
+if CurStep=csFinished then begin
+  //If user has chosen to install an app and run it automatically set up the registry accordingly
+  //so that the server or guardian starts evertime they login.
+  if ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes then begin
+    AppStr := StartApp('')+' -a';
+
+    RegWriteStringValue (HKCU, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 'Firebird', AppStr);
+
+  end;
+end;
+
+end;
+
 
 begin
 end.

@@ -29,4 +29,5 @@
 ::  batch file.
 ::
 sed s/1.0.0/%PRODUCT_VER_STRING%/ FirebirdInstall.iss > FirebirdInstall%PRODUCT_VER_STRING%.iss
+copy %SystemRoot%\System32\msvcrt.dll .
 start FirebirdInstall%PRODUCT_VER_STRING%.iss
