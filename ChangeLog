@@ -1,3 +1,15 @@
+2003-07-15 19:54  awharrison
+
+	* interbase/utilities/dba.e:
+	
+	
+	Committing in .
+	
+	Modified Files: Tag: V1-0-0_731 interbase/utilities/dba.e
+	-------------------------------------------------------------------
+	--- Make the duplicate counter a long so we can recognize really
+	large numbers of duplicates.
+
 2003-06-13 14:09  stryqx
 
 	* interbase/jrd/gds.c:
