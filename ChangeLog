@@ -1,3 +1,72 @@
+2001-10-11 10:59  robocop
+
+	* interbase/jrd/exe.c:
+	
+	Fixes SF Bug #436462: "Rows affected incorrect with trigger". 
+	Insertions, deletions and updates should be counted when they
+	really happen with calls to VIO from EXE.
+
+2001-10-11 08:35  fsg
+
+	* interbase/isql/isql.e:
+	
+	Changes to get isql compiled under Linux again
+	
+	fsg
+
+2001-10-11 06:43  robocop
+
+	* interbase/dsql/: ddl.c, dsql.c, parse.c, parse.y, pass1.c:
+	
+	1) Bug fix for #444463 entailed the creation of new system flags
+	for triggers that are defined automagically for CHECKs, FKs
+	(cascade, set null, set default) and VIEWs using WITH CHECK OPTION.
+	We can't rely on those flags for current databases, but the engine
+	is already generating them in new triggers for those cases.  2) The
+	engine recognizes and honors GRANT something to ROLE role_name; and
+	will give an error if "role_name" doesn't exist instead of assuming
+	that role_name is a user. Using GRANT something to USER user_name;
+	will always grant to a user, even if a role named "user_name"
+	already exists. If you want the old behavior (engine first tests if
+	the given grantee exists as a role; otherwise grants to a user)
+	simply omit USER or ROLE keywords and you are done. Isql will now
+	extract with those explicit keywords so the script doesn't change
+	meaning from machine to machine, depending on isc4.gdb's entries. 
+	3) Neil McCalden has fixed a problem with UDFs and GROUP BY clause.
+	 The problem was excess of flexibility that allowed invalid
+	grouping. Now, the same rules apply to UDFs and fields regarding
+	entries in the SELECT part v/s entries in the GROUP BY part. You
+	will get the same "invalid column reference" error when attempting
+	invalid usage of UDFs in a SELECT statement. Example: select
+	strlen(rdb$relation_id) from rdb$relations group by
+	strlen(rdb$relation_name); => invalid column reference.
+
+2001-10-11 06:25  robocop
+
+	* interbase/jrd/: blb.c, cmp.c, dfw.e, dyn.e, dyn_def.e, dyn_mod.e,
+	met.e, met_proto.h, par.c, scl.e, scl.h:
+	
+	Fixes SF bug #458888 and SF bug #444463 The latter also entailed
+	the creation of new system flags for triggers that are defined
+	automagically for CHECKs, FKs (cascade, set null, set default) and
+	VIEWs using WITH CHECK OPTION. We can't rely on those flags for
+	current databases, but the engine is already generating them in new
+	triggers for those cases. The engine now checks security_classes to
+	distinguish fields reliably at the time a call to CMP_post_access()
+	should be made from post_trigger_access().
+
+2001-10-11 05:19  robocop
+
+	* interbase/msgs/msg.gbak:
+	
+	Show options -r and -t in the gstat help
+
+2001-10-11 05:15  robocop
+
+	* interbase/utilities/dbaswi.h:
+	
+	Show options -r and -t in the gstat help
+
 2001-10-10 21:38  awharrison
 
 	* interbase/jrd/license.h:
