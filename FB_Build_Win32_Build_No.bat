@@ -37,7 +37,7 @@
 set BUILD_TYPE=V
 set MAJOR_VER=1
 set MINOR_VER=0
-set REV_NO=0
+set REV_NO=2
 set BUILD_SUFFIX=Firebird 1.0
 
 set ISC_MAJOR_VER=6
