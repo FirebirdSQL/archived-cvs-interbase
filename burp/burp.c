@@ -182,8 +182,13 @@ static int	api_gbak (int, char **, USHORT, TEXT *, TEXT *, TEXT *, BOOLEAN, BOOL
 
 #define	DB		tdgbl->db_handle
 
-#define GBAK_STDIN_DESC		(int) 0
-#define GBAK_STDOUT_DESC	(int) 1
+#ifdef WIN_NT
+#define	GBAK_STDIN_DESC			GetStdHandle(STD_INPUT_HANDLE)	/* standart input  file descriptor */
+#define	GBAK_STDOUT_DESC		GetStdHandle(STD_OUTPUT_HANDLE)	/* standart output file descriptor */
+#else
+#define	GBAK_STDIN_DESC			(int)0	/* standart input  file descriptor */
+#define	GBAK_STDOUT_DESC		(int)1	/* standart output file descriptor */
+#endif /*WIN_NT*/
 
 #define KBYTE	1024
 #define	MBYTE	KBYTE * KBYTE
