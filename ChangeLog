@@ -1,3 +1,78 @@
+2001-10-10 21:38  awharrison
+
+	* interbase/jrd/license.h:
+	
+	
+	Further simplify version string
+
+2001-10-10 19:37  awharrison
+
+	* interbase/jrd/license.h:
+	
+	
+	Shorten the gds_version string and take out the special characters.
+
+2001-10-10 11:25  robocop
+
+	* interbase/jrd/ibase.h:
+	
+	New value to allow DYN target always a USER with a grant without
+	ambiguity with a possible ROLE.
+
+2001-10-10 11:23  robocop
+
+	* interbase/jrd/irq.h:
+	
+	New request for default sec class name
+
+2001-10-10 11:22  robocop
+
+	* interbase/jrd/obj.h:
+	
+	Add obj_blob_filter to our db object identifiers
+
+2001-10-10 11:21  robocop
+
+	* interbase/jrd/ini.h:
+	
+	Adds obj.h to the includes to reuse its values
+
+2001-10-10 11:17  robocop
+
+	* interbase/jrd/types.h:
+	
+	Document or new FB system flag numbers for triggers
+
+2001-10-10 11:13  robocop
+
+	* interbase/jrd/intlobj.h:
+	
+	Reinstall the missing field in the interface for the extended
+	collations module
+
+2001-10-10 11:02  robocop
+
+	* interbase/jrd/constants.h:
+	
+	Defnitions of automatic triggers' new system_flag values
+
+2001-10-10 11:00  robocop
+
+	* interbase/isql/: extract.e, isql.e, isql.h, show.e, show_proto.h:
+	
+	Fixes initial Fixed Bug #112263 by FSG that caused isql to behave
+	in bad way when extracting metadata. Now the "D" and "M" txns are
+	not started, operations are marked as not Interactive and the user,
+	pw and role is not dumped to the script as it was the behavior
+	before that bug fix.  SHOW GRANTS is possible without arguments. 
+	HELP SET includes PLANONLY brief explanation.
+
+2001-10-10 10:49  robocop
+
+	* interbase/msgs/msg.gbak:
+	
+	New messages for isql about grants help shows PLANONLY
+
 2001-10-08 19:40  awharrison
 
 	* interbase/jrd/dyn_def.e:
