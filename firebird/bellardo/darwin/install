@@ -31,7 +31,7 @@ else
 	NEW_UID=`nigrep uid . /users | grep ":  uid " | awk '{ print $4 + 1 } ' | sort -n | tail -1`
 	niutil -create . /users/firebird
 	niutil -createprop . /users/firebird uid $NEW_UID
-	niutil -createprop . /users/firebird home /dev/null
+	niutil -createprop . /users/firebird home /Library/Frameworks/Firebird.framework
 	niutil -createprop . /users/firebird passwd "*"
 	niutil -createprop . /users/firebird expire 0
 	niutil -createprop . /users/firebird shell /bin/tcsh
@@ -104,6 +104,14 @@ then
     kill -HUP $INETPID
 fi
 
+if grep -x "localhost" /etc/hosts.equiv > /dev/null; then                
+else     
+    echo "localhost" >> /etc/hosts.equiv                
+fi    
+if grep -x "localhost.localdomain" /etc/hosts.equiv > /dev/null; then    
+else     
+    echo "localhost.localdomain" >> /etc/hosts.equiv    
+fi    
 
 ###
 # And last but not least, start the server

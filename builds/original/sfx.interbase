@@ -57,9 +57,15 @@ CODES=source/jrd/codes
 # I've put the change here to reduce the complexity of the build script files. 
 # MOD 07-Apr-2001.
 
-firebird:	run_codes gds.h includes executables help msgs msgs_intl extlib completed
+firebird:	run_codes gds.h includes executables help msgs msgs_intl extlib $(POST_BUILD_TARGET) completed
 
-super_firebird:	run_codes gds.h includes super_executables help msgs msgs_intl extlib completed
+super_firebird:	run_codes gds.h includes super_executables help msgs msgs_intl extlib $(SS_POST_BUILD_TARGET) completed
+
+installer:	$(PLATFORM_INSTALLER)
+	echo "Installer created"
+
+super_installer:	$(SUPER_PLATFORM_INSTALLER)
+	echo "Super Installer created"
 
 executables:	alice burp dudley gpre miscFiles $(INTL) isql locks \
 	pyxis qli remote spit utilities \
@@ -89,7 +95,7 @@ run_codes:
 
 #added completed according to inprise tree
 #FSG  093000
-completed:	$(POST_BUILD_TARGET) force
+completed:	force
 	$(QUIET_ECHO) "Build succeeded!"
 
 alice gfix:	gpre force
@@ -556,11 +562,8 @@ rem_p_objects:
 	$(QUIET_ECHO) "Building REMOTE PIC OBJECTS..."
 	$(SH) '$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" $(@F)'
 
-darwin_framework:
+darwin_installer_common: force
 	$(QUIET_ECHO) "Building Firebird Installer..."
-	$(RM) -rf source/interbase/Firebird.framework
-	$(MAKE) -f firebird/bellardo/darwin/FirebirdFramework.make \
-		source/interbase/Firebird.framework  
 	mkdir -p source/interbase/installer_tmp
 	$(MV) source/interbase/Firebird.framework source/interbase/installer_tmp
 	$(CP) source/firebird/bellardo/darwin/makefile \
@@ -570,10 +573,21 @@ darwin_framework:
 	ln -s ../.. source/interbase/installer_tmp/source   
 	$(MAKE) -C source/interbase/installer_tmp install_package
 	$(RM) -rf source/interbase/installer_tmp
-	$(QUIET_ECHO) "Building Firebird Framework..."
+	-$(RM) -rf source/interbase/Firebird.framework
+
+darwin_installer: darwin_installer_common darwin_framework
+super_darwin_installer: darwin_installer_common ss_darwin_framework
+
+darwin_framework: force
+	$(QUIET_ECHO) "Building Classic Firebird Framework..."
+	$(RM) -rf source/interbase/Firebird.framework
+	$(MAKE) -f firebird/bellardo/darwin/FirebirdFramework.make framework
+
+ss_darwin_framework: force
+	$(QUIET_ECHO) "Building Super Server Firebird Framework..."
 	$(RM) -rf source/interbase/Firebird.framework
 	$(MAKE) -f firebird/bellardo/darwin/FirebirdFramework.make \
-		source/interbase/Firebird.framework
+		super_framework
 
 # Note:	So far this target is only available on Solaris
 makedepend:

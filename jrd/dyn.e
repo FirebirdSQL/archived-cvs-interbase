@@ -22,6 +22,9 @@
  *    20-Apr-2001 Claudio Valderrama  - Fix bug in grant/revoke by making user
  *                                      case insensitive.
  *    24-May-2001 Claudio Valderrama - Move DYN_delete_role to dyn_del.e.
+ *    05-Jun-2001 John Bellardo - Renamed the revoke static function to
+ *                                revoke_permission, because there is already
+ *                                a revoke(2) function in *nix.
  *                                      
  */
 
@@ -75,7 +78,7 @@ DATABASE
 static void	grant (GBL, UCHAR **);
 static BOOLEAN  grantor_can_grant_role (TDBB, GBL, TEXT*, TEXT*);
 static BOOLEAN  grantor_can_grant (GBL, TEXT*, TEXT*, TEXT*, TEXT*, BOOLEAN);
-static void	revoke (GBL, UCHAR **);
+static void	revoke_permission (GBL, UCHAR **);
 static void 	store_privilege (GBL, TEXT *, TEXT *,TEXT *, TEXT *, SSHORT, SSHORT, int);
 
 void DYN_ddl (
@@ -395,7 +398,7 @@ switch (verb = *(*ptr)++)
 	break;
 
     case gds__dyn_revoke:
-	revoke (gbl, ptr);
+	revoke_permission (gbl, ptr);
 	break;
 
 /***
@@ -1756,13 +1759,13 @@ if (!grantable)
 return grantable;
 }
 
-static void revoke (
+static void revoke_permission (
     GBL		gbl,
     UCHAR	**ptr)
 {
 /**************************************
  *
- *	r e v o k e
+ *	r e v o k e _ p e r m i s s i o n
  *
  **************************************
  *

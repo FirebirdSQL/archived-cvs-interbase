@@ -111,7 +111,7 @@ LD_LIBS=		-lcc_dynamic
 LD_LIBS_J=		
 LD_OPTS=		-dylib
 LOCK_JRD_MISC=		
-LOCK_MANAGER=		manager
+LOCK_MANAGER=		
 MARION_DB=		-d source/marion.gdb
 MUISQL=			muisql
 #MUISQL_MU_LIB=		-L /usr/gds.$(HOSTNAME)/qa_tools/lib -lmu
@@ -178,5 +178,6 @@ V3PRINTER=		source/lock/printv3.o
 
 MSG_INSTALL_CMD=	$(CP) source/interbase/interbase.msg source/interbase/Firebird.framework/Resources/English.lproj
 CARBONCORE_DIR_FLAG=	-F/System/Library/Frameworks/CoreServices.framework/Frameworks
+COREFOUNDATION_LINK=	-framework CoreFoundation
 
 #   End of file prefix.darwin:	$(VERSION)	$(PLATFORM)

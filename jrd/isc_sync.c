@@ -345,7 +345,7 @@ static void	make_object_name (TEXT *, TEXT *, TEXT *);
 #define SV_INTERRUPT    0
 #endif
 
-#if defined FREEBSD || defined NETBSD
+#if defined FREEBSD || defined NETBSD || defined DARWIN
 #define sigset      signal
 #endif
 
@@ -5198,7 +5198,7 @@ int ISC_mutex_init (
  **************************************/
 int	state;
 
-#if (!defined HP10 && !defined linux)
+#if (!defined HP10 && !defined linux && !defined DARWIN)
 
 pthread_mutexattr_t     mattr;
 
@@ -5218,7 +5218,7 @@ return state;
 	 server (until we are to implement local IPC using shared
 	 memory in which case we need interprocess thread sync.
 */
-#ifdef linux
+#if (defined linux || defined DARWIN)
 return pthread_mutex_init (mutex->mtx_mutex, NULL);
 #else
 state = pthread_mutex_init (mutex->mtx_mutex, pthread_mutexattr_default);

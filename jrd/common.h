@@ -106,6 +106,12 @@ $Id$
 #define MMAP_SUPPORTED
 #define LSEEK_OFFSET_CAST (off_t)
 #define INTL
+#define SIGACTION_SUPPORTED
+
+#define MEMMOVE(from,to,length)     memmove ((void *)to, (void *)from, (size_t)length) 
+#define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
+#define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))
+#define MOVE_CLEAR(to,length)           memset (to, 0, (int) (length))
 
 #define _PPC_PARAM_H_
 #ifndef MAXPATHLEN

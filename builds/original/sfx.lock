@@ -61,7 +61,8 @@ lock_driver.exe: driver.o
 manager:	manager.o lock.o divorce.o $(JRD_LINK2)
 	-$(RM) manager
 	$(CC) $(LINK_OPTS) manager.o lock.o divorce.o $(JRD_LINK2) \
-		-o manager $(NSL_LIB) $(SCO_SOCKET_LIB) $(SO_THREAD_LIB)
+		-o manager $(NSL_LIB) $(SCO_SOCKET_LIB) $(SO_THREAD_LIB) \
+		$(COREFOUNDATION_LINK)
 	$(CHMOD_S7) manager
 	$(DROP) $(DROP_FLAGS)
 	$(MV) manager $(MANAGER)
