@@ -78,6 +78,12 @@ typedef struct blk {
 #include "../jrd/svc.h"
 #include "../jrd/svc_proto.h"
 
+#ifdef SET_THREAD_DATA
+#undef SET_THREAD_DATA
+#endif
+#ifdef RESTORE_THREAD_DATA
+#undef RESTORE_THREAD_DATA
+#endif
 #ifdef SUPERSERVER
 #define GET_THREAD_DATA	        ((TSEC) THD_get_specific())
 #define SET_THREAD_DATA         THD_put_specific ((THDD) tdsec); \
