@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.5.20: Claudio Valderrama: when changing a domain's name,
+ * if it has dimensions, rdb$field_dimensions should be updated, too.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -351,6 +353,7 @@ void DYN_modify_global_field (
  *
  * Functional description
  *	Execute a dynamic ddl statement.
+ * Note: a global field here is a SQL domain.
  *
  **************************************/
 TDBB	tdbb;
@@ -367,6 +370,7 @@ TEXT	*qryname, *qryhdr, *qryhdr2, *edtstr, *edtstr2, *missingval, *singvald,
 
 BOOLEAN bqryname, bqryhdr, bqryhdr2, bedtstr, bedtstr2, bmissingval, bsingvald,
 	bfldvald, bfldvaldsrc, bfldvaldsrc2, bdesc, bdesc2,bdelvald, bdeldflt, bflddftval, bflddfltsrc;
+BOOLEAN has_dimensions = FALSE;
 
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
@@ -434,7 +438,10 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 
     /* If the original field type is an array, force its blr type to blr_blob */
     if (FLD.RDB$DIMENSIONS != 0)
-	orig_dom->dyn_dtype = blr_blob;
+	{
+		orig_dom->dyn_dtype = blr_blob;
+		has_dimensions = TRUE;
+	}
 
 
     while ((verb = *(*ptr)++) != gds__dyn_end)
@@ -453,15 +460,29 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 			        FLD.RDB$FIELD_NAME.NULL = FALSE;
 				old_request = request;
 				request = NULL;
-    			        FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
-				    DOM IN RDB$RELATION_FIELDS WITH DOM.RDB$FIELD_SOURCE EQ orig_dom->dyn_fld_name
-			                MODIFY DOM USING
-			                    strcpy (DOM.RDB$FIELD_SOURCE, newfld);
-			                    DOM.RDB$FIELD_SOURCE.NULL = FALSE;
-			                END_MODIFY;
+				/* CVC: Let's update the dimensions, too. */
+				if (has_dimensions)
+				{
+					FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+						DIM_DOM IN RDB$FIELD_DIMENSIONS WITH DIM_DOM.RDB$FIELD_NAME EQ orig_dom->dyn_fld_name
+							MODIFY DIM_DOM USING
+								strcpy (DIM_DOM.RDB$FIELD_NAME, newfld);
+								DIM_DOM.RDB$FIELD_NAME.NULL = FALSE;
+							END_MODIFY;
+					END_FOR;
+					CMP_release (tdbb, request);
+					request = NULL;
+				}
+				/* CVC: End modification. */
+    			FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+					DOM IN RDB$RELATION_FIELDS WITH DOM.RDB$FIELD_SOURCE EQ orig_dom->dyn_fld_name
+			            MODIFY DOM USING
+			                strcpy (DOM.RDB$FIELD_SOURCE, newfld);
+			                DOM.RDB$FIELD_SOURCE.NULL = FALSE;
+			            END_MODIFY;
 				    modify_lfield_index (tdbb, dbb, gbl, DOM.RDB$RELATION_NAME,
 						DOM.RDB$FIELD_NAME, DOM.RDB$FIELD_NAME);	
-			        END_FOR;
+			    END_FOR;
 				CMP_release (tdbb, request);
 				request = old_request;
 			    END_MODIFY;
