@@ -13,9 +13,21 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): ______________________________________.
+# Contributor(s):
+#	Reed Mideke <rfm@cruzers.com>
+#	______________________________________.
 
-IB_BIN_COMPS="alice burp dsql dudley example5 extlib gpre intl ipserver isql iscguard jrd lock msgs qli register remote utilities wal"
+#set -x
+if [ "$1" = "" ] ; then
+	echo "syntax: setup_dirs.ksh {DB_PATH}"
+	echo "  where {DB_PATH} is the root of a directory tree"
+	echo "  which contains the build time database. DB_DIR may"
+	echo "  include a server name. DB_DIR should not be the"
+	echo "  source directory."
+	exit 1
+fi
+
+IB_BIN_COMPS="alice burp dsql dudley example5 extlib gpre intl ipserver isql iscguard jrd lock msgs qli remote utilities wal"
 
 echo setting up source directories...
 for comp in ${IB_BIN_COMPS}
@@ -41,7 +53,18 @@ mkdir ib_debug/examples/v4
 mkdir ib_debug/examples/v5
 mkdir ib_debug/help
 
-setup_build
+mkdir interbase
+mkdir interbase/bin
+mkdir interbase/lib
+mkdir interbase/intl
+mkdir interbase/UDF
+mkdir interbase/include
+mkdir interbase/examples
+mkdir interbase/examples/v4
+mkdir interbase/examples/v5
+mkdir interbase/help
+
+./setup_build.ksh $1
 
 echo done
 
