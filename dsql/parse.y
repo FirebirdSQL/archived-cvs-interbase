@@ -30,6 +30,8 @@
  * 2001.08.03: John Bellardo: Finalized syntax for LIMIT, change LIMIT to SKIP
  * 2001.08.05: Claudio Valderrama: closed Bug #448062 and other spaces that appear
  *   in rdb$*_source fields when altering domains plus one unexpected null pointer.
+ * 2001.08.12: Claudio Valderrama: adjust SUBSTRING's starting pos argument here
+ *   and not in gen.c; this closes Bug #450301.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -3309,11 +3311,11 @@ function	: COUNT '(' '*' ')'
 		that treat nod_substr as an aggregate and do not expect NULL arguments. */
 		| SUBSTRING '(' value FROM pos_short_integer ')'
 			{ $$ = make_node (nod_substr, e_substr_count, $3,
-				MAKE_constant ((STR) ($5), CONSTANT_SLONG),
+				MAKE_constant ((STR) ((SLONG)($5) - 1), CONSTANT_SLONG),
 				MAKE_constant ((STR) SHRT_POS_MAX, CONSTANT_SLONG)); }
 		| SUBSTRING '(' value FROM pos_short_integer FOR nonneg_short_integer ')'
 			{ $$ = make_node (nod_substr, e_substr_count, $3,
-				MAKE_constant ((STR) ($5), CONSTANT_SLONG),
+				MAKE_constant ((STR) ((SLONG)($5) - 1), CONSTANT_SLONG),
 				MAKE_constant ((STR) ($7), CONSTANT_SLONG)); }
 		;
 

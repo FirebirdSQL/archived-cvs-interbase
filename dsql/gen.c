@@ -2150,8 +2150,9 @@ for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
     else if (item->nod_type == nod_substr)
 	{
 		/* CVC: SQL starts at 1 but C starts at zero. */
-		NOD node = item->nod_arg [e_substr_start];
+		/*NOD node = item->nod_arg [e_substr_start];
 		--(*(SLONG *) (node->nod_desc.dsc_address));
+		FIXED IN PARSE.Y; here it doesn't catch expressions: Bug 450301. */
 		parameter->par_name = parameter->par_alias  = "SUBSTRING";
 	}
 	else if (item->nod_type == nod_cast)

@@ -39,6 +39,8 @@ static char yysccsid[] = "@(#)yaccpar	1.9 (Berkeley) 02/21/93";
  * 2001.08.03: John Bellardo: Finalized syntax for LIMIT, change LIMIT to SKIP
  * 2001.08.05: Claudio Valderrama: closed Bug #448062 and other spaces that appear
  *   in rdb$*_source fields when altering domains plus one unexpected null pointer.
+ * 2001.08.12: Claudio Valderrama: adjust SUBSTRING's starting pos argument here
+ *   and not in gen.c; this closes Bug #450301.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -7080,12 +7082,12 @@ case 839:
 break;
 case 840:
 { yyval = make_node (nod_substr, e_substr_count, yyvsp[-3],
-				MAKE_constant ((STR) (yyvsp[-1]), CONSTANT_SLONG),
+				MAKE_constant ((STR) ((SLONG)(yyvsp[-1]) - 1), CONSTANT_SLONG),
 				MAKE_constant ((STR) SHRT_POS_MAX, CONSTANT_SLONG)); }
 break;
 case 841:
 { yyval = make_node (nod_substr, e_substr_count, yyvsp[-5],
-				MAKE_constant ((STR) (yyvsp[-3]), CONSTANT_SLONG),
+				MAKE_constant ((STR) ((SLONG)(yyvsp[-3]) - 1), CONSTANT_SLONG),
 				MAKE_constant ((STR) (yyvsp[-1]), CONSTANT_SLONG)); }
 break;
 case 842:
