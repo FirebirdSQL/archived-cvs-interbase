@@ -154,6 +154,10 @@ typedef struct req {
     ULONG	req_records_inserted;	/* count of records inserted by request */
     ULONG	req_records_updated;	/* count of records updated by request */
     ULONG	req_records_deleted;	/* count of records deleted by request */
+    USHORT	req_view_flags;		/* special flags for virtual ops on views */
+    struct rel	*req_top_view_store;	/* the top view in store(), if any */
+    struct rel	*req_top_view_modify;	/* the top view in modify(), if any */
+    struct rel	*req_top_view_erase;	/* the top view in erase(), if any */
 
     struct nod	*req_top_node;		/* top of execution tree */
     struct nod	*req_next;		/* next node for execution */
@@ -220,6 +224,12 @@ typedef struct req {
 
 /* Mask for flags preserved on initialization of a request */
 #define REQ_FLAGS_INIT_MASK	(req_in_use | req_internal | req_sys_trigger | req_ignore_perm | req_blr_version4)
+
+/* Flags for req_view_flags */
+ENUM {	req_first_store_return	=	0x1,
+	req_first_modify_return	=	0x2,
+	req_first_erase_return	=	0x4
+     };
 
 
 /* Resources */

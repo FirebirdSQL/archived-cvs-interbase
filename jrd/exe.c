@@ -26,6 +26,8 @@
  * count real store, modify and delete operations either in an external
  * file or in a table. Counting on a view caused up to three operations
  * being reported instead of one.
+ * 2001.12.03 Claudio Valderrama: new visit to the same issue: views need
+ * to count virtual operations, not real I/O on the underlying tables.
  */
 /*
 $Id$
@@ -863,6 +865,13 @@ request->req_records_updated = 0;
 request->req_records_inserted = 0;
 request->req_records_deleted = 0;
 
+/* CVC: set up to count virtual operations on SQL views. */
+
+request->req_view_flags = 0;
+request->req_top_view_store = NULL;
+request->req_top_view_modify = NULL;
+request->req_top_view_erase = NULL;
+
 /* Store request start time for timestamp work */
 if (!request->req_timestamp)
     request->req_timestamp = time (NULL);
@@ -1207,9 +1216,20 @@ if (!relation->rel_file & !relation->rel_view_rse)
         ERR_duplicate_error (error_code, bad_relation, bad_index);
     }
 
-    /* CVC: Increment the counter only if we called VIO/EXT_erase() and
-    we were successful. */
-    if (relation->rel_file || !relation->rel_view_rse)
+/* CVC: Increment the counter only if we called VIO/EXT_erase() and
+we were successful. */
+if (!(request->req_view_flags & req_first_erase_return))
+{
+	request->req_view_flags |= req_first_erase_return;
+	if (relation->rel_view_rse)
+		request->req_top_view_erase = relation;
+}
+if (relation == request->req_top_view_erase)
+{
+	if (which_trig == ALL_TRIGS || which_trig == POST_TRIG)
+		request->req_records_deleted++;
+}
+else if (relation->rel_file || !relation->rel_view_rse)
 	request->req_records_deleted++;
 
 if (transaction != dbb->dbb_sys_trans)
@@ -2708,8 +2728,19 @@ switch (request->req_operation)
 
 	/* CVC: Increment the counter only if we called VIO/EXT_modify() and
 	we were successful. */
-	if (relation->rel_file || !relation->rel_view_rse)
-	    request->req_records_updated++;
+	if (!(request->req_view_flags & req_first_modify_return))
+	{
+		request->req_view_flags |= req_first_modify_return;
+		if (relation->rel_view_rse)
+			request->req_top_view_modify = relation;
+	}
+	if (relation == request->req_top_view_modify)
+	{
+		if (which_trig == ALL_TRIGS || which_trig == POST_TRIG)
+			request->req_records_updated++;
+	}
+	else if (relation->rel_file || !relation->rel_view_rse)
+		request->req_records_updated++;
 
 	if (which_trig != PRE_TRIG)
 	    {
@@ -3605,9 +3636,20 @@ switch (request->req_operation)
 
 	/* CVC: Increment the counter only if we called VIO/EXT_store() and
 	we were successful. */
-	if (relation->rel_file || !relation->rel_view_rse)
-	    request->req_records_inserted++;
-
+	if (!(request->req_view_flags & req_first_store_return))
+	{
+		request->req_view_flags |= req_first_store_return;
+		if (relation->rel_view_rse)
+			request->req_top_view_store = relation;
+	}
+	if (relation == request->req_top_view_store)
+	{
+		if (which_trig == ALL_TRIGS || which_trig == POST_TRIG)
+			request->req_records_inserted++;
+	}
+	else if (relation->rel_file || !relation->rel_view_rse)
+		request->req_records_inserted++;
+	
 	if (transaction != dbb->dbb_sys_trans)
 	    --transaction->tra_save_point->sav_verb_count;
 #else
