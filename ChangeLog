@@ -1,3 +1,10 @@
+2001-08-08 03:49  seanleyne
+
+	* interbase/: burp/restore.e, utilities/dba.e, utilities/ppg.c:
+	
+	Code Cleanup, removed #ifdef READONLY_DATABASE conditionals
+	(Attempt #2)
+
 2001-08-07 21:27  gspeicher
 
 	* interbase/firebird/gspeicher/firebird/scripts/pre-build:
