@@ -162,24 +162,24 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	    break;
     
     	case dtype_short:
-	    if (!xdr_short (xdrs, p))
+	    if (!xdr_short (xdrs, (SSHORT*)p))
 	    	return FALSE;
 	    break;
 
     	case dtype_long:
 	case dtype_sql_time:
 	case dtype_sql_date:
-	    if (!xdr_long (xdrs, p))
+	    if (!xdr_long (xdrs, (SLONG*)p))
 	    	return FALSE;
 	    break;
 
     	case dtype_real:
-	    if (!xdr_float (xdrs, p))
+	    if (!xdr_float (xdrs, (float*)p))
 	    	return FALSE;
 	    break;
 
     	case dtype_double:
-	    if (!xdr_double (xdrs, p))
+	    if (!xdr_double (xdrs, (double*)p))
 	        return FALSE;
 	    break;
 
@@ -192,12 +192,12 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 
     	case dtype_quad:
         case dtype_blob:
-	    if (!xdr_quad (xdrs, p))
+	    if (!xdr_quad (xdrs, (SLONG*)p))
 	    	return FALSE;
 	    break;
     
     	case dtype_int64:
-	    if (!xdr_hyper (xdrs, p))
+	    if (!xdr_hyper (xdrs, (SINT64*)p))
 	        return FALSE;
 	    break;
 	
@@ -215,7 +215,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	continue;
     offset = FB_ALIGN(offset, sizeof (SSHORT)); 
     p = data + offset;
-    if (!xdr_short (xdrs, p))
+    if (!xdr_short (xdrs, (SSHORT*)p))
 	return FALSE;
     offset += sizeof (SSHORT);
     }
@@ -365,7 +365,7 @@ static caddr_t burp_inline (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 return xdrs->x_base + bytecount;
@@ -440,7 +440,7 @@ static bool_t burp_setpostn (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 xdrs->x_private = xdrs->x_base + bytecount;
@@ -526,7 +526,7 @@ switch (desc->dsc_dtype)
     
     case dtype_cstring:
 	if (xdrs->x_op == XDR_ENCODE)
-	    n = MIN (strlen (p), desc->dsc_length - 1);
+	    n = MIN (strlen (p), (size_t)(desc->dsc_length - 1));
 	if (!xdr_short (xdrs, &n))
 	    return FALSE;
 	if (!xdr_opaque (xdrs, p, n))
@@ -536,24 +536,24 @@ switch (desc->dsc_dtype)
 	break;
     
     case dtype_short:
-	if (!xdr_short (xdrs, p))
+	if (!xdr_short (xdrs, (SSHORT*)p))
 	    return FALSE;
 	break;
 
     case dtype_sql_date:
     case dtype_sql_time:
     case dtype_long:
-	if (!xdr_long (xdrs, p))
+	if (!xdr_long (xdrs, (SLONG*)p))
 	    return FALSE;
 	break;
 
     case dtype_real:
-	if (!xdr_float (xdrs, p))
+	if (!xdr_float (xdrs, (float*)p))
 	    return FALSE;
 	break;
 
     case dtype_double:
-	if (!xdr_double (xdrs, p))
+	if (!xdr_double (xdrs, (double*)p))
 	    return FALSE;
 	break;
 
@@ -566,12 +566,12 @@ switch (desc->dsc_dtype)
 
     case dtype_quad:
     case dtype_blob:
-	if (!xdr_quad (xdrs, p))
+	if (!xdr_quad (xdrs, (SLONG*)p))
 	    return FALSE;
 	break;
     
     case dtype_int64:
-        if (!xdr_hyper (xdrs, p))
+        if (!xdr_hyper (xdrs, (SINT64*)p))
 	    return FALSE;
 	break;
     
@@ -978,5 +978,9 @@ switch (xdrs->x_op)
     case XDR_FREE:
 	return TRUE;
     }
+
+/* TMN: Now what? 'assert(0)'? 'abort()'? Anyone having a */
+/* clue, feel free to fix the cludge 'return FALSE' */
+return FALSE;
 }
 #endif  /* PLATFORM_SUPPLIES_XDR_HYPER */
