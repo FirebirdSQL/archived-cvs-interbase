@@ -1,3 +1,9 @@
+2001-07-03 10:21  robocop
+
+	* interbase/: dsql/ddl.c, jrd/dyn_def.e, jrd/par.c:
+	
+	Fixed Bug #229009 & Bug #227758.
+
 2001-07-02 09:56  robocop
 
 	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/keywords.h,
