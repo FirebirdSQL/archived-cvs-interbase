@@ -1,3 +1,10 @@
+2002-12-10 18:12  paul_reeves
+
+	* interbase/: builds_win32/install/FirebirdInstall.iss,
+	builds_win32/original/build_lib.bat, extlib/fbudf/fbudf.mak:
+	
+	Fix a couple of ommissions
+
 2002-12-09 19:28  paul_reeves
 
 	* interbase/: builds_win32/install/BuildExecutableInstall.bat,
