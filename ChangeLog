@@ -1,3 +1,39 @@
+2001-12-16 09:19  robocop
+
+	* interbase/burp/: backup.e, burp.h, restore.e:
+	
+	Make gbak more consistent in handling string lengths and sizes.
+
+2001-12-15 14:46  skywalker
+
+	* interbase/builds/original/: boot.sfx.interbase, sfx.interbase:
+	
+	Change linux classic packages to point to new updated routine
+
+2001-12-15 14:41  skywalker
+
+	* interbase/firebird/install/linux/: Makefile, README,
+	classic/makeInstallImage.sh, classic/postinstall.sh,
+	classic/postuninstall.sh, classic/preinstall.sh,
+	classic/preuninstall.sh, classic/rpmfiles.txt,
+	classic/rpmheader.txt, classic/tarMainInstall.sh,
+	classic/tarinstall.sh, misc/CSchangeRunUser.sh,
+	misc/CSrestoreRootRunUser.sh, misc/README, misc/SSchangeRunUser.sh,
+	misc/SSrestoreRootRunUser.sh, misc/changeDBAPassword.sh,
+	misc/firebird.init.d.generic, misc/firebird.init.d.mandrake,
+	misc/firebird.init.d.suse, misc/firebird.xinetd, misc/ibmgr,
+	misc/isc_config, misc/rc.config.firebird:
+	
+	Added merge of install scripts.  Currently classic only works. 
+	Various changes and small fixes, including get build# from
+	this_build file.
+
+2001-12-15 12:56  paul_reeves
+
+	* interbase/jrd/unix.c:
+	
+	unix.c interbase
+
 2001-12-13 06:07  robocop
 
 	* interbase/jrd/ibase.h:
