@@ -3185,9 +3185,15 @@ source = (STR) node->nod_arg [e_view_source];
 assert(source->str_length <= MAX_USHORT);
 put_string (request, gds__dyn_view_source, source->str_data, (USHORT)source->str_length);
 
-/* define the view source relations from the request contexts */
+/* define the view source relations from the request contexts & union contexts */
 
-for (temp = request->req_union_context; temp; temp = temp->lls_next)
+while (request->req_union_context) 
+    {
+    context = LLS_POP (&request->req_union_context);
+    LLS_PUSH (context, &request->req_context);
+    }
+
+for (temp = request->req_context; temp; temp = temp->lls_next)
     {
     context = (CTX) temp->lls_object;
     if (relation = context->ctx_relation)
@@ -3253,12 +3259,12 @@ for (position = 0; i_ptr < i_end; i_ptr++, position++)
 	see comment below. This closes Firebird Bug #223059. */
     if (ptr)
 	{
-		if (ptr < end)
-		{
-			field_name = (STR) (*ptr)->nod_arg [1];
-			field_string = (TEXT*) field_name->str_data;
-		}
-		ptr++;
+	if (ptr < end)
+	    {
+	    field_name = (STR) (*ptr)->nod_arg [1];
+	    field_string = (TEXT*) field_name->str_data;
+	    }
+	ptr++;
 	}
 
 
