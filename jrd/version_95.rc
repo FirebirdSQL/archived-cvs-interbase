@@ -33,7 +33,7 @@ BEGIN
   BEGIN
     BLOCK "040904E4"
     BEGIN
-      VALUE "Comments", "Original Code created by Inprise Corporation and its predecessors. Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation. Portions created by others are Copyright (C) 2000-2001 themslevs and/or the FirebirdSQL Project. \0"	
+      VALUE "Comments", "Original Code created by Inprise Corporation and its predecessors. Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation. Portions created by others are Copyright (C) 2000-2001 themselves and/or the FirebirdSQL Project. \0"
       VALUE "CompanyName", "FirebirdSQL Project\0"
       VALUE "FileDescription", "Firebird Database Server\0"
       VALUE "FileVersion", FILE_VER_STRING
@@ -41,7 +41,7 @@ BEGIN
       VALUE "LegalCopyright", "Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation."
       VALUE "ProductName", "Firebird Database Server\0"
       VALUE "ProductVersion", PRODUCT_VER_STRING
-      VALUE "SpecialBuild", "Release Candidate 1"
+      VALUE "SpecialBuild", "Post-Release Candidate 1"
     END
   END
 
