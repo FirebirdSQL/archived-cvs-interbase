@@ -616,8 +616,8 @@ do
         }
     else
         {
-	HWND hTmpWnd;
-	if ((hTmpWnd = FindWindow("IB_Server", "InterBase Server")) == NULL)
+	HWND hTmpWnd = FindWindow("IB_Server", "InterBase Server");
+	if (hTmpWnd == NULL)
 	    {
 	    STARTUPINFO si;
 	    SECURITY_ATTRIBUTES sa;
@@ -633,6 +633,8 @@ do
 		error = GetLastError ();
 
 	    procHandle = pi.hProcess;
+	    /* TMN: 04 Aug 2000 - closed the handle that previously leaked. */
+	    CloseHandle(pi.hThread);
 	    }
 	else
 	    {
@@ -734,7 +736,7 @@ do
         }
     else
         {
-        /* Normal shutdown - eg: via ibmgr - don't restart the server */
+        /* Normal shutdown - ie: via ibmgr - don't restart the server */
         char szMsgString[256];
         LoadString(hInstance_gbl, IDS_NORMAL_TERM, szMsgString, 256); 
         sprintf (out_buf, "%s: %s\n", path, szMsgString);
