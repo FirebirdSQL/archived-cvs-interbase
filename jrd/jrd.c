@@ -2134,7 +2134,7 @@ LOG_call (log_statistics, dbb->dbb_reads, dbb->dbb_writes, dbb->dbb_max_memory);
 
 ERROR_INIT (env);
 
-if (!attachment->att_user->usr_flags & (USR_locksmith | USR_owner))
+if (!(attachment->att_user->usr_flags & (USR_locksmith | USR_owner)))
     ERR_post (gds__no_priv,
 	    gds_arg_string, "drop",
 	    gds_arg_string, "database",

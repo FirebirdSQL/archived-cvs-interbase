@@ -573,7 +573,7 @@ if (EVENT_header->evh_length > EVENT_data.sh_mem_length_mapped)
 	ACQUIRE;
 
 	process = (PRB) ABS_PTR (EVENT_process_offset);
-	if (!process->prb_flags & PRB_remap)
+	if (!(process->prb_flags & PRB_remap))
 	    break;
 	}
 #endif /* WIN_NT */
