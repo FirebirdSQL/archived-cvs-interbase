@@ -2613,6 +2613,7 @@ enum	info_db_provider
 #define isc_dyn_grant_view                188
 #define isc_dyn_grant_options             132
 #define isc_dyn_grant_user_group          205
+#define isc_dyn_grant_role                218
 
 
 /**********************************/
@@ -2741,7 +2742,7 @@ const unsigned char gds__dyn_delete_generator       = 217;
 /* Last $dyn value assigned */
 /****************************/
 
-#define isc_dyn_last_dyn_value            217
+#define isc_dyn_last_dyn_value            218
 
 
 

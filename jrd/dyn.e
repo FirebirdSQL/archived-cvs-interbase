@@ -26,6 +26,8 @@
  *                                revoke_permission, because there is already
  *                                a revoke(2) function in *nix.
  *    20-Jun-2001 Claudio Valderrama - Enable calls to DYN_delete_generator.
+ *    10-Oct-2001 Claudio Valderrama - Enable explicit GRANT...to ROLE role_name.
+ *			and complain if the grantee ROLE doesn't exist.	
  *                                      
  */
 
@@ -1182,6 +1184,7 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 
 	case gds__dyn_grant_user:
 	    GET_STRING (ptr, user);
+		/* This test may become obsolete as we now allow explicit ROLE keyword. */
 	    if (DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
 	        user_type = obj_sql_role;
 	    else {
@@ -1189,6 +1192,14 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 		for (ptr1 = user; *ptr1; ptr1++)
 		   *ptr1 = UPPER7 (*ptr1);
 		}
+	    break;
+
+	case isc_dyn_grant_role:
+	    user_type = obj_sql_role;
+	    GET_STRING (ptr, user);
+		if (!DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
+			DYN_error_punt (FALSE, 188, user, NULL, NULL, NULL, NULL);
+		/* msg 188: Role doesn't exist. */
 	    break;
 
 	case isc_dyn_sql_role_name:      /* role name in role_name_list */
@@ -1854,6 +1865,7 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 
 	case gds__dyn_grant_user:
 	    GET_STRING (ptr, user);
+		/* This test may become obsolete as we now allow explicit ROLE keyword. */
 	    if (DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
 	        user_type = obj_sql_role;
 	    else {
@@ -1861,6 +1873,14 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 		for (ptr1 = user; *ptr1; ptr1++)
 		   *ptr1 = UPPER7 (*ptr1);
 		}
+	    break;
+
+	case isc_dyn_grant_role:
+	    user_type = obj_sql_role;
+	    GET_STRING (ptr, user);
+		if (!DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
+			DYN_error_punt (FALSE, 188, user, NULL, NULL, NULL, NULL);
+		/* msg 188: Role doesn't exist. */
 	    break;
 
 	case isc_dyn_sql_role_name:       /* role name in role_name_list */
