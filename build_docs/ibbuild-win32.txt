@@ -1,8 +1,8 @@
 -Building the *****Base server on win32 platforms- 
-ibbuild-win32.txt version 1.0.8 last revised 10/03/2000
+ibbuild-win32.txt version 1.0.9 last revised Dec 27, 2000
 
 The latest version of this file is available at
-http://www.cruzers.com/~rfm/ibbuild-win32.txt
+http://sourceforge.net/docman/display_doc.php?docid=349&group_id=9028
 
 Please send comments and corrections to
 rfm@cruzers.com or the ib-build mailing list at mers.com
@@ -10,7 +10,8 @@ the ib-build mailing list is also available as a newsgroup at
 news.mers.com:mers.interbase.build
 
 For more information see the firebird and interbase projects 
-on sourceforge.net (http://www.sourceforge.com/projects/firebird)
+on sourceforge.net (http://www.sourceforge.com/projects/firebird,
+http://sourceforge.net/projects/interbase)
 
 Introduction:
 	This document describes the steps required to compile the server
@@ -50,9 +51,12 @@ the import library for borland tools.
  * Microsoft visual C (I used 6, but 5.x should be workable as well)
 
  * Cygnus cygwin32 or MKS korn shell (I wrote these instructions
-based on a build using cygwin. I've tried to note what would be
-different if you used MKS, but since I haven't tried with MKS,
-there are probably some things I missed.)
+based on a build using a recent (Dec 2000) cygwin. I've tried to
+note what would be different if you used MKS, but since I haven't
+tried with MKS, there are probably some things I missed.)
+
+Cygwin may be installed from http://sources.redhat.com
+
 Other unix-like tools should be usable as well. At a minimum, you
 need bash or ksh, sed and cp.  A few other common unix commands are
 probably also used, but with a little work you could substitute
@@ -64,7 +68,7 @@ Unix like toolkits (MKS, cygwin) include an echo executable which
 does not behave like the dos echo command (because they treat \ as
 special). But the dos echo command is a built into command.com, so
 borland make does not use it unless no echo.exe is on the path.
-So i created the following quick and dirty echo.exe:
+I use following quick and dirty echo.exe:
 --begin echo.c
 #include <stdio.h>
 int main(int argc, char **argv)
@@ -95,18 +99,9 @@ many developers probably have it) you should either remove the
 so-called posix tools provided with it, or ensure that they are after
 MKS or cygwin in you path.
 
- * The microsoft C and borland C bin directories need to be on your
-path.
+ * The microsoft C and borland C bin directories need to be on your path.
 
- * the interbase/bin directory of the install dir must be on the
-path
-
-additional downloads:
-	All of these downloads may be reached from
-	http://www.interbase.com/open/downloads/ib_download.html
-
-	"Qli binary for Windows 6.0 kit"
-	qli.wi-v60.zip You only need this if you want to build qli.
+ * the interbase/bin directory of the {INST_DIR} must be on the path
 
 Databases:
 Create the following file structure. The subdirectories 
@@ -119,13 +114,13 @@ should not be the same as the ones in {BUILD_DIR}
 		msg.gdb
 		master_msg_db
 		These are actually the same database. Create them
-		from the msgs.gbak stored in codes.zip. Really the
+		from the msg.gbak found in {BUILD_DIR}/misc. Really the
 		makefiles and .e files should just be changed
 		to refer to a single name.
 
  if you want to build qli
 	qli/
-		help.gdb 
+		help.gdb (help.gbak is in {BUILD_DIR}/misc)
 		master_help_db (once again these are the same file)
 		NOTE: the help database provided with qli is owned by
 		a user named bbandy (hi brett!). The install_qli_help
@@ -196,6 +191,15 @@ running setup_dirs.ksh (for metadata.gdb). As in:
 	export ISC_USER
 	export ISC_PASSWORD
 
+Under cygwin, you must either make sure the mount where the
+interbase source is has been mounted with -x (which makes all files
+under that mount executable), or you must put
+#!/bin/bash 
+at the start of setup_build.ksh and builds_win32/original/build_no.ksh
+If you do not do this, setup_dirs will give an error like
+'./setup_build.ksh: file not found' The reason for this is described
+in the cygwin FAQ.
+
 Run setup_dirs.ksh {DB_DIR}
 
 NOTE: in MKS, the .ksh extension is assumed, but in cygwin
@@ -218,6 +222,7 @@ BUILDING:
 set the environment variable IBSERVER to the root of {INST_DIR}
 run build_lib.bat 
 If all goes well there will be about 8000 warnings and no errors.
+
 build_lib.bat has some options:
 -DDEV makes a build with debug info, delivering the built kit
 to {BUILD_DIR}/ib_debug, with associated PDB files.
@@ -251,7 +256,7 @@ install does) OR delete whatever gds32.dll is in system, and keep
 the gds32.dll in the bin dir of the newly created build. I usually
 use the latter method, since that makes it so that you can replace
 all of IB (or just the bin dir) as a unit. You do have to ensure,
-however that there are no other gds32.dlls on the path that you
+however, that there are no other gds32.dlls on the path that you
 might pick up first.
 
 TRADEMARKS:
