@@ -1,3 +1,49 @@
+2001-08-06 17:51  gspeicher
+
+	* interbase/builds/original/sfx.gpre:
+	
+	- correction: references to 'no_form' (.c and .o) changed to
+	'noform'
+
+2001-08-06 17:34  gspeicher
+
+	* interbase/builds/original/build_kit:
+	
+	- omission: tell make to use the file 'make_kit' as its makefile
+
+2001-08-06 17:33  gspeicher
+
+	* interbase/setup_dirs:
+	
+	- fixed 2 typos (one superficial, one severe) - when copying
+	porting files for boot build, check that the thing we're   copying
+	out of is a directory before assuming it is
+
+2001-08-06 17:20  gspeicher
+
+	* interbase/firebird/gspeicher/firebird/files/: patch-aa, patch-ab,
+	patch-ac:
+	
+	- updating FreeBSD port; these patches are no longer needed
+
+2001-08-06 09:13  robocop
+
+	* interbase/isql/isql.e:
+	
+	Copy and Add commands
+
+2001-08-06 09:10  robocop
+
+	* interbase/jrd/: dyn_def.e, dyn_mod.e:
+	
+	Zero length identifiers again, this time blank names, too.
+
+2001-08-06 09:09  robocop
+
+	* interbase/dsql/: parse.c, parse.y:
+	
+	closed Bug #448062
+
 2001-08-05 13:46  skywalker
 
 	* interbase/dsql/parse.y:
