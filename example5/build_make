@@ -16,8 +16,10 @@
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
 #
+# $Id$
+#
 BASE=`cat ../builds/original/.platform_type`
 TR='tr "[A-Z]" "[a-z]"'
 BASE=`echo $BASE | $TR`
 rm -f makefile.example
-cat prefix.$BASE sfx.unix_makefile > makefile.example
+cat ../builds/original/prefix.$BASE sfx.unix_makefile > makefile.example
