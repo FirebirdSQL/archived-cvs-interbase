@@ -325,7 +325,7 @@ for (blob = request->req_blobs; blob; blob = blob->blb_next)
     cmp_blob (blob, FALSE);
 }
 
-CMP_display_code (
+int CMP_display_code (
     FINT	display,
     REF		reference)
 {

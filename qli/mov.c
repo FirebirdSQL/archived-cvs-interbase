@@ -388,6 +388,7 @@ switch (arg1->dsc_dtype)
 	mover_error (410, arg1->dsc_dtype, arg2->dsc_dtype);
  
    }
+   return -1;
 }
 #endif
 

@@ -1217,6 +1217,7 @@ for (i = 0; (vector = dbb->dbb_relations) && i < vector->vec_count; i++)
     }
 
 CCH_RELEASE (tdbb, &window);
+return rtn_ok;
 }
 
 static RTN walk_data_page (
@@ -1670,6 +1671,7 @@ for (sequence = 0;; sequence++)
     if (byte & 0x80)
 	break;
     }
+return rtn_ok;
 }
 
 static RTN walk_pointer_page (

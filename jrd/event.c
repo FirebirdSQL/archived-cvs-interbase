@@ -136,7 +136,7 @@ static struct ipccfg	EVENT_hdrtbl [] = {
 	NULL,			-1,	NULL,			0,	0
 };
 
-int EVENT_cancel (SLONG	request_id)
+void EVENT_cancel (SLONG request_id)
 {
 /**************************************
  *
@@ -220,7 +220,7 @@ RELEASE;
 return id;
 }
 
-int EVENT_delete_session (
+void EVENT_delete_session (
     SLONG	session_id)
 {
 /**************************************

@@ -67,7 +67,7 @@ static void	rec_process_record	(TDBB, JRNH *, USHORT, ULONG,
 						ULONG, PAG, SBM *, USHORT);
 static void	scan_and_apply_logs (TEXT *, TEXT *, CP *, SBM *, USHORT, SLONG *, SLONG, PAG);
 
-int REC_recover (
+void REC_recover (
     TEXT	*dbname,
     TEXT	*walname,
     CP		*cp1,
@@ -109,7 +109,7 @@ REC_update_next_transid();
  */
 }
 
-int REC_recover_page (
+void REC_recover_page (
     TEXT	*dbname,
     TEXT	*walname,
     CP		*cp1,
@@ -136,7 +136,7 @@ scan_and_apply_logs (dbname, walname, cp1, (SBM *) NULL,
                      0, date, page_no, page);
 }
 
-int REC_update_next_transid (void)
+void REC_update_next_transid (void)
 {
 /**************************************
  *
@@ -161,8 +161,6 @@ hdr = (HDR) CCH_FETCH (tdbb, &window, LCK_write, pag_header);
 CCH_MARK_MUST_WRITE (tdbb, &window);
 hdr->hdr_next_transaction = hdr->hdr_bumped_transaction;
 CCH_RELEASE (tdbb, &window);
-
-return SUCCESS;
 }
 
 static void apply_data (

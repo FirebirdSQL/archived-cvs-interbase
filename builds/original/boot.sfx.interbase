@@ -95,7 +95,8 @@ $(MESSAGES):	misc/msg.gbak
 $(HELP):	misc/help.gbak
 	$(GBAK) -c misc/help.gbak $(HELP)
 
-all_example_dbs:	example_dbs v4_dbs v5_dbs
+#all_example_dbs:	example_dbs v4_dbs v5_dbs
+all_example_dbs:	example_dbs v5_dbs
  
 example_dbs:
 	$(ECHO) "- building example dbs"

@@ -1124,6 +1124,7 @@ switch (xdrs->x_op)
     case XDR_FREE:
 	return TRUE;
     }
+    return FALSE;
 }
 #endif  /* SOLARIS */
 
@@ -1669,7 +1670,7 @@ if (statement_id >= 0)
 else
     statement = port->port_statement;
 
-if (message = statement->rsr_buffer)
+if ((message = statement->rsr_buffer) != 0)
     {
     statement->rsr_buffer = message->msg_next;
     if (!message->msg_address)

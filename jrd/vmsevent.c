@@ -162,7 +162,7 @@ id = (SLONG) session;
 return id;
 }
 
-int EVENT_delete_session (
+void EVENT_delete_session (
     SLONG	session_id)
 {
 /**************************************

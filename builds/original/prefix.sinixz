@@ -28,16 +28,17 @@
 .c.bin:
 	$(CC) -c $(PIC_FLAGS) $(VERSION_FLAG) -o $*.bin $<
 
+WARNINGS=		-Wall -Wno-implicit -Wno-switch -Wno-unused -Wno-uninitialized -Wno-parentheses
 
 PROD_DEBUG_OBJECTS=	nodebug.o
 PROD_SHRLIB_DIR=	-Lsource/jrd -L$(INTERBASE)/interbase/lib -L$(INTERBASE)/source/interbase/lib
 PROD_VERSION_FLAG=	-DPROD_BUILD
-PROD_CFLAGS=		-O3 -DHADES -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ -Wall -fwritable-strings -I$(INTERBASE)/include
+PROD_CFLAGS=		-O3 -DHADES -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ $(WARNINGS) -fwritable-strings -I$(INTERBASE)/include
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
 DEV_SHRLIB_DIR=		-Lsource/jrd -L$(INTERBASE)/interbase/lib -L$(INTERBASE)/source/interbase/lib
 DEV_VERSION_FLAG=	-DDEV_BUILD
-DEV_CFLAGS=		-g -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ -w -fwritable-strings -I$(INTERBASE)/include
+DEV_CFLAGS=		-g -DBSD_COMP -DLARGEFILE -DEXACT_NUMERICS -DUNIX -DSINIXZ $(WARNINGS) -fwritable-strings -I$(INTERBASE)/include
 
 DEBUG_OBJECTS=		$($(VERSION)_DEBUG_OBJECTS)
 SHRLIB_DIR=		$($(VERSION)_SHRLIB_DIR)
@@ -49,10 +50,9 @@ UDF_CFLAGS=		-fPIC -mieee-fp
 UDF_LFLAGS=		-shared
 UDF_SHRLIBS=		$(SHRLIB_DIR) -lgds -lm -lc -mieee-fp -ldl -lcrypt
 
-#ACCESS_METHOD=		gdslib.unixware pipe
-ACCESS_METHOD=		gdslib.unixware gds.a
+ACCESS_METHOD=		gdslib.unixware pipe
 BACKEND_BRIDGE_MISC=	head5.o allp.o
-BIN_PATH=		/usr/gds/bin
+#BIN_PATH=		/usr/gds/bin
 BRIDGE_MISC=		head5.o allp.o
 CHMOD_VAL=		666
 CURSES_LIB=		-lcurses
@@ -64,7 +64,6 @@ GDS_LINK=		$(GDSSHR_LINK)
 GDSLIB_BACKEND=		source/jrd/gds_b.a
 GDSLIB_LINK=		-Lsource/jrd -lgds_b -lsocket -lnsl -lresolv -ldl
 GDSSHR=			source/interbase/lib/gds.so.0
-UNIXWARE_GDSSHR=	$(GDSSHR)
 GDSSHR_LINK=		$(SHRLIB_DIR) -lgds -lsocket -lresolv -lnsl
 HLPDIR=			source/qli/
 INTL=			intl
@@ -87,8 +86,7 @@ LOCK_MANAGER=
 MARION_DB=		-d source/marion.gdb
 NSL_LIB=		-lnsl
 PIC_FLAGS=		$(CFLAGS) -fPIC
-#PIPE=			gds.a gds_pipe
-PIPE=			gds.a
+PIPE=			gds.a gds_pipe
 REG_HELP=		isc_ins_hlp.dat
 REMOTE_GDSSHR=		$(GDSSHR)
 REMOTE_GDSSHR_LINK=	$(SERVER_LINK)

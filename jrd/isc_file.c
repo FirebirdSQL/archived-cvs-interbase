@@ -2087,7 +2087,7 @@ return file_length;
 #endif
 
 #if (defined NFS || defined FREEBSD || defined NETBSD)
-static expand_filename2 (
+static int expand_filename2 (
     TEXT	*from_buff,
     USHORT	length,
     TEXT	*to_buff)
@@ -2654,7 +2654,7 @@ struct mnttab	*mptr, mnttab;
 p = buffer;
 
 mptr = &mnttab;
-while (getmntent (file, mptr) == 0)
+if (getmntent (file, mptr) == 0)
     {
     /* Include non-NFS (local) mounts - some may be longer than
        NFS mount points */
@@ -2669,13 +2669,13 @@ while (getmntent (file, mptr) == 0)
     if (*q)
 	q++;
     mount->mnt_path = p;
-    while (*p++ = *q++)
+    while ((*p++ = *q++) != 0)
 	;
     mount->mnt_mount = mptr->mnt_mountp;
     return TRUE;
     }
-
-return FALSE;
+else
+    return FALSE;
 }
 #endif
 #ifdef SOLARIS

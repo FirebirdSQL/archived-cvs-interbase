@@ -464,7 +464,7 @@ static void	blr_format (CTL, TEXT *, ...);
 static void	blr_indent (CTL, SSHORT);
 static void	blr_print_blr (CTL, UCHAR);
 static SCHAR	blr_print_byte (CTL);
-static int	blr_print_char (CTL);
+static SCHAR	blr_print_char (CTL);
 static void	blr_print_cond (CTL);
 static int	blr_print_dtype (CTL);
 static void	blr_print_join (CTL);
@@ -1098,7 +1098,7 @@ STATUS API_ROUTINE gds__decode (
 
 if (!code)
     return SUCCESS;
-else if (code & ISC_MASK != ISC_MASK)
+else if ((code & ISC_MASK) != ISC_MASK)
     /* not an ISC error message */
     return code; 
 
@@ -4435,7 +4435,7 @@ blr_format (control, (control->ctl_language) ? "chr(%d), " : "%d, ", (TEXT*) v);
 return v;
 }
 
-static blr_print_char (
+static SCHAR blr_print_char (
     CTL	control)
 {
 /**************************************
@@ -4455,8 +4455,9 @@ SSHORT	printable;
 v = c = BLR_BYTE;
 printable = (c >= 'a' && c <= 'z') ||
 	    (c >= 'A' && c <= 'Z') ||
-	    (c >= '0' && c <= '9' ||
-	     c == '$' || c == '_');
+	    (c >= '0' && c <= '9') ||
+	     c == '$' ||
+	     c == '_';
 
 if (printable)
     blr_format (control, "'%c',", (TEXT*) c);

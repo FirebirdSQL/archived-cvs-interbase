@@ -45,7 +45,10 @@
 #define FTOK_KEY		15
 
 static long	get_key();
-static 		dummy_init();
+static void	dummy_init();
+static void	get_lock_header();
+static int	sem_exclusive();
+static void	remove_resource();
 
 static int	LOCK_shm_size, LOCK_sem_key, LOCK_blk_signal, LOCK_sem_count;
 
@@ -63,7 +66,7 @@ static struct {
 	 NULL,      NULL
 };
 
-V3_drop (argc, argv)
+void V3_drop (argc, argv)
     int		argc;
     UCHAR	*argv[];
 {
@@ -134,7 +137,7 @@ if (sw_csv)
 exit (FINI_OK);
 }
 
-static dummy_init ()
+static void dummy_init ()
 {
 /**************************************
  *
@@ -174,7 +177,7 @@ sprintf (expanded_filename, filename, ISC_get_host (hostname, sizeof (hostname))
 return ftok (expanded_filename, FTOK_KEY);
 }
 
-static get_lock_header ()
+static void get_lock_header ()
 { 
 /*************************************
  *
@@ -220,7 +223,7 @@ if (fd = ib_fopen (LOCK_HEADER, "r"))
 }
 
 #ifndef MMAP_SUPPORTED
-static remove_resource (lock_flag, filename, shm_length, sem_count, label)
+static void remove_resource (lock_flag, filename, shm_length, sem_count, label)
     int		lock_flag;
     TEXT	*filename;
     int		shm_length, sem_count;
@@ -285,7 +288,7 @@ else
 #endif
 
 #ifdef MMAP_SUPPORTED
-static remove_resource (lock_flag, filename, shm_length, sem_count, label)
+static void remove_resource (lock_flag, filename, shm_length, sem_count, label)
     int		lock_flag;
     TEXT	*filename;
     int		shm_length, sem_count;
@@ -348,7 +351,7 @@ else
 }
 #endif
 
-static sem_exclusive (key, count)
+static int sem_exclusive (key, count)
     long	key;
     int		count;
 {

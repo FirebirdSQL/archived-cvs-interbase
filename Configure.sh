@@ -19,9 +19,10 @@
 
 #    Contributor(s):
 #       Tom Coleman TMC Systems <tcoleman@autowares.com>
-#	    Reed Mideke <rfm@cruzers.com>
+#       Reed Mideke <rfm@cruzers.com>
 #       Mark O'Donohue <mark.odonohue@ludwig.edu.au>
 #       Neil McCalden <nm@zizz.org>
+#       Erik Kunze <kunze@philosys.de>
 
 #
 # $Id$
@@ -82,11 +83,11 @@ Answer=""
 AskQuestion() {
     Test=$1
     DefaultAns=$2
-    echo ${MN} "${1}${SC}"
     Answer="$DefaultAns"
 
     if [ -z "$NOPROMPT_SETUP" ]
       then
+        echo ${MN} "${1}${SC}"
         read Answer 
     fi
 }
@@ -379,19 +380,19 @@ checkVariables() {
      echo "- Firebird - Database build setup ----------------------------"
      echo "" 
      echo "From command line :"
-     echo "Host  OS Type                          : $BuildHostType"
-     echo "Build Type                             : $BuildBuildType"
-     echo "Boot Type Build                        : $BuildBootFlg"
-	 echo ""
-	 echo "File IO bit size (32/64)               : $BuildIOsize"
+     echo "Host  OS Type                            : $BuildHostType"
+     echo "Build Type                               : $BuildBuildType"
+     echo "Boot Type Build                          : $BuildBootFlg"
+     echo ""
+     echo "File IO bit size (32/64)                 : $BuildIOsize"
      echo ""
      echo "From env. variables:"
      if [ "$BuildBootFlg" = "No" ]
        then
-         echo "INTERBASE    (previous firebird install)   : $INTERBASE "
+         echo "INTERBASE    (previous firebird install) : $INTERBASE "
      fi
-     echo "ISC_USER     (admin user)                  : $ISC_USER"
-     echo "ISC_PASSWORD (admin password)              : $ISC_PASSWORD"
+     echo "ISC_USER     (admin user)                : $ISC_USER"
+     echo "ISC_PASSWORD (admin password)            : $ISC_PASSWORD"
      echo "" 
      echo "If you wish to have different values please set them before running" 
      echo "this script"
@@ -600,6 +601,7 @@ fi
 # Here we ensure that the build_no version strings are automatically set to 
 # the correct current values ( thanks to Frank for this).
 
+echo ""
 echo "- Setting build version strings in file jrd/build_no.h"
 echo ""
 sh builds_win32/original/build_no.ksh

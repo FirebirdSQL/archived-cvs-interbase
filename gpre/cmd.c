@@ -91,7 +91,7 @@ static void	set_statistics (REQ, ACT);
 #define STANDARD_TPB	4
 #define BLOB_BUFFER_SIZE   4096   /* to read in blr blob for default values */
 
-CMD_compile_ddl (
+int CMD_compile_ddl (
     register REQ	request)
 {
 /**************************************

@@ -1126,6 +1126,7 @@ else
         gds_arg_string, ERR_string (file->fil_string, file->fil_length),
         isc_arg_gds, operation,
     	gds_arg_unix, errno, 0);
+return FALSE; /* I'm not sure what this functions should return. */
 }
 
 #if ((defined PREAD_PWRITE) && !(defined SOLARIS_MT || defined LINUX))

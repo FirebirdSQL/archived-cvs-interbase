@@ -88,7 +88,7 @@ typedef SLONG            clock_t;
 extern clock_t		times();
 #endif
 
-API_ROUTINE perf_format (
+int API_ROUTINE perf_format (
     PERF	*before,
     PERF	*after,
     SCHAR	*string,
@@ -384,7 +384,6 @@ static SLONG get_parameter (
  *
  **************************************/
 SLONG	parameter;
-SCHAR	*p;
 SSHORT	l;
 
 l = *(*ptr)++;

@@ -135,7 +135,7 @@ else if (numeric_flag == CONSTANT_SINT64)
 
     while (isdigit(*p))
 	value = 10 * value + (*(p++) - '0');
-    if (*p++ = '.')
+    if (*p++ == '.')
         {
 	while (isdigit(*p))
 	    {
@@ -882,7 +882,7 @@ switch (node->nod_type)
     case nod_dbkey:
 	/* Fix for bug 10072 check that the target is a relation */
         context = (CTX) node->nod_arg [0]->nod_arg [0];
-        if (relation = context->ctx_relation)
+        if ((relation = context->ctx_relation) != 0)
 	    {
             desc->dsc_dtype = dtype_text;
             desc->dsc_length = relation->rel_dbkey_length;
@@ -1226,7 +1226,7 @@ tdsql = GET_THREAD_DATA;
 
 parameter = (PAR) ALLOCD (type_par);
 parameter->par_message = message;
-if (parameter->par_next = message->msg_parameters)
+if ((parameter->par_next = message->msg_parameters) != 0)
     parameter->par_next->par_ordered = parameter;
 else
     message->msg_par_ordered = parameter;

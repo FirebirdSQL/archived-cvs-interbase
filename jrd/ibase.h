@@ -209,7 +209,7 @@ typedef struct bstream {
 /* I did the full definition with the proper parameters instead of  */
 /* the weak C declaration with any number and type of parameters.   */
 /* Since the first parameter -BLB- is unknown outside the engine,   */
-/* it's more accurate to use void* than int* as the blob pointer
+/* it's more accurate to use void* than int* as the blob pointer    */
 /********************************************************************/
 
 #if !defined(_JRD_VAL_H_) && !defined(REQUESTER)

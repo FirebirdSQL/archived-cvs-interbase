@@ -21,7 +21,7 @@
  * Contributor(s): ______________________________________.
  * $Id$
  * Revision 1.3  2000/11/22 17:07:25  patrickgriffin
- * In get_procedure_args change comment style from // to /*
+ * In get_procedure_args change comment style from C++ to C
  *
  * ...pat
  *

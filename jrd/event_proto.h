@@ -24,9 +24,9 @@
 #ifndef _JRD_EVENT_PROTO_H_
 #define _JRD_EVENT_PROTO_H_
 
-extern int		EVENT_cancel (SLONG);
+extern void		EVENT_cancel (SLONG);
 extern SLONG		EVENT_create_session (STATUS *);
-extern int		EVENT_delete_session (SLONG);
+extern void		EVENT_delete_session (SLONG);
 extern struct evh	*EVENT_init (STATUS *, USHORT);
 extern int		EVENT_post (STATUS *, USHORT, TEXT *, USHORT, TEXT *, USHORT);
 extern SLONG		EVENT_que (STATUS *, SLONG, USHORT, TEXT *, USHORT, UCHAR *, FPTR_VOID, void *);

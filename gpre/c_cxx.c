@@ -1131,7 +1131,7 @@ else if ((action->act_error && (action->act_type != ACT_blob_for)))
     END;
 }
 
-static gen_blr (
+static int gen_blr (
     int		*user_arg,
     int		offset,
     TEXT	*string)
@@ -1194,10 +1194,12 @@ do
 	    if (*p1 && (*q1++ = *p1++) == 'd')
 		if (*p1 && (*q1++ = *p1++) == 's')
 		    if (*p1 && (*q1++ = *p1++) == '_')
+		        {
 			if (*p1 && ((d = *p1++) == '_' || d == '$'))
 			    strncpy (q1 - 4, "isc", 3);
 			else
 			    *q1++ = d;
+			}
     *q1 = 0;
     printa (indent, line);
     *q = c;
@@ -1412,7 +1414,7 @@ SET_SQLCODE;
 column -= INDENT;
 }
 
-static gen_cursor_close (
+static int gen_cursor_close (
     ACT		action,
     REQ		request,
     int		column)
@@ -1463,7 +1465,7 @@ if (action->act_request->req_flags & (REQ_sql_blob_open | REQ_sql_blob_create))
     printa (column, "isc_%d = 0;", action->act_request->req_blobs->blb_ident);
 }
 
-static gen_cursor_open (
+static int gen_cursor_open (
     ACT		action,
     REQ		request,
     int		column)
