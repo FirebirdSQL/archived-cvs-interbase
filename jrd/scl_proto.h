@@ -34,6 +34,6 @@ extern void		SCL_init (BOOLEAN, TEXT *, TEXT *, TEXT *,
 extern void		SCL_move_priv (UCHAR **, USHORT, STR *, ULONG *);
 extern struct scl	*SCL_recompute_class	(TDBB, TEXT *);
 extern void		SCL_release (struct scl *);
-extern void             SCL_check_index (TDBB, TEXT *, USHORT);
+extern void             SCL_check_index (TDBB, TEXT *, UCHAR, USHORT);
 
 #endif /* _JRD_SCL_PROTO_H_ */

@@ -163,10 +163,11 @@ for (names = p_names; names->p_names_priv; names++)
 ERR_post (gds__no_priv, gds_arg_string, names->p_names_string,
 	gds_arg_string, type, gds_arg_string, ERR_cstring (name), 0);
 }
-
+
 void SCL_check_index (
     TDBB	tdbb,
     TEXT	*index_name,
+    UCHAR	index_id,
     USHORT	mask)
 {
 /******************************************************
@@ -178,12 +179,18 @@ void SCL_check_index (
  * Functional description
  *	Given a index name (as a TEXT), check for a 
  *      set of privileges on the table that the index is on and 
- *      on the fields involved in that index.  
+ *      on the fields involved in that index.
+ *   CVC: Allow the same function to use the zero-based index id, too.
+ *      The idx.idx_id value is zero based but system tables use
+ *      index id's being one based, hence adjust the incoming value
+ *      before calling this function. If you use index_id, index_name
+ *      becomes relation_name since index ids are relative to tables.
  *
  *******************************************************/
 VOLATILE BLK	request;
 SCL	s_class, default_s_class;
-TEXT    reln_name[32];
+TEXT    reln_name[32], aux_idx_name[32];
+TEXT	*idx_name_ptr = index_name, *relation_name_ptr = index_name;
 DBB	dbb;
 JMP_BUF env, *old_env;
 
@@ -193,28 +200,51 @@ s_class = default_s_class = NULL;
 
 /* no security to check for if the index is not yet created */
 
-if (!index_name || !*index_name)
+if ((!index_name || !*index_name) && index_id < 1)
     return;
+
+reln_name[0] = aux_idx_name[0] = 0;
     
 request = NULL;
 
 /* No need to cache this request handle, it's only used when
    new constraints are created */
 
-FOR (REQUEST_HANDLE request) IND IN RDB$INDICES 
-    CROSS REL IN RDB$RELATIONS 
-    OVER RDB$RELATION_NAME
-    WITH IND.RDB$INDEX_NAME EQ index_name
-    strcpy (reln_name, REL.RDB$RELATION_NAME);
+if (index_id < 1)
+{
+	FOR (REQUEST_HANDLE request) IND IN RDB$INDICES 
+		CROSS REL IN RDB$RELATIONS 
+		OVER RDB$RELATION_NAME
+		WITH IND.RDB$INDEX_NAME EQ index_name
+		strcpy (reln_name, REL.RDB$RELATION_NAME);
     if (!REL.RDB$SECURITY_CLASS.NULL)
-	s_class = SCL_get_class (REL.RDB$SECURITY_CLASS);
+		s_class = SCL_get_class (REL.RDB$SECURITY_CLASS);
     if (!REL.RDB$DEFAULT_CLASS.NULL)
-	default_s_class = SCL_get_class (REL.RDB$DEFAULT_CLASS);
-END_FOR;
+		default_s_class = SCL_get_class (REL.RDB$DEFAULT_CLASS);
+	END_FOR;
+	
+	CMP_release (tdbb, (REQ)request);
+}
+else
+{
+	idx_name_ptr = aux_idx_name;
+	FOR (REQUEST_HANDLE request) IND IN RDB$INDICES 
+		CROSS REL IN RDB$RELATIONS 
+		OVER RDB$RELATION_NAME
+		WITH IND.RDB$RELATION_NAME EQ relation_name_ptr
+		AND IND.RDB$INDEX_ID EQ index_id
+		strcpy (reln_name, REL.RDB$RELATION_NAME);
+    strcpy (aux_idx_name, IND.RDB$INDEX_NAME);
+    if (!REL.RDB$SECURITY_CLASS.NULL)
+		s_class = SCL_get_class (REL.RDB$SECURITY_CLASS);
+    if (!REL.RDB$DEFAULT_CLASS.NULL)
+		default_s_class = SCL_get_class (REL.RDB$DEFAULT_CLASS);
+	END_FOR;
+	
+	CMP_release (tdbb, (REQ)request);
+}
 
-CMP_release (tdbb, (REQ)request);
-
-/* check if the relation exixts. It may not have been created yet.
+/* check if the relation exists. It may not have been created yet.
    Just return in that case. */
    
 if (!reln_name || !*reln_name)
@@ -250,7 +280,7 @@ FOR (REQUEST_HANDLE request) ISEG IN RDB$INDEX_SEGMENTS
     CROSS RF IN RDB$RELATION_FIELDS 
     OVER RDB$FIELD_NAME
     WITH RF.RDB$RELATION_NAME EQ reln_name 
-     AND ISEG.RDB$INDEX_NAME EQ index_name
+     AND ISEG.RDB$INDEX_NAME EQ idx_name_ptr
 
     if (!RF.RDB$SECURITY_CLASS.NULL)
 	{
@@ -268,7 +298,7 @@ CMP_release (tdbb, (REQ)request);
 
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
 }
-
+
 void SCL_check_procedure (
     DSC		*dsc_name,
     USHORT	mask)

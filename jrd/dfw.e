@@ -1500,7 +1500,14 @@ switch (phase)
 	For testing purposes, I'm calling SCL_check_index, although most of the DFW ops are
 	carried using internal metadata structures that are refreshed from system tables. */
 		if (partner_relation)
-			SCL_check_index (tdbb, work->dfw_name, SCL_sql_references);
+		{
+			/* Don't bother if the master's owner is the same than the detail's owner.
+			If both tables aren't defined in the same session, partner_relation->rel_owner_name
+			won't be loaded hence, we need to be careful about null pointers. */
+			if (!relation->rel_owner_name || !partner_relation->rel_owner_name
+				|| strcmp(relation->rel_owner_name, partner_relation->rel_owner_name))
+				SCL_check_index (tdbb, partner_relation->rel_name, idx.idx_id + 1, SCL_sql_references);
+		}
     }
 		    
 	assert (work->dfw_id == MAX_IDX);

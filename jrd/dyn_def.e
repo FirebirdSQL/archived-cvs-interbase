@@ -343,7 +343,7 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	/* check that we have references permissions on the table and
            fields that the index:referred_index_name is on. */
 	   
-	SCL_check_index (tdbb, referred_index_name, SCL_sql_references);
+	SCL_check_index (tdbb, referred_index_name, 0, SCL_sql_references);
 	}
 END_STORE;
 
