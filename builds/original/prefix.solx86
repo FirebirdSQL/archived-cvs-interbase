@@ -48,7 +48,7 @@ PROD_CFLAGS=		-O1 -mpentium
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
 DEV_SHRLIB_DIR=		-L source/jrd -L source/interbase/lib
 DEV_VERSION_FLAG=	-DDEV_BUILD
-DEV_CFLAGS=		
+DEV_CFLAGS=		-ggdb		
 
 DEBUG_OBJECTS=		$($(VERSION)_DEBUG_OBJECTS)
 SHRLIB_DIR=		$($(VERSION)_SHRLIB_DIR)
