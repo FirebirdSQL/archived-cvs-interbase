@@ -302,9 +302,7 @@ extern		main_gsec();
   in use flag (for compatibility)
 */
 
-/* DARWIN - Changed syntax of #ifdef because of compile problems */
 static CONST struct serv	services [] = {
-#if !(defined (LINUX) || defined (FREEBSD) || defined (NETBSD))
 #ifndef NETWARE386
 #ifdef WIN_NT
     isc_action_max, "print_cache",      "-svc",             "bin/ibcachpr",          NULL,             0,
@@ -352,8 +350,8 @@ static CONST struct serv	services [] = {
     isc_action_svc_modify_user,    "Modify User",             NULL, "bin/gsec",  MAIN_GSEC,            0,
     isc_action_svc_display_user,   "Display User",	      NULL, "bin/gsec",  MAIN_GSEC,            0,
     isc_action_svc_properties,     "Database Properties",     NULL, "bin/gfix",  MAIN_GFIX,            0,
-    isc_action_svc_lock_stats,     "Lock Stats",              NULL, NULL,        TEST_THREAD,          0,
-    isc_action_svc_db_stats,	   "Database Stats",	      NULL, NULL,	 MAIN_GSTAT,	       0,
+    isc_action_svc_lock_stats,     "Lock Stats",              NULL, "bin/gds_lock_print", TEST_THREAD, 0,
+    isc_action_svc_db_stats,	   "Database Stats",	      NULL, "bin/gstat", MAIN_GSTAT,	       0,
     isc_action_svc_get_ib_log,	   "Get Log File",	      NULL, NULL,	 SVC_read_ib_log,      0,
 /* actions with no names are undocumented */
     isc_action_svc_set_config,     NULL, NULL, NULL, TEST_THREAD,  0,
@@ -363,32 +361,7 @@ static CONST struct serv	services [] = {
     isc_action_svc_set_env_msg,    NULL, NULL, NULL, TEST_THREAD,  0,
     0,                             NULL, NULL, NULL, NULL,         0
 };
-#else	/* LINUX: disallow services API for 6.0 Linux Classic */
-    isc_action_max, "anonymous",   NULL, NULL, NULL,  0,
-#ifdef SUPERSERVER
-    isc_action_max, "query_server", NULL, NULL, NULL, 0,
-    isc_action_max,                "service_mgr",             NULL, NULL,        NULL,                 0,
-    isc_action_svc_backup,         "Backup Database",         NULL, "bin/gbak",  MAIN_GBAK,            0,
-    isc_action_svc_restore,        "Restore Database",        NULL, "bin/gbak",  MAIN_GBAK,            0,
-    isc_action_svc_repair,         "Repair Database",         NULL, "bin/gfix",  MAIN_GFIX,            0,
-    isc_action_svc_add_user,       "Add User",                NULL, "bin/gsec",  MAIN_GSEC,            0,
-    isc_action_svc_delete_user,    "Delete User",             NULL, "bin/gsec",  MAIN_GSEC,            0,
-    isc_action_svc_modify_user,    "Modify User",             NULL, "bin/gsec",  MAIN_GSEC,            0,
-    isc_action_svc_display_user,   "Display User",	      NULL, "bin/gsec",  MAIN_GSEC,            0,
-    isc_action_svc_properties,     "Database Properties",     NULL, "bin/gfix",  MAIN_GFIX,            0,
-    isc_action_svc_lock_stats,     "Lock Stats",              NULL, NULL,        TEST_THREAD,          0,
-    isc_action_svc_db_stats,	   "Database Stats",	      NULL, NULL,	 MAIN_GSTAT,	       0,
-    isc_action_svc_get_ib_log,	   "Get Log File",	      NULL, NULL,	 SVC_read_ib_log,      0,
-/* actions with no names are undocumented */
-    isc_action_svc_set_config,     NULL, NULL, NULL, TEST_THREAD,  0,
-    isc_action_svc_default_config, NULL, NULL, NULL, TEST_THREAD,  0,
-    isc_action_svc_set_env,        NULL, NULL, NULL, TEST_THREAD,  0,
-    isc_action_svc_set_env_lock,   NULL, NULL, NULL, TEST_THREAD,  0,
-    isc_action_svc_set_env_msg,    NULL, NULL, NULL, TEST_THREAD,  0,
-#endif
-    0, NULL, NULL, NULL, NULL, 0};
-#endif	/* LINUX */
-   
+
 /* The SERVER_CAPABILITIES_FLAG is used to mark architectural
 ** differences across servers.  This allows applications like server
 ** manager to disable features as necessary.  
@@ -491,6 +464,9 @@ int	id, group, node_id;
 USHORT	len, user_flag;
 SVC	service;
 JMP_BUF	env, *old_env;
+SCHAR	*spb_buf;
+SCHAR	*p = spb, *end = spb + spb_length;
+BOOLEAN	cmd_line_found = FALSE;
 
 /* If the service name begins with a slash, ignore it. */
 
@@ -515,19 +491,15 @@ for (serv = services; serv->serv_name; serv++)
 	break;
 
 if (!serv->serv_name)
-#if ((defined LINUX || defined FREEBSD || defined NETBSD) && !defined SUPERSERVER)
-    ERR_post (isc_service_att_err, isc_arg_gds, isc_service_not_supported, 0);
-#else
     ERR_post (isc_service_att_err, isc_arg_gds, isc_svcnotdef, isc_arg_string,
 	      SVC_err_string (misc_buf, strlen (misc_buf)), 0);
-#endif
 
 tdbb = GET_THREAD_DATA;
 
 /* If anything goes wrong, we want to be able to free any memory
    that may have been allocated. */
 
-misc = switches = NULL;
+spb_buf = misc = switches = NULL;
 service = NULL;
 
 old_env = (JMP_BUF*) tdbb->tdbb_setjmp;
@@ -536,6 +508,8 @@ tdbb->tdbb_setjmp = (UCHAR*) env;
 if (SETJMP (env))
     {
     tdbb->tdbb_setjmp = (UCHAR*) old_env;
+    if (spb_buf != NULL)
+	gds__free ((SLONG*)spb_buf);
     if ((misc != NULL) && (misc != misc_buf))
 	gds__free ((SLONG*)misc);
     if ((switches != NULL))
@@ -545,6 +519,62 @@ if (SETJMP (env))
     if (service != NULL)
 	gds__free ((SLONG*)service);
     ERR_punt();
+    }
+
+/* Insert internal switch SERVICE_THD_PARAM in the service parameter block. */
+while (!cmd_line_found && p < end)
+    {
+    switch (*p++)
+   	{
+	case isc_spb_version1:
+	case isc_spb_version:
+	    p++;
+	    break;
+
+	case isc_spb_sys_user_name:
+	case isc_spb_user_name:
+	case isc_spb_password:
+	case isc_spb_password_enc:
+	    {
+	    USHORT length = *p++;
+	    p += length;
+	    }
+	    break;
+
+	case isc_spb_command_line:
+	    cmd_line_found = TRUE;
+	    break;
+	}
+    }
+
+/* dimitr: it looks that we shouldn't execute the below code
+ *         if the first switch of the command line is "-svc_re",
+ *         but I couldn't find where such a switch is specified
+ *         by any of the client tools, so it seems that in fact
+ *         it's not used at all. Hence I ignore this situation. */
+if (cmd_line_found && p++ < end)
+    {
+    USHORT ignored_length = 0;
+    USHORT param_length;
+    USHORT spb_buf_length;
+    SCHAR *q;
+    if (!strncmp(p, "-svc ", 5))
+	ignored_length = 5;
+    else if (!strncmp(p, "-svc_thd ", 9))
+	ignored_length = 9;
+    param_length = sizeof(SERVICE_THD_PARAM) - 1;
+    spb_buf_length = spb_length + param_length - ignored_length + 1;
+    *q = spb_buf = (TEXT*) gds__alloc(spb_buf_length + 1);
+    memcpy(q, spb, p - spb);
+    q += p - spb - 1;
+    *q++ += param_length - ignored_length + 1;
+    memcpy(q, SERVICE_THD_PARAM, param_length);
+    q += param_length;
+    *q++ = ' ';
+    p += ignored_length;
+    memcpy(q, p, end - p);
+    spb = spb_buf;
+    spb_length = spb_buf_length;
     }
 
 /* Process the service parameter block. */
@@ -693,6 +723,8 @@ if (serv->serv_thd && options.spb_version == isc_spb_version1)
     }
 
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
+if (spb_buf != NULL)
+    gds__free ((SLONG*)spb_buf);
 if (misc != misc_buf)
     gds__free ((SLONG*)misc);
 
@@ -849,7 +881,7 @@ STATUS SVC_query2 (
  *
  **************************************/
 SCHAR	item, *items, *end_items, *end; 
-UCHAR	buffer [256], dbbuf [1024];
+UCHAR	buffer [MAXPATHLEN], dbbuf [1024];
 USHORT	l, length, version, get_flags;
 STATUS	*status;
 #ifndef WINDOWS_ONLY
@@ -1290,7 +1322,7 @@ while (items < end_items && *items != isc_info_end)
 	case isc_info_svc_to_eof:
 	case isc_info_svc_limbo_trans:
 	case isc_info_svc_get_users:
-	    if (info + 4 > end)
+	    if (info + 4 >= end)
 		{
 		*info++ = isc_info_truncated;
 		break;
@@ -1306,14 +1338,18 @@ while (items < end_items && *items != isc_info_end)
 		    get_flags = GET_BINARY;
 		}
 	    
-	    service_get (service, info + 3, end - (info + 4), get_flags, timeout, &length);
+	    service_get (service, info + 3, end - (info + 5), get_flags, timeout, &length);
 		 
 	    /* If the read timed out, return the data, if any, & a timeout 
 	       item.  If the input buffer was not large enough
 	       to store a read to eof, return the data that was read along
 	       with an indication that more is available. */
 
-	    info = INF_put_item (item, length, info + 3, info, end);
+	    if (!(info = INF_put_item (item, length, info + 3, info, end)))
+		{
+            	THREAD_ENTER;
+            	return 0;
+		}
 
 	    if (service->svc_flags & SVC_timeout)
 		*info++ = isc_info_svc_timeout;
@@ -1692,7 +1728,7 @@ while (items < end_items && *items != isc_info_end)
 #ifndef WINDOWS_ONLY
 	case isc_info_svc_response:
 	    service->svc_resp_len = 0;
-	    if (info + 4 > end)
+	    if (info + 4 >= end)
 		{
 		*info++ = isc_info_truncated;
 		break;
@@ -1701,7 +1737,7 @@ while (items < end_items && *items != isc_info_end)
 	    service_get (service, &item, 1, GET_BINARY, 0, &length);
 	    service_get (service, buffer, 2, GET_BINARY, 0, &length);
 	    l = (USHORT)gds__vax_integer (buffer, 2);
-	    length = MIN (end - (info + 4), l);
+	    length = MIN (end - (info + 5), l);
 	    service_get (service, info + 3, length, GET_BINARY, 0, &length);
 	    info = INF_put_item (item, length, info + 3, info, end);
 	    if (length != l)
@@ -1732,7 +1768,7 @@ while (items < end_items && *items != isc_info_end)
 
 	case isc_info_svc_response_more:
 	    if (l = length = service->svc_resp_len)
-		length = MIN (end - (info + 4), l);
+		length = MIN (end - (info + 5), l);
 	    if (!(info = INF_put_item (item, length, service->svc_resp_ptr, info, end)))
 		{
 		THREAD_ENTER;
@@ -1841,8 +1877,7 @@ for (serv = services; serv->serv_action; serv++)
     break;
 
 if (!serv->serv_name)
-    ERR_post (isc_svcnotdef, isc_arg_string,
-	      SVC_err_string (serv->serv_name, strlen (serv->serv_name)), 0);
+    ERR_post(isc_service_att_err, isc_arg_gds, isc_service_not_supported, 0);
 
 /* currently we do not use "anonymous" service for any purposes but
    isc_service_query() */
@@ -4005,6 +4040,12 @@ while (len > 0)
 						&sw, &total, &len))
 			return 0;
 		    break;
+
+		case isc_spb_command_line:
+		    ++p; --len;
+		    get_action_svc_string(&p, &sw, &total, &len);
+		    break;
+
 		default:
 		    return 0;
 		    break;
