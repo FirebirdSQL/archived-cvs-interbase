@@ -310,8 +310,9 @@
  *  Hey, we're not running on PDP-11's any more: would it kill you
  *  to use a short instead of a char to hold the fileno?  :-(
  */
+#ifndef SFIO 
 #define NEED_IB_STDIO
-
+#endif
 /* Define the following macro only on platforms which supply the library
    routine xdr_hyper.  For other platforms, omit the definition of this
    macro, and we will supply that function where we need it. */

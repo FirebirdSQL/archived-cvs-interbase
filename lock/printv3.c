@@ -73,6 +73,8 @@ static void	prt_process();
 static void	prt_request();
 static void	prt_que();
 
+static void prt_lock (lock);
+    
 static TEXT	*history_names[] = {
 	"n/a", "ENQ", "DEQ", "CONVERT", "SIGNAL", "POST", "WAIT",
 	"DEL_PROC", "DEL_LOCK", "DEL_REQ", "DENY", "GRANT", "LEAVE",
@@ -276,7 +278,7 @@ if (sw_locks || sw_series)
 	    slot++, i++)
 	for (que = (SRQ) ABS_PTR (slot->srq_forward); que != slot;
 	     que = (SRQ) ABS_PTR (que->srq_forward))
-	    prt_lock ((UCHAR*) que - OFFSET (LBL, lbl_lhb_hash));
+	     prt_lock ((UCHAR*) que - OFFSET (LBL, lbl_lhb_hash));
     
 if (sw_history)
     prt_history (LOCK_header->lhb_history, "History");
