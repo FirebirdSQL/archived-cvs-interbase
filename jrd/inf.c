@@ -221,6 +221,7 @@ WALS	WAL_segment;
 ATT	err_att, att;
 USR	user;
 SLONG	err_val;
+BOOLEAN	header_refreshed = FALSE;	
 
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
@@ -541,8 +542,12 @@ while (items < end_items && *items != gds__info_end)
 
 
 	case isc_info_forced_writes:
-		file = dbb->dbb_file;
-	    PAG_header (file->fil_string, file->fil_length) ;
+		if (!header_refreshed)
+		{
+			file = dbb->dbb_file;
+			PAG_header (file->fil_string, file->fil_length);
+			header_refreshed = TRUE;
+		}
 	    *p++ = (dbb->dbb_flags & DBB_force_write) ? 1 : 0;
 	    length = p - buffer;
 	    break;
@@ -742,26 +747,42 @@ while (items < end_items && *items != gds__info_end)
 	    break;
 
 	case isc_info_oldest_transaction:
-	    file = dbb->dbb_file;
-	    PAG_header (file->fil_string, file->fil_length) ;
+		if (!header_refreshed)
+		{
+			file = dbb->dbb_file;
+			PAG_header (file->fil_string, file->fil_length);
+			header_refreshed = TRUE;
+		}
 	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    break;
 
 	case isc_info_oldest_active:
-	    file = dbb->dbb_file;
-	    PAG_header (file->fil_string, file->fil_length) ;
+		if (!header_refreshed)
+		{
+			file = dbb->dbb_file;
+			PAG_header (file->fil_string, file->fil_length);
+			header_refreshed = TRUE;
+		}
 	    length = INF_convert (dbb->dbb_oldest_active, buffer);
 	    break;
 
 	case isc_info_oldest_snapshot:
-	    file = dbb->dbb_file;
-	    PAG_header (file->fil_string, file->fil_length) ;
+		if (!header_refreshed)
+		{
+			file = dbb->dbb_file;
+			PAG_header (file->fil_string, file->fil_length);
+			header_refreshed = TRUE;
+		}
 	    length = INF_convert (dbb->dbb_oldest_snapshot, buffer);
 	    break;
 
 	case isc_info_next_transaction:
-	    file = dbb->dbb_file;
-	    PAG_header (file->fil_string, file->fil_length) ;
+		if (!header_refreshed)
+		{
+			file = dbb->dbb_file;
+			PAG_header (file->fil_string, file->fil_length);
+			header_refreshed = TRUE;
+		}
 	    length = INF_convert (dbb->dbb_next_transaction, buffer);
 	    break;
 
