@@ -1,3 +1,10 @@
+2003-08-29 13:05  eku
+
+	* interbase/: alice/exe.c, alice/tdr.c, burp/burp.c,
+	burp/restore.e:
+	
+	Cleanup of my last check-in.
+
 2003-08-28 15:22  eku
 
 	* interbase/: alice/exe.c, alice/tdr.c, burp/burp.c,
