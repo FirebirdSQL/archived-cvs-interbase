@@ -15,6 +15,10 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Changes made by Claudio Valderrama for the Firebird project
+ *   changes to substr and added substrlen
+ *
+
  */
 #include <math.h>
 #include <stdlib.h>
@@ -287,35 +291,84 @@ double EXPORT IB_UDF_sqrt(
     return (sqrt(*a)); 
 }
 
+
 char* EXPORT IB_UDF_substr(
-    char* s,
-    short *m,
-    short *n)
+	 char* s,
+	 short *m,
+	 short *n)
 {
-    char* p;
-    char* buf;
-    long length;
+	 char* p;
+	 char* buf;
+	 long length;
 
-    if (length = strlen(s))
-    {
-	if (*m > *n || *m < 1 || *n < 1 ||
-	    *m > length || *n > length) 
-	    return NULL; 
-
-	/* we want from the mth char to the
-	   nth char inclusive, so add one to
-	   the length. */
-	length = *n - *m + 1;
-	buf = (char*) ib_util_malloc (length + 1);
-	memcpy(buf, s + *m - 1, length); 
-	p = buf + length;
-	*p = '\0';
-    }
-    else
-	return NULL;
-
-    return buf;
+	/* Changes made by Claudio Valderrama for the Firebird project,
+	2001.04.17 We don't want to return NULL when params are wrong
+	and we'll return the remaining characters if the final position
+	is greater than the string's length; only when NULL comes. */
+	if (!s)
+		return NULL;
+	length = strlen(s);
+	if (!length || *m > *n || *m < 1 || *n < 1 ||
+		 *m > length)
+	{
+		buf = (char*) ib_util_malloc(1);
+		buf[0] = '\0';
+	}
+	else {
+		/* we want from the mth char to the
+			nth char inclusive, so add one to
+			the length. */
+		/* CVC: We need to compensate for n if it's longer than s's length */
+		if (*n > length)
+			length -= *m - 1;
+		else length = *n - *m + 1;
+		buf = (char*) ib_util_malloc (length + 1);
+		memcpy(buf, s + *m - 1, length);
+		p = buf + length;
+		*p = '\0';
+	}
+	 return buf;
 }
+
+
+
+char* EXPORT IB_UDF_substrlen(
+	 char* s,
+	 short *m,
+	 short *n)
+{
+	 char* p;
+	 char* buf;
+	 long length;
+
+	/* Created by Claudio Valderrama for the Firebird project,
+	2001.04.17 We don't want to return NULL when params are wrong
+	and we'll return the remaining characters if the final position
+	is greater than the string's length, unless NULL is provided. */
+	if (!s)
+		return NULL;
+	length = strlen(s);
+	if (!length || *m < 1 || *n < 1 || *m > length)
+	{
+		buf = (char*) ib_util_malloc(1);
+		buf[0] = '\0';
+	}
+	else {
+		/* we want from the mth char to the
+			(m+n)th char inclusive, so add one to
+			the length. */
+		/* CVC: We need to compensate for n if it's longer than s's length */
+		if (*m + *n - 1 > length)
+			length -= *m - 1;
+		else length = *n;
+		buf = (char*) ib_util_malloc (length + 1);
+		memcpy(buf, s + *m - 1, length);
+		p = buf + length;
+		*p = '\0';
+	}
+	 return buf;
+}
+
 
 int EXPORT IB_UDF_strlen(
     char* a)
