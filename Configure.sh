@@ -369,11 +369,13 @@ copyFilesFromPortingDir() {
     
     for dir in `ls porting`
       do
-         for portfile in `ls porting/$dir`
-           do
+        if [ -d $dir ]; then
+          for portfile in `ls porting/$dir`
+            do
 #              echo "copying porting/$dir/$portfile"
               cp porting/$dir/$portfile $dir
-           done
+            done
+        fi
       done
 }
 
