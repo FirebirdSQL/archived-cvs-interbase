@@ -539,6 +539,7 @@
 #define gds__udf_name                         335544816L
 #define gds__bad_limit_param                  335544817L
 #define gds__bad_skip_param                   335544818L
+#define gds__io_32bit_exceeded_err            335544819L
 #define gds__gfix_db_name                     335740929L
 #define gds__gfix_invalid_sw                  335740930L
 #define gds__gfix_incmp_sw                    335740932L
@@ -739,7 +740,7 @@
 #define gds__gstat_open_err                   336920605L
 #define gds__gstat_read_err                   336920606L
 #define gds__gstat_sysmemex                   336920607L
-#define gds_err_max                          698
+#define gds_err_max                          699
 
 /***********************/
 /*   ISC Error Codes   */
@@ -1263,6 +1264,7 @@
 #define isc_udf_name                         335544816L
 #define isc_bad_limit_param                  335544817L
 #define isc_bad_skip_param                   335544818L
+#define isc_io_32bit_exceeded_err            335544819L
 #define isc_gfix_db_name                     335740929L
 #define isc_gfix_invalid_sw                  335740930L
 #define isc_gfix_incmp_sw                    335740932L
@@ -1463,5 +1465,5 @@
 #define isc_gstat_open_err                   336920605L
 #define isc_gstat_read_err                   336920606L
 #define isc_gstat_sysmemex                   336920607L
-#define isc_err_max                          698
+#define isc_err_max                          699
 

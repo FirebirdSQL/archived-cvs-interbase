@@ -531,6 +531,7 @@
 #define isc_udf_name                         335544816L
 #define isc_bad_limit_param                  335544817L
 #define isc_bad_skip_param                   335544818L
+#define isc_io_32bit_exceeded_err            335544819L
 #define isc_gfix_db_name                     335740929L
 #define isc_gfix_invalid_sw                  335740930L
 #define isc_gfix_incmp_sw                    335740932L
@@ -731,5 +732,5 @@
 #define isc_gstat_open_err                   336920605L
 #define isc_gstat_read_err                   336920606L
 #define isc_gstat_sysmemex                   336920607L
-#define isc_err_max                          698
+#define isc_err_max                          699
 
