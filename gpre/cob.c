@@ -3615,7 +3615,8 @@ port = request->req_primary;
 gen_receive (action, port);
 gen_name (name, port->por_references, TRUE);
 printa (names [COLUMN], FALSE, "IF SQLCODE = 0 AND %s = 0 THEN ", name);
-printa (names [COLUMN], FALSE, "MOVE 100 TO SQLCODE.");
+printa (names [COLUMN], FALSE, "MOVE 100 TO SQLCODE");
+printa (names [COLUMN], FALSE, "END-IF");
 }
 
 static gen_menu (
