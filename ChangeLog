@@ -1,3 +1,25 @@
+2001-09-23 11:28  robocop
+
+	* interbase/jrd/: cmp.c, dfw.e:
+	
+	Disable REFERENCES check in RUN-TIME (compile-time).  Enable
+	REFERENCES check in DESIGN-TIME, at FK definition time.  The code
+	does for now the same check than DYN, with the difference that DFW
+	cannot be bypassed.
+
+2001-09-23 03:33  robocop
+
+	* interbase/isql/: extract.e, show.e:
+	
+	Show proper MECHANISM for parameter passing in UDFs.  Handle
+	RETURNS PARAMETER <n> syntax in DDL extraction.
+
+2001-09-23 03:12  robocop
+
+	* interbase/builds_win32/original/ibconfig:
+	
+	Change default according to the engine and add another parameter
+
 2001-09-22 18:05  awharrison
 
 	* interbase/jrd/ibase.h:
