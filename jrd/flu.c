@@ -74,6 +74,7 @@ static int	condition_handler (int *, int *, int *);
 
 #ifdef DARWIN
 #include <unistd.h>
+#include <mach-o/dyld.h>
 #define IB_UDF_DIR		"UDF/"
 #endif
 
