@@ -611,7 +611,7 @@ UCHAR MVOL_write (
  *
  **************************************/
 UCHAR	*ptr;
-int	left, cnt, size_to_write;
+ULONG	left, cnt, size_to_write;
 USHORT	full_buffer;
 TGBL	tdgbl;
 FIL	file;
@@ -663,7 +663,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 #else
     if (!WriteFile (tdgbl->file_desc, ptr,
 		((tdgbl->action->act_action == ACT_backup_split) &&
-		 ((int)tdgbl->action->act_file->fil_length < left) ?
+		 (tdgbl->action->act_file->fil_length < left) ?
 		 tdgbl->action->act_file->fil_length : left), &cnt, NULL))
       err = GetLastError();
 #endif /* !WIN_NT */
@@ -674,7 +674,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 	file_not_empty();
 	if (tdgbl->action->act_action == ACT_backup_split)
 	    {
-	    if ((int)tdgbl->action->act_file->fil_length < left)
+	    if (tdgbl->action->act_file->fil_length < left)
 		tdgbl->action->act_file->fil_length = 0;
 	    else
 		tdgbl->action->act_file->fil_length -= left;
@@ -738,7 +738,7 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 		memcpy (tdgbl->mvol_io_data, ptr, left);
 		}
 	    left += tdgbl->mvol_io_data - tdgbl->mvol_io_header;
-	    if (left >= (int)tdgbl->mvol_io_buffer_size)
+	    if (left >= tdgbl->mvol_io_buffer_size)
 		full_buffer = TRUE;
 	    else
 		full_buffer = FALSE;
@@ -764,6 +764,8 @@ for (ptr = tdgbl->mvol_io_buffer, left = size_to_write;
 	    }
 #endif
 	}
+    if (left < cnt) /* this is impossible, but... */
+	    cnt = left;
     }
 
 #ifdef DEBUG
