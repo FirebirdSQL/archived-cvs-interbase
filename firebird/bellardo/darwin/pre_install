@@ -1,5 +1,0 @@
-#!/bin/sh
-
-mkdir -p /private/var/interbase
-chown root.wheel /private/var/interbase
-chmod 777 /private/var/interbase

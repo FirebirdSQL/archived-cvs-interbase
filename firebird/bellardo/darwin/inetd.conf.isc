@@ -1,1 +1,0 @@
-gds_db	stream	tcp	nowait	root	/Library/Frameworks/Firebird.framework/Resources/bin/gds_inet_server  gds_inet_server
