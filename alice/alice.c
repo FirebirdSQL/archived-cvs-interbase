@@ -34,9 +34,12 @@
 #include "../alice/aliceswi.h"
 #include "../alice/all.h" 
 #include "../alice/alice_proto.h"
+#include "../alice/all_proto.h"
 #include "../alice/exe_proto.h"
 #include "../jrd/gds_proto.h"
 #include "../jrd/svc.h"
+#include "../jrd/svc_proto.h"
+#include "../jrd/thd_proto.h"
 
 #ifdef SUPERSERVER
 #include "../utilities/cmd_util_proto.h"
@@ -217,8 +220,7 @@ int DLL_EXPORT ALICE_gfix (
  *	Parse switches and do work
  *
  **************************************/
-UCHAR	dpb [128], *d;
-USHORT	dpb_length, error, i;
+USHORT	error, i;
 IN_SW_TAB	table = alice_in_sw_table;
 TEXT	*database, string [512], *p, *q;
 ULONG	switches;
@@ -239,7 +241,9 @@ if (tdgbl == NULL)
 SET_THREAD_DATA;
 SVC_PUTSPECIFIC_DATA;
 memset((void *)tdgbl, 0, sizeof(*tdgbl));
-tdgbl->alice_env = env;
+/* TMN: I can't for my life understand why the jmp_buf is defined */
+/* as a UCHAR* in ' struct tgbl', but it forces this cast.        */
+tdgbl->alice_env = (UCHAR* volatile)env;
 tdgbl->output_proc = output_proc;
 tdgbl->output_data = output_data;
 tdgbl->ALICE_permanent_pool = NULL;
@@ -249,7 +253,6 @@ tdgbl->pools = NULL;
 if (SETJMP (env))
     {
     int     exit_code;
-    UCHAR   *mem;
 
     /* All calls to EXIT(), normal and error exits, wind up here */
 
@@ -292,7 +295,7 @@ argc = VMS_parse (&argv, argc);
 tdgbl->sw_service = FALSE;
 tdgbl->sw_service_thd = FALSE;
 tdgbl->service_blk = NULL;
-tdgbl->status = tdgbl->status_vector;
+tdgbl->status = /* TMN: cast away volatile */(long*)tdgbl->status_vector;
 
 if (argc > 1 && !strcmp (argv [1], "-svc"))
     {
@@ -406,7 +409,7 @@ while (--argc > 0)
 	{
 	if (--argc <= 0)
 	    ALICE_error(5,0,0,0,0,0); /* msg 5: replay log pathname required */
-	expand_filename (*argv++, tdgbl->ALICE_data.ua_log_file);
+	expand_filename (*argv++, /* TMN: cast away volatile */(TEXT*)tdgbl->ALICE_data.ua_log_file);
 	}
 
     if (table->in_sw_value & (sw_buffers))
