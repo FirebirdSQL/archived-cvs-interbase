@@ -2523,7 +2523,7 @@ RTR	transaction;
 RRQ	request;
 RSR	statement;
 UCHAR	*buffer, temp [1024];
-TEXT	version [64];
+TEXT	version [256];
 STATUS	status, status_vector [20];
 
 rdb = port->port_context;
