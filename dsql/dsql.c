@@ -3014,6 +3014,8 @@ for (parameter = message->msg_parameters; parameter;
 	length = (SLONG) desc.dsc_address + desc.dsc_length;
 	if (length > msg_length)
 	    break;
+	if (!desc.dsc_dtype)
+		break;
 
 	flag = NULL;
 	if ((null = parameter->par_null) != NULL)
