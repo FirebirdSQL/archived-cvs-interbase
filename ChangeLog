@@ -1,3 +1,18 @@
+2001-09-16 14:15  skywalker
+
+	* interbase/: Configure.sh, builds/original/platform,
+	builds/original/prefix.sco_ev, jrd/common.h:
+	
+	Changes to make compile on SCO_EV from patch supplied by Serge
+	Levenkov <serge@aortds.msk.su>
+
+2001-09-16 14:09  skywalker
+
+	* interbase/isql/show.e:
+	
+	Fixed bug [ #460786 ] Show Procedures command fails extended local
+	array of descriptions for new types.
+
 2001-09-12 12:03  robocop
 
 	* interbase/jrd/gdsold.h:
