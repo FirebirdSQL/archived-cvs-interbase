@@ -907,7 +907,7 @@ STATUS GDS_DATABASE_INFO (
 RDB		rdb;
 PORT		port;
 STATUS		status;
-UCHAR		temp [1024], version [64], *temp_buffer;
+UCHAR		temp [1024], *temp_buffer, *version;
 JMP_BUF		env;
 struct trdb	thd_context, *trdb;
 
@@ -930,9 +930,15 @@ status = info (user_status, rdb, op_info_database, rdb->rdb_id, 0,
 if (!status)
     {
     port = rdb->rdb_port;
+
+    /* Fix for BUG: SF #419964 */
+    /* 2 bytes more then needed allocated, better safe than sorry */
+    version = (char*)ALLR_alloc(sizeof(char)*(strlen(GDS_VERSION)
+                       + strlen(port->port_version->str_data) + 4));
     sprintf ((SCHAR*) version, "%s/%s", GDS_VERSION, port->port_version->str_data);
     MERGE_database_info (temp_buffer, (UCHAR *) buffer, buffer_length,
 	IMPLEMENTATION, 3, 1, version, (UCHAR *) port->port_host->str_data, 0);
+    ALLR_free(version);
     }
 
 if (temp_buffer != temp)
