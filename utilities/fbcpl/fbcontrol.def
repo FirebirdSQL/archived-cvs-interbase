@@ -1,0 +1,8 @@
+; FBControl.def : Declares the module parameters for the DLL.
+
+LIBRARY      "FBControl"
+DESCRIPTION  'FBControl Windows Dynamic Link Library'
+
+EXPORTS
+    ; Explicit exports can go here
+    CPlApplet
