@@ -19,8 +19,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden 
  */
-
+ 
+ /* $Id$ */
+ 
 #include "../jrd/ib_stdio.h"
 #include <stdlib.h>
 #include "../jrd/common.h"
@@ -44,6 +47,10 @@
 #else
 #include <vfork.h>
 #endif
+#endif
+
+#ifdef SOLX86
+#include <fcntl.h>
 #endif
 
 #if (defined DELTA || defined M88K || defined SCO_UNIX || defined EPSON)

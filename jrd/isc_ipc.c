@@ -19,8 +19,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden
  */
 
+ /* $Id$ */
+ 
 #ifdef SHLIB_DEFS
 #define LOCAL_SHLIB_DEFS
 #endif
@@ -41,6 +44,10 @@
 #else
 #include <vfork.h>
 #endif
+#endif
+
+#ifdef SOLX86
+#define HANDLER_ADDR_ARG
 #endif
 
 typedef struct sig {

@@ -19,8 +19,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden
  */
 
+ /* $Id$ */
+ 
 #include "../jrd/ib_stdio.h"
 #include "../jrd/common.h"
 #include <stdarg.h>
@@ -123,7 +126,7 @@
 #if (defined AIX || defined AIX_PPC)
 #define MICROFOCUS
 #endif
-#ifdef sparc
+#if (defined sparc || defined SOLX86 )
 #define MICROFOCUS
 #endif
 #ifdef DGUX
@@ -278,7 +281,7 @@
 #define USAGE_COMP		" USAGE IS COMP"
 #endif
 
-#ifdef sparc
+#if (defined sparc || defined SOLX86 )
 #define USAGE_COMP		" USAGE IS COMP"
 #endif
 

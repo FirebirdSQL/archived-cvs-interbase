@@ -21,6 +21,7 @@
  * Contributor(s): ______________________________________.
  * Added TCP_NO_DELAY option for superserver on Linux
  * FSG 16.03.2001 
+ * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden
  */
 /*
 $Id$
@@ -91,10 +92,8 @@ static BOOLEAN	fdls_flag = FALSE;
 
 /* End of temporary file management specific stuff */
 
-#ifdef sparc
 #ifdef SOLARIS
 #include <sys/utsname.h>
-#endif
 #endif
 
 #ifdef SCO_EV
