@@ -165,6 +165,10 @@ void CFBDialog::UpdateServerStatus()
 		m_Run_As_Service.EnableWindow(TRUE);
 		m_Run_As_Application.EnableWindow(TRUE);
 	}
+	else
+	{
+		m_Run_As_Service.EnableWindow(FALSE);
+	}
 
 	fb_status.ServiceStatus = GetServiceStatus();
 	m_Firebird_Status.Format(fb_status.ServiceStatus);
@@ -260,7 +264,7 @@ bool CFBDialog::IsAutoStart()
 	else //Running as Application, so look for an entry in registry
 	{
 	    HKEY hkey;
-		if (RegOpenKeyEx(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
+		if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "Software\\Microsoft\\Windows\\CurrentVersion\\Run", 
 			0, KEY_QUERY_VALUE, &hkey) == ERROR_SUCCESS)
 		{
 			DWORD dwType;
@@ -966,6 +970,8 @@ bool CFBDialog::ServiceSupportAvailable()
 
 void CFBDialog::OpenServiceManager()
 {
+	if (!fb_status.ServicesAvailable)
+		return;
 	if (hScManager == NULL)
 		hScManager = OpenSCManager (NULL, SERVICES_ACTIVE_DATABASE, GENERIC_READ | GENERIC_EXECUTE | GENERIC_WRITE );
 
@@ -975,6 +981,9 @@ void CFBDialog::OpenServiceManager()
 
 void CFBDialog::CloseServiceManager()
 {
+	if (hScManager == NULL)
+		return;
+
 	try
 	{
 		CloseServiceHandle (hScManager);
@@ -1006,6 +1015,7 @@ int CFBDialog::GetServiceStatus()
 		display_name = REMOTE_DISPLAY_NAME;
 	}
 	
+	if (fb_status.ServicesAvailable) {
     OpenServiceManager();
     hService = OpenService (hScManager, service, GENERIC_READ );
 	if (hService == NULL)
@@ -1014,6 +1024,11 @@ int CFBDialog::GetServiceStatus()
 		{
 			ShowError(0, "GetServiceStatus");
 		}
+		}
+	}
+	else
+	{
+		hService = NULL;
 	}
 
     CloseServiceManager();
