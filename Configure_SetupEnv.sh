@@ -17,7 +17,7 @@
 
 if [ -d porting ]
   then
-    if [ ! -z "$ISC_PASSWORD"]
+    if [ ! -z "$ISC_PASSWORD" ]
       then
         echo "The environment variables ISC_USER and ISC_PASSWORD will"
         echo "disrupt with the boot build process, you need to unset "
