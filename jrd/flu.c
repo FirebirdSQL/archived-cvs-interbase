@@ -866,9 +866,7 @@ if (('.' == dirp[0]) && ('\0' == dirp[1]))
 	/* Module is in the standard UDF directory: load it. */
 	if (!(mod->mod_handle = dlopen (ib_lib_path, RTLD_LAZY)))
 	    {
-#ifdef DEV_BUILD
-		printf("%s\n",dlerror());
-#endif			
+		gds__log("%s: %s\n",ib_lib_path,dlerror());
 	    gds__free (mod);
 	    return NULL;
 	    }
@@ -883,6 +881,7 @@ if (('.' == dirp[0]) && ('\0' == dirp[1]))
 	    /* Module is in the default directory: load it. */
 	    if (!(mod->mod_handle = dlopen (ib_lib_path, RTLD_LAZY)))
 	        {
+		gds__log("%s: %s\n",ib_lib_path,dlerror());			
 		gds__free (mod);
 		return NULL;
 		}
@@ -905,6 +904,7 @@ if (('.' == dirp[0]) && ('\0' == dirp[1]))
 		    if (!(mod->mod_handle = dlopen (ib_lib_path,
 						    RTLD_LAZY)))
 		        {
+			gds__log("%s: %s\n",ib_lib_path,dlerror());							
 			gds__free (mod);
 			return NULL;
 			}
@@ -914,6 +914,7 @@ if (('.' == dirp[0]) && ('\0' == dirp[1]))
 		}
 	    if (!found_module)
 	        {
+		gds__log("%s: not in a valid UDF directory\n",module);			
 		gds__free (mod);
 		return NULL;
 		}
@@ -951,14 +952,30 @@ else
 	    }
 	}
     if (found_module)
-        found_module = (!access (module, R_OK)) &&
-	  (0 !=  (mod->mod_handle = dlopen (module, RTLD_LAZY)));
-    if (!found_module)
-        {
-	gds__free (mod);
-	return NULL;
-        }
+	{
+        if (!access (module, R_OK)) 
+		{
+		 	if (!(mod->mod_handle = dlopen (module, RTLD_LAZY)))
+			{
+				gds__log("%s: %s\n",module,dlerror());
+				gds__free (mod);
+				return NULL;						
+			}
+		}
+		else 
+		{			
+			gds__log("%s: file access error\n",module);
+			gds__free (mod);
+			return NULL;
+		}				
     } /* else module name includes a directory path, so ... */
+	else 
+	{
+		gds__log("%s: not found in a valid UDF directory \n",module);
+		gds__free (mod);
+		return NULL;
+	}
+	}
 return mod;
 }
 #endif
