@@ -1,3 +1,36 @@
+2001-07-24 10:29  robocop
+
+	* interbase/extlib/: MSReadMe.txt, StdAfx.cpp, StdAfx.h, fbudf.cpp,
+	fbudf.dsp, fbudf.dsw, fbudf.h, fbudf.plg, fbudf.sql, fbudf.txt:
+	
+	Initial revision
+
+2001-07-24 10:29  robocop
+
+	* interbase/extlib/: MSReadMe.txt, StdAfx.cpp, StdAfx.h, fbudf.cpp,
+	fbudf.dsp, fbudf.dsw, fbudf.h, fbudf.plg, fbudf.sql, fbudf.txt:
+	
+	FBUDF, a new UDF library for FB using descriptors
+
+2001-07-24 09:45  robocop
+
+	* interbase/: dsql/ddl.c, dsql/keywords.h, dsql/node.h,
+	dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/codes.h,
+	jrd/codetext.h, jrd/dyn.e, jrd/dyn_del.e, jrd/evl.c, jrd/fun.e,
+	jrd/functions.c, jrd/ibase.h, jrd/iberror.h, jrd/irq.h, jrd/jrd.c,
+	jrd/msgs.h, jrd/rdb_codes.h, jrd/scl.e, jrd/sql_code.h,
+	msgs/msg.gbak, utilities/dba.e:
+	
+	no message
+
+2001-07-24 07:41  bellardo
+
+	* interbase/builds/original/sfx.utilities:
+	
+	Added dependancy for ENC_LINK to the dba target in sfx.utilities to
+	ensure enc.o gets built during production builds on Darwin (and
+	possibly other *nix platforms).
+
 2001-07-13 00:31  bellardo
 
 	* interbase/builds/original/prefix.darwin:
