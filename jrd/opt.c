@@ -3149,7 +3149,14 @@ for (ptr = map->nod_arg, end = ptr + map->nod_count; ptr < end; ptr++)
 	assert (desc->dsc_dtype >= 0 && 
 		desc->dsc_dtype < sizeof (sort_dtypes)/sizeof (sort_dtypes[0]));
         sort_key->skd_dtype = sort_dtypes [desc->dsc_dtype];
-	assert (sort_key->skd_dtype != 0);
+        
+        /* as it is legal to have skd_dtype = 0
+           I have removed these asserts, to avoid
+           server restarts in debug mode.
+           FSG 18.Dez.2000
+        */
+        
+	/*assert (sort_key->skd_dtype != 0); */
 
         sort_key->skd_length = desc->dsc_length;
         sort_key->skd_flags = SKD_ascending;
@@ -4287,7 +4294,7 @@ for (node_ptr = sort->nod_arg; node_ptr < end_node; node_ptr++, map_item++)
     assert (desc->dsc_dtype >= 0 && 
 	    desc->dsc_dtype < sizeof (sort_dtypes)/sizeof (sort_dtypes[0]));
     sort_key->skd_dtype = sort_dtypes [desc->dsc_dtype];
-    assert (sort_key->skd_dtype != 0);
+    /*assert (sort_key->skd_dtype != 0);*/
     if (sort_key->skd_dtype == SKD_varying ||
 	sort_key->skd_dtype == SKD_cstring)
 	{
@@ -4383,7 +4390,7 @@ if (dbkey_streams)
 end_key = sort_key;
 for (sort_key = map->smb_key_desc; sort_key < end_key; sort_key++)
     {
-    assert (sort_key->skd_dtype != 0);
+ /*   assert (sort_key->skd_dtype != 0);*/
     if (sort_key->skd_dtype == SKD_varying ||
 	sort_key->skd_dtype == SKD_cstring)
 	{

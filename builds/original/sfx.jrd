@@ -14,6 +14,10 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
+#
+# $Id$
+# 
+
 
 GPRE=		source/interbase/bin/gpre$(EXEC_EXT)
 GPRE_FLAGS=	-n -gds -raw -ids
@@ -159,6 +163,11 @@ JRD_J_MISC=	alt.j gds.j isc.j isc_file.j isc_ipc.j isc_sync.j \
 
 WHY_O=		why.o
 WHYBK_O=	whybk.o
+
+# I removed qatest.o from the targets to close an ugly 
+# security hole.
+# FSG 18.Dez.2000
+
 JRD_OBJECTS=	ail.o alt.o all.o bkm.o blb.o blf.o btr.o builtin.o \
 		cch.o cmp.o cvt.o cvt2.o \
 		dfw.o divorce.o dls.o dpm.o dsc.o dyn.o dyn_def.o dyn_del.o \
@@ -168,7 +177,7 @@ JRD_OBJECTS=	ail.o alt.o all.o bkm.o blb.o blf.o btr.o builtin.o \
 		isc.o isc_file.o isc_ipc.o isc_sync.o \
 		jrd.o jrn.o lck.o llio.o log.o met.o \
 		misc.o mov.o nav.o old.o opt.o pag.o par.o pcmet.o \
-		perf.o pwd.o qatest.o rec.o rlck.o \
+		perf.o pwd.o rec.o rlck.o \
 		rng.o rse.o sbm.o sch.o scl.o \
 		sdl.o sdw.o shut.o sort.o sqz.o svc.o sym.o thd.o tpc.o \
 		tra.o utl.o val.o vio.o \
@@ -185,7 +194,7 @@ JRD_P_OBJECTS=	ail.bin alt.bin all.bin bkm.bin blb.bin blf.bin btr.bin \
 		jrd.bin jrn.bin lck.bin \
 		llio.bin log.bin met.bin misc.bin mov.bin nav.bin \
 		old.bin opt.bin pag.bin par.bin pcmet.bin perf.bin \
-		pwd.bin qatest.bin rec.bin rlck.bin \
+		pwd.bin rec.bin rlck.bin \
 		rng.bin rse.bin sbm.bin sch.bin \
 		scl.bin sdl.bin sdw.bin shut.bin sort.bin sqz.bin svc.bin \
 		sym.bin thd.bin tpc.bin tra.bin utl.bin val.bin vio.bin \
@@ -993,7 +1002,7 @@ perf.o:		perf.c perf.h \
 print.o:	print.c event.h
 pwd.o:		pwd.c pwd.h jrd.h \
 		enc_proto.h err_proto.h gds_proto.h pwd_proto.h
-qatest.o:	qatest.c jrd.h sdw.h pio.h err_proto.h flu_proto.h
+#qatest.o:	qatest.c jrd.h sdw.h pio.h err_proto.h flu_proto.h
 rdb.o:		rdb.c rdb.h mblr.h rdbcodes.h
 rdbg.o:		rdbg.c
 rdbgpas.o:	rdbgpas.c rdb.h rdbcodes.h

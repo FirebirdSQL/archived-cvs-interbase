@@ -14,6 +14,7 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
+# $Id$
 #ident "InterBase V4.0 shared library"
 #address .text 0x03800000
 #address .data 0x03c00000
@@ -388,7 +389,7 @@
     source/dsql/blob.bin
     source/jrd/isc_ipc.bin
     source/jrd/isc_sync.bin
-    source/jrd/qatest.bin
+#    source/jrd/qatest.bin
     source/intl/lc_narrow.bin
 #init source/jrd/shrinit.bin
     _libgds_setjmp	setjmp

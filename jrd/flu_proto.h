@@ -30,6 +30,16 @@ extern void DLL_EXPORT	       FLU_unregister_module (struct mod *);
 extern int		       (*ISC_lookup_entrypoint (TEXT *, TEXT *, TEXT *)) (void);
 extern int		       (*FUNCTIONS_entrypoint (TEXT *, TEXT *)) (void);
 extern int		       (*BUILTIN_entrypoint (TEXT *, TEXT *)) (void);
-extern int		       QATEST_entrypoint (ULONG *, void *, void *, void *);
 
+/*
+   This shouldn't be in a production server,
+   If we should ever need this again, 
+   this should be enabled *ONLY* for
+   the debug version.
+   FSG 18.Dez.2000
+   
+*/
+    
+/*extern int		       QATEST_entrypoint (ULONG *, void *, void *, void *);
+*/
 #endif /* _JRD_FLU_PROTO_H_ */

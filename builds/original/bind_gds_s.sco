@@ -14,6 +14,7 @@
 #
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
+# $Id$
 #ident "InterBase V4.0 shared library"
 #address .text 0xa4800000
 #address .data 0xa4c00000
@@ -389,7 +390,7 @@
     source/dsql/blob.bin
     source/jrd/isc_ipc.bin
     source/jrd/isc_sync.bin
-    source/jrd/qatest.bin
+#    source/jrd/qatest.bin
     source/intl/lc_narrow.bin
 ## kludge
     source/jrd/87ftol.o
