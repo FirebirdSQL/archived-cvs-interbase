@@ -13,7 +13,8 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): HP-UX 11.x
+# Contributor(s): Paul Beach.
+# Note: HP-UX 11.x
 .SUFFIXES: .c .e
 .e.c:
 	$(GPRE) $(GPRE_FLAGS) $<

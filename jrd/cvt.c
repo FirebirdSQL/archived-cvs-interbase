@@ -1779,6 +1779,7 @@ switch (to->dsc_dtype)
 	*pp = CVT_get_double (from, err);
 	}
 	return;
+
 #ifdef VMS
     case SPECIAL_DOUBLE:
 	*(double*) p = CVT_get_double (from, err);

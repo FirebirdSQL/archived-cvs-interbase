@@ -13,7 +13,7 @@ cd nightly_build
     echo "####################### Firebird Nightly Build ######################"
     date
     echo "####################### Checking out sources from CVS ###############"
-    cvs -z9 -d ":pserver:anonymous@cvs.firebird.sourceforge.net:/cvsroot/firebird" co interbase
+    cvs -z9 -d ":pserver:anonymous@cvs.sourceforge.net:/cvsroot/firebird" co interbase
     cd interbase
     date
     echo "####################### Configuring build ###########################"

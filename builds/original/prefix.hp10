@@ -13,7 +13,8 @@
 # Copyright (C) Inprise Corporation.
 #
 # All Rights Reserved.
-# Contributor(s): This file is to be used for HP-UX 10.x builds only
+# Contributor(s): ______________________________________.
+# Note: This file is to be used for HP-UX 10.x builds only
 #		  If you want to build a kit for HP-UX 11.x then please
 #		  use a prefix.hp11!
 .SUFFIXES: .c .e

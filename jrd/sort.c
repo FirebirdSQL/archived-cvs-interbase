@@ -55,7 +55,7 @@
 #include <windows.h>
 #endif
 
-/*Declare seek and off_t - :ATTENTION: for 64bit I/O we might need ib_stdio.h ! */
+/* Declare seek and off_t - :ATTENTION: for 64bit I/O we might need ib_stdio.h ! */
 #if defined HP11
 /* for SEEK_SET */
 #include <stdio.h>
