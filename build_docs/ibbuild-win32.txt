@@ -1,5 +1,5 @@
 -Building the *****Base server on win32 platforms- 
-ibbuild-win32.txt version 1.0.7 last revised 8/21/2000
+ibbuild-win32.txt version 1.0.8 last revised 10/03/2000
 
 The latest version of this file is available at
 http://www.cruzers.com/~rfm/ibbuild-win32.txt
@@ -80,6 +80,8 @@ int main(int argc, char **argv)
 	return 0;
 }
 --end echo.c
+If you do not use the MKS or cygwin echo for other purposes,
+you can just rename it instead of making your own.
 
 PATH requirements:
  * The echo.exe resulting from the above C code MUST be in your path
