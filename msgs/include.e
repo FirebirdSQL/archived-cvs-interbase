@@ -98,7 +98,7 @@ START_TRANSACTION;
 
 if (sw_all)
     FOR X IN TEMPLATES
-	gen (X.LANGUAGE, X.IB_FILE);
+	gen (X.LANGUAGE, IB_FILE);
     END_FOR
 else
     gen (language, file);
@@ -224,10 +224,10 @@ defaults = 0;
 
 FOR X IN TEMPLATES WITH X.LANGUAGE EQ language
     if (!filename)
-	filename = X.IB_FILE;
+	filename = IB_FILE;
     if (!(output = ib_fopen (filename, "w")))
 	{
-	ib_perror (X.IB_FILE);
+	ib_perror (IB_FILE);
 	return;
 	}
     ib_printf ("Generating %s for %s\n", filename, X.LANGUAGE);
