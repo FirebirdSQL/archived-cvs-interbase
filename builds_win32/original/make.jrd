@@ -20,6 +20,9 @@
 #       library to build.  The rule is 'gds32.dll' for both.
 #	Note that ibeng32.dll was previously called jrd32.dll, so things that
 #	refer to jrd are refering to the engine.
+# 	Note that ibeng32.dll is a no longer used, since the engine
+#	is statically linked to the server. If you decide to use ibeng32.dll
+#	for something, make sure you know what you are doing.
 #
 #               GDS_FILES = list of JRD files to build the given library
 #               GDS_TARGET = target library (gds32 or ibeng32)
@@ -147,7 +150,7 @@ codes.c:        codes.e
 
 install_server:
 	echo "Installing InterBase Server DLLs"
-	$(CP) ..\jrd\$(.path.obj)\ibeng32.dll $(INSTALL_ROOT)\bin
+#	$(CP) ..\jrd\$(.path.obj)\ibeng32.dll $(INSTALL_ROOT)\bin
 	$(CP) ..\intl\$(.path.obj)\gdsintl.dll $(INSTALL_ROOT)\intl
 	$(CP) ..\remote\$(.path.obj)\nt_server.exe $(INSTALL_ROOT)\bin\ibserver.exe
 	$(CP) ..\extlib\$(.path.obj)\ib_udf.dll $(INSTALL_ROOT)\UDF
@@ -156,7 +159,7 @@ install_server:
 	$(CP) ..\extlib\$(.path.obj)\ib_util_ms.lib $(INSTALL_ROOT)\lib
 !if "$(VERSION)"=="DEV"
 	$(ECHO) INSTALLING PDB FILES
-        $(CP) ..\jrd\$(.path.obj)\ibeng32.pdb $(INSTALL_ROOT)\bin
+#        $(CP) ..\jrd\$(.path.obj)\ibeng32.pdb $(INSTALL_ROOT)\bin
         $(CP) ..\intl\$(.path.obj)\gdsintl.pdb $(INSTALL_ROOT)\intl
         $(CP) ..\remote\$(.path.obj)\nt_server.pdb $(INSTALL_ROOT)\bin\ibserver.pdb
 	$(CP) ..\extlib\$(.path.obj)\ib_udf.pdb $(INSTALL_ROOT)\UDF\ib_udf.pdb
