@@ -1431,7 +1431,7 @@ if ((fil->fil_desc = FEsopen (expanded_filename, O_RDWR | O_BINARY, SH_DENYNO, 0
     db_error (errno);
     }
 
-if (!(file_list = malloc(sizeof(tddba->files))))
+if (!(file_list = malloc(sizeof(*file_list))))
     {
     /* NOMEM: return error */
     dba_error (31, 0, 0, 0, 0, 0);
@@ -1895,7 +1895,7 @@ if ((fil->fil_desc = CreateFile (file_name,
     }
 
 #ifdef SUPERSERVER
-if (!(file_list = malloc(sizeof(tddba->files))))
+if (!(file_list = malloc(sizeof(*file_list))))
     {
     /* NOMEM: return error */
     dba_error (31, 0, 0, 0, 0, 0);
@@ -2270,7 +2270,7 @@ if ((fil->fil_desc = open (file_name, 2)) == -1)
     }
 
 #ifdef SUPERSERVER
-if (!(file_list = malloc(sizeof(tddba->files))))
+if (!(file_list = malloc(sizeof(*file_list))))
     {
     /* NOMEM: return error */
     dba_error (31, 0, 0, 0, 0, 0);

@@ -112,7 +112,7 @@ typedef struct servicequery
 static PORT	alloc_port 	(PORT);
 static PORT	aux_connect 	(PORT, 
 					PACKET *, 
-					int (*)(void));
+					XDR_INT (*)(void));
 static unsigned char btoh ( char);
 static void	cleanup_port    (PORT);
 static void	disconnect 	(PORT);
@@ -175,6 +175,7 @@ static int	xdrspxnet32_create 	(XDR *,
 					USHORT, 
 					enum xdr_op);
 static bool_t	xdrspxnet32_endofrecord 	(XDR *, int);
+static BOOL get_ipx_network_address(NODEADDR* nodeAddr);
 
 
 static CONST struct xdr_ops	spxnet32_ops =
@@ -204,6 +205,8 @@ static WSADATA	SPXNET32_wsadata;
 #endif
 
 #ifdef  SUPERSERVER
+#include "../jrd/thd_proto.h"
+
 static  MUTX_T  port_mutex;
 static  BOOL    port_mutex_inited = 0;
 
@@ -407,13 +410,9 @@ PORT DLL_EXPORT SPXNET32_connect (
  *	is for a server process.
  *
  **************************************/
-int			l, n;
-SOCKET 			s;
+int			n;
 PORT			port;
 TEXT			temp [128], *p;
-SOCKADDR_IPX		address;
-TEXT			msg [64];
-int			optval;
 NODEADDR                nodeAddr;
 
 port = alloc_port (NULL_PTR);
@@ -511,6 +510,7 @@ if (packet)
 	}
     }
 
+    return NULL;
 }
 
 PORT SPXNET32_reconnect (
@@ -625,7 +625,7 @@ return port;
 static  PORT aux_connect (
     PORT	port,
     PACKET	*packet,
-    XDR_INT	(*ast)())
+    XDR_INT	(*ast)(void))
 {
 /**************************************
  *
@@ -640,10 +640,9 @@ static  PORT aux_connect (
  **************************************/
 P_RESP			*response;
 SOCKET			n;
-int			l, status;
+int			status;
 PORT			new_port;
 SOCKADDR_IPX		address;
-int			arg;
 
 #ifdef DEBUG
 ib_printf ("aux_connect from client\n"); 
@@ -657,7 +656,8 @@ response = &packet->p_resp;
 
 /* Set up new socket */
 
-if ((n = (HANDLE) socket (AF_IPX, SOCK_STREAM, NSPROTO_SPX)) == INVALID_SOCKET)
+n = (SOCKET) socket (AF_IPX, SOCK_STREAM, NSPROTO_SPX);
+if (n == INVALID_SOCKET)
     {
     spxnet32_error (port, "socket", isc_net_event_connect_err, ERRNO);
     return NULL;
@@ -772,7 +772,7 @@ static void disconnect (
  *	Break a remote connection.
  *
  **************************************/
-PORT	parent, *ptr;
+PORT	parent;
 #ifdef	DEFER_PORT_CLEANUP
 SSHORT	defer_cleanup = 0;
 #endif
@@ -1038,7 +1038,6 @@ static PORT receive (
  *	block for the client.
  *
  **************************************/
-PORT	port;
 
 /* If this isn't a multi-client server, just do the operation and get it
    over with */
@@ -1056,12 +1055,13 @@ if (!(main_port->port_server_flags & SRVR_multi_client))
         ib_printf ("receive calls xdr_protocol\n");  
 #endif
 	if (!xdr_protocol (&main_port->port_receive, packet))
-	    return NULL;
+	    return (PORT)0;
 	} 
 	while (packet->p_operation == op_dummy);
 
     return main_port;
     }
+return (PORT)0;
 }
 
 static int send_full (
@@ -1330,7 +1330,7 @@ static caddr_t spxnet32_inline (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 return xdrs->x_base + bytecount;
@@ -1557,7 +1557,7 @@ static bool_t spxnet32_setpostn (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 xdrs->x_private = xdrs->x_base + bytecount;
@@ -1665,7 +1665,7 @@ while (length)
     port->port_misc1 = (port->port_misc1 + 1) % MAX_SEQUENCE;
     l = MIN (length, MAX_DATA);
     length -= l;
-    if (!packet_send (port, p, (length) ? -l : l))
+    if (!packet_send (port, p, (SSHORT)(length ? -l : l)))
 	 return FALSE;
     p += l;
     }
@@ -1696,7 +1696,7 @@ static int packet_receive (
  *	a duplicate message, just ignore it.
  *
  **************************************/
-int		n, i;
+int		n;
 struct timeval	timeout, *time_ptr;
 int		ph;
 fd_set		slct_fdset;

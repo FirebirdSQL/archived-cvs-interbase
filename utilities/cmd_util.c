@@ -30,7 +30,10 @@
 #ifdef WIN_NT
 #include <io.h>
 #include <windows.h>
-#include "../jrd/pwd.h" 
+#include "../jrd/pwd.h"
+#ifdef TEXT
+#undef TEXT
+#endif
 #define TEXT		SCHAR
 #endif
 

@@ -21,6 +21,11 @@
  * Contributor(s): ______________________________________.
  */
 
+#ifdef DEBUG
+/* define WNET_trace to 0 (zero) for no packet debugging */
+#define WNET_trace	1
+#endif
+
 #include "../jrd/ib_stdio.h"
 #include <string.h>
 #include "../remote/remote.h"
@@ -57,6 +62,9 @@ LRESULT FAR PASCAL 	wnet_wndproc (HWND, UINT, WPARAM, LPARAM);
 #endif  /* WINDOWS_ONLY */
 
 #include <windows.h>
+#ifdef TEXT
+#undef TEXT
+#endif
 #define TEXT		SCHAR
 
 #define ERRNO		GetLastError()
@@ -653,7 +661,6 @@ PORT WNET_reconnect (
  *
  **************************************/
 PORT			port;
-STATUS			status;
  
 port = alloc_port (NULL_PTR);
 port->port_status_vector = status_vector;
@@ -857,7 +864,7 @@ return port;
 static PORT aux_connect (
     PORT	port,
     PACKET	*packet,
-    XDR_INT	(*ast)())
+    XDR_INT	(*ast)(void))
 {
 /**************************************
  *
@@ -1623,7 +1630,7 @@ static caddr_t wnet_inline (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 return xdrs->x_base + bytecount;
@@ -1800,7 +1807,7 @@ static bool_t wnet_setpostn (
  *
  **************************************/
 
-if (bytecount > xdrs->x_handy)
+if (bytecount > (u_int)xdrs->x_handy)
     return FALSE;
 
 xdrs->x_private = xdrs->x_base + bytecount;
@@ -1844,7 +1851,7 @@ while (length)
     port->port_misc1 = (port->port_misc1 + 1) % MAX_SEQUENCE;
     l = MIN (length, MAX_DATA);
     length -= l;
-    if (!packet_send (port, p, (length) ? -l : l))
+    if (!packet_send (port, p, (SSHORT)(length ? -l : l)))
 	 return FALSE;
     p += l;
     }
@@ -1871,11 +1878,12 @@ static void packet_print (
  *	Print a summary of packet.
  *
  **************************************/
-int	sum, l;
+int	sum = 0;
+int l = length;
 
-sum = 0;
-if (l = length)
-    do sum += *packet++; while (--l);
+if (l) {
+    do { sum += *packet++; } while (--l);
+}
 
 ib_printf ("%s\t: length = %d, checksum = %d\n", string, length, sum);
 }
@@ -1900,10 +1908,9 @@ static int packet_receive (
  *	a duplicate message, just ignore it.
  *
  **************************************/
-SLONG	n;
+SLONG	n = 0;
 USHORT	status;
 
-n = 0;
 THREAD_EXIT;
 status = ReadFile (port->port_handle, buffer, buffer_length, &n, NULL);
 THREAD_ENTER;
@@ -1917,7 +1924,7 @@ if (WNET_trace)
     packet_print ("receive", buffer, n);
 #endif
 
-*length = n;
+*length = (SSHORT)n;
 
 return TRUE;
 }

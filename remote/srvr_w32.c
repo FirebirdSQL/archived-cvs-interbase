@@ -179,27 +179,33 @@ if (!(server_flag & SRVR_non_service))
     CNTL_init ((FPTR_VOID) start_connections_thread, REMOTE_SERVICE);
     if (!StartServiceCtrlDispatcher (service_table))
 	{
-	if (GetLastError() != ERROR_CALL_NOT_IMPLEMENTED)
+	if (GetLastError() != ERROR_CALL_NOT_IMPLEMENTED) {
 	    CNTL_shutdown_service ("StartServiceCtrlDispatcher failed");
+	}
 	server_flag |= SRVR_non_service;
 	}
     }
 else
     {
-    if ((server_flag & SRVR_inet) && ((server_flag & SRVR_pipe) || (server_flag & SRVR_non_service)))
-	gds__thread_start ((FPTR_INT) inet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
+    if ((server_flag & SRVR_inet) &&
+        ((server_flag & SRVR_pipe) || (server_flag & SRVR_non_service)))
+    {
+        gds__thread_start ((FPTR_INT) inet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
+    }
 
-    if ((server_flag & SRVR_pipe) && (server_flag & SRVR_non_service))
-	gds__thread_start ((FPTR_INT) wnet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
+    if ((server_flag & SRVR_pipe) && (server_flag & SRVR_non_service)) {
+        gds__thread_start ((FPTR_INT) wnet_connect_wait_thread, NULL_PTR, THREAD_medium, 0, NULL_PTR);
+    }
 
     /* No need to waste a thread if we are running as a window.  Just start
      * the ipc communication
      */
-    if (server_flag & SRVR_non_service)
-	nReturnValue = WINDOW_main(hThisInst, nWndMode, server_flag);
+        if (server_flag & SRVR_non_service) {
+            nReturnValue = WINDOW_main(hThisInst, nWndMode, server_flag);
+        }
     }
 
-return (nReturnValue);
+return nReturnValue;
 }
 
 #ifdef  XNET
@@ -263,11 +269,13 @@ static void THREAD_ROUTINE process_connection_thread (
  **************************************/
 void    *thread;
 
-if (!(server_flag & SRVR_non_service))
+if (!(server_flag & SRVR_non_service)) {
     thread = CNTL_insert_thread();
+}
 service_connection (port);
-if (!(server_flag & SRVR_non_service))
+if (!(server_flag & SRVR_non_service)) {
     CNTL_remove_thread (thread);
+}
 }
 
 static void THREAD_ROUTINE inet_connect_wait_thread (
@@ -331,14 +339,17 @@ while (TRUE)
 	if (status_vector [1] != gds__io_error ||
 	    status_vector [6] != gds_arg_win32 ||
 	    status_vector [7] != ERROR_CALL_NOT_IMPLEMENTED)
+	{
 	    gds__log_status (NULL_PTR, status_vector);
+	}
 	break;
 	}
     gds__thread_start ((FPTR_INT) process_connection_thread, port, THREAD_medium, 0, NULL_PTR);
     }
 
-if (!(server_flag & SRVR_non_service))
+if (!(server_flag & SRVR_non_service)) {
     CNTL_remove_thread (thread);
+}
 }
 
 static void THREAD_ROUTINE ipc_connect_wait_thread (
@@ -397,36 +408,43 @@ HANDLE	ipc_thread_handle = 0;
 #ifndef XNET
 if (server_flag & SRVR_ipc)
     {
-    gds__thread_start ((FPTR_INT) ipc_connect_wait_thread, 
-			NULL_PTR, 
-			THREAD_medium, 
-			0, 
-			&ipc_thread_handle);
+        const int bFailed =
+            gds__thread_start ((FPTR_INT) ipc_connect_wait_thread, 
+                               NULL_PTR, 
+                               THREAD_medium, 
+                               0, 
+                               &ipc_thread_handle);
 
-    /* If the IPC thread did not time out, then it must have finished.  *
-     * the only way for it to have finished in 2 seconds is for it to   *
-     * not have succeeded.  IE. It already exists.                      */
+    if (bFailed ||
+        WaitForSingleObject(ipc_thread_handle,2000) != WAIT_TIMEOUT)
+    {
+        /* If the IPC thread did not time out, then it must have finished. *
+         * the only way for it to have finished in 2 seconds is for it to  *
+         * not have succeeded.  IE. It already exists.                     */
 
-    if (WaitForSingleObject(ipc_thread_handle,2000) != WAIT_TIMEOUT)
-	{
-	CNTL_shutdown_service("Could not start service");
-	return;
-	}
+            if (!bFailed && ipc_thread_handle) {
+                CloseHandle(ipc_thread_handle);
+            }
+            CNTL_shutdown_service("Could not start service");
+            return;
+        }
     }
 #endif /* XNET */
 
-if (server_flag & SRVR_inet)
+if (server_flag & SRVR_inet) {
     gds__thread_start ((FPTR_INT) inet_connect_wait_thread, 
 			NULL_PTR, 
 			THREAD_medium, 
 			0, 
 			NULL_PTR);
-if (server_flag & SRVR_pipe)
+}
+if (server_flag & SRVR_pipe) {
     gds__thread_start ((FPTR_INT) wnet_connect_wait_thread, 
 			NULL_PTR, 
 			THREAD_medium, 
 			0, 
 			NULL_PTR);
+}
 }
 
 static HANDLE parse_args(

@@ -176,7 +176,7 @@ switch (xdrs->x_op)
     {
     case XDR_ENCODE:
 	length = *lp;
-	if (length > maxlength ||
+	if (length > (SLONG)maxlength ||
 	    !PUTLONG (xdrs, &length) ||
 	    !PUTBYTES (xdrs, *bpp, length))
 	    return FALSE;
@@ -194,7 +194,7 @@ switch (xdrs->x_op)
 	    DEBUG_XDR_ALLOC (bpp, *bpp, (maxlength + 1));
 	    }
 	if (!GETLONG (xdrs, &length) ||
-	    length > maxlength ||
+	    length > (SLONG)maxlength ||
 	    !GETBYTES (xdrs, *bpp, length))
 	    return FALSE;
 	if ((length = (4 - length) & 3) != 0)
@@ -603,7 +603,7 @@ switch (xdrs->x_op)
     case XDR_DECODE:
 	if (!GETLONG (xdrs, &temp))
 	    return FALSE;
-	*ip = temp;
+	*ip = (SSHORT)temp;
 	return TRUE;
 
     case XDR_FREE:
@@ -794,7 +794,6 @@ int xdr_union (
  *	Descriminated union.  Yuckola.
  *
  **************************************/
-SCHAR	*op;
 
 if (!xdr_int (xdrs, dscmp))
     return FALSE;
@@ -979,7 +978,7 @@ static caddr_t mem_inline (
  *
  **************************************/
 
-if (bytecount > (xdrs->x_private + xdrs->x_handy) - xdrs->x_base)
+if (bytecount > (u_int)((xdrs->x_private + xdrs->x_handy) - xdrs->x_base))
     return FALSE;
 
 return xdrs->x_base + bytecount;

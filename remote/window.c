@@ -17,6 +17,7 @@
  * Contributor(s): ______________________________________.
  */
 #include <windows.h>
+#include <stdio.h>
 #include <shellapi.h>
 #include <prsht.h>
 #include <dbt.h>
@@ -34,17 +35,17 @@
 #include "../ipserver/ips.h"
 
 #include "../jrd/svc_proto.h"
+#include "../jrd/sch_proto.h"
 #include "../jrd/thd.h"
 #include "../jrd/jrd_proto.h"
 #include "../remote/window_proto.h"
 #include "../remote/propty_proto.h"
 #include "../ipserver/ipsrv_proto.h"
 
-#ifdef DEV_BUILD
 #include "../jrd/gds_proto.h"
-#endif
 
 #include "../remote/window.h"
+#include "../jrd/isc_proto.h"
 
 #define JRD_info_drivemask 1 // TEMPORARY ONLY 
 
@@ -72,7 +73,7 @@ static struct ipccfg	WND_hdrtbl [] = {
 };
 
 // Static functions to be called from this file only.
-static char *GetDriveLetter(ULONG, char *);
+static void GetDriveLetter(ULONG, char pchBuf[DRV_STRINGLEN]);
 static char *MakeVersionString(char *, int, USHORT);
 static BOOL CanEndServer(HWND, BOOL);
 
@@ -116,14 +117,15 @@ usServerFlags = usServerFlagMask;
 
 ISC_get_config(LOCK_HEADER, WND_hdrtbl);
 
-if (!(usServerFlagMask & SRVR_ipc))
+if (!(usServerFlagMask & SRVR_ipc)) {
     szClassName = "IB_Disabled";
+}
 else
     {
 
 #ifndef XNET
 
-    if (!IPS_init( hWnd, 0, WND_ipc_map, 0))
+    if (!IPS_init( hWnd, 0, (USHORT)WND_ipc_map, 0))
 	{
 	// The initialization failed.  Check to see if there is another
 	// server running.  If so, bring up it's property sheet and quit
@@ -134,15 +136,17 @@ else
 	if (hWnd)
 	    {
 	    LoadString(hInstance, IDS_ALREADYSTARTED, szMsgString, TMP_STRINGLEN);
-    	    if (usServerFlagMask & SRVR_non_service)
+    	    if (usServerFlagMask & SRVR_non_service) {
 	   	MessageBox(NULL, szMsgString, APP_NAME, MB_OK | MB_ICONHAND);
+    	}
 	    gds__log(szMsgString);
 	    }
 	else
 	    {
 	    LoadString(hInstance, IDS_MAPERROR, szMsgString, TMP_STRINGLEN);
-    	    if (usServerFlagMask & SRVR_non_service)
+    	    if (usServerFlagMask & SRVR_non_service) {
 	   	MessageBox(NULL, szMsgString, APP_NAME, MB_OK | MB_ICONHAND);
+    	    }
 	    gds__log(szMsgString);
 	    }
 	return 0;
@@ -157,15 +161,17 @@ else
         if (hWnd)
 	    {
 	    LoadString(hInstance, IDS_ALREADYSTARTED, szMsgString, TMP_STRINGLEN);
-    	    if (usServerFlagMask & SRVR_non_service)
+    	    if (usServerFlagMask & SRVR_non_service) {
 	   	MessageBox(NULL, szMsgString, APP_NAME, MB_OK | MB_ICONHAND);
+    	    }
 	    gds__log(szMsgString);
 	    }
         else
             {
             LoadString(hInstance, IDS_MAPERROR, szMsgString, TMP_STRINGLEN);
-            if (usServerFlagMask & SRVR_non_service)
+            if (usServerFlagMask & SRVR_non_service) {
                 MessageBox(NULL, szMsgString, APP_NAME, MB_OK | MB_ICONHAND);
+            }
             gds__log(szMsgString);
             }
         return 0;
@@ -199,8 +205,9 @@ if(!RegisterClass(&wcl))
     {
     char szMsgString[MSG_STRINGLEN];
     LoadString(hInstance, IDS_REGERROR, szMsgString, MSG_STRINGLEN);
-    if (usServerFlagMask & SRVR_non_service)
+    if (usServerFlagMask & SRVR_non_service) {
 	MessageBox(NULL, szMsgString, APP_NAME, MB_OK);
+    }
     gds__log(szMsgString);
     return 0;
     }
@@ -244,8 +251,9 @@ while(GetMessage(&msg, NULL, 0, 0))
 	    DestroyWindow(hPSDlg);
 	    hPSDlg = NULL;
 	    }
-	if (bPSMsg)
+	if (bPSMsg) {
 	    continue;
+	}
 	}
     TranslateMessage(&msg);
     DispatchMessage(&msg);
@@ -297,10 +305,11 @@ switch (message)
 	 * the server is a service  and could be servicing remote clients and
 	 * therefore should not be shut down.  
 	 */ 
-	if (usServerFlags & SRVR_non_service)
+		if (usServerFlags & SRVR_non_service) {
 	    return CanEndServer(hWnd, TRUE);
-	else
-	    return (TRUE);
+		}
+
+	    return TRUE;
 
     case WM_CLOSE:
 	/* If we are running as a non-service server, then query the user
@@ -402,8 +411,6 @@ switch (message)
 		}
 	    switch (lParam)
 	    	{
-	    	POINT	curPos;
-
 	    	case WM_LBUTTONDOWN:
 		    break;
 
@@ -618,7 +625,7 @@ void __stdcall WINDOW_shutdown(HANDLE hWnd)
 PostMessage(hWnd, WM_DESTROY, 0, 0);
 }
 
-static char *GetDriveLetter(ULONG ulDriveMask, char *pchBuf)
+static void GetDriveLetter(ULONG ulDriveMask, char pchBuf[DRV_STRINGLEN])
 {
 /******************************************************************************
  *
@@ -645,7 +652,6 @@ while (ulDriveMask)
     ulDriveMask >>= 1;
     }
 *p = '\0';
-return pchBuf;
 }
 
 static char *MakeVersionString(char *pchBuf, int nLen, USHORT usServerFlagMask)
@@ -667,7 +673,6 @@ static char *MakeVersionString(char *pchBuf, int nLen, USHORT usServerFlagMask)
  *****************************************************************************/
 char* p = pchBuf;
 char* end = p + nLen;
-int   l;
 
 if (usServerFlagMask & SRVR_inet)
     {
