@@ -1812,6 +1812,7 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define isc_info_db_sql_dialect           62
 #define isc_info_db_read_only             63
 #define isc_info_db_size_in_pages	  64
+#define frb_info_att_charset		 101
 
 /**************************************/
 /* Database information return values */

@@ -718,6 +718,10 @@ while (items < end_items && *items != gds__info_end)
 	    length = INF_convert (PIO_act_alloc (dbb), buffer);
 	    break;
 
+	case frb_info_att_charset:
+	    length = INF_convert (tdbb->tdbb_attachment->att_charset, buffer);
+	    break;
+
 	default:
 	    buffer [0] = item;
 	    item = gds__info_error;

@@ -407,7 +407,7 @@ static void	check_log_file_attrs (void);
 #endif
 
 static TEXT	*ptr, *end, *last_token, *line_start;
-static SSHORT	lines;
+static SSHORT	lines, att_charset;
 
 typedef struct tok {
     USHORT	tok_ident;
@@ -458,7 +458,8 @@ for (token = tokens; token->tok_string; ++token)
 
 void LEX_string (
     TEXT	*string,
-    USHORT	length)
+    USHORT	length,
+    SSHORT	character_set)
 {
 /**************************************
  *
@@ -474,6 +475,7 @@ void LEX_string (
 line_start = ptr = string;
 end = string + length;
 lines = 1;
+att_charset = character_set;
 }
 
 #ifndef WINDOWS_ONLY
@@ -5080,7 +5082,7 @@ case 764:{ yyval = MAKE_constant ((STR) yypvt[-0], CONSTANT_SLONG); } break;
 case 765:{ yyval = MAKE_constant ((STR) yypvt[-0], CONSTANT_DOUBLE); } break;
 case 766:{ yyval = MAKE_constant ((STR) yypvt[-0], CONSTANT_SINT64); } break;
 case 767:{ yyval = MAKE_constant ((STR) yypvt[-0], CONSTANT_SINT64); } break;
-case 769:{ yyval = MAKE_constant ((STR) yypvt[-0], CONSTANT_STRING); } break;
+case 769:{ yyval = MAKE_str_constant ((STR) yypvt[-0], att_charset); } break;
 case 770:{ 
 			if (client_dialect < SQL_DIALECT_V6_TRANSITION)
 			    ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -104, 

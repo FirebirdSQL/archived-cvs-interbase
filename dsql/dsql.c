@@ -163,6 +163,7 @@ static CONST SCHAR	db_hdr_info_items [] = {
 #ifdef READONLY_DATABASE
 			    isc_info_db_read_only,
 #endif  /* READONLY_DATABASE */
+			    frb_info_att_charset,
 			    gds__info_end 
 			};
 static CONST SCHAR 	explain_info [] = {
@@ -2845,6 +2846,10 @@ THREAD_ENTER;
 if (s)
     return database;
 
+/* assume that server can not report current character set,
+   and if not then emulate pre-patch actions. */
+database->dbb_att_charset = 127;
+
 data = buffer;
 while ((p = *data++) != gds__info_end)
     {
@@ -2890,6 +2895,10 @@ while ((p = *data++) != gds__info_end)
 		database->dbb_flags &= ~DBB_read_only;
 	    break;
 #endif  /* READONLY_DATABASE */
+
+	case frb_info_att_charset:
+	    database->dbb_att_charset = gds__vax_integer (data, 2);
+	    break;
 
 	default:
 	    break;
@@ -3273,7 +3282,7 @@ for (p = string + string_length; p-- > string;)
 
 /* Allocate a storage pool and get ready to parse */
 
-LEX_string (string, string_length);
+LEX_string (string, string_length, request->req_dbb->dbb_att_charset);
 
 /* Parse the SQL statement.  If it croaks, return */
 

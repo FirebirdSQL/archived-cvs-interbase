@@ -198,6 +198,43 @@ else
 return node;
 }
 
+NOD MAKE_str_constant (
+    STR		constant,
+    SSHORT	character_set)
+{
+/**************************************
+ *
+ *	M A K E _ s t r - c o n s t a n t
+ *
+ **************************************
+ *
+ * Functional description
+ *	Make a constant node when the 
+ *      character set ID is already known.
+ *
+ **************************************/
+NOD	node;
+TSQL    tdsql;
+
+tdsql = GET_THREAD_DATA;
+
+node = (NOD) ALLOCDV (type_nod, 1);
+node->nod_type = nod_constant;
+
+DEV_BLKCHK (constant, type_str);
+
+node->nod_desc.dsc_dtype = dtype_text;
+node->nod_desc.dsc_sub_type = 0;
+node->nod_desc.dsc_scale = 0;
+node->nod_desc.dsc_length = constant->str_length;
+node->nod_desc.dsc_address = constant->str_data;
+node->nod_desc.dsc_ttype = character_set;
+/* carry a pointer to the constant to resolve character set in pass1 */
+node->nod_arg [0] = (NOD) constant;
+
+return node;
+}
+
 STR MAKE_cstring (
     CONST SCHAR	*str)
 {

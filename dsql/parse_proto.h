@@ -26,6 +26,6 @@
 
 extern int      dsql_yyparse (USHORT, USHORT, USHORT, BOOLEAN *);
 extern void	LEX_dsql_init (void);
-extern void	LEX_string (TEXT *, USHORT);
+extern void	LEX_string (TEXT *, USHORT, SSHORT);
 
 #endif	/*  _DSQL_PARSE_PROTO_H_  */

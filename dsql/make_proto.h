@@ -27,6 +27,7 @@
 #include "../dsql/sym.h"
 
 extern struct nod	*MAKE_constant (struct str *, int);
+extern struct nod	*MAKE_str_constant (struct str *, SSHORT);
 extern struct str	*MAKE_cstring (CONST SCHAR *);
 extern void		MAKE_desc (struct dsc *, struct nod *);
 extern void		MAKE_desc_from_field (struct dsc *, struct fld *);

@@ -184,6 +184,7 @@ typedef struct dbb {			/* Database Block */
     USHORT	dbb_base_level;		/* indicates the version of the engine code itself */ 
     USHORT	dbb_flags;
     USHORT	dbb_db_SQL_dialect;
+    SSHORT	dbb_att_charset;	/* characterset at time of attachment */
 } *DBB;
 
 /* values used in dbb_flags */

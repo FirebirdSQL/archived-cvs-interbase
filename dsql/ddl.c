@@ -1479,6 +1479,7 @@ put_field (request, field, FALSE);
 
 if ((node = element->nod_arg [e_dom_default]) != NULL)
     {
+    node = PASS1_node (request,node,0);
     begin_blr (request, gds__dyn_fld_default_value);
     GEN_expr (request, node);
     end_blr (request);
@@ -1677,6 +1678,7 @@ if (position != -1)
 
 if ((node = element->nod_arg [e_dfl_default]) != NULL)
     {
+    node = PASS1_node (request,node,0);
     begin_blr (request, gds__dyn_fld_default_value);
     if (node->nod_type == nod_null) 
 	default_null_flag = TRUE;
@@ -4148,6 +4150,7 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
     switch (element->nod_type)
 	{
 	case nod_def_default:
+            element->nod_arg[e_dft_default] = PASS1_node (request, element->nod_arg[e_dft_default],0);
     	    begin_blr (request, gds__dyn_fld_default_value);
             GEN_expr (request, element->nod_arg[e_dft_default]);
             end_blr (request);
