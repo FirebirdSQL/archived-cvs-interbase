@@ -71,8 +71,8 @@ static FILE *log_file;
 #endif
 
 #ifndef NETBSD
-define getmaxx(s) ((s)->_maxx)
-define getmaxy(s) ((s)->_maxy)
+#define getmaxx(s) ((s)->_maxx)
+#define getmaxy(s) ((s)->_maxy)
 #endif
 
 static USHORT	disabled = 1;
