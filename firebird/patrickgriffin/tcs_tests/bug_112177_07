@@ -1,0 +1,75 @@
+/*
+**  Name:		bug_112177_07
+**  Series:		bugs
+**  Meta-Series:
+**  Dependencies:	None
+**  Description:	Test where no SET NAMES.
+**
+**  Expected result:	GBAK shouldn't abort.
+**                      Final select * should only include 2nd RÇlph (from win1251 set.)
+**			
+**  Author:		Patrick J. P. Griffin
+**  Bugs:		[ Bug #112177 ] error with non-english column defaults
+**  Change history:
+**
+*/
+
+$ CREATE cf_test.sql
+create database "WHERE_GDB:cf.gdb";
+
+create table bug_bugbase ( 
+s char(30) character set WIN1251
+   default _WIN1251 'RÇbert'
+   not null
+   collate PXW_CYRL,
+i smallint default '1234' not null
+); 
+
+exit;
+
+$ CREATE cf_test2.sql
+connect "WHERE_GDB:cf.gdb";
+
+insert into bug_bugbase (s,i) values('Test1 no SET NAMES',4321);
+insert into bug_bugbase (i) values(4321);
+insert into bug_bugbase (s) values('RÇlph');
+
+exit;
+
+$ CREATE cf_test3.sql
+set names win1251;
+connect "WHERE_GDB:cf.gdb";
+
+insert into bug_bugbase (s,i) values('Test2 SET NAMES WIN1251',4321);
+insert into bug_bugbase (i) values(4321);
+insert into bug_bugbase (s) values('RÇlph');
+
+exit;
+
+$ CREATE cf_test4.sql
+set names win1252;
+connect "WHERE_GDB:cf.gdb";
+
+insert into bug_bugbase (s,i) values('Test3 SET NAMES WIN1252',4321);
+insert into bug_bugbase (i) values(4321);
+insert into bug_bugbase (s) values('RÇlph');
+
+exit;
+
+$ CREATE cf_test5.sql
+connect "WHERE_GDB:cf.gdb";
+
+select * from bug_bugbase;
+
+exit;
+
+$ ISQL -e -m -input cf_test.sql
+$ ISQL -e -m -input cf_test2.sql
+$ ISQL -e -m -input cf_test3.sql
+$ ISQL -e -m -input cf_test4.sql
+$ ISQL -e -m -input cf_test5.sql
+$ GBAK -b WHERE_GDB:cf.gdb cf.gbak
+$ DROP WHERE_GDB:cf.gdb
+$ GBAK -r cf.gbak WHERE_GDB:cf.gdb
+$ DROP WHERE_GDB:cf.gdb
+$ DELETE cf_test.sql cf.gbak cf_test2.sql cf_test3.sql cf_test4.sql cf_test5.sql

@@ -56,5 +56,5 @@ exit;
 $ ISQL -m -input cf_test.sql
 $ ISQL -m -input cf_test2.sql
 $ ISQL -m -input cf_test3.sql
-$ RUN drop_gdb WHERE_GDB:cf.gdb
+$ DROP WHERE_GDB:cf.gdb
 $ DELETE cf_test.sql cf_test2.sql cf_test3.sql

@@ -3,8 +3,8 @@
 **  Series:		bugs
 **  Meta-Series:
 **  Dependencies:	None
-**  Description:	Backup and restore a database with a default
-**                      field containing non-english characters.
+**  Description:	Load a non-english default value and
+**                      do a gbak backup and restore.
 **
 **  Expected result:	GBAK shouldn't abort.
 **			
@@ -31,7 +31,7 @@ exit;
 
 $ ISQL -m -input cf_test.sql
 $ GBAK -b WHERE_GDB:cf.gdb cf.gbak
-$ RUN drop_gdb WHERE_GDB:cf.gdb
+$ DROP WHERE_GDB:cf.gdb
 $ GBAK -r cf.gbak WHERE_GDB:cf.gdb
-$ RUN drop_gdb WHERE_GDB:cf.gdb
+$ DROP WHERE_GDB:cf.gdb
 $ DELETE cf_test.sql cf.gbak
