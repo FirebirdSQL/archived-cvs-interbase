@@ -734,16 +734,16 @@ classicrpmfile: force
 
 
 runsuperinstall: force
-	make -f firebird/skywalker/install/Makefile runsuperinstall
+	make -f firebird/install/linux/Makefile runsuperinstall
 
 superpackages: force
-	make -f firebird/skywalker/install/Makefile superpackages
+	make -f firebird/install/linux/Makefile superpackages
 
 supertarfile: force
-	make -f firebird/skywalker/install/Makefile supertarfile
+	make -f firebird/install/linux/Makefile supertarfile
 
 superrpmfile: force
-	make -f firebird/skywalker/install/Makefile superrpmfile
+	make -f firebird/install/linux/Makefile superrpmfile
 
 
 force:

@@ -1,0 +1,18 @@
+Summary: FirebirdSQL Database Server and Client tools.
+Name: FirebirdSS 
+Version: 1.0.0.584
+Release: 0.RC1 
+Copyright: InterBase Public Licence (IPL)
+Group: Applications/Databases 
+Source: FirebirdCS1.0.0.584-0.RC1.src.tar.gz 
+URL: http://firebird.sourceforge.net 
+Prefix: /opt 
+AutoReqProv: no 
+BuildArchitectures: i386
+
+# BuildRoot: /var/tmp/%{name}-buildroot
+
+%description
+Firebird is a powerful, high-performance relational database designed to be embedded into
+applications on multiple platforms.  
+

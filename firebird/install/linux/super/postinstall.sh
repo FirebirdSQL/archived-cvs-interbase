@@ -91,66 +91,6 @@ deleteFirebirdUser() {
 
 
 #------------------------------------------------------------------------
-#  changeXinetdServiceUser
-#  Change the run user of the xinetd service
-
-changeXinetdServiceUser() {
-
-    InitFile=/etc/xinetd.d/firebird
-    if [ -f $InitFile ] 
-      then
-        ex -s $InitFile <<EOF
-/	user	/s/=.*\$/= $RunUser/g
-w
-q
-EOF
-    fi
-}
-
-#------------------------------------------------------------------------
-#  Update inetd service entry
-#  This just adds/replaces the service entry line
-
-updateInetdEntry() {
-
-    FileName=/etc/inetd.conf
-    newLine="gds_db  stream  tcp     nowait.30000      $RunUser $IBBin/gds_inet_server gds_inet_server # InterBase Database Remote Server"
-    oldLine=`grep "^gds_db" $FileName`
-
-    replaceLineInFile "$FileName" "$newLine" "$oldLine"
-}
-
-#------------------------------------------------------------------------
-#  Update xinetd service entry
-
-updateXinetdEntry() {
-
-    cp $IBRootDir/misc/firebird.xinetd /etc/xinetd.d/firebird
-    chmod o=rw,go=r /etc/xinetd.d/firebird
-    changeXinetdServiceUser
-}
-
-
-#------------------------------------------------------------------------
-#  Update inetd service entry 
-#  Check to see if we have xinetd installed or plain inetd.  Install differs
-#  for each of them.
-
-updateInetdServiceEntry() {
-
-    if [ -d /etc/xinetd.d ] 
-      then
-        updateXinetdEntry
-    else
-        updateInetdEntry
-    fi
-
-}
-
-
-
-
-#------------------------------------------------------------------------
 #  Unable to generate the password for the rpm, so put out a message 
 #  instead
 
@@ -309,7 +249,7 @@ fixFilePermissions() {
     
     # SUID is still needed for group direct access.  General users
     # cannot run though.
-    for i in gds_lock_mgr gds_drop gds_inet_server
+    for i in gds_lock_mgr
     do
         chmod ug=rx,o= $i
         chmod ug+s $i
@@ -406,7 +346,7 @@ fixFilePermissionsRoot() {
     
     # SUID is still needed for group direct access.  General users
     # cannot run though.
-    for i in gds_lock_mgr gds_drop gds_inet_server
+    for i in gds_lock_mgr 
     do
         chmod ug+s $i
     done
@@ -459,22 +399,62 @@ fixFilePermissionsRoot() {
 }
 
 #------------------------------------------------------------------------
-#  resetXinitdServer
-#  Check for both inetd and xinetd, only one will actually be running.
-#  depending upon your system.
+# InstallInitdScript
+# Update rcX.d with Firebird initd entries
+# initd script for SuSE >= 7.2 is a part of RPM package
 
-resetInetdServer() {
+InstallInitdScript() {
 
-    if [ -f /var/run/inetd.pid ]
-      then
-        kill -HUP `cat /var/run/inetd.pid`
-    fi
+# This is (I hope) right for RH and MDK
 
-    if [ -f /var/run/xinetd.pid ]
-      then
-        kill -USR2 `cat /var/run/xinetd.pid`
-    fi
+if [ -e /etc/rc.d/init.d/functions ]; then
+    cp /opt/interbase/misc/firebird.init.d.mandrake /etc/rc.d/init.d/firebird
+    chown root:root /etc/rc.d/init.d/firebird
+    chmod a+rx /etc/rc.d/init.d/firebird
+    ln -s ../../etc/rc.d/init.d/firebird /usr/sbin/rcfirebird
+
+elif [ -d /etc/init.d ]; then
+
+# I'm not sure if this is enough to detect SuSE, but it works for now
+
+      cp /opt/interbase/misc/firebird.init.d.suse /etc/init.d/firebird
+      chown root:root /etc/init.d/firebird
+      chmod a+rx /etc/init.d/firebird
+      ln -s ../../etc/init.d/firebird /usr/sbin/rcfirebird
+
+else
+
+# Generic...
+
+  if [ -d /etc/rc.d/init.d ]; then
+      cp /opt/interbase/misc/firebird.init.d.generic /etc/rc.d/init.d/firebird
+      chown root:root /etc/rc.d/init.d/firebird
+      chmod a+rx /etc/rc.d/init.d/firebird
+      ln -s ../../etc/rc.d/init.d/firebird /usr/sbin/rcfirebird
+  fi
+
+fi
+
+if [ -x /sbin/insserv ] ; then
+    /sbin/insserv /etc/init.d/firebird
+fi
+
+if [ -x /sbin/chkconfig ] ; then
+    /sbin/chkconfig --add firebird
+fi
+
+# SuSE rc.config fillup
+
+if [ -x /bin/fillup ] ; then
+  /bin/fillup -q -d = etc/rc.config opt/interbase/misc/rc.config.firebird
+else
+  echo "ERROR: fillup not found."
+  echo "If you're using SuSE, this should not happen. Please compare"
+  echo "/etc/rc.config and /var/adm/fillup-templates/rc.config.firebird and update by hand."
+fi
+
 }
+
 
 #= Main Post ===============================================================
 
@@ -526,17 +506,10 @@ resetInetdServer() {
 #    fixFilePermissions
     fixFilePermissionsRoot
 
-    # Update the /etc/inetd.conf or xinetd entry
-    updateInetdServiceEntry
-
-
-    # Get inetd to reread new init files.
-    resetInetdServer
-
-
     cd $IBRootDir
     # Change sysdba password
 #    changeDBAPassword
 
-
-
+    # Set up Firebird for run with initd
+    InstallInitdScript
+    

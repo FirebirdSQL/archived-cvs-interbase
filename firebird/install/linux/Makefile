@@ -17,20 +17,24 @@ InstallImageRoot=buildroot
 # their own spot.
 RedhatPackageDir=/usr/src/redhat/RPMS/i386
 MandrakePackageDir=/usr/src/RPM/RPMS/i386
+SuSEPackageDir=/usr/src/packages/RPMS/i386
 
 PackageDir:=$(shell if [ -d $(RedhatPackageDir) ]; then echo $(RedhatPackageDir); \
 		           elif [ -d $(MandrakePackageDir) ]; then echo $(MandrakePackageDir); \
+		           elif [ -d $(SuSEPackageDir) ]; then echo $(SuSEPackageDir); \
 				   fi)
 
 
 # Get the current build number for this build
 BuildNum=$(shell cat this_build)
+64IO=$(shell cat jrd/64bitio.h)
+64IOTAG=$(shell if [ -z "$(64IO)" ]; then echo ""; else echo ".64IO"; fi )
 BuildVersion=1.0.0.$(BuildNum)
-PackageVersion=0.RC2
+PackageVersion=0.RC2$(64IOTAG)
 Version=$(BuildVersion)-$(PackageVersion)
 
 ClassicTarDir=FirebirdCS-$(Version)
-SuperTarDir=FirebirdCS-$(Version)
+SuperTarDir=FirebirdSS-$(Version)
 
 ClassicTarFile=FirebirdCS-$(Version).tar.gz
 SuperTarFile=FirebirdSS-$(Version).tar.gz
@@ -43,6 +47,9 @@ SuperSrcDir=$(InstallRoot)/super
 
 LastClassicInstallFlg=.classicinstallflg
 LastSuperInstallFlg=.superinstallflg
+
+test:
+	@echo "$(PackageVersion)"
 
 install: 
 	@echo "you need to make a choice here "
@@ -84,24 +91,18 @@ $(ClassicRPMFile): CSrpmscript
 	cp $(PackageDir)/$(ClassicRPMFile) .
 
 
-superpackages: supertarfile superrpmfile
+superpackages: buildsuperimage supertarfile superrpmfile
 
-runsuperinstall: $(LastSuperInstallFlg)
+supertarfile: buildsuperimage $(SuperTarFile)
+
+superrpmfile: buildsuperimage $(SuperRPMFile)
+
+buildsuperimage: 
+	sh $(SuperSrcDir)/makeInstallImage.sh
 
 
-supertarfile: runsuperinstall $(SuperTarFile)
-
-superrpmfile: runsuperinstall $(SuperRPMFile)
-
-
-$(LastSuperInstallFlg) : interbase/bin/gsec
-	sh $(InstallRoot)/super/SSTarInstall.sh
-	touch $(LastSuperInstallFlg)
-
-$(SuperTarFile) : ssinstall runsuperinstall
-	mv ssinstall install
-	tar -czf $(SuperTarFile) install
-	mv install ssinstall
+$(SuperTarFile) : buildSuperTarDir
+	tar -czf $(SuperTarFile) $(SuperTarDir)
 
 
 $(SuperRPMFile): SSrpmscript
@@ -144,7 +145,8 @@ CSrpmscript:
 
 SSrpmscript: 
 	echo $@
-	cat $(SuperSrcDir)/SSrpmheader.txt > $@
+	cat $(SuperSrcDir)/rpmheader.txt | sed 's/^Version:.*/Version: $(BuildVersion)/' \
+	     | sed 's/Release:.*/Release: $(PackageVersion)/' > $@
 	echo "" >> $@
 	echo "%prep" >> $@
 #	cat $(SuperSrcDir)/SSprepinstall.sh >> $@
@@ -156,19 +158,19 @@ SSrpmscript:
 #	cat $(SuperSrcDir)/SSinstall.sh >> $@
 	echo "" >> $@
 	echo "%files" >> $@
-	cat $(SuperSrcDir)/SSrpmfiles.txt >> $@
+	cat $(SuperSrcDir)/rpmfiles.txt >> $@
 	echo "" >> $@
 	echo "%pre" >> $@
-	cat $(SuperSrcDir)/SSpreinstall.sh >> $@
+	cat $(SuperSrcDir)/preinstall.sh >> $@
 	echo "" >> $@
 	echo "%post" >> $@
-	cat $(SuperSrcDir)/SSpostinstall.sh >> $@
+	cat $(SuperSrcDir)/postinstall.sh >> $@
 	echo "" >> $@
 	echo "%preun" >> $@
-	cat $(SuperSrcDir)/SSpreuninstall.sh >> $@
+	cat $(SuperSrcDir)/preuninstall.sh >> $@
 	echo "" >> $@
 	echo "%postun" >> $@
-	cat $(SuperSrcDir)/SSpostuninstall.sh >> $@
+	cat $(SuperSrcDir)/postuninstall.sh >> $@
 
 
 ClassicScriptsDir=$(ClassicTarDir)/scripts
@@ -179,6 +181,15 @@ buildClassicTarDir:
 	cat $(ClassicSrcDir)/tarMainInstall.sh | sed 's/XXXVERSIONXXX/$(Version)/' > $(ClassicTarDir)/install.sh
 	chmod a+x $(ClassicTarDir)/install.sh
 	tar -C buildroot -czf $(ClassicTarDir)/buildroot.tar.gz .
+
+SuperScriptsDir=$(SuperTarDir)/scripts
+
+buildSuperTarDir:
+	mkdir -p $(SuperScriptsDir)
+	cp $(SuperSrcDir)/*install*.sh $(SuperScriptsDir)
+	cat $(SuperSrcDir)/tarMainInstall.sh | sed 's/XXXVERSIONXXX/$(Version)/' > $(SuperTarDir)/install.sh
+	chmod a+x $(SuperTarDir)/install.sh
+	tar -C buildroot -czf $(SuperTarDir)/buildroot.tar.gz .
 
 SSTarInstallDir=ssinstall
 
