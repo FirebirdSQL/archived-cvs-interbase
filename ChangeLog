@@ -1,3 +1,31 @@
+2001-05-30 05:21  bellardo
+
+	* interbase/dsql/parse.sed:
+	
+	Re-added a pattern mistakenly removed during the Darwin port.
+
+2001-05-28 18:50  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Fixed improper use of LINK_OPTS build macro.  Also included are
+	preliminary changes to get SS to compile in Darwin.
+
+2001-05-28 18:46  bellardo
+
+	* interbase/builds/original/sfx.utilities:
+	
+	Fixed build process bug introduced by Darwin port that prevented
+	the drop target from building correctly.
+
+2001-05-28 08:21  fsg
+
+	* interbase/jrd/: dyn_def.e, dyn_mod.e:
+	
+	Changes to get jrd/dyn_???.c compiled under Linux again.
+	
+	fsg
+
 2001-05-28 06:47  robocop
 
 	* interbase/msgs/msg.gbak:
