@@ -1,3 +1,35 @@
+2001-05-25 20:29  bellardo
+
+	* interbase/firebird/bellardo/nightly_build_script:
+	
+	Initial version of my very rough nightly build script.
+
+2001-05-25 19:21  bellardo
+
+	* interbase/utilities/: drop.c, dropv3.c:
+	
+	Fixed linux platform error introduced by the original darwin port.
+
+2001-05-25 10:18  robocop
+
+	* interbase/builds_win32/original/ib_udf.bind:
+	
+	New function substrlen was put at the tail.
+
+2001-05-25 10:17  robocop
+
+	* interbase/jrd/alt.c:
+	
+	User names cannot be length 32 but 31 maximum.
+
+2001-05-25 10:16  robocop
+
+	* interbase/jrd/: codes.h, codetext.h, dyn.e, dyn_def.e, dyn_del.e,
+	dyn_df_proto.h, dyn_dl_proto.h, dyn_md_proto.h, dyn_mod.e,
+	iberror.h, msg_facs.h, msgs.h, rdb_codes.h, sql_code.h:
+	
+	Zero length identifiers not allowed and other bug fixes.
+
 2001-05-24 16:47  tamlin
 
 	* interbase/alice/tdr.c:
