@@ -160,6 +160,11 @@ o Ensure that ISC_USER and ISC_PASSWORD system variables are set correctly
 o Add user=builder password=builder with gsec or any other tool that allows
   you to add/modify/delete users.
 
+o By default compiler warnings are now turned off. Turn them back on by
+  creating a file called 'warning.level' in the root of the source directory.
+  It should contain a single integer between 1 and 4, depending upon the level
+  of warnings you wish to see.
+
 
 SETTING UP THE BUILD DATABASES
 ------------------------------
@@ -173,7 +178,7 @@ at build time. To build this tree you run:
 The path given must be on the current drive and must be the full path.
 ie, if you are on the C: drive you might type something like
 
-    FB_Build_Win32_Build_DBs.bat c:\firebird\build_dbs
+  FB_Build_Win32_Build_DBs.bat c:\firebird\build_dbs
 
 The batch file will then create the necessary databases.
 
@@ -218,10 +223,8 @@ build.
 When the build preparations are complete it then calls 'build_lib.bat'.
 This is the batch file which actually does the build. A second console
 window is opened and tail is used to follow the output. At this point,
-just sit back and enjoy the show.
-
-Don't worry about the myriad of warnings. They are known and expected.
-However, if any error is triggered the build will immediately stop.
+just sit back and enjoy the show. If any error is triggered the build
+will immediately stop.
 
 When build_lib.bat stops you will see either BUILD_FAIL or BUILD_OK
 somewhere on the screen. If the build has failed then open up
@@ -281,7 +284,7 @@ Scrollable Consoles:
   Open the Properties dialogue of a Console window. In the Screen Buffer
   Size set the Height = 5000 and the Width = 96. When prompted, save
   properties for future windows. This will give you a scrollable console
-  Window. You will be able to retrieve the output from an entire session
+  Window. You will be able to review the output from an entire session
   this way.
 
 

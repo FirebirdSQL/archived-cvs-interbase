@@ -41,7 +41,7 @@ BEGIN
       VALUE "LegalCopyright", "Portions created by Inprise Corporation are Copyright (C) 2000 Inprise Corporation."
       VALUE "ProductName", "Firebird Database Server\0"
       VALUE "ProductVersion", PRODUCT_VER_STRING
-      VALUE "SpecialBuild", "Post-Release Candidate 1"
+      VALUE "SpecialBuild", "Post-Release Candidate 1\0"
     END
   END
 

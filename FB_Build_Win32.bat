@@ -34,6 +34,9 @@
 ::
 ::
 ::  Changelog
+::  o Warnings are now turned off by default.   - 04-12-2001   - PR
+::    See :SET_WARNING_LEVEL for details of how
+::    to turn them on again.
 ::  o Log files now include the build number in - 29-Nov-2001  - PR
 ::    the file name. Preserves some history, but
 ::    not infallible
@@ -163,7 +166,7 @@ echo %PATH% | find "%INTERBASE%\bin" > nul
 ::Try and check that Build-time databases are up-to-date
 ::First, make sure that the path given is using backslashes, not forward slashes
 for /f "tokens=*" %%a in ('echo %1') do ((set DOS_DB_PATH=%%a))
-for /f "tokens=*" %%a in ('@echo %DOS_DB_PATH:\=/%') do ((set DOS_DB_PATH=%%a))
+for /f "tokens=*" %%a in ('@echo %DOS_DB_PATH:/=\%') do ((set DOS_DB_PATH=%%a))
 
 
 :: Now see if destination exists. If so, test for a newer backup file in the
@@ -316,7 +319,26 @@ for %%V in (%IB_COMPONENTS%) do (
   )
 endlocal
 
-::
+::=====================================
+:SET_WARNING_LEVEL
+:: Now set the warning level
+:: If you want to see warnings create a file called warning.level
+:: and enter a single integer between 1 and 4 for the desired warning level.
+:: If the file does not exist warnings are turned off.
+:: You may need to CLEAN the source tree for this to take full effect.
+setlocal
+set WARNING_LEVEL=W0
+if exist warning.level (for /f "tokens=*" %%a in ('cat warning.level') do (set WARNING_LEVEL=W%%a))
+
+if "%WARNING_LEVEL%" == "W3" goto :CHECK_LIB
+sed s/-W3/-%WARNING_LEVEL%/g include.mak > .\sed.TMP
+copy .\sed.TMP include.mak
+del .\sed.TMP
+endlocal
+
+
+::=====================================
+:CHECK_LIB
 :: Now check if we need to copy gds32_MS.lib to jrd\ms_obj\client
 :: This really is messy - the build should not need this palaver
 :: If a DEV build is run before a PROD build then gds32_ms.lib will
