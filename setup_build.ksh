@@ -24,6 +24,7 @@ if [ "$1" = "" ] ; then
 	echo "which contains the build time database. DB_DIR may"
 	echo "include a server name. DB_DIR should not be the"
 	echo "source directory."
+	exit 1
 fi
 DB_PATH="$1" #path to look for db in .e files
 OS_NAME="builds_win32" # directory for builds_win32 components
