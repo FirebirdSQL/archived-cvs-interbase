@@ -368,11 +368,6 @@ for (d = buffer, info = info_buf; *d != isc_info_end;)
 		sprintf (info, "Forced Writes are %s %s", (value_out==1 ? "ON" : "OFF"), NEWLINE);
 	    break;
  	
-/*
- *	This would work, IF isc_info_next_transaction really picked up 
- *  the value of the next transaction. Unfortunately, it picks up the value 
- *	of the oldest transaction - PR 27-NOV-2001
- *
 	case isc_info_oldest_transaction :
 	    value_out = isc_vax_integer (d, length);
 		sprintf (info, "Transaction - oldest = %ld %s", value_out, NEWLINE);
@@ -393,7 +388,6 @@ for (d = buffer, info = info_buf; *d != isc_info_end;)
 		sprintf (info, "Transaction - Next = %ld %s", value_out, NEWLINE);
 	    break;
 
-*/ 	
 	case isc_info_num_wal_buffers:       
 	    value_out = isc_vax_integer (d, length);
             if (translate)

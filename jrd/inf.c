@@ -29,6 +29,8 @@
  *
  * 2001.11.28 Ann Harrison - the dbb has to be refreshed before reporting
  *      oldest_transaction, oldest_active, oldest_snapshot and next_transaction.
+ *
+ * 2001.11.29 Experience
  */
 
 #include <string.h>
@@ -535,7 +537,10 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
+
 	case isc_info_forced_writes:
+		file = dbb->dbb_file;
+	    PAG_header (file->fil_string, file->fil_length) ;
 	    *p++ = (dbb->dbb_flags & DBB_force_write) ? 1 : 0;
 	    length = p - buffer;
 	    break;
