@@ -222,11 +222,11 @@ extern IB_FILE ib__sF[];
  * Although numbered as their counterparts above, the implementation
  * does not rely on this.
  */
-/* #define	_IOFBF	0		/* setvbuf should set fully buffered */
-/* #define	_IOLBF	1		/* setvbuf should set line buffered */
-/* #define	_IONBF	2		/* setvbuf should set unbuffered */
+/* #define	_IOFBF	0   	*/ /* setvbuf should set fully buffered */
+/* #define	_IOLBF	1	*/ /* setvbuf should set line buffered */
+/* #define	_IONBF	2	*/ /* setvbuf should set unbuffered */
 
-/* #define	BUFSIZ	1024		/* size of buffer used by setbuf */
+/* #define	BUFSIZ	1024	*/ /* size of buffer used by setbuf */
 /* #define	EOF	(-1) */
 
 /*
