@@ -1677,6 +1677,9 @@ void API_ROUTINE gds_alloc_flag_unfreed (
  **************************************/
 ALLOC	p;
 
+if (!blk)
+    return;
+
 /* Point to the start of the block */
 p = (ALLOC) (((UCHAR *) blk) - ALLOC_HEADER_SIZE);
 
