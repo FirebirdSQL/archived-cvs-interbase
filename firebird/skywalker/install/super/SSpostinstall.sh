@@ -77,9 +77,9 @@ installInitdFile() {
 
     if [ -e /etc/rc.d/init.d/functions ]
       then
-        cp $IBRootDir/misc/firebird.init.d.mandrake /etc/rc.d/firebird
-    else
-        cp $IBRootDir/misc/firebird.init.d.generic /etc/rc.d/firebird
+        cp $IBRootDir/misc/firebird.init.d.mandrake /etc/rc.d/init.d/firebird
+      else
+        cp $IBRootDir/misc/firebird.init.d.generic /etc/rc.d/init.d/firebird
 
     fi
 
@@ -154,6 +154,11 @@ generateNewDBAPassword() {
    
     DBAPasswordFile=$IBRootDir/SYSDBA.password
     NewPasswd=`/usr/bin/mkpasswd -l 8`
+    if [ -z "$NewPasswd" ]
+      then
+        keepOrigDBAPassword
+        return
+    fi
     echo "Firebird generated password " > $DBAPasswordFile
     echo "for user SYSDBA is : $NewPasswd" >> $DBAPasswordFile
     echo "generated on `hostname` at time `date`" >> $DBAPasswordFile

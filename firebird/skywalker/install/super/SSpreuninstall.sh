@@ -49,6 +49,7 @@ stopServerIfRunning() {
 
 
     rm -f $IBBin/ibmgr
+    rm -f /etc/init.d/firebird
 
 
 

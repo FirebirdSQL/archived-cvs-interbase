@@ -52,7 +52,7 @@ checkIfServerRunning() {
     if [ ! -z "$checkString" ] 
       then
         echo "An instance of the Firebird/InterBase Super server seems to be running." 
-        echo "Please quit all interbase applications and then proceed"
+        echo "Please quit all Firebird applications and then proceed"
         exit 1 
     fi
 
@@ -61,10 +61,18 @@ checkIfServerRunning() {
     if [ ! -z "$checkString" ] 
       then
         echo "An instance of the Firebird/InterBase server seems to be running." 
-        echo "Please quit all interbase applications and then proceed." 
+        echo "Please quit all Firebird applications and then proceed." 
         exit 1 
     fi
 
+#    checkString=`netstat -an | egrep '3050.*LISTEN'`
+#
+#    if [ ! -z "$checkString" ] 
+#      then
+#        echo "An instance of the Firebird/InterBase server seems to be running." 
+#        echo "Please quit all Firebird applications and then proceed." 
+#        exit 1 
+#    fi
 
 
 # Stop lock manager if it is the only thing running.
