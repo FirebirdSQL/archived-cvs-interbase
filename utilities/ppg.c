@@ -19,6 +19,10 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
+ * 2001.08.07 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -30,9 +34,9 @@
 #include "../jrd/gds_proto.h"
 
 static CONST TEXT	months [][4] = {
-		"Jan", "Feb", "Mar", 
-		"Apr", "May", "Jun", 
-		"Jul", "Aug", "Sep", 
+		"Jan", "Feb", "Mar",
+		"Apr", "May", "Jun",
+		"Jul", "Aug", "Sep",
 		"Oct", "Nov", "Dec" };
 
 #ifdef SUPERSERVER
@@ -123,8 +127,8 @@ if (page == HEADER_PAGE)
 	FPRINTF (outfile, "\tDatabase dialect\t3\n");
     else
         FPRINTF (outfile, "\tDatabase dialect\t1\n");
-    
-    
+
+
     gds__decode_date (header->hdr_creation_date, &time);
     FPRINTF (outfile, "\tCreation date\t\t%s %d, %d %d:%02d:%02d\n",
 	months [time.tm_mon], time.tm_mday, time.tm_year + 1900,
@@ -167,20 +171,18 @@ if ((page == HEADER_PAGE) && (flags = header->hdr_flags))
 	FPRINTF (outfile, "database shutdown");
 	}
 
-#ifdef READONLY_DATABASE
     if (flags & hdr_read_only)
 	{
     	if (flag_count++)
     	    FPRINTF (outfile, ", ");
 	FPRINTF (outfile, "read only");
 	}
-#endif  /* READONLY_DATABASE */
     FPRINTF (outfile, "\n");
     }
 
 FPRINTF (outfile, "\n    Variable header data:\n");
 
-for (p = header->hdr_data, end = p + header->hdr_page_size; 
+for (p = header->hdr_data, end = p + header->hdr_page_size;
      p < end && *p != HDR_end; p += 2 + p [1])
     switch (*p)
 	{

@@ -22,7 +22,7 @@
  * Toni Martir: Verbose records restored as RESTORE_VERBOSE_INTERVAL,
  * also verbose restoring indexes as DEFERRED when verbose
  *
- * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ * 2001.08.07 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
  */
@@ -732,7 +732,7 @@ static void bad_attribute (
  * Functional description
  *	We ran into an unsupported attribute.
  *	but it isn't the end of the world.
- *	We will try to skip some bad data and 
+ *	We will try to skip some bad data and
  *	look for next valid attribute to continue the process.
  *
  **************************************/
@@ -745,7 +745,7 @@ tdgbl = GET_THREAD_DATA;
 
 skip_count = 0;
 
-if (!tdgbl->gbl_sw_skip_count)	
+if (!tdgbl->gbl_sw_skip_count)
     {
     gds__msg_format (NULL_PTR, 12, type, sizeof (t_name), t_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
     BURP_print (80, t_name, (void*) bad_attr, NULL_PTR, NULL_PTR, NULL_PTR);
@@ -880,11 +880,9 @@ if (GET_RECORD (record) == rec_physical_db)
 		no_reserve = (USHORT) get_numeric();
 		break;
 
-#ifdef READONLY_DATABASE
 	    case att_db_read_only:
 		db_read_only = (UCHAR) get_numeric();
 		break;
-#endif  /* READONLY_DATABASE */
 
 	    case att_page_buffers:
 		page_buffers = get_numeric();
@@ -918,7 +916,6 @@ tdgbl->hdr_forced_writes = forced_writes;
 if (tdgbl->gbl_sw_no_reserve)
     no_reserve = tdgbl->gbl_sw_no_reserve;
 
-#ifdef READONLY_DATABASE
 /* Override attribute setting with user requirement */
 if (tdgbl->gbl_sw_mode == TRUE)
     db_read_only = tdgbl->gbl_sw_mode_val;
@@ -930,7 +927,6 @@ else
     tdgbl->gbl_sw_mode = TRUE;
     tdgbl->gbl_sw_mode_val = db_read_only;
     }
-#endif  /* READONLY_DATABASE */
 
 if (tdgbl->gbl_sw_page_buffers)
     page_buffers = tdgbl->gbl_sw_page_buffers;
@@ -955,12 +951,8 @@ if (sweep_interval != -1)
     *d++ = (UCHAR) (sweep_interval >> 16);
     *d++ = (UCHAR) (sweep_interval >> 24);
     }
-#ifdef READONLY_DATABASE
 /* If the database is to be restored "read_only", fillup the data pages */
 if (no_reserve || db_read_only)
-#else
-if (no_reserve)
-#endif  /* READONLY_DATABASE */
     {
     *d++ = (UCHAR) isc_dpb_no_reserve;
     *d++ = 1;
@@ -998,9 +990,9 @@ if (page_buffers)
 *d++ = 1;
 *d++ = 0;
 
-/* 
-** 
-** which SQL dialect that this database speaks 
+/*
+**
+** which SQL dialect that this database speaks
 ** When we restore backup files that came from prior
 ** to V6, we force the SQL database dialect to 1
 **
@@ -1012,7 +1004,7 @@ if (SQL_dialect_flag == TRUE)
     *d++ = (UCHAR) SQL_dialect;
 else
     *d++ = (UCHAR) SQL_DIALECT_V5;
-    
+
 /* start database up shut down */
 *d++ = (UCHAR) isc_dpb_shutdown;
 *d++ = 1;
@@ -1024,10 +1016,10 @@ else
 
 l = d - dpb;
 
-if (isc_create_database (status_vector, 
-	0, 
-	GDS_VAL (file_name), 
-	GDS_REF (tdgbl->db_handle), 
+if (isc_create_database (status_vector,
+	0,
+	GDS_VAL (file_name),
+	GDS_REF (tdgbl->db_handle),
 	l, dpb, 0))
     {
     BURP_error_redirect (status_vector, 33, file_name, 0);
@@ -1036,12 +1028,12 @@ if (isc_create_database (status_vector,
 
 if (tdgbl->gbl_sw_version)
     {
-    BURP_print (139, file_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR); 
+    BURP_print (139, file_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
     /* msg 139 Version(s) for database "%s" */
     isc_version (&tdgbl->db_handle, BURP_output_version, "\t%s\n");
     }
-    
-BURP_verbose (74, file_name, (void*) page_size, NULL_PTR, NULL_PTR, NULL_PTR);	
+
+BURP_verbose (74, file_name, (void*) page_size, NULL_PTR, NULL_PTR, NULL_PTR);
 /* msg 74 created database %s, page_size %ld bytes */
 }
 
@@ -1099,7 +1091,7 @@ while (p < end)
     }
 
 if (p > end)
-    BURP_error_redirect (NULL_PTR, 34, 0, 0); 
+    BURP_error_redirect (NULL_PTR, 34, 0, 0);
     /* msg 34 RESTORE: decompression length error */
 }
 
@@ -1150,7 +1142,7 @@ for (relation = tdgbl->relations; relation; relation = relation->rel_next)
 	if (!*p)
 	    return relation;
 
-BURP_error_redirect (NULL_PTR, 35, name, 0); 
+BURP_error_redirect (NULL_PTR, 35, name, 0);
 /* msg 35 can't find relation %s */
 
 return NULL;
@@ -1191,20 +1183,20 @@ static int get_acl (
  *
  *	open the blob that contains the ACL list
  *	get the ACL list of a relation
- *	replace the owner of the relation in the ACL list with 
+ *	replace the owner of the relation in the ACL list with
  *	  the creator of the relation
  *	create a new blob
  *	store the new ACL list in the new blob
  *
  **************************************/
 
-static CONST SCHAR blr_items [] = {isc_info_blob_max_segment, 
+static CONST SCHAR blr_items [] = {isc_info_blob_max_segment,
 			     isc_info_blob_total_length,
 			     isc_info_blob_num_segments};
 STATUS	status_vector [ISC_STATUS_LENGTH];
 SLONG	length, n;
 SLONG	*blob;
-UCHAR	*p, blob_info [32], item, *buffer, static_buffer [1024], 
+UCHAR	*p, blob_info [32], item, *buffer, static_buffer [1024],
 	*new_buffer, *end_buffer;
 USHORT	l, max_segment, num_segments, new_len = 0;
 TGBL	tdgbl;
@@ -1224,16 +1216,16 @@ if (!blob_id->isc_quad_high && !blob_id->isc_quad_low)
 
 blob = NULL;
 
-if (isc_open_blob (status_vector, GDS_REF (tdgbl->db_handle), 
-		   GDS_REF (gds__trans), GDS_REF (blob), 
+if (isc_open_blob (status_vector, GDS_REF (tdgbl->db_handle),
+		   GDS_REF (gds__trans), GDS_REF (blob),
 		   GDS_VAL (blob_id)))
 	/* msg 24 gds__open_blob failed */
-    BURP_error_redirect (status_vector, 24, NULL, NULL); 
+    BURP_error_redirect (status_vector, 24, NULL, NULL);
 
-if (isc_blob_info (status_vector, GDS_REF (blob), sizeof (blr_items), 
+if (isc_blob_info (status_vector, GDS_REF (blob), sizeof (blr_items),
 	           (UCHAR *) blr_items, sizeof (blob_info), blob_info))
 	/* msg 20 gds__blob_info failed */
-    BURP_error_redirect (status_vector, 20, NULL, NULL); 
+    BURP_error_redirect (status_vector, 20, NULL, NULL);
 
 length = 0;
 p = blob_info;
@@ -1256,8 +1248,8 @@ while ((item = *p++) != gds__info_end)
 
 	case isc_info_blob_num_segments:
 	    num_segments = (USHORT) n;
-	    /* 
-	    ** we assume that the ACL list was written out as 
+	    /*
+	    ** we assume that the ACL list was written out as
 	    ** in one big segment
 	    **
 	    */
@@ -1285,9 +1277,9 @@ if (!length)
 if (length < max_segment)
     length = max_segment;
 
-/* 
-** Allocate a buffer large enough for the largest segment and start 
-** grinding. 
+/*
+** Allocate a buffer large enough for the largest segment and start
+** grinding.
 */
 
 if (!max_segment || max_segment <= sizeof (static_buffer))
@@ -1295,10 +1287,10 @@ if (!max_segment || max_segment <= sizeof (static_buffer))
 else
     buffer = BURP_ALLOC (max_segment);
 
-isc_get_segment (status_vector, 
-		 GDS_REF (blob), 
-		 GDS_REF (l), 
-		 max_segment, 
+isc_get_segment (status_vector,
+		 GDS_REF (blob),
+		 GDS_REF (l),
+		 max_segment,
 		 GDS_VAL (buffer));
 
 if (isc_close_blob (status_vector, GDS_REF (blob)))
@@ -1306,7 +1298,7 @@ if (isc_close_blob (status_vector, GDS_REF (blob)))
     if (buffer != static_buffer)
 	BURP_FREE (buffer);
 	/* msg 23 gds__close_blob failed */
-    BURP_error_redirect (status_vector, 23, NULL, NULL); 
+    BURP_error_redirect (status_vector, 23, NULL, NULL);
     }
 
 from = buffer + 3; /* skip ACL_version, ACL_id_list, and id_person */
@@ -1351,7 +1343,7 @@ if (isc_create_blob2 (status_vector,
     if (new_buffer != NULL_PTR)
 	BURP_FREE (new_buffer);
 	/* msg 37 gds__create_blob failed */
-    BURP_error_redirect (status_vector, 37, 0, 0); 
+    BURP_error_redirect (status_vector, 37, 0, 0);
     }
 
 if (isc_put_segment (status_vector,
@@ -1364,7 +1356,7 @@ if (isc_put_segment (status_vector,
     if (new_buffer != NULL_PTR)
 	BURP_FREE (new_buffer);
 	/* msg 38 gds__put_segment failed */
-    BURP_error_redirect (status_vector, 38, 0, 0); 
+    BURP_error_redirect (status_vector, 38, 0, 0);
     }
 
 if (isc_close_blob (status_vector, GDS_REF (blob_handle)))
@@ -1374,7 +1366,7 @@ if (isc_close_blob (status_vector, GDS_REF (blob_handle)))
     if (new_buffer != NULL_PTR)
 	BURP_FREE (new_buffer);
 	/* msg 23 gds__close_blob failed */
-    BURP_error_redirect (status_vector, 23, 0, 0); 
+    BURP_error_redirect (status_vector, 23, 0, 0);
     }
 
 if (buffer != static_buffer)

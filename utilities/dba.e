@@ -19,6 +19,10 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
+ * 2001.08.07 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -61,7 +65,7 @@
 #ifdef WIN_NT
 #include <io.h>
 #include <windows.h>
-#include "../jrd/pwd.h" 
+#include "../jrd/pwd.h"
 #endif
 
 #ifdef mpexl
@@ -252,7 +256,7 @@ static struct tdba *gddba;
 #define GET_THREAD_DATA	        (gddba)
 #define SET_THREAD_DATA         gddba = tddba = &thd_context; \
 				tddba->tdba_thd_data.thdd_type = THDD_TYPE_TDBA
-#define RESTORE_THREAD_DATA     
+#define RESTORE_THREAD_DATA
 #endif
 
 #define EXIT(code)	            {  tddba->exit_code = code;        \
@@ -316,7 +320,7 @@ SVC	    sw_outfile;
 int	argc;
 char	**argv;
 open_files	*open_file, *tmp1;
-mem	*alloced, *tmp2; 
+mem	*alloced, *tmp2;
 #else
 IB_FILE	*sw_outfile;
 #endif
@@ -329,7 +333,7 @@ UCHAR	pass_buff[128], user_buff[128], *password = pass_buff, *username = user_bu
 struct tdba	thd_context, *tddba;
 JMP_BUF		env;
 isc_tr_handle   transact1;
-isc_req_handle  request1, request2, request3; 
+isc_req_handle  request1, request2, request3;
 STATUS          *status_vector;
 #if defined (WIN95) && !defined (GUI_TOOLS) && !defined (SUPERSERVER)
 BOOL	fAnsiCP;
@@ -372,11 +376,11 @@ if (SETJMP(env))
         vector = status_vector;
         if (isc_interprete (s, &vector))
 	        {
-	        FPRINTF (tddba->sw_outfile, "%s\n", s); 
+	        FPRINTF (tddba->sw_outfile, "%s\n", s);
 	        s [0] = '-';
 	        while (isc_interprete (s + 1, &vector))
 	            FPRINTF (tddba->sw_outfile, "%s\n", s);
-	        } 
+	        }
         }
 
     /* if there still exists a database handle, disconnect from the
@@ -388,7 +392,7 @@ if (SETJMP(env))
 	SVC_STARTED (service);
   	alloced = tddba->head_of_mem_list;
   	while (alloced != 0)
-  	    { 
+  	    {
 	    free(alloced->memory);
    	    alloced = alloced->mem_next;
 	    }
@@ -397,10 +401,10 @@ if (SETJMP(env))
 	open_file = tddba->head_of_files_list;
 	while (open_file)
     	{
-   	    db_close(open_file->desc); 
+   	    db_close(open_file->desc);
 	    open_file = open_file->open_files_next;
     	}
-	
+
 	/* free linked lists */
 	while (tddba->head_of_files_list != 0)
     	{
@@ -408,7 +412,7 @@ if (SETJMP(env))
 	    tddba->head_of_files_list = tddba->head_of_files_list->open_files_next;
 	    free(tmp1);
     	}
-  
+
 	while (tddba->head_of_mem_list != 0)
     	{
 	    tmp2 = tddba->head_of_mem_list;
@@ -644,7 +648,7 @@ if (sw_version)
 
 
 
-    
+
 current = db_open (name, strlen (name));
 tddba->page_size = sizeof (temp);
 tddba->global_buffer = (PAG) temp;
@@ -707,7 +711,7 @@ do
 	if (current != tddba->files)
 	    current->fil_fudge = 1; /* ignore header page once read it */
 	*file_name = '\0';
-	for (vp = header->hdr_data, vend = vp + header->hdr_page_size; 
+	for (vp = header->hdr_data, vend = vp + header->hdr_page_size;
 	     vp < vend && *vp != HDR_end; vp += 2 + vp [1])
 	    {
             if (*vp == HDR_file)
@@ -875,7 +879,7 @@ if (request2)
     isc_release_request (status_vector, &request2);
 if (request3)
     isc_release_request (status_vector, &request3);
-    
+
 COMMIT transact1;
 ON_ERROR
     EXIT (FINI_ERROR);
@@ -1248,7 +1252,7 @@ for (;;)
 	    p = key + node->btn_prefix;
 	    q = node->btn_data;
 	    do *p++ = *q++; while (--l);
-	    }	    	
+	    }
 	}
     if (duplicates > index->idx_max_duplicates)
 	index->idx_max_duplicates = duplicates;
@@ -1411,13 +1415,11 @@ fil->fil_length = strlen (expanded_filename);
 fil->fil_fudge = 0;
 fil->fil_max_page = 0L;
 
-#ifdef READONLY_DATABASE
-if ((fil->fil_desc = FEsopen (expanded_filename, O_RDONLY | O_BINARY, SH_DENYNO, 0, 0, 
+if ((fil->fil_desc = FEsopen (expanded_filename, O_RDONLY | O_BINARY, SH_DENYNO, 0, 0,
                           PrimaryDataStream)) == -1)
 #else
-if ((fil->fil_desc = FEsopen (expanded_filename, O_RDWR | O_BINARY, SH_DENYNO, 0, 0, 
+if ((fil->fil_desc = FEsopen (expanded_filename, O_RDWR | O_BINARY, SH_DENYNO, 0, 0,
                           PrimaryDataStream)) == -1)
-#endif  /* READONLY_DATABASE */
     {
 #ifdef SUPERSERVER
     CMD_UTIL_put_svc_status(tddba->dba_service_blk->svc_status,
@@ -1582,8 +1584,8 @@ map_count = 64;
 map_length = 32768; /*page_size * map_count;*/
 fil->fil_base = 0;
 
-fil->fil_region = ms_$mapl (*file_name, file_length, 
-	(SLONG) 0, map_length, 
+fil->fil_region = ms_$mapl (*file_name, file_length,
+	(SLONG) 0, map_length,
 	ms_$cowriters, ms_$wr, (SSHORT) -1,
 	map_length, status);
 
@@ -1628,7 +1630,7 @@ if (page_number < fil->fil_base ||
     fil->fil_base = (page_number / map_count) * map_count;
     section = fil->fil_base * tddba->page_size;
     length = map_length;
-    fil->fil_region = ms_$remap (fil->fil_region, section, 
+    fil->fil_region = ms_$remap (fil->fil_region, section,
 	    map_length, length, status);
     if (status.all)
 	db_error (status);
@@ -1871,11 +1873,7 @@ fil->fil_fudge = 0;
 fil->fil_max_page = 0L;
 
 if ((fil->fil_desc = CreateFile (file_name,
-#ifdef READONLY_DATABASE
 	GENERIC_READ,
-#else
-	GENERIC_READ | GENERIC_WRITE,
-#endif  /* READONLY_DATABASE */
 	FILE_SHARE_READ | FILE_SHARE_WRITE,
 	NULL,
 	OPEN_EXISTING,
@@ -2253,11 +2251,7 @@ fil->fil_length = strlen (file_name);
 fil->fil_fudge = 0;
 fil->fil_max_page = 0L;
 
-#ifdef READONLY_DATABASE
 if ((fil->fil_desc = open (file_name, O_RDONLY)) == -1)
-#else
-if ((fil->fil_desc = open (file_name, 2)) == -1)
-#endif  /* READONLY_DATABASE */
     {
 #ifdef SUPERSERVER
     CMD_UTIL_put_svc_status (tddba->dba_service_blk->svc_status,
@@ -2334,7 +2328,7 @@ if (lseek (fil->fil_desc, page_number * tddba->page_size, 0) == -1)
 #endif
     db_error (errno);
     }
-    
+
 for (p = (SCHAR*) tddba->global_buffer, length = tddba->page_size; length > 0;)
     {
     l = read (fil->fil_desc, p, length);
@@ -2536,4 +2530,3 @@ for (tail = string - 1; *string; ++string)
 	tail = string;
 *++tail = 0;
 }
-
