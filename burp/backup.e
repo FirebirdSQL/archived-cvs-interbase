@@ -26,6 +26,11 @@
  * 2001.11.20 Claudio Valderrama: fix problem with embedded blanks in
  * generators and use symbol_length effective length calculation from put_text.
  * This minimizes code redundancy and fixes SF Bug #483276. 
+ * 2001.12.15 Claudio Valderrama: copy should run through symbol_length instead
+ * of using just another length calculation algorithm. Callers of put_text, copy
+ * and symbol_length (if used directly) should use sizeof. Changed all callers
+ * and sizeof() works because the strings are local to the functions. This
+ * eliminates the problem with harcoded limits in each call.
  */
 /*
 $Id$
@@ -81,6 +86,7 @@ DATABASE
 #define PUT_NUMERIC(attribute, value)	put_numeric ((attribute), (value))
 #define PUT_INT64(attribute, value)     put_int64 ((attribute), (value))
 #define PUT_TEXT(attribute, text)	put_text ((attribute), (text), sizeof (text))
+#define COPY(source, target)		copy ((source), (target), sizeof (target))
 
 static void	compress (UCHAR *, ULONG);
 static int	copy (TEXT *, TEXT *, ULONG);
@@ -100,7 +106,7 @@ static int	put_source_blob (SCHAR, SCHAR, ISC_QUAD *);
 static int	put_text (SCHAR, TEXT *, SSHORT);
 static void	put_trigger (enum trig_t, GDS__QUAD *, GDS__QUAD *, GDS_NAME);
 static void	set_capabilities (void);
-static int	symbol_length (TEXT *, SSHORT);
+static int	symbol_length (TEXT *, ULONG);
 static void	write_character_sets (void);
 static void	write_check_constraints (void);
 static void	write_collations (void);
@@ -212,7 +218,7 @@ int BACKUP_backup (
 REL	relation;
 STATUS	status_vector [ISC_STATUS_LENGTH];
 ULONG	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 ULONG	cumul_count_kb;
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
@@ -367,8 +373,7 @@ if (tdgbl->BCK_capabilities & BCK_ods8)
 for (relation = tdgbl->relations; relation; relation = relation->rel_next)
     {
     PUT (rec_relation_data);
-    put_text (att_relation_name, relation->rel_name,
-	  sizeof (relation->rel_name));
+    PUT_TEXT (att_relation_name, relation->rel_name);
     PUT (att_end);
     if (!(relation->rel_flags & REL_view) &&
 	!(relation->rel_flags & REL_external))
@@ -528,7 +533,7 @@ while (p < end)
 static int copy (
     TEXT	*from,
     TEXT	*to,
-    ULONG	length)
+    ULONG	size_len)
 {
 /**************************************
  *
@@ -542,25 +547,14 @@ static int copy (
  *
  **************************************/
 TEXT	*p;
-ULONG	l = 0;
+ULONG	l;
 
-/* find end of string */
-p = from;
-while (*p++ && (l < length))
-    l++;
-
-length = MIN (l, length);
-
-/* skip trailing spaces */
-for (p = from + length - 1, l = 0; *p == ' ' && l < length; p--)
-    l++;
-
-l = length - l;
+l = (ULONG) symbol_length (from, size_len);
 
 MOVE_FAST (from, to, l);
 *(to + l) = '\0';
 
-return l;
+return (int) l;
 }
 
 static void general_on_error (void)
@@ -656,20 +650,19 @@ if ((tdgbl->BCK_capabilities & BCK_attributes_v3) &&
         else
 	    field->fld_update_flag = X.RDB$UPDATE_FLAG;
 
-        copy (X.RDB$FIELD_NAME, field->fld_name, GDS_NAME_LEN - 1);
-        copy (X.RDB$FIELD_SOURCE, field->fld_source, GDS_NAME_LEN - 1);
-        copy (X.RDB$BASE_FIELD, field->fld_base, GDS_NAME_LEN - 1);
-        copy (X.RDB$QUERY_NAME, field->fld_query_name, GDS_NAME_LEN - 1);
-        copy (X.RDB$EDIT_STRING, field->fld_edit_string,
-	      sizeof (field->fld_edit_string) - 1);
-        copy (X.RDB$COMPLEX_NAME, field->fld_complex_name, GDS_NAME_LEN - 1);
+        COPY (X.RDB$FIELD_NAME, field->fld_name);
+        COPY (X.RDB$FIELD_SOURCE, field->fld_source);
+        COPY (X.RDB$BASE_FIELD, field->fld_base);
+        COPY (X.RDB$QUERY_NAME, field->fld_query_name);
+        COPY (X.RDB$EDIT_STRING, field->fld_edit_string);
+        COPY (X.RDB$COMPLEX_NAME, field->fld_complex_name);
 
         blob_id = &Y.RDB$COMPUTED_BLR;
         if (blob_id->gds_quad_low || blob_id->gds_quad_high)
 	    field->fld_flags |= FLD_computed;
         field->fld_system_flag = X.RDB$SYSTEM_FLAG;
 
-	copy (X.RDB$SECURITY_CLASS, field->fld_security_class, GDS_NAME_LEN - 1);
+	COPY (X.RDB$SECURITY_CLASS, field->fld_security_class);
 
         /* use the fld_flags to mark the field as an array and
            to differentiate it from other blobs */
@@ -758,17 +751,16 @@ else
 	field->fld_flags |= FLD_update_missing;
     else
 	field->fld_update_flag = X.RDB$UPDATE_FLAG;
-    copy (X.RDB$FIELD_NAME, field->fld_name, GDS_NAME_LEN - 1);
-    copy (X.RDB$FIELD_SOURCE, field->fld_source, GDS_NAME_LEN - 1);
-    copy (X.RDB$BASE_FIELD, field->fld_base, GDS_NAME_LEN - 1);
-    copy (X.RDB$QUERY_NAME, field->fld_query_name, GDS_NAME_LEN - 1);
-    copy (X.RDB$EDIT_STRING, field->fld_edit_string,
-	  sizeof (field->fld_edit_string) - 1);
+    COPY (X.RDB$FIELD_NAME, field->fld_name);
+    COPY (X.RDB$FIELD_SOURCE, field->fld_source);
+    COPY (X.RDB$BASE_FIELD, field->fld_base);
+    COPY (X.RDB$QUERY_NAME, field->fld_query_name);
+    COPY (X.RDB$EDIT_STRING, field->fld_edit_string);
     if (tdgbl->BCK_capabilities & BCK_attributes_v3)
         FOR (REQUEST_HANDLE tdgbl->handles_get_fields_req_handle2)
             RFR IN RDB$RELATION_FIELDS WITH RFR.RDB$FIELD_NAME = X.RDB$FIELD_NAME AND
             RFR.RDB$RELATION_NAME = X.RDB$RELATION_NAME
-            copy (RFR.RDB$COMPLEX_NAME, field->fld_complex_name, GDS_NAME_LEN - 1);
+            COPY (RFR.RDB$COMPLEX_NAME, field->fld_complex_name);
         END_FOR;
         ON_ERROR
             general_on_error ();
@@ -791,7 +783,7 @@ else
         RFR IN RDB$RELATION_FIELDS WITH
 		RFR.RDB$RELATION_NAME = relation->rel_name
 		AND RFR.RDB$FIELD_NAME = X.RDB$FIELD_NAME
-	    copy (RFR.RDB$SECURITY_CLASS, field->fld_security_class, GDS_NAME_LEN - 1);
+	    COPY (RFR.RDB$SECURITY_CLASS, field->fld_security_class);
 	END_FOR;
     ON_ERROR
         general_on_error ();
@@ -1827,7 +1819,7 @@ static void put_index (
  *
  **************************************/
 ULONG	l, count, match;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -2104,7 +2096,7 @@ static void put_relation (
  *
  **************************************/
 FLD	fields, field, aligned, unaligned, aligned4, aligned8;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 USHORT	l, n;
 SLONG	*rp;
 TGBL	tdgbl;
@@ -2417,7 +2409,7 @@ TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
-l = symbol_length (text, size_len);
+l = (SSHORT) symbol_length (text, (ULONG) size_len);
 PUT (attribute);
 PUT (l);
 if (l)
@@ -2502,7 +2494,7 @@ isc_release_request (isc_status, GDS_REF (req));
 
 static int symbol_length (
 	 TEXT	*symbol,
-	 SSHORT	size_len)
+	 ULONG	size_len)
 {
 /**************************************
  *
@@ -2517,9 +2509,9 @@ static int symbol_length (
  **************************************/
 TEXT	*p, *q;
 
---size_len;
-if (size_len < 1)
+if (size_len < 2)
    return 0;
+--size_len;
 
 for (p = symbol, q = p + size_len; *p && p < q; p++)
     ;
@@ -2837,7 +2829,7 @@ static void write_exceptions (void)
  *
  **************************************/
 SSHORT		l;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	    tdgbl;
@@ -2913,7 +2905,7 @@ static void write_filters (void)
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	tdgbl;
@@ -2957,7 +2949,7 @@ static void write_functions (void)
  **************************************/
 SSHORT		l;
 GDS_NAME	func;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	    tdgbl;
@@ -2978,7 +2970,7 @@ FOR (REQUEST_HANDLE req_handle1)
     PUT_NUMERIC (att_function_type, X.RDB$FUNCTION_TYPE);
     PUT_TEXT (att_function_query_name, X.RDB$QUERY_NAME);
     PUT (att_end);
-	 copy (X.RDB$FUNCTION_NAME, func, GDS_NAME_LEN - 1);
+	 COPY (X.RDB$FUNCTION_NAME, func);
     write_function_args (func);
     PUT (rec_function_end);
 END_FOR;
@@ -3004,7 +2996,7 @@ static void write_function_args (
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -3106,7 +3098,7 @@ isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	          tdgbl;
 SSHORT          l;
-TEXT            temp [32];
+TEXT            temp [GDS_NAME_LEN];
 
 tdgbl = GET_THREAD_DATA;
 
@@ -3143,7 +3135,7 @@ static void write_global_fields (void)
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL, req_handle2 = NULL,
 		req_handle3 = NULL, req_handle4 = NULL;
 long            req_status [20];
@@ -3337,7 +3329,7 @@ static void write_procedures (void)
  **************************************/
 SSHORT		l;
 GDS_NAME	proc;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	    tdgbl;
@@ -3361,7 +3353,7 @@ FOR (REQUEST_HANDLE req_handle1)
     if (!X.RDB$SECURITY_CLASS.NULL)
         PUT_TEXT (att_procedure_owner_name, X.RDB$OWNER_NAME);
     PUT (att_end);
-    copy (X.RDB$PROCEDURE_NAME, proc, GDS_NAME_LEN - 1);
+    COPY (X.RDB$PROCEDURE_NAME, proc);
     write_procedure_prms (proc);
     PUT (rec_procedure_end);
 END_FOR;
@@ -3387,7 +3379,7 @@ static void write_procedure_prms (
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
@@ -3462,7 +3454,7 @@ static void write_rel_constraints (void)
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	tdgbl;
@@ -3507,7 +3499,7 @@ static void write_relations (void)
  **************************************/
 SSHORT	l, flags;
 REL	relation;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL, req_handle2 = NULL, req_handle3 = NULL,
                 req_handle4 = NULL;
 long            req_status [20];
@@ -3531,12 +3523,12 @@ if ((tdgbl->BCK_capabilities & BCK_ods8) &&
 
         flags = 0;
         PUT (rec_relation);
-        l = put_text (att_relation_name, X.RDB$RELATION_NAME, 31);
+        l = PUT_TEXT (att_relation_name, X.RDB$RELATION_NAME);
         MISC_terminate (X.RDB$RELATION_NAME, temp, l, sizeof (temp));
         BURP_verbose (153, temp, NULL, NULL, NULL, NULL);
 		 /* msg 153 writing relation %.*s */
 
-        /* RDB$VIEW_BLR must be the forst blob field in the backup file.
+        /* RDB$VIEW_BLR must be the first blob field in the backup file.
          * RESTORE.E makes this assumption in get_relation().
          */
 
@@ -3553,11 +3545,11 @@ if ((tdgbl->BCK_capabilities & BCK_ods8) &&
         put_source_blob (att_relation_view_source2, att_relation_view_source, (ISC_QUAD *)&X.RDB$VIEW_SOURCE);
 
         put_source_blob (att_relation_ext_description2, att_relation_ext_description, (ISC_QUAD *)&X.RDB$EXTERNAL_DESCRIPTION);
-        put_text (att_relation_owner_name, X.RDB$OWNER_NAME, 31);
+        PUT_TEXT (att_relation_owner_name, X.RDB$OWNER_NAME);
 	if (!X.RDB$EXTERNAL_FILE.NULL)
 	    if (!tdgbl->gbl_sw_convert_ext_tables)
 	        {
-	        put_text (att_relation_ext_file_name, X.RDB$EXTERNAL_FILE, 253);
+	        put_text (att_relation_ext_file_name, X.RDB$EXTERNAL_FILE, 254);
 	        flags |= REL_external;
 	        }
 
@@ -3566,7 +3558,7 @@ if ((tdgbl->BCK_capabilities & BCK_ods8) &&
         relation->rel_next = tdgbl->relations;
         tdgbl->relations = relation;
         relation->rel_id = X.RDB$RELATION_ID;
-        relation->rel_name_length = copy (X.RDB$RELATION_NAME, relation->rel_name, GDS_NAME_LEN - 1);
+        relation->rel_name_length = COPY (X.RDB$RELATION_NAME, relation->rel_name);
         relation->rel_flags |= flags;
         put_relation (relation);
     END_FOR;
@@ -3582,7 +3574,7 @@ else
 
         flags = 0;
         PUT (rec_relation);
-        l = put_text (att_relation_name, X.RDB$RELATION_NAME, 31);
+        l = PUT_TEXT (att_relation_name, X.RDB$RELATION_NAME);
         MISC_terminate (X.RDB$RELATION_NAME, temp, l, sizeof (temp));
         BURP_verbose (153, temp, NULL, NULL, NULL, NULL);
 	     /* msg 153 writing relation %.*s */
@@ -3621,11 +3613,11 @@ else
             FOR (REQUEST_HANDLE req_handle4)
                 R IN RDB$RELATIONS WITH R.RDB$RELATION_NAME = X.RDB$RELATION_NAME
                 put_source_blob (att_relation_ext_description2, att_relation_ext_description, (ISC_QUAD *)&R.RDB$EXTERNAL_DESCRIPTION);
-                put_text (att_relation_owner_name, R.RDB$OWNER_NAME, 31);
+                PUT_TEXT (att_relation_owner_name, R.RDB$OWNER_NAME);
 	        if (!R.RDB$EXTERNAL_FILE.NULL)
 		    if (!tdgbl->gbl_sw_convert_ext_tables)
 		        {
-		        put_text (att_relation_ext_file_name, R.RDB$EXTERNAL_FILE, 253);
+		        put_text (att_relation_ext_file_name, R.RDB$EXTERNAL_FILE, 254);
 		        flags |= REL_external;
 		        }
             END_FOR;
@@ -3637,7 +3629,7 @@ else
         relation->rel_next = tdgbl->relations;
         tdgbl->relations = relation;
         relation->rel_id = X.RDB$RELATION_ID;
-        relation->rel_name_length = copy (X.RDB$RELATION_NAME, relation->rel_name, GDS_NAME_LEN - 1);
+        relation->rel_name_length = COPY (X.RDB$RELATION_NAME, relation->rel_name);
         relation->rel_flags |= flags;
         put_relation (relation);
     END_FOR;
@@ -3669,7 +3661,7 @@ static void write_shadow_files (void)
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	tdgbl;
@@ -3716,7 +3708,7 @@ static void write_sql_roles (void)
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL            tdgbl;
-TEXT            temp [32];
+TEXT            temp [GDS_NAME_LEN];
 SSHORT          l;
 
 tdgbl = GET_THREAD_DATA;
@@ -3725,7 +3717,7 @@ FOR (REQUEST_HANDLE req_handle1)
     X IN RDB$ROLES
 
     PUT (rec_sql_roles);
-	 l = put_text (att_role_name, X.RDB$ROLE_NAME, 31);
+	 l = PUT_TEXT (att_role_name, X.RDB$ROLE_NAME);
 	 PUT_TEXT (att_role_owner_name, X.RDB$OWNER_NAME);
 	 PUT (att_end);
 	 MISC_terminate (X.RDB$ROLE_NAME, temp, l, sizeof (temp));
@@ -3754,7 +3746,7 @@ static void write_triggers (void)
  *
  **************************************/
 SSHORT	l;
-TEXT 	temp [32];
+TEXT 	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL, req_handle2 = NULL;
 long            req_status [20];
 TGBL	tdgbl;
@@ -3864,7 +3856,7 @@ static void write_trigger_messages (void)
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	tdgbl;
@@ -3948,7 +3940,7 @@ static void write_user_privileges (void)
  *
  **************************************/
 SSHORT	l;
-TEXT	temp [32];
+TEXT	temp [GDS_NAME_LEN];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	tdgbl;

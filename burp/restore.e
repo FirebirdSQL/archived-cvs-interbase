@@ -25,6 +25,8 @@
  * 2001.08.07 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ * 2001.12.15 Claudio Valderrama: avoid inconsistencies and let get_text use
+ * the sizeof of the target argument where data is written to.
  */
 /*
 $Id$
@@ -207,6 +209,7 @@ static CONST SSHORT old_sparcs[] =
 #define GET_BLOCK(p,n)		MVOL_read_block (tdgbl, (p), (n))
 #define GET_ATTRIBUTE(att)	((att) = (ATT_TYPE) GET())
 #define GET_RECORD(att)		((att) = (REC_TYPE) GET())
+#define GET_TEXT(text)		get_text ((text), sizeof (text))
 
 /* When skipping started, scan_next_attr will be changed from NO_SKIP     */
 /* to BEFORE_SKIP. When scanning for next valid attribute after skipping, */
@@ -258,7 +261,7 @@ long		db_handle;
 UCHAR		dpb[128], *d, *q;
 SSHORT		l;
 isc_req_handle	req_handle3 = NULL;
-TEXT		index_name[32];
+BASED_ON RDB$INDICES.RDB$INDEX_NAME index_name;
 long		error_code;
 
 tdgbl = GET_THREAD_DATA;
@@ -2102,13 +2105,13 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_character_sets_req_handle1)
 
 	    case att_charset_name:
 		X.RDB$CHARACTER_SET_NAME.NULL = FALSE;
-		get_text (X.RDB$CHARACTER_SET_NAME, sizeof (X.RDB$CHARACTER_SET_NAME));
+		GET_TEXT (X.RDB$CHARACTER_SET_NAME);
 		BURP_verbose (msgVerbose_restore_charset, X.RDB$CHARACTER_SET_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 		break;
 
 	    case att_charset_form:
 		X.RDB$FORM_OF_USE.NULL = FALSE;
-        	get_text (X.RDB$FORM_OF_USE, sizeof (X.RDB$FORM_OF_USE));
+        	GET_TEXT (X.RDB$FORM_OF_USE);
 		break;
 
 	    case att_charset_numchar:
@@ -2118,7 +2121,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_character_sets_req_handle1)
 
 	    case att_charset_coll:
 		X.RDB$DEFAULT_COLLATE_NAME.NULL = FALSE;
-		get_text (X.RDB$DEFAULT_COLLATE_NAME, sizeof (X.RDB$DEFAULT_COLLATE_NAME));
+		GET_TEXT (X.RDB$DEFAULT_COLLATE_NAME);
 		break;
 
 	    case att_charset_id:
@@ -2138,7 +2141,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_character_sets_req_handle1)
 
 	    case att_charset_funct:
 		X.RDB$FUNCTION_NAME.NULL = FALSE;
-		get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
+		GET_TEXT (X.RDB$FUNCTION_NAME);
 		break;
 
 	    case att_charset_bytes_char:
@@ -2187,12 +2190,12 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_chk_constraint_req_handle1)
             {
             case att_chk_constraint_name:
                 X.RDB$CONSTRAINT_NAME.NULL = FALSE;
-                get_text (X.RDB$CONSTRAINT_NAME, sizeof (X.RDB$CONSTRAINT_NAME));
+                GET_TEXT (X.RDB$CONSTRAINT_NAME);
                 break;
 
             case att_chk_trigger_name:
                 X.RDB$TRIGGER_NAME.NULL = FALSE;
-                get_text (X.RDB$TRIGGER_NAME, sizeof (X.RDB$TRIGGER_NAME));
+                GET_TEXT (X.RDB$TRIGGER_NAME);
                 break;
 
             default:
@@ -2243,7 +2246,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_collation_req_handle1)
 
 	    case att_coll_name:
 		X.RDB$COLLATION_NAME.NULL = FALSE;
-		get_text (X.RDB$COLLATION_NAME, sizeof (X.RDB$COLLATION_NAME));
+		GET_TEXT (X.RDB$COLLATION_NAME);
 		BURP_verbose (msgVerbose_restore_collation, X.RDB$COLLATION_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 		break;
 
@@ -2280,7 +2283,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_collation_req_handle1)
 
 	    case att_coll_funct:
 		X.RDB$FUNCTION_NAME.NULL = FALSE;
-		get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
+		GET_TEXT (X.RDB$FUNCTION_NAME);
 		break;
 
             default:
@@ -2324,7 +2327,7 @@ SLONG		*blob_id;
 REC_TYPE	record;
 TGBL	    tdgbl;
 isc_req_handle  req_handle = NULL;
-TEXT            index_name[32];
+BASED_ON RDB$INDICES.RDB$INDEX_NAME index_name;
 long		error_code;
 
 tdgbl = GET_THREAD_DATA;
@@ -2725,7 +2728,7 @@ static BOOLEAN get_exception(void)
  *
  **************************************/
 ATT_TYPE	attribute;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 ULONG		l;
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
@@ -2741,7 +2744,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_exception_req_handle1)
 	switch (attribute)
 	    {
             case att_exception_name:
-		l = get_text (X.RDB$EXCEPTION_NAME, sizeof (X.RDB$EXCEPTION_NAME));
+		l = GET_TEXT (X.RDB$EXCEPTION_NAME);
 		MISC_terminate (X.RDB$EXCEPTION_NAME, temp, l, sizeof (temp));
 		BURP_verbose (199, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR); 
 		/* msg 199 restoring exception %s */
@@ -2758,7 +2761,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_exception_req_handle1)
 		break;
                                                    
 	    case att_exception_msg:
-		get_text (X.RDB$MESSAGE, sizeof (X.RDB$MESSAGE));
+		GET_TEXT (X.RDB$MESSAGE);
 		X.RDB$MESSAGE.NULL = FALSE;
 		break;
 
@@ -2938,23 +2941,23 @@ STORE (TRANSACTION_HANDLE local_trans
 	    {
 	    case att_field_name:
 		field->fld_name_length = 
-		    get_text (field->fld_name, sizeof (field->fld_name));
+		    GET_TEXT (field->fld_name);
 		BURP_verbose (115, field->fld_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR); 
 		/* msg 115 restoring field %s */
 		strcpy (X.RDB$FIELD_NAME, field->fld_name);
 		break;
 
 	    case att_field_source:
-		get_text (X.RDB$FIELD_SOURCE, sizeof (X.RDB$FIELD_SOURCE));
+		GET_TEXT (X.RDB$FIELD_SOURCE);
 		break;
 
 	    case att_field_security_class:
-		get_text (X.RDB$SECURITY_CLASS, sizeof (X.RDB$SECURITY_CLASS));
+		GET_TEXT (X.RDB$SECURITY_CLASS);
 		X.RDB$SECURITY_CLASS.NULL = FALSE;
 		break;
 
 	    case att_field_query_name:
-		get_text (X.RDB$QUERY_NAME, sizeof (X.RDB$QUERY_NAME));
+		GET_TEXT (X.RDB$QUERY_NAME);
 		X.RDB$QUERY_NAME.NULL = FALSE;
 		break;
 
@@ -2964,7 +2967,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_field_edit_string:
-		get_text (X.RDB$EDIT_STRING, sizeof (X.RDB$EDIT_STRING));
+		GET_TEXT (X.RDB$EDIT_STRING);
 		X.RDB$EDIT_STRING.NULL = FALSE;
 		break;
 
@@ -3009,7 +3012,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_base_field:
-		get_text (X.RDB$BASE_FIELD, sizeof (X.RDB$BASE_FIELD));
+		GET_TEXT (X.RDB$BASE_FIELD);
 		X.RDB$BASE_FIELD.NULL = FALSE;
 		break;
 
@@ -3024,7 +3027,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_field_complex_name:
-		get_text (X.RDB$COMPLEX_NAME, sizeof (X.RDB$COMPLEX_NAME));
+		GET_TEXT (X.RDB$COMPLEX_NAME);
 		X.RDB$COMPLEX_NAME.NULL = FALSE;
 		break;
 
@@ -3139,7 +3142,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_field_dimensions_req_handle1)
 	switch (attribute)
 	    {
 	    case att_field_name:
-		get_text (X.RDB$FIELD_NAME, sizeof (X.RDB$FIELD_NAME));
+		GET_TEXT (X.RDB$FIELD_NAME);
 		break;
 
 	    case att_field_dimensions:
@@ -3195,7 +3198,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_files_req_handle1)
 	switch (attribute)
 	    {
             case att_file_filename:
-		get_text (X.RDB$FILE_NAME, sizeof (X.RDB$FILE_NAME));
+		GET_TEXT (X.RDB$FILE_NAME);
 		BURP_verbose (116,
                 /* msg 116 restoring file %s */
 			X.RDB$FILE_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
@@ -3263,7 +3266,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_filter_req_handle1)
 	switch (attribute)
 	    {
 	    case att_filter_name:
-		get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
+		GET_TEXT (X.RDB$FUNCTION_NAME);
                 BURP_verbose (117, X.RDB$FUNCTION_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
                 /* msg 117 restoring filter %s */
 		break;
@@ -3279,11 +3282,11 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_filter_req_handle1)
 		break;
 
 	    case att_filter_module_name:
-		get_text (X.RDB$MODULE_NAME, sizeof (X.RDB$MODULE_NAME));
+		GET_TEXT (X.RDB$MODULE_NAME);
 		break;
 
 	    case att_filter_entrypoint:
-		get_text (X.RDB$ENTRYPOINT, sizeof (X.RDB$ENTRYPOINT));
+		GET_TEXT (X.RDB$ENTRYPOINT);
 		break;
 
 	    case att_filter_input_sub_type:
@@ -3322,7 +3325,7 @@ static BOOLEAN get_function (void)
  **************************************/
 ATT_TYPE	attribute;
 GDS_NAME	function_name;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 SSHORT		l;
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
@@ -3336,7 +3339,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_function_req_handle1)
 	switch (attribute)
 	    {
             case att_function_name:
-		l = get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
+		l = GET_TEXT (X.RDB$FUNCTION_NAME);
 		MISC_terminate (X.RDB$FUNCTION_NAME, temp, l, sizeof (temp));
 		BURP_verbose (118, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 			/* msg 118 restoring function %s */
@@ -3351,11 +3354,11 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_function_req_handle1)
 		break;
                                                    
             case att_function_module_name:
-		get_text (X.RDB$MODULE_NAME, sizeof (X.RDB$MODULE_NAME));
+		GET_TEXT (X.RDB$MODULE_NAME);
 		break;
 
             case att_function_entrypoint:
-		get_text (X.RDB$ENTRYPOINT, sizeof (X.RDB$ENTRYPOINT));
+		GET_TEXT (X.RDB$ENTRYPOINT);
 		break;
                                                    
 	    case att_function_return_arg:
@@ -3363,7 +3366,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_function_req_handle1)
 		break;
                                                    
             case att_function_query_name:
-		get_text (X.RDB$QUERY_NAME, sizeof (X.RDB$QUERY_NAME));
+		GET_TEXT (X.RDB$QUERY_NAME);
 		break;
 
 	    case att_function_type:
@@ -3403,7 +3406,7 @@ static void get_function_arg (
  **************************************/
 ATT_TYPE	attribute;
 SSHORT		l;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
 
@@ -3423,7 +3426,7 @@ if (tdgbl->RESTORE_format >= 6)
 	    switch (attribute)
 		{
 		case att_functionarg_name:
-		    l = get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
+		    l = GET_TEXT (X.RDB$FUNCTION_NAME);
 		    MISC_terminate (X.RDB$FUNCTION_NAME, temp, l, sizeof (temp));
 		    BURP_verbose (119, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 			    /* msg 119 restoring argument for function %s */
@@ -3487,7 +3490,7 @@ else
 	    switch (attribute)
 		{
 		case att_functionarg_name:
-		    l = get_text (X.RDB$FUNCTION_NAME, sizeof (X.RDB$FUNCTION_NAME));
+		    l = GET_TEXT (X.RDB$FUNCTION_NAME);
 		    MISC_terminate (X.RDB$FUNCTION_NAME, temp, l, sizeof (temp));
 		    BURP_verbose (119, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 			    /* msg 119 restoring argument for function %s */
@@ -3551,7 +3554,7 @@ static BOOLEAN get_generator (void)
  *
  **************************************/
 SINT64		value;
-TEXT		name [32];
+BASED_ON RDB$GENERATORS.RDB$GENERATOR_NAME name;
 ATT_TYPE	attribute;
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
@@ -3563,7 +3566,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
     switch (attribute)
 	{
 	case att_gen_generator:
-	    get_text (name, sizeof (name));
+	    GET_TEXT (name);
 	    break;
 
 	case att_gen_value:
@@ -3600,7 +3603,7 @@ static BOOLEAN get_global_field (void)
  *
  **************************************/
 ATT_TYPE	attribute;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 SSHORT		l;
 GFLD		gfld;
 UCHAR	    	scan_next_attr;
@@ -3651,19 +3654,19 @@ if (tdgbl->RESTORE_format >= 6)
 	    switch (attribute)
 		{
 		case att_field_name:
-		    l = get_text (X.RDB$FIELD_NAME, sizeof (X.RDB$FIELD_NAME));
+		    l = GET_TEXT (X.RDB$FIELD_NAME);
 		    MISC_terminate (X.RDB$FIELD_NAME, temp, l, sizeof (temp));
 		    BURP_verbose (121, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 			    /* msg 121  restoring global field %s */
 		    break;
 
 		case att_field_query_name:
-		    get_text (X.RDB$QUERY_NAME, sizeof (X.RDB$QUERY_NAME));
+		    GET_TEXT (X.RDB$QUERY_NAME);
 		    X.RDB$QUERY_NAME.NULL = FALSE;
 		    break;
 
 		case att_field_edit_string:
-		    get_text (X.RDB$EDIT_STRING, sizeof (X.RDB$EDIT_STRING));
+		    GET_TEXT (X.RDB$EDIT_STRING);
 		    X.RDB$EDIT_STRING.NULL = FALSE;
 		    break;
 
@@ -3962,19 +3965,19 @@ else /* RESTORE_format < 6 */
 	    switch (attribute)
 		{
 		case att_field_name:
-		    l = get_text (X.RDB$FIELD_NAME, sizeof (X.RDB$FIELD_NAME));
+		    l = GET_TEXT (X.RDB$FIELD_NAME);
 		    MISC_terminate (X.RDB$FIELD_NAME, temp, l, sizeof (temp));
 		    BURP_verbose (121, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 			    /* msg 121  restoring global field %s */
 		    break;
 
 		case att_field_query_name:
-		    get_text (X.RDB$QUERY_NAME, sizeof (X.RDB$QUERY_NAME));
+		    GET_TEXT (X.RDB$QUERY_NAME);
 		    X.RDB$QUERY_NAME.NULL = FALSE;
 		    break;
 
 		case att_field_edit_string:
-		    get_text (X.RDB$EDIT_STRING, sizeof (X.RDB$EDIT_STRING));
+		    GET_TEXT (X.RDB$EDIT_STRING);
 		    X.RDB$EDIT_STRING.NULL = FALSE;
 		    break;
 
@@ -4254,7 +4257,7 @@ static BOOLEAN get_index (
  *
  **************************************/
 SSHORT		count, segments;
-TEXT		index_name [32];
+BASED_ON RDB$INDICES.RDB$INDEX_NAME index_name;
 ATT_TYPE	attribute;
 BOOLEAN		foreign_index = FALSE;
 UCHAR	    scan_next_attr;
@@ -4282,7 +4285,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle1)
 	switch (attribute)
 	    {
 	    case att_index_name:
-		(void) get_text (X.RDB$INDEX_NAME, sizeof (X.RDB$INDEX_NAME));
+		(void) GET_TEXT (X.RDB$INDEX_NAME);
 		strcpy (index_name, X.RDB$INDEX_NAME);
 		BURP_verbose (122, X.RDB$INDEX_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 		break;
@@ -4321,7 +4324,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle1)
 	    case att_index_field_name:
 		STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle2)
             Y IN RDB$INDEX_SEGMENTS
-		    get_text (Y.RDB$FIELD_NAME, sizeof (Y.RDB$FIELD_NAME));
+		    GET_TEXT (Y.RDB$FIELD_NAME);
 		    strcpy (Y.RDB$INDEX_NAME, X.RDB$INDEX_NAME);
 		    Y.RDB$FIELD_POSITION = count++;
 		END_STORE;
@@ -4369,7 +4372,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle1)
 		   if (tdgbl->gbl_sw_deactivate_indexes)
 		       X.RDB$INDEX_INACTIVE = TRUE;
                    X.RDB$FOREIGN_KEY.NULL = FALSE;
-		   get_text (X.RDB$FOREIGN_KEY, sizeof (X.RDB$FOREIGN_KEY));
+		   GET_TEXT (X.RDB$FOREIGN_KEY);
 		   }
 		break;
 
@@ -4504,6 +4507,10 @@ static SLONG get_numeric (void)
 SLONG	value [2];
 SSHORT	length;
 
+/* get_text needs additional space for the terminator,
+because it treats everything as strings. */
+assert (sizeof(value) > sizeof(SLONG));
+
 length = get_text ((UCHAR *) value, sizeof (value));
 
 return isc_vax_integer ((UCHAR *) value, length);
@@ -4523,6 +4530,10 @@ static SINT64 get_int64 (void)
  **************************************/
 SLONG	value [4];
 SSHORT	length;
+
+/* get_text needs additional space for the terminator,
+because it treats everything as strings. */
+assert (sizeof(value) > sizeof(SINT64));
 
 length = get_text ((UCHAR *) value, sizeof (value));
 
@@ -4546,7 +4557,7 @@ static BOOLEAN get_procedure (void)
  **************************************/
 ATT_TYPE	attribute;
 GDS_NAME	procedure_name;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 SSHORT		l;
 PRC		    procedure;
 UCHAR	    scan_next_attr;
@@ -4573,7 +4584,7 @@ STORE (TRANSACTION_HANDLE local_trans
 	switch (attribute)
 	    {
 	    case att_procedure_name:
-		l = get_text (X.RDB$PROCEDURE_NAME, sizeof (X.RDB$PROCEDURE_NAME));
+		l = GET_TEXT (X.RDB$PROCEDURE_NAME);
                 procedure->prc_name_length = l;
                 strcpy (procedure->prc_name, X.RDB$PROCEDURE_NAME);
 		MISC_terminate (X.RDB$PROCEDURE_NAME, temp, l, sizeof (temp));
@@ -4606,12 +4617,12 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_procedure_security_class:
-		get_text (X.RDB$SECURITY_CLASS, sizeof (X.RDB$SECURITY_CLASS));
+		GET_TEXT (X.RDB$SECURITY_CLASS);
 		X.RDB$SECURITY_CLASS.NULL = FALSE;
 		break;
 
 	    case att_procedure_owner_name:
-		get_text (procedure->prc_owner, sizeof (procedure->prc_owner));
+		GET_TEXT (procedure->prc_owner);
 		break;
 
 	    case att_procedure_inputs:
@@ -4663,7 +4674,7 @@ static BOOLEAN get_procedure_prm (
  **************************************/
 ATT_TYPE	attribute;
 SSHORT		l;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 UCHAR	    scan_next_attr;
 isc_tr_handle	local_trans;
 TGBL	    tdgbl;
@@ -4682,7 +4693,7 @@ STORE (TRANSACTION_HANDLE local_trans
 	switch (attribute)
 	    {
 	    case att_procedureprm_name:
-		l = get_text (X.RDB$PARAMETER_NAME, sizeof (X.RDB$PARAMETER_NAME));
+		l = GET_TEXT (X.RDB$PARAMETER_NAME);
 		MISC_terminate (X.RDB$PARAMETER_NAME, temp, l, sizeof (temp));
 		BURP_verbose (196, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 			/* msg 196 restoring parameter %s for stored procedure */
@@ -4697,7 +4708,7 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_procedureprm_field_source:
-		get_text (X.RDB$FIELD_SOURCE, sizeof (X.RDB$FIELD_SOURCE));
+		GET_TEXT (X.RDB$FIELD_SOURCE);
 		break;
 
 	    case att_procedureprm_description:
@@ -4754,27 +4765,27 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_ref_constraint_req_handle1)
             {
             case att_ref_constraint_name:
                 X.RDB$CONSTRAINT_NAME.NULL = FALSE;
-                get_text (X.RDB$CONSTRAINT_NAME, sizeof (X.RDB$CONSTRAINT_NAME));
+                GET_TEXT (X.RDB$CONSTRAINT_NAME);
                 break;
 
             case att_ref_unique_const_name:
                 X.RDB$CONST_NAME_UQ.NULL = FALSE;
-                get_text (X.RDB$CONST_NAME_UQ, sizeof (X.RDB$CONST_NAME_UQ));
+                GET_TEXT (X.RDB$CONST_NAME_UQ);
                 break;
 
             case att_ref_match_option:
                 X.RDB$MATCH_OPTION.NULL = FALSE;
-                get_text (X.RDB$MATCH_OPTION, sizeof (X.RDB$MATCH_OPTION));
+                GET_TEXT (X.RDB$MATCH_OPTION);
                 break;
 
             case att_ref_update_rule:
                 X.RDB$UPDATE_RULE.NULL = FALSE;
-                get_text (X.RDB$UPDATE_RULE, sizeof (X.RDB$UPDATE_RULE));
+                GET_TEXT (X.RDB$UPDATE_RULE);
                 break;
 
             case att_ref_delete_rule:
                 X.RDB$DELETE_RULE.NULL = FALSE;
-                get_text (X.RDB$DELETE_RULE, sizeof (X.RDB$DELETE_RULE));
+                GET_TEXT (X.RDB$DELETE_RULE);
                 break;
 
             default:
@@ -4811,7 +4822,7 @@ static BOOLEAN get_relation (void)
  **************************************/
 REL		relation;
 FLD		field, *ptr;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 SSHORT		l;
 ATT_TYPE	attribute;
 REC_TYPE	record;
@@ -4822,9 +4833,10 @@ SLONG		rel_flags, sys_flag;
 short		rel_flags_null, sys_flag_null;
 GDS_QUAD	view_blr, view_src, rel_desc, ext_desc;
 USHORT		view_blr_null, view_src_null, rel_desc_null, ext_desc_null;
-char		sec_class[32];
+TEXT		sec_class [GDS_NAME_LEN];
 short		sec_class_null;
-TEXT		ext_file_name [253];
+
+BASED_ON RDB$RELATIONS.RDB$EXTERNAL_FILE ext_file_name;
 short		ext_file_name_null;
 
 isc_tr_handle	local_trans;
@@ -4871,7 +4883,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
     switch (attribute)
 	{
 	case att_relation_name:
-	    l = get_text (relation->rel_name, 31);
+	    l = GET_TEXT (relation->rel_name);
 	    relation->rel_name_length = l;
 	    MISC_terminate (relation->rel_name, temp, l, sizeof (temp));
 	    BURP_verbose (167, temp, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
@@ -4880,7 +4892,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 
 	case att_relation_security_class:
 	    sec_class_null = FALSE;
-	    get_text (sec_class, sizeof (sec_class));
+	    GET_TEXT (sec_class);
 	    break;
 
 	case att_relation_view_blr:
@@ -4909,7 +4921,6 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 	    get_source_blob(&rel_desc, (USHORT) !view_blr_null);
 	    break;
 
-
 	case att_relation_flags:
 	    rel_flags_null = FALSE;
 	    rel_flags = get_numeric();
@@ -4931,12 +4942,12 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 	    break;
 
 	case att_relation_owner_name:
-	    get_text (relation->rel_owner, sizeof (relation->rel_owner));
+	    GET_TEXT (relation->rel_owner);
 	    break;
 
 	case att_relation_ext_file_name:
 	    ext_file_name_null = FALSE;
-	    get_text (ext_file_name, sizeof (ext_file_name));
+	    GET_TEXT (ext_file_name);
 	    break;
 
 	default:
@@ -5086,32 +5097,32 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_rel_constraint_req_handle1)
             {
             case att_rel_constraint_name:
                 X.RDB$CONSTRAINT_NAME.NULL = FALSE;
-                get_text (X.RDB$CONSTRAINT_NAME, sizeof (X.RDB$CONSTRAINT_NAME));
+                GET_TEXT (X.RDB$CONSTRAINT_NAME);
                 break;
 
             case att_rel_constraint_type:
                 X.RDB$CONSTRAINT_TYPE.NULL = FALSE;
-                get_text (X.RDB$CONSTRAINT_TYPE, sizeof (X.RDB$CONSTRAINT_TYPE));
+                GET_TEXT (X.RDB$CONSTRAINT_TYPE);
                 break;
 
             case att_rel_constraint_rel_name:
                 X.RDB$RELATION_NAME.NULL = FALSE;
-                get_text (X.RDB$RELATION_NAME, sizeof (X.RDB$RELATION_NAME));
+                GET_TEXT (X.RDB$RELATION_NAME);
                 break;
 
             case att_rel_constraint_defer:
                 X.RDB$DEFERRABLE.NULL = FALSE;
-                get_text (X.RDB$DEFERRABLE, sizeof (X.RDB$DEFERRABLE));
+                GET_TEXT (X.RDB$DEFERRABLE);
                 break;
 
             case att_rel_constraint_init:
                 X.RDB$INITIALLY_DEFERRED.NULL = FALSE;
-                get_text (X.RDB$INITIALLY_DEFERRED, sizeof (X.RDB$INITIALLY_DEFERRED));
+                GET_TEXT (X.RDB$INITIALLY_DEFERRED);
                 break;
 
             case att_rel_constraint_index:
                 X.RDB$INDEX_NAME.NULL = FALSE;
-                get_text (X.RDB$INDEX_NAME, sizeof (X.RDB$INDEX_NAME));
+                GET_TEXT (X.RDB$INDEX_NAME);
                 break;
 
             default:
@@ -5142,7 +5153,7 @@ static BOOLEAN get_relation_data (void)
  *
  **************************************/
 REL		relation;
-TEXT		name [32];
+BASED_ON RDB$RELATIONS.RDB$RELATION_NAME name;
 SLONG		gen_id;
 ATT_TYPE	attribute;
 REC_TYPE	record;
@@ -5158,7 +5169,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
     switch (attribute)
 	{
 	case att_relation_name:
-	    get_text (name, sizeof (name));
+	    GET_TEXT (name);
 	    relation = find_relation (name);
 	    break;
 
@@ -5227,7 +5238,7 @@ static BOOLEAN get_sql_roles (void)
 ATT_TYPE        attribute;
 UCHAR	        scan_next_attr;
 TGBL	        tdgbl;
-TEXT            temp [32];
+TEXT            temp [GDS_NAME_LEN];
 SSHORT          l;
 
 tdgbl = GET_THREAD_DATA;
@@ -5244,7 +5255,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_sql_roles_req_handle1)
             {
             case att_role_name:
                 X.RDB$ROLE_NAME.NULL = FALSE;
-                l = get_text (X.RDB$ROLE_NAME, sizeof (X.RDB$ROLE_NAME));
+                l = GET_TEXT (X.RDB$ROLE_NAME);
                 MISC_terminate (X.RDB$ROLE_NAME, temp, l, sizeof (temp));
                 /************************************************
                 **
@@ -5257,7 +5268,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_sql_roles_req_handle1)
 
             case att_role_owner_name:
                 X.RDB$OWNER_NAME.NULL = FALSE;
-                get_text (X.RDB$OWNER_NAME, sizeof (X.RDB$OWNER_NAME));
+                GET_TEXT (X.RDB$OWNER_NAME);
                 break;
 
             default:
@@ -5316,7 +5327,7 @@ static BOOLEAN get_security_class (void)
  *
  **************************************/
 ATT_TYPE	attribute;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 SSHORT		l = 0;
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
@@ -5333,8 +5344,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_security_class_req_handle1)
 	switch (attribute)
 	    {
 	    case att_class_security_class:
-		l = get_text (X.RDB$SECURITY_CLASS, 
-			sizeof (X.RDB$SECURITY_CLASS));
+		l = GET_TEXT (X.RDB$SECURITY_CLASS);
 
 		/* Bug fix for bug_no 7299: There was a V3 bug that inserted
 		   garbage security class entry when doing GBAK. In order to
@@ -5468,7 +5478,7 @@ if (buffer != static_buffer)
 
 static USHORT get_text (
     TEXT	*text,
-    ULONG	length)
+    ULONG	size_len)
 {
 /**************************************
  *
@@ -5480,14 +5490,14 @@ static USHORT get_text (
  *	Move a text attribute to a string and fill.
  *
  **************************************/
-ULONG	l, l2;
+ULONG	l;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
-l2 = l = GET();
+l = GET();
 
-if (length < l)
+if (size_len <= l)
     BURP_error_redirect (NULL_PTR, 46, 0, 0); 
     /* msg 46 string truncated */
 
@@ -5496,7 +5506,7 @@ if (l)
 
 *text = 0;
 
-return (USHORT) l2;
+return (USHORT) l;
 }
 
 static BOOLEAN get_trigger_old (
@@ -5514,7 +5524,7 @@ static BOOLEAN get_trigger_old (
  **************************************/
 enum trig_t	type;
 ATT_TYPE	attribute;
-TEXT		*q, *p, *end, name [32];
+TEXT		*q, *p, *end, name [GDS_NAME_LEN];
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
 
@@ -5635,7 +5645,7 @@ static BOOLEAN get_trigger (void)
  *
  **************************************/
 ATT_TYPE	attribute;
-TEXT    	name [32];
+BASED_ON RDB$TRIGGERS.RDB$TRIGGER_NAME name;
 UCHAR		scan_next_attr;
 isc_tr_handle	local_trans;
 TGBL		tdgbl;
@@ -5682,14 +5692,14 @@ STORE (TRANSACTION_HANDLE local_trans
 		break;
 
 	    case att_trig_name:
-		get_text (X.RDB$TRIGGER_NAME, sizeof (X.RDB$TRIGGER_NAME));
+		GET_TEXT (X.RDB$TRIGGER_NAME);
 		strcpy (name, X.RDB$TRIGGER_NAME);
 		BURP_verbose (126, X.RDB$TRIGGER_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
                 /* msg 126 restoring trigger %s */
 		break;
 
 	    case att_trig_relation_name:
-		get_text (X.RDB$RELATION_NAME, sizeof (X.RDB$RELATION_NAME));
+		GET_TEXT (X.RDB$RELATION_NAME);
 		break;
 
 	    case att_trig_sequence:
@@ -5778,7 +5788,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
     switch (attribute)
 	{
 	case att_trigmsg_name:
-	    get_text (name, sizeof (name));
+	    GET_TEXT (name);
 	    flag = FALSE;
 	    FOR (REQUEST_HANDLE tdgbl->handles_get_trigger_message_req_handle1)
             FIRST 1 X IN RDB$TRIGGERS WITH
@@ -5797,7 +5807,7 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 	    break;
 
 	case att_trigmsg_text:
-	    get_text (message, sizeof (message));
+	    GET_TEXT (message);
 	    break;
 
 	default:
@@ -5858,7 +5868,7 @@ static BOOLEAN get_type (void)
  **************************************/
 ATT_TYPE	attribute;
 ULONG		l;
-TEXT		temp [32];
+TEXT		temp [GDS_NAME_LEN];
 UCHAR	    scan_next_attr;
 TGBL	    tdgbl;
 
@@ -5874,7 +5884,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_type_req_handle1)
 	switch (attribute)
 	    {
 	    case att_type_name:
-		l = get_text (X.RDB$TYPE_NAME, sizeof (X.RDB$TYPE_NAME));
+		l = GET_TEXT (X.RDB$TYPE_NAME);
 		break;
 
 	    case att_type_type:
@@ -5882,7 +5892,7 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_type_req_handle1)
 		break;
 
 	    case att_type_field_name:
-		get_text (X.RDB$FIELD_NAME, sizeof (X.RDB$FIELD_NAME));
+		GET_TEXT (X.RDB$FIELD_NAME);
 		break;
 
 	    case att_type_description:
@@ -5960,19 +5970,19 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 	case att_priv_user:
 	    /* default USER_TYPE to USER */
 	    flags |= USER_PRIV_USER;
-	    get_text (user, sizeof (user));
+	    GET_TEXT (user);
 	    BURP_verbose (123, user, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 	    /* msg 123 restoring privilege for user %s */
 	    break;
 
 	case att_priv_grantor:
 	    flags |= USER_PRIV_GRANTOR;
-	    get_text (grantor, sizeof (grantor));
+	    GET_TEXT (grantor);
 	    break;
 
 	case att_priv_privilege:
 	    flags |= USER_PRIV_PRIVILEGE;
-	    get_text (privilege, sizeof (privilege));
+	    GET_TEXT (privilege);
 	    break;
 
 	case att_priv_grant_option:
@@ -5983,12 +5993,12 @@ while (SKIP_SCAN, GET_ATTRIBUTE (attribute) != att_end)
 	case att_priv_object_name:
 	    flags |= USER_PRIV_OBJECT_NAME;
 	    /* default OBJECT_TYPE to RELATION */
-	    get_text (relation_name, sizeof (relation_name));
+	    GET_TEXT (relation_name);
 	    break;
 
 	case att_priv_field_name:
 	    flags |= USER_PRIV_FIELD_NAME;
-	    get_text (field_name, sizeof (field_name));
+	    GET_TEXT (field_name);
 	    break;
 
 	case att_priv_user_type:
@@ -6162,11 +6172,11 @@ STORE (TRANSACTION_HANDLE local_trans
 	switch (attribute)
 	    {
 	    case att_view_relation_name:
-		get_text (X.RDB$RELATION_NAME, sizeof (X.RDB$RELATION_NAME));
+		GET_TEXT (X.RDB$RELATION_NAME);
 		break;
 
 	    case att_view_context_name:
-		get_text (X.RDB$CONTEXT_NAME, sizeof (X.RDB$CONTEXT_NAME));
+		GET_TEXT (X.RDB$CONTEXT_NAME);
 		break;
 
 	    case att_view_context_id:
@@ -6621,7 +6631,7 @@ while (GET_ATTRIBUTE (attribute) != att_end)
 	       just store the value in tdgbl. It will be updated at
 	       the very end to prevent security class validation
 	       failures during change table ownership operation   */
-	    get_text(tdgbl->database_security_class, sizeof(tdgbl->database_security_class));
+	    GET_TEXT(tdgbl->database_security_class);
 	    break;
 
 	case att_database_description:
@@ -6647,7 +6657,7 @@ while (GET_ATTRIBUTE (attribute) != att_end)
 	    FOR (REQUEST_HANDLE req_handle3)
             X IN RDB$DATABASE
 		    MODIFY X USING
-		    get_text (X.RDB$CHARACTER_SET_NAME, sizeof (X.RDB$CHARACTER_SET_NAME));
+		    GET_TEXT (X.RDB$CHARACTER_SET_NAME);
 		    END_MODIFY;
             ON_ERROR
                 general_on_error ();
