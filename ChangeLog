@@ -1,3 +1,17 @@
+2003-06-12 12:10  paul_reeves
+
+	* interbase/builds_win32/install/FirebirdInstall.iss:
+	
+	Fix a few errors in the Win32 installer - with thanks to Jerome
+	Welsh.
+
+2003-06-12 12:05  paul_reeves
+
+	* interbase/utilities/fbcpl/: FBControl.rc, fbdialog.cpp:
+	
+	Fix error in cpl applet if run under Win9x - thanks to some fast
+	work from Jerome Welsh!
+
 2003-06-04 17:13  alexpeshkoff
 
 	* interbase/burp/burp.c:
