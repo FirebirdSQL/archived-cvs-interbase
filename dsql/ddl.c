@@ -3187,7 +3187,7 @@ put_string (request, gds__dyn_view_source, source->str_data, (USHORT)source->str
 
 /* define the view source relations from the request contexts */
 
-for (temp = request->req_context; temp; temp = temp->lls_next)
+for (temp = request->req_union_context; temp; temp = temp->lls_next)
     {
     context = (CTX) temp->lls_object;
     if (relation = context->ctx_relation)

@@ -233,6 +233,7 @@ SQLVAR	*var;
 BLOB_PTR *p;		/* one huge pointer per line for LIBS */
 BLOB_PTR *msg_buf;	/* one huge pointer per line for LIBS */
 
+
 if (!xsqlda)
     n = 0;
 else

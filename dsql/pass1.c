@@ -371,12 +371,14 @@ NOD PASS1_rse (
  *
  **************************************/
 NOD	node;
+int foo;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
 DEV_BLKCHK (order, type_nod);
 
 request->req_scope_level++;
+foo = request->req_scope_level;
 node = pass1_rse (request, input, order);
 request->req_scope_level--;
 
@@ -2447,17 +2449,18 @@ DEV_BLKCHK (qualifier, type_str);
    if there is an alias, check only against the first matching */
 
 /* Discovered the hard way that can't be done by the caller reliably. */
+
 if (fcount)
 	*fcount = 0;
 
 for (stack = request->req_context; stack; stack = stack->lls_next)
-{
-	if (fcount && *fcount < 2) /* fcount>=2 doesn't seem possible but be safe.*/
-		field = resolve_context (request, name, qualifier, stack->lls_object,
-			&aux_relations [*fcount], &aux_procedures [*fcount]);
-	else
-		field = resolve_context (request, name, qualifier, stack->lls_object,
-			0, 0);
+    {
+    if (fcount && *fcount < 2) /* fcount>=2 doesn't seem possible but be safe.*/
+	field = resolve_context (request, name, qualifier, stack->lls_object,
+	    &aux_relations [*fcount], &aux_procedures [*fcount]);
+    else
+	field = resolve_context (request, name, qualifier, stack->lls_object,
+		    0, 0);
     if (field)
 	{
 	if (list && !name)
@@ -2473,42 +2476,37 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 	for (; field; field = field->fld_next)
 	    if ( !strcmp (name->str_data, field->fld_name))
 		{
-			if (fcount)
+		if (fcount && ++*fcount > 1)
+		    {
+		    TEXT names [2][2 * 32] = {"table/view ", "table/view "};
+		    int iter;
+		    for (iter = 0; iter < 2; ++iter)
 			{
-				if (++*fcount > 1)
-				{
-					TEXT names [2][2 * 32] = {"table/view ", "table/view "};
-					int iter;
-					for (iter = 0; iter < 2; ++iter)
-					{
-						if (aux_relations [iter])
-							strcat (names [iter], aux_relations [iter]->rel_name);
-						else
-						{
-							strcpy (names [iter], "procedure ");
-							strcat (names [iter], aux_procedures [iter]->prc_name);
-						}
-					}
-#ifdef FIREBIRD_REJECT_AMBIGUITY
-					/* Should clean node if != NULL? */
-					if (node)
-						ALL_release (node);
-					ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
-						gds_arg_gds, isc_dsql_ambiguous_field_name,
-#else
-					ERRD_post_warning (isc_sqlwarn, gds_arg_number, (SLONG) +204,
-						gds_arg_warning, isc_dsql_ambiguous_field_name,
-#endif
-						gds_arg_string, ERR_cstring (names [0]),
-						gds_arg_string, ERR_cstring (names [1]),
-						gds_arg_gds, gds__random,
-						gds_arg_string, field->fld_name,
-						0);
-					return node;
-				}
-			}
-			break;
+			if (aux_relations [iter])
+				strcat (names [iter], aux_relations [iter]->rel_name);
+			else
+			    {
+			    strcpy (names [iter], "procedure ");
+			    strcat (names [iter], aux_procedures [iter]->prc_name);
+			    }
+		    }
+		if (node)
+			ALL_release (node);
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
+			gds_arg_gds, isc_dsql_ambiguous_field_name,
+/*
+		ERRD_post_warning (isc_sqlwarn, gds_arg_number, (SLONG) +204,
+			gds_arg_warning, isc_dsql_ambiguous_field_name,
+*/
+			gds_arg_string, ERR_cstring (names [0]),
+			gds_arg_string, ERR_cstring (names [1]),
+			gds_arg_gds, gds__random,
+			gds_arg_string, field->fld_name,
+			0);
+		return node;
 		}
+	break;
+	}
 
 	if (qualifier && !field)
 	    break;
@@ -2518,37 +2516,39 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 	    /* Intercept any reference to a field with datatype that
 	       did not exist prior to V6 and post an error */
 
-	    if (request->req_client_dialect <= SQL_DIALECT_V5)
-			if (field->fld_dtype == dtype_sql_date ||
-				field->fld_dtype == dtype_sql_time ||
-				field->fld_dtype == dtype_int64)
-			{
-				ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
-					gds_arg_gds, gds__dsql_field_err, 
-					gds_arg_gds, gds__random, 
-					gds_arg_string, field->fld_name,
-					gds_arg_gds, isc_sql_dialect_datatype_unsupport,
-					gds_arg_number, request->req_client_dialect,
-					gds_arg_string, DSC_dtype_tostring (field->fld_dtype),
-					0);
-				return NULL;
-			};
+	    if (request->req_client_dialect <= SQL_DIALECT_V5 &&
+		(field->fld_dtype == dtype_sql_date ||
+		field->fld_dtype == dtype_sql_time ||
+		field->fld_dtype == dtype_int64))
+		{
+		ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -206, 
+			gds_arg_gds, gds__dsql_field_err, 
+			gds_arg_gds, gds__random, 
+			gds_arg_string, field->fld_name,
+			gds_arg_gds, isc_sql_dialect_datatype_unsupport,
+			gds_arg_number, request->req_client_dialect,
+			gds_arg_string, DSC_dtype_tostring (field->fld_dtype),
+			0);
+		return NULL;
+		};
 	    context = (CTX) stack->lls_object;
+
 	    if (indices)
-			indices = PASS1_node (request, indices, FALSE);
+		indices = PASS1_node (request, indices, FALSE);
+
 	    node = MAKE_field (context, field, indices);
+			
+/* remember the agg context so that we can post the agg to its map. */
+	    
 	    if (context->ctx_parent)
 		{
 	        if (!request->req_inhibit_map)
-				node = post_map (node, context->ctx_parent);
-			else if (request->req_context != stack)
-			/* remember the agg context so that we can post
-                       the agg to its map.     
- 		     */
-				request->req_outer_agg_context = context->ctx_parent;
+		    node = post_map (node, context->ctx_parent);
+		else if (request->req_context != stack)
+		    request->req_outer_agg_context = context->ctx_parent;
 		}
-		if (!fcount || (!stack->lls_next && node) || is_check_constraint)
-			return node;
+	    if (!fcount || (!stack->lls_next && node) || is_check_constraint)
+		return node;
 	    }
 	}
 }
@@ -3738,6 +3738,7 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++)
 	{
 		fcount = 0;
 		node2->nod_arg[0] = pass1_field (request, node1, 0, &fcount);
+
 		/* CVC: It works, but we'll centralize detection on pass1_field.
 		Don't delete fcount since it's used to indicate that ambiguous fields
 		should be detected by pass1_field; otherwise it has the old behavior.
@@ -3910,17 +3911,11 @@ base = request->req_context;
 for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++, uptr++)
     {
     *uptr = PASS1_rse (request, *ptr, NULL_PTR);
-     /**
-     Do Not pop-off the sub-rse's from the context. This will be
-     needed to generate the correct dyn for view with  unions in
-     it{dsql/ddl.c define_view()}. Note that the rse's will be 
-     popped off later in reset_context_stack(){dsql/ddl.c} after 
-     the dyn generation and at the end of PASS1_statement() after 
-     blr generation.
-     -Sudesh 06/03/1999
      while (request->req_context != base)
+	{
+	LLS_PUSH (request->req_context, &request->req_union_context);
 	LLS_POP (&request->req_context);
-     **/
+	}
     }
 
 /* generate a context for the union itself */
@@ -4347,17 +4342,17 @@ if (qualifier &&
 /* Lookup field in relation or procedure */
 
 if (relation)
-{
+    {
     field = relation->rel_fields;
-	if (aux_relation)
-		*aux_relation = relation;
-}
+    if (aux_relation)
+	*aux_relation = relation;
+    }
 else
-{
+    {
     field = procedure->prc_outputs;
-	if (aux_procedure)
-		*aux_procedure = procedure;
-}
+    if (aux_procedure)
+	*aux_procedure = procedure;
+    }
 
 return field;
 }

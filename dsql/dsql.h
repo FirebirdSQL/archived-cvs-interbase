@@ -376,6 +376,7 @@ typedef struct req {
     struct req	*req_offspring;		/* Cursor update requests */
     struct plb	*req_pool;
     struct lls	*req_context;
+    struct lls	*req_union_context;	/* Save contexts for views of unions */
     struct sym	*req_name;		/* Name of request */
     struct sym	*req_cursor;		/* Cursor symbol. if any */
     struct dbb	*req_dbb;		/* Database handle */
