@@ -28,8 +28,10 @@ fi
 
 if [ "$ISC_PASSWORD" = "" ]
   then
-    export ISC_USER="sysdba"
-    export ISC_PASSWORD="masterkey"
+    ISC_USER="sysdba"
+    export ISC_USER
+    ISC_PASSWORD="masterkey"
+    export ISC_PASSWORD
 fi
 
 
