@@ -1,3 +1,11 @@
+2001-09-17 14:50  skywalker
+
+	* interbase/jrd/: dfw.e, dyn_util.e, grant.e:
+	
+	Removed the EXACT_NUMERICS #define.  The code is needed for correct
+	operation, and was a way of introducing new features.  int64 is now
+	used by default and the conditional #defines have been removed.
+
 2001-09-16 14:15  skywalker
 
 	* interbase/: Configure.sh, builds/original/platform,
