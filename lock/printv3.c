@@ -72,8 +72,7 @@ static void	prt_lock_init();
 static void	prt_process();
 static void	prt_request();
 static void	prt_que();
-
-static void prt_lock ();
+static void prt_lock (LBL);
     
 static TEXT	*history_names[] = {
 	"n/a", "ENQ", "DEQ", "CONVERT", "SIGNAL", "POST", "WAIT",

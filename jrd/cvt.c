@@ -1775,8 +1775,8 @@ switch (to->dsc_dtype)
 
     case DEFAULT_DOUBLE:
 	{
-	double d_value = CVT_get_double (from, err);
-	MOVE_FAST(&d_value,p,sizeof(double));
+	double* pp = (double*) p;
+	*pp = CVT_get_double (from, err);
 	}
 	return;
 #ifdef VMS

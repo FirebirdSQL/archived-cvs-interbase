@@ -30,8 +30,7 @@
  * $Id$
  *
  * 2001.11.20  Ann Harrison - make 64bitio.h conditional on not windows.
- * 2002.04.16  Paul Beach - HP10 and unistd.h
-*/
+ */
 
 #ifndef _JRD_COMMON_H_
 #define _JRD_COMMON_H_
@@ -361,11 +360,12 @@
 
 #define STRICMP(s1, s2)		strcasecmp(s1, s2)
 
-#if !(defined(SOLARIS26))
+#if !(defined(SOLARIS26 || defined (HPUX))
 //#ifndef SOLARIS26
 
-/* If our build platform is at least Solaris release 2.6, then unistd.h
-   declares these functions, so we must not define them with macros. 
+/* If our build platform is at least Solaris release 2.6 or HPUX 10.20, 
+   then unistd.h declares these functions, so we must not define them 
+   with macros. */ 
    
 #define setreuid(ruid,euid)     ((setuid (ruid) == -1 || seteuid (euid) == -1) ? -1 : 0)
 #define setregid(rgid,egid)     ((setgid (rgid) == -1 || setegid (egid) == -1) ? -1 : 0)
@@ -484,9 +484,6 @@
 
 #define                 IEEE
 #include "../jrd/pragma.h"
-// 16-Apr-2002 HP10 in unistd.h Paul Beach
-//#define setreuid(ruid,euid)     setresuid (ruid, euid, -1)
-//#define setregid(rgid,egid)     setresgid (rgid, egid, -1)
 
 /* The following define is the prefix to go in front of a "d" or "u"
    format item in a ib_printf() format string, to indicate that the argument

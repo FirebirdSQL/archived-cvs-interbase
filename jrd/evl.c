@@ -5015,12 +5015,9 @@ else
 	else
 	{
 		/* Keep our starting pos safe. */
-#ifdef HPUX 
-	        desc.dsc_address = p;
-#else
-		(UCHAR*) desc.dsc_address = p;
-#endif // HPUX
+
 		desc.dsc_address = p;
+
 		while (length && pcount)
 		{
 			if (!INTL_getch (tdbb, &text_obj, INTL_TTYPE (&desc), &p, &pcount))

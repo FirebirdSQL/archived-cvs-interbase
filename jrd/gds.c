@@ -2941,8 +2941,8 @@ if (ib_prefix_msg == NULL)
         }
     else
         {
-        strcat (ib_prefix_msg_val, ib_prefix_msg); 
-        ib_prefix_msg = ib_prefix_msg_val;
+        strncat (ib_prefix_msg_val, ib_prefix_msg,
+        sizeof(ib_prefix_msg_val)-1);
         }
     }
 
