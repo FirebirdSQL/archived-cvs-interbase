@@ -1106,6 +1106,10 @@ switch (sub->nod_type)
 		else 
 	    	return FALSE;
 
+    case nod_via:
+		/* Allow sub-selects - no validation in context of group by */
+		return TRUE;
+
     default:
 		return FALSE;
     }
