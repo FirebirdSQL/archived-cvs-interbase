@@ -299,7 +299,9 @@ STATUS	status_vector [20];
 SLONG	length, key, semid;
 TEXT	expanded_filename [MAXPATHLEN];
 int	pid;
+#ifdef DARWIN
 union	semun semctlArg;
+#endif
 
 #ifdef MANAGER_PROCESS
 /* Shutdown lock manager process so that shared memory
@@ -334,8 +336,12 @@ if ((semid = sem_exclusive (key, sem_count)) == -1)
     return;
     }
 
+#ifdef DARWIN
 semctlArg.val = 0;
 if (semctl (semid, sem_count, IPC_RMID, semctlArg) == -1)
+#else
+if (semctl (semid, sem_count, IPC_RMID, 0) == -1)
+#endif
     ib_printf ("\n***Error trying to drop %s semaphores.  ERRNO = %d.\n", label, errno);
 else
     ib_printf ("Successfully removed %s semaphores.\n", label);

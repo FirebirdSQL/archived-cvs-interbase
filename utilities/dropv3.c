@@ -304,7 +304,9 @@ STATUS		status_vector [20];
 long		length, key, shmid, semid;
 TEXT		expanded_filename [512], hostname [64];
 struct stat	stat_buf;
+#ifdef DARWIN
 union semun	semctlArg;
+#endif
 
 #ifdef NOHOSTNAME
 strcpy (expanded_filename, filename);
@@ -334,8 +336,12 @@ if ((semid = sem_exclusive (key, sem_count)) == -1)
     return;
     }
 
+#ifdef DARWIN
 semctlArg.val = 0;
 if (semctl (semid, sem_count, IPC_RMID, semctlArg) == -1)
+#else
+if (semctl (semid, sem_count, IPC_RMID, 0) == -1)
+#endif
     ib_printf ("\n***Error trying to drop bridge %s semaphores.  ERRNO = %d.\n", label, errno);
 else
     ib_printf ("Successfully removed bridge %s semaphores.\n", label);
