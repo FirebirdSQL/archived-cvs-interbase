@@ -2,7 +2,18 @@
 #$Id$
 # dump_gtcs.pl - dumps data from gtcs.gdb to disk.
 #
-# Copyright 2000 FSG.
+# Copyright 2000 FSG
+# This is based on the example select.pl
+# from Bill Karwin.
+# As I have no idea how to write perl programs
+# this may be ugly, buggy or whatsoever
+# tested with IBPerl-0.8p3
+#
+# use fix_it.sql before you try to export from
+# an original gtcs.gdb, otherwise
+# import_gtcs won't work as expected
+#
+#
 
 use IBPerl;
 use strict;
@@ -118,10 +129,10 @@ sub dumptable {
     }
     
      
-    $outname= ">".$EXPORTPATH.$table.".dat";
+    $outname= ">".$EXPORTPATH.$table.".csv";
     open(OUT,$outname) || die "can't create file $outname";
-    print OUT $table . "\n";
-    print "Processing ".$table."\n";  
+    print OUT "$table\n";
+    print "Processing $table\n";  
     while (1)
     {
        $ret = $st->fetch(\@row);
@@ -139,7 +150,7 @@ sub dumptable {
          $i=0;
          foreach $_ (@row) 
          {
-           print OUT $st->{Columns}[$i]. ";";
+           print OUT "\"$st->{Columns}[$i]\";";
            ++$i;  
           }
           print OUT "\n";
@@ -154,8 +165,8 @@ sub dumptable {
            if ($st->{Datatypes}[$i] eq 'BLOB')
            # Dump the blob to a file and print a reference
            {
-             $outname= "@"."$table.$st->{Columns}[$i].$keyname.blob";
-             print OUT $outname; 
+             $outname= "@"."$table.$st->{Columns}[$i].$keyname.".$count.".blob";
+             print OUT "$outname;"; 
              open (BLOB, ">".$EXPORTPATH.$outname);
              print BLOB $Fields;
              close(BLOB);
@@ -178,7 +189,7 @@ sub dumptable {
                    s/\s+$//;
                }
              } 
-             print OUT $Fields . ";";
+             print OUT "$Fields;";
            }
        ++$i;
        }
