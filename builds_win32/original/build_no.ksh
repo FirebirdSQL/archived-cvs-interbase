@@ -48,8 +48,8 @@
 BUILD_TYPE=T
 MAJOR_VER=0
 MINOR_VER=9
-REV_NO=4
-BUILD_SUFFIX="Firebird Test1"
+REV_NO=5
+BUILD_SUFFIX="Firebird Beta1"
 
 if [ ! -f this_build ]
 then
