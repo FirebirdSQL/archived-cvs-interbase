@@ -1,3 +1,26 @@
+2001-11-30 16:19  paul_reeves
+
+	* interbase/: isql/show.e, jrd/inf.c:
+	
+	isql show database is now a little more informative.
+
+2001-11-30 15:51  kkuznetsov
+
+	* interbase/jrd/unix.c:
+	
+	
+	Added some magic to make SOLARIS support LARGE files (only in
+	SUPER)
+
+2001-11-30 09:08  robocop
+
+	* interbase/dsql/pass1.c:
+	
+	And here comes the rebellious sonny, breaks into the silence of the
+	night and restores his check for field ambiguities, killing the
+	newborn fatal bugs (that would trash or crash the engine) to be
+	able to regain the glory of the updated code.
+
 2001-11-29 12:58  paul_reeves
 
 	* interbase/jrd/version_95.rc:
