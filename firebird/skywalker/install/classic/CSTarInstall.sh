@@ -63,7 +63,7 @@ checkInstallUser() {
 
     if [ "`whoami`" != "root" ];
       then
-        ehco ""
+        echo ""
         echo "--- Warning ----------------------------------------------"
         echo ""
         echo "    You need to be 'root' user to install"
@@ -89,13 +89,19 @@ if [ -e firebird ]
   then
     ScriptsSrcDir=./firebird/skywalker/install
 
-    ( $ScriptsSrcDir/super/CSpreinstall.sh )
+    ( $ScriptsSrcDir/classic/CSpreinstall.sh )
 
     cp $ScriptsSrcDir/misc/README interbase
 
-    ($ScriptsSrcDir/super/CSinstall.sh)
+    for i in CSchangeRunUser.sh CSrestoreRootRunUser.sh changeDBAPassword.sh
+      do
+        cp $ScriptsSrcDir/misc/$i interbase/bin/$i
+        chmod ugo=rx interbase/bin/$i
+      done
 
-    ($ScriptsSrcDir/super/CSpreinstall.sh)
+    ($ScriptsSrcDir/classic/CSinstall.sh)
+
+    ($ScriptsSrcDir/classic/CSpostinstall.sh)
 fi
 
 # Here we are installing from a install tar.gz file

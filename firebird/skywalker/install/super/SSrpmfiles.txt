@@ -18,6 +18,11 @@
     /opt/interbase/bin/ibmgr.bin 
     /opt/interbase/bin/ibserver 
     /opt/interbase/bin/ibguard 
+
+    /opt/interbase/bin/SSchangeRunUser.sh
+    /opt/interbase/bin/SSrestoreRootRunUser.sh
+    /opt/interbase/bin/changeDBAPassword.sh
+
     /opt/interbase/examples 
     /opt/interbase/help/help.gbak 
     /opt/interbase/help/help.gdb 

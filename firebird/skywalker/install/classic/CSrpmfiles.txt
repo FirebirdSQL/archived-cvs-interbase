@@ -20,6 +20,9 @@
 /opt/interbase/bin/isc4.gbak 
 /opt/interbase/bin/isql 
 /opt/interbase/bin/qli 
+/opt/interbase/bin/CSchangeRunUser.sh
+/opt/interbase/bin/CSrestoreRootRunUser.sh
+/opt/interbase/bin/changeDBAPassword.sh
 
 /opt/interbase/examples 
 

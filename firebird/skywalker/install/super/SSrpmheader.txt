@@ -1,7 +1,7 @@
 Summary: Firebird Database Server and Client tools. 
 Name: FirebirdSS 
 Version: 0.9
-Release: 1 
+Release: 3 
 Copyright: Distributable 
 Group: Applications/Databases 
 Source: FirebirdSS0.9src.tar.gz 

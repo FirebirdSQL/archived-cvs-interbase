@@ -50,6 +50,11 @@
     cp interbase/bin/isc4.gbak /opt/interbase/bin/isc4.gbak 
     cp interbase/bin/isql /opt/interbase/bin/isql 
     cp interbase/bin/qli /opt/interbase/bin/qli 
+
+    cp interbase/bin/CSchangeRunUser.sh /opt/interbase/bin
+    cp interbase/bin/CSrestoreRootRunUser.sh /opt/interbase/bin
+    cp interbase/bin/changeDBAPassword.sh /opt/interbase/bin
+
     cp interbase/examples/v5/*.[ceh] /opt/interbase/examples 
     cp interbase/examples/v5/*.sql /opt/interbase/examples 
     cp interbase/examples/v5/*.gbk /opt/interbase/examples 
@@ -79,7 +84,7 @@
     ln -s libgds.so.0 /usr/lib/libgds.so
 
     cp -f interbase/lib/gds.a /usr/lib/libgds.a 
-    cp -f interbase/lib/ib_util /usr/lib/libib_util.so 
+    cp -f interbase/lib/ib_util.so /usr/lib/libib_util.so 
     cp -f interbase/lib/gds_pyxis.a /usr/lib/libgds_pyxis.a 
 
     cp interbase/intl/gdsintl /opt/interbase/intl/gdsintl 

@@ -94,6 +94,12 @@ if [ -e firebird ]
     cp $ScriptsSrcDir/misc/firebird interbase
     cp $ScriptsSrcDir/misc/README interbase
 
+    for i in SSchangeRunUser.sh SSrestoreRootRunUser.sh changeDBAPassword.sh
+      do
+        cp $ScriptsSrcDir/misc/$i interbase/bin/$i
+        chmod ugo=rx interbase/bin/$i
+      done
+
 
     ($ScriptsSrcDir/super/SSinstall.sh)
 

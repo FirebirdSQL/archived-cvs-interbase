@@ -91,11 +91,50 @@ EOF
 }
 
 #------------------------------------------------------------------------
+#  Unable to generate the password for the rpm, so put out a message
+#  instead
+
+
+keepOrigDBAPassword() {
+
+    DBAPasswordFile=$IBRootDir/SYSDBA.password
+
+    NewPasswd='masterkey'
+    echo "Firebird initial install password " > $DBAPasswordFile
+    echo "for user SYSDBA is : $NewPasswd" >> $DBAPasswordFile
+
+    echo "for install on `hostname` at time `date`" >> $DBAPasswordFile
+    echo "You should change this password at the earliest oportunity" >> $DBAPasswordFile
+    echo ""
+
+    echo "(For superserver you will also want to check the password in the" >> $DBAPasswordFile
+    echo "daemon init routine in the file /etc/rc.d/init.d/firebird)" >> $DBAPasswordFile
+    echo "" >> $DBAPasswordFile
+    echo "Your should password can be changed to a more suitable one using the" >> $DBAPasswordFile
+    echo "/opt/interbase/bin/gsec program as show below:" >> $DBAPasswordFile
+    echo "" >> $DBAPasswordFile
+    echo ">cd /opt/interbase" >> $DBAPasswordFile
+    echo ">bin/gsec -user sysdba -password <password>" >> $DBAPasswordFile
+    echo "GSEC>modify sysdba -pw <newpassword>" >> $DBAPasswordFile
+    echo "GSEC>quit" >> $DBAPasswordFile
+
+    chmod u=r,go= $DBAPasswordFile
+
+}
+
+#------------------------------------------------------------------------
 #  Generate new sysdba password
 
 
 generateNewDBAPassword() {
 
+
+# Not all systems have mkpasswd, and there is also another mkpasswd which
+# does different things.  So if not at this specific place leave as default
+
+
+    NewPasswd=`/usr/bin/mkpasswd -l 8`
+   
     DBAPasswordFile=$IBRootDir/SYSDBA.password
     NewPasswd=`mkpasswd -l 8`
     echo "Firebird generated password " > $DBAPasswordFile
@@ -158,12 +197,21 @@ EOF
 #  Change sysdba password - this routine is interactive and is only 
 #  used in the install shell script not the rpm one.
 
+#  On some systems the mkpasswd program doesn't appear and on others
+#  there is another mkpasswd which does a different operation.  So if
+#  the specific one isn't available then keep the original password.
+
 
 changeDBAPassword() {
 
     if [ -z "$InteractiveInstall" ]
       then
-        generateNewDBAPassword
+        if [ -f /usr/bin/mkpasswd ]
+            then
+              generateNewDBAPassword
+        else
+              keepOrigDBAPassword
+        fi
       else
         askUserForNewDBAPassword
     fi
@@ -250,6 +298,9 @@ EOF
 
     touch interbase.log
     chmod u=rw,go= interbase.log
+
+    # make examples writable by anyone              
+    chmod uga+rw examples/*.gdb
 
 
     chmod ug+rx,o= /etc/rc.d/init.d/firebird

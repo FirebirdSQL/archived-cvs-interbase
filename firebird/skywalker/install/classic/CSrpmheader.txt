@@ -1,7 +1,7 @@
 Summary: Firebird Relational Database Server and Client tools.
 Name: FirebirdCS 
 Version: 0.9
-Release: 1 
+Release: 3 
 Copyright: Distributable 
 Group: Applications/Databases 
 Source: FirebirdCS0.9src.tar.gz 

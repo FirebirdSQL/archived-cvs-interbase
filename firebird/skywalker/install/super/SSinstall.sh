@@ -42,6 +42,10 @@
     cp interbase/bin/ibserver /opt/interbase/bin/ibserver 
     cp interbase/bin/ibguard /opt/interbase/bin/ibguard 
 
+    cp interbase/bin/SSchangeRunUser.sh /opt/interbase/bin
+    cp interbase/bin/SSrestoreRootRunUser.sh /opt/interbase/bin
+    cp interbase/bin/changeDBAPassword.sh /opt/interbase/bin
+
     cp interbase/examples/v5/*.[ceh] /opt/interbase/examples 
     cp interbase/examples/v5/*.sql /opt/interbase/examples 
     cp interbase/examples/v5/*.gbk /opt/interbase/examples 
@@ -68,7 +72,7 @@
         rm -f /usr/lib/libgds.so
     fi
     ln -s libgds.so.0 /usr/lib/libgds.so
-    cp -f interbase/lib/ib_util /usr/lib/libib_util.so 
+    cp -f interbase/lib/ib_util.so /usr/lib/libib_util.so 
     cp -f interbase/lib/gds_pyxis.a /usr/lib/libgds_pyxis.a 
 
     cp interbase/intl/gdsintl /opt/interbase/intl/gdsintl 
