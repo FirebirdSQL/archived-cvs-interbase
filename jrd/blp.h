@@ -15,6 +15,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.28: John Bellardo: Added skip and current_role to table.
  */
     NULL, NULL,
     "assignment", two, 
@@ -196,3 +197,5 @@
     "average2",              two,
     "gen_id2",               gen_id,
     "set_generator2",        gen_id,
+    "current_role",	     zero, 
+    "skip",		     one, 

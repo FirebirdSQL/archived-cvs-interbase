@@ -354,11 +354,11 @@ static SSHORT	log_defined, cache_defined;
 /* CVC: Special Firebird additions. */
 %token CURRENT_USER
 %token CURRENT_ROLE
-%token FIRST
 %token KW_BREAK
-%token LIMIT
 %token SUBSTRING
 %token KW_DESCRIPTOR
+%token FIRST
+%token LIMIT
 
 /* special aggregate token types returned by lex in v6.0 */
 
