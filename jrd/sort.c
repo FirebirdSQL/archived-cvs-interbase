@@ -52,6 +52,7 @@
 #if defined WIN_NT
 /* for SEEK_SET */
 #include <stdio.h>
+#include <windows.h>
 #endif
 
 #ifdef	WINDOWS_ONLY
@@ -82,8 +83,6 @@ extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
  SJL - Temporary fix for large sort file bug
  --------------------------------------------------*/
 #define MAX_TEMPFILE_SIZE       1900000000
-
-#include <windows.h>
 
 #define DIFF_LONGS(a,b)         ((a) - (b))
 #define SWAP_LONGS(a,b,t)       {t=a; a=b; b=t;}
