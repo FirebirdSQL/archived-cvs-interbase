@@ -1,3 +1,16 @@
+2001-10-08 19:40  awharrison
+
+	* interbase/jrd/dyn_def.e:
+	
+	
+	Changed dyn_create_index so it doesn't consider simple unique
+	indexes when finding a "referred index", but only indexes that
+	support unique constraints or primary keys.  This fixes a problem
+	that people who have both a unique index and a primary key have
+	when defining foreign keys on those fields.  If the index chosen
+	happened to be the simple unique index, then the foreign key would
+	be rejected.
+
 2001-10-04 06:22  bellardo
 
 	* interbase/firebird/bellardo/darwin/install:
