@@ -301,6 +301,7 @@ typedef struct dpb {
     TEXT	*dpb_working_directory;
     USHORT	dpb_sql_dialect;
     USHORT	dpb_set_db_sql_dialect;
+    TEXT        *dpb_set_db_charset;
 } DPB;
 
 static BLB	check_blob (TDBB, STATUS *, BLB *);
@@ -1787,7 +1788,7 @@ if (options.dpb_set_page_buffers)
 if (options.dpb_set_no_reserve)
     PAG_set_no_reserve (dbb, options.dpb_no_reserve);
 
-INI_format (attachment->att_user->usr_user_name);
+INI_format (attachment->att_user->usr_user_name, options.dpb_set_db_charset);
 
 if (options.dpb_shutdown || options.dpb_online)
     {
@@ -4653,7 +4654,7 @@ if (!options->dpb_lc_ctype || (len = strlen (options->dpb_lc_ctype)) == 0)
     {
     /* No declaration of character set, act like 3.x Interbase */
 
-    attachment->att_charset = CS_NONE;
+    attachment->att_charset = DEFAULT_ATTACHMENT_CHARSET;
     }
 else if (MET_get_char_subtype (tdbb, &id, options->dpb_lc_ctype, len) &&
          INTL_defined_type (tdbb, local_status, id) &&
@@ -5042,6 +5043,10 @@ while (p < end_dpb && buf_size)
 	case isc_dpb_set_db_readonly:
 	    options->dpb_set_db_readonly = TRUE;
 	    options->dpb_db_readonly = (SSHORT)get_parameter (&p);
+	    break;
+
+	case isc_dpb_set_db_charset:
+	    options->dpb_set_db_charset = get_string_parameter (&p, scratch, &buf_size);
 	    break;
 
 	default:

@@ -24,7 +24,7 @@
 #ifndef _JRD_INI_PROTO_H_
 #define _JRD_INI_PROTO_H_
 
-extern void		INI_format (TEXT *);
+extern void		INI_format (TEXT *, TEXT *);
 extern USHORT 		INI_get_trig_flags (TEXT * );
 extern void		INI_init (void);
 extern void		INI_init2 (void);

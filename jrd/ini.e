@@ -172,7 +172,8 @@ static CONST TRIGMSG FAR_VARIABLE	trigger_messages [] = {
 
 
 void INI_format (
-    TEXT	*owner)
+    TEXT	*owner,
+    TEXT        *charset)
 {
 /**************************************
  *
@@ -196,6 +197,7 @@ TRG	*trigger;
 TRIGMSG	*message;
 GEN 	*generator;
 TEXT	string [32], *p;
+TEXT	string2[32], *p2;
 BLK	handle1, handle2;
 
 UCHAR	        *acl, buffer [MAX_ACL_SIZE];
@@ -212,6 +214,12 @@ if (owner && *owner)
     for (p = string; *p++ = UPPER7 (*owner); owner++)
     	;
 
+/* Uppercase charset name */
+
+*string2 = 0;
+if (charset && *charset)
+    for (p2 = string2; *p2++ = UPPER7 (*charset); charset++)
+    	;
 /* Make sure relations exist already */
 
 for (n = 0; n < (int) rel_MAX; n++)
@@ -259,6 +267,15 @@ handle1 = NULL;
 
 STORE (REQUEST_HANDLE handle1) X IN RDB$DATABASE
     X.RDB$RELATION_ID = (int) USER_DEF_REL_INIT_ID;
+    X.RDB$CHARACTER_SET_NAME.NULL = TRUE;
+    if (*string2) {
+       PAD ( string2, X.RDB$CHARACTER_SET_NAME); 
+       X.RDB$CHARACTER_SET_NAME.NULL = FALSE;
+    }
+    else {
+       PAD (DEFAULT_DB_CHARACTER_SET_NAME, X.RDB$CHARACTER_SET_NAME);
+       X.RDB$CHARACTER_SET_NAME.NULL = FALSE;
+    }
 END_STORE
 
 CMP_release (tdbb, handle1);

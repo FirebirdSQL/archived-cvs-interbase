@@ -1762,6 +1762,7 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define isc_dpb_set_db_sql_dialect        65
 #define isc_dpb_gfix_attach		  66
 #define isc_dpb_gstat_attach		  67
+#define isc_dpb_set_db_charset            68
 
 /*********************************/
 /* isc_dpb_verify specific flags */
