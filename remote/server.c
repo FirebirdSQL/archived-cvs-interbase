@@ -45,6 +45,12 @@
 #include "../jrd/thd_proto.h"
 #include "../jrd/why_proto.h"
 
+#ifdef SUPERSERVER
+#include "../jrd/isc_i_proto.h"
+#endif
+#include "../remote/proto_proto.h"	/* xdr_protocol_overhead() */
+
+
 #define SET_THREAD_DATA		trdb = &thd_context;\
 				trdb->trdb_status_vector = NULL;\
 				THD_put_specific ((THDD) trdb);\
@@ -257,7 +263,7 @@ ISC_event_init (thread_event, 0, 0);
 THREAD_ENTER;
 
 SET_THREAD_DATA;
-trdb->trdb_setjmp = env;
+trdb->trdb_setjmp = &env;
 trdb->trdb_status_vector = status_vector;
 
 if (SETJMP(env)) 
@@ -303,7 +309,7 @@ if (SETJMP (env))
 	gds__log ("SRVR_multi_thread: forcefully disconnecting a port");
 
 	/* To handle recursion within the error handler */
-	trdb->trdb_setjmp = inner_env;
+	trdb->trdb_setjmp = &inner_env;
 	if (SETJMP (inner_env))
 	    {
 	    disconnect (port, NULL, NULL);
@@ -335,7 +341,7 @@ if (SETJMP (env))
 		}
 	    port = NULL;
  	    }
-	trdb->trdb_setjmp = env;
+	trdb->trdb_setjmp = &env;
 	}
 
     /* There was an error in the processing of the request, if we have allocated
@@ -737,7 +743,7 @@ static STATUS attach_database (
 USHORT	l, dl;
 UCHAR	*file, *dpb, new_dpb_buffer [512], *new_dpb, *p, *end;
 int	*handle;
-STATUS	*s, status_vector [20];
+STATUS	status_vector [20];
 RDB	rdb;
 STR	string;
 
@@ -762,7 +768,7 @@ if (string = port->port_user_name)
     else
 	*p++ = gds__dpb_version1;
     *p++ = gds__dpb_sys_user_name;
-    *p++ = string->str_length;
+    *p++ = (UCHAR)string->str_length;
     for (dpb = (UCHAR*) string->str_data, end = dpb + string->str_length; dpb < end;)
 	*p++ = *dpb++;
     dpb = new_dpb;
@@ -969,7 +975,7 @@ if (rdb->rdb_handle)
 	{
 	THREAD_EXIT;
 	gds__cancel_operation (status_vector,
-			GDS_REF(rdb->rdb_handle),
+			(struct hndl**)GDS_REF(rdb->rdb_handle),
 			CANCEL_raise);
 	THREAD_ENTER;
 	}
@@ -1025,14 +1031,14 @@ THREAD_EXIT;
 if (!GDS_DSQL_SQL_INFO (local_status,
 	&statement->rsr_handle,
 	sizeof (sql_info),
-	sql_info,
+	(SCHAR*)sql_info,	/* const_cast */
 	sizeof (buffer),
 	buffer))
     {
     for (info = buffer; (*info != gds__info_end) && !done;)
         {
-	l = gds__vax_integer (info + 1, 2);
-	type = gds__vax_integer (info + 3, l);
+	l = (USHORT)gds__vax_integer (info + 1, 2);
+	type = (USHORT)gds__vax_integer (info + 3, l);
         switch (*info)
     	    {
             case gds__info_sql_stmt_type:
@@ -1238,7 +1244,7 @@ if (rdb->rdb_handle)
 
 	THREAD_EXIT;
 	gds__cancel_operation (status_vector,
-			GDS_REF(rdb->rdb_handle),
+			(struct hndl**)GDS_REF(rdb->rdb_handle),
 			CANCEL_disable);
 	THREAD_ENTER;
 #endif
@@ -1262,7 +1268,7 @@ if (rdb->rdb_handle)
 
 	    else
 		gds__handle_cleanup (status_vector,
-		    GDS_REF (transaction->rtr_handle));
+		    (struct hndl**)GDS_REF (transaction->rtr_handle));
 #endif
 	    THREAD_ENTER;
 	    release_transaction (rdb->rdb_transactions);
@@ -1700,8 +1706,12 @@ if (op == op_exec_immediate2)
     if (port->port_statement->rsr_select_format)
 	{
 	out_msg_length = port->port_statement->rsr_select_format->fmt_length;
-	if (!port->port_statement->rsr_message->msg_address)
-	    port->port_statement->rsr_message->msg_address = &port->port_statement->rsr_message->msg_buffer;
+	if (!port->port_statement->rsr_message->msg_address) {
+	    /* TMN: Obvious bugfix. Please look at your compilers warnings. */
+	    /* They are not enemies, they're friends! */
+	    /* port->port_statement->rsr_message->msg_address = &port->port_statement->rsr_message->msg_buffer; */
+	    port->port_statement->rsr_message->msg_address = port->port_statement->rsr_message->msg_buffer;
+	}
 	out_msg = port->port_statement->rsr_message->msg_address;
 	}
     }
@@ -1742,7 +1752,7 @@ GDS_DSQL_EXECUTE_IMMED (status_vector,
 	&handle,
 	exnow->p_sqlst_SQL_str.cstr_length,
 	exnow->p_sqlst_SQL_str.cstr_address,
-	((exnow->p_sqlst_SQL_dialect * 10) + parser_version),
+	(USHORT)((exnow->p_sqlst_SQL_dialect * 10) + parser_version),
 	in_blr_length, in_blr, in_msg_type, in_msg_length, in_msg,
 	out_blr_length, out_blr, out_msg_type, out_msg_length, out_msg);
 THREAD_ENTER;
@@ -1775,7 +1785,7 @@ if (!status_vector [1])
 	}    
     }
 
-return send_response (port, send, (transaction) ? transaction->rtr_id : 0, 0, status_vector);
+return send_response (port, send, (OBJCT)(transaction ? transaction->rtr_id : 0), 0, status_vector);
 }
 
 static STATUS execute_statement (
@@ -1882,7 +1892,7 @@ if (!status_vector [1])
     statement->rsr_rtr = transaction;
     }
 
-return send_response (port, send, (transaction) ? transaction->rtr_id : 0, 0, status_vector);
+return send_response (port, send, (OBJCT)(transaction ? transaction->rtr_id : 0), 0, status_vector);
 }
 
 static STATUS fetch (
@@ -2229,7 +2239,7 @@ isc_request_info (status_vector,
 	GDS_REF (request->rrq_handle),
 	incarnation,
 	sizeof (request_info),
-	request_info,
+	(SCHAR*)request_info,	/* const_cast */
 	sizeof (info_buffer),
 	info_buffer);
 THREAD_ENTER;
@@ -2240,8 +2250,8 @@ if (status_vector [1])
 result = FALSE;
 for (info = info_buffer; *info != gds__info_end;)
     {
-    l = gds__vax_integer (info + 1, 2);
-    n = gds__vax_integer (info + 3, l);
+    l = (USHORT)gds__vax_integer (info + 1, 2);
+    n = (USHORT)gds__vax_integer (info + 3, l);
     switch (*info)
 	{
 	case gds__info_state:
@@ -2370,8 +2380,8 @@ while (buffer_length > 2)
 	p -= 2;
 	break;
 	}
-    p [-2] = length;
-    p [-1] = length >> 8;
+    p [-2] = (UCHAR)length;
+    p [-1] = (UCHAR)(length >> 8);
     p += length;
     buffer_length -= length;
     if (status_vector [1] == gds__segment)
@@ -2382,7 +2392,7 @@ while (buffer_length > 2)
 	}
     }
 
-status = send_response (port, send, (USHORT) state, p - buffer, status_vector);
+status = send_response (port, send, state, (USHORT)(p - buffer), status_vector);
 #ifdef REMOTE_DEBUG_MEMORY
 ib_printf ("get_segment(server)       free buffer      %x\n", buffer);
 #endif
@@ -2418,7 +2428,6 @@ RTR	transaction;
 UCHAR	*slice;
 P_SLR	*response;
 STATUS	status, status_vector [20];
-SLONG	i;
 #ifndef STACK_EFFICIENT
 UCHAR	temp_buffer [4096];
 #endif
@@ -2452,11 +2461,11 @@ THREAD_EXIT;
 isc_get_slice (status_vector,
 	GDS_REF (rdb->rdb_handle), 
 	GDS_REF (transaction->rtr_handle), 
-	GDS_REF (stuff->p_slc_id),
+	(ISC_QUAD*)GDS_REF (stuff->p_slc_id),
 	stuff->p_slc_sdl.cstr_length,
 	GDS_VAL (stuff->p_slc_sdl.cstr_address),
 	stuff->p_slc_parameters.cstr_length,
-	GDS_VAL (stuff->p_slc_parameters.cstr_address),
+	(ISC_LONG*)GDS_VAL (stuff->p_slc_parameters.cstr_address),
 	stuff->p_slc_length,
 	GDS_VAL (slice),
 	GDS_REF (response->p_slr_length));
@@ -2753,7 +2762,7 @@ if (op == op_open_blob || op == op_open_blob2)
 	    GDS_REF (rdb->rdb_handle), 
 	    GDS_REF (transaction->rtr_handle), 
 	    GDS_REF (handle), 
-	    GDS_REF (stuff->p_blob_id),
+	    (ISC_QUAD*)GDS_REF (stuff->p_blob_id),
  	    bpb_length,
 	    GDS_VAL (bpb));
 else
@@ -2761,7 +2770,7 @@ else
 	    GDS_REF (rdb->rdb_handle), 
 	    GDS_REF (transaction->rtr_handle), 
 	    GDS_REF (handle), 
-	    GDS_REF (send->p_resp.p_resp_blob_id),
+	    (ISC_QUAD*)GDS_REF (send->p_resp.p_resp_blob_id),
  	    bpb_length,
 	    GDS_VAL (bpb));
 THREAD_ENTER;
@@ -2898,7 +2907,7 @@ GDS_DSQL_PREPARE (status_vector,
 	&statement->rsr_handle, 
 	prepare->p_sqlst_SQL_str.cstr_length,
 	prepare->p_sqlst_SQL_str.cstr_address,
-	((prepare->p_sqlst_SQL_dialect * 10) + parser_version),
+	(USHORT)((prepare->p_sqlst_SQL_dialect * 10) + parser_version),
 	prepare->p_sqlst_items.cstr_length,
 	prepare->p_sqlst_items.cstr_address,
 	prepare->p_sqlst_buffer_length,
@@ -2960,7 +2969,7 @@ struct trdb	thd_context, *trdb;
 
 trdb = &thd_context;
 trdb->trdb_status_vector = port->port_status_vector;
-trdb->trdb_setjmp = (UCHAR*) env;
+trdb->trdb_setjmp = &env;
 THD_put_specific ((THDD) trdb);
 trdb->trdb_thd_data.thdd_type = THDD_TYPE_TRDB;
 
@@ -3325,11 +3334,11 @@ send->p_resp.p_resp_blob_id = stuff->p_slc_id;
 isc_put_slice (status_vector,
 	GDS_REF (rdb->rdb_handle), 
 	GDS_REF (transaction->rtr_handle), 
-	GDS_REF (send->p_resp.p_resp_blob_id),
+	(ISC_QUAD*)GDS_REF (send->p_resp.p_resp_blob_id),
 	stuff->p_slc_sdl.cstr_length,
 	GDS_VAL (stuff->p_slc_sdl.cstr_address),
 	stuff->p_slc_parameters.cstr_length,
-	GDS_VAL (stuff->p_slc_parameters.cstr_address),
+	(ISC_LONG*)GDS_VAL (stuff->p_slc_parameters.cstr_address),
 	stuff->p_slc_slice.lstr_length,
 	GDS_VAL (stuff->p_slc_slice.lstr_address));
 THREAD_ENTER;
@@ -3450,8 +3459,8 @@ if (port->port_flags & PORT_rpc)
     data->p_data_messages = 1;
 else
     {
-    data->p_data_messages = REMOTE_compute_batch_size (port, 
-			xdr_protocol_overhead (op_response_piggyback),
+    data->p_data_messages = (USHORT)REMOTE_compute_batch_size (port, 
+			(USHORT)xdr_protocol_overhead (op_response_piggyback),
 			op_send, format);
     }
 
@@ -3477,8 +3486,11 @@ STATUS		status_vector [20];
 MSG		message, next, prior;
 RRQ		request;
 FMT		format;
-USHORT		msg_number, count, count2, level, direction;
+USHORT		msg_number, count, count2, level;
+#ifdef SCROLLABLE_CURSORS
+USHORT		direction;
 ULONG		offset;
+#endif
 struct rrq_repeat	*tail;
 
 /* Find the database, request, message number, and the number of 
@@ -4187,7 +4199,7 @@ for (sw = TRUE; *status_vector && sw;)
 			*sp++ = p;
 			v = (STATUS*) sp;
 			status_vector++;
-			l = *status_vector++;
+			l = (USHORT)(*status_vector++);
 			q = (TEXT*) *status_vector++;
 			if (l)
 			    do *p++ = *q++; while (--l);
@@ -4204,7 +4216,7 @@ for (sw = TRUE; *status_vector && sw;)
 	    *v++ = *status_vector++;
 	    continue;
 	}
-    l = gds__interprete (p, &status_vector);
+    l = (USHORT)gds__interprete (p, &status_vector);
     if (l == 0)
 	break;
     *v++ = gds_arg_interpreted;
@@ -4292,7 +4304,7 @@ static STATUS service_attach (
 USHORT	service_length, spb_length;
 UCHAR	*service_name, *spb, new_spb_buffer [512], *new_spb, *p, *end;
 int	*handle;
-STATUS	*s, status_vector [20];
+STATUS	status_vector [20];
 RDB	rdb;
 STR	string;
 
@@ -4318,7 +4330,7 @@ if (string = port->port_user_name)
         *p++ = isc_spb_current_version;
 
     *p++ = isc_spb_sys_user_name;
-    *p++ = string->str_length;
+    *p++ = (UCHAR)string->str_length;
     for (spb = (UCHAR*) string->str_data, end = spb + string->str_length; spb < end;)
 	*p++ = *spb++;
     spb = new_spb;
@@ -4462,9 +4474,11 @@ void set_server (
  **************************************/
 SRVR	server;
 
-for (server = servers; server; server = server->srvr_next)
-    if (port->port_type == server->srvr_port_type)
+for (server = servers; server; server = server->srvr_next) {
+    if (port->port_type == server->srvr_port_type) {
 	break;
+    }
+}
 
 if (!server)
     {
@@ -4645,9 +4659,9 @@ else
 	   introducing such a call to all subsystems. At least
 	   release the y-valve handle. */
 
-	else
-	    gds__handle_cleanup (status_vector,
-		    GDS_REF (handle));
+	else {
+	    gds__handle_cleanup (status_vector, (struct hndl**)GDS_REF (handle));
+	}
 #endif
 	THREAD_ENTER;
 	status_vector [0] = isc_arg_gds;
