@@ -43,7 +43,7 @@ static TEXT	Db_name[128];
 static FILE	*Fp;
 
 EXEC SQL INCLUDE SQLCA;
-
+EXEC SQL SET SQL DIALECT 3;
 EXEC SQL SET DATABASE DB = COMPILETIME "empbuild.gdb" RUNTIME :Db_name;
 
 main (
