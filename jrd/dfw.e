@@ -67,6 +67,7 @@
 #include "../jrd/dsc_proto.h"
 #include "../jrd/err_proto.h"
 #include "../jrd/exe_proto.h"
+#include "../jrd/ext_proto.h"
 #include "../jrd/gds_proto.h"
 #include "../jrd/grant_proto.h"
 #include "../jrd/idx_proto.h"
@@ -2526,6 +2527,9 @@ switch (phase)
 	    relation->rel_gc_bitmap = NULL_PTR;
 	    }
 #endif
+	if (relation->rel_file)
+	    EXT_fini (relation);
+
 	if (relation->rel_index_root)
 	    IDX_delete_indices (tdbb, relation);
 
