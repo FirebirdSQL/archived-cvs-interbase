@@ -2041,7 +2041,7 @@ static BOOLEAN  domain_exists (TDBB tdbb,
  ***********************************************************
  *
  *  Functional Description:
- *	Checks to see if the given field already exists in a relation
+ *	Checks to see if the given domain already exists
  ***********************************************************/
 BLK	request = NULL;
 BOOLEAN	retval = FALSE;

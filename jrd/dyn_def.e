@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *    19-May-2001 Claudio Valderrama  - Fix oversight for ODS10, storing
+ *                                  char length in UDF param is possible.
+ *                                      
  */
 
 #include <stdio.h>
@@ -1011,9 +1014,13 @@ UCHAR		  verb;
 VOLATILE BLK	  request = NULL;
 JMP_BUF		  env;
 JMP_BUF* VOLATILE old_env;
+USHORT            major_version, minor_original;
 
 tdbb = GET_THREAD_DATA;
 dbb = tdbb->tdbb_database;
+
+major_version  = (SSHORT) dbb->dbb_ods_version;
+minor_original = (SSHORT) dbb->dbb_minor_original;
 
 old_env = (JMP_BUF*) tdbb->tdbb_setjmp;
 tdbb->tdbb_setjmp = (UCHAR*) env;
@@ -1093,9 +1100,16 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		break;
 
 	    /* Ignore the field character length as the system UDF parameter
-	       table has no place to store the information */
+	       table has no place to store the information
+               But IB6/FB has the place for this information. CVC 2001. */
 	    case gds__dyn_fld_char_length:
-		(void) DYN_get_number (ptr);
+                if (ENCODE_ODS(major_version, minor_original) < ODS_10_0)
+		    (void) DYN_get_number (ptr);
+		else
+		    {
+ 			X.RDB$CHARACTER_LENGTH = DYN_get_number (ptr);
+ 			X.RDB$CHARACTER_LENGTH.NULL = FALSE;
+		    }
 		break;
 
 	    default:
