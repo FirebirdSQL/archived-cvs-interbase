@@ -270,6 +270,8 @@ TEXT		temp_name[256];
 SSHORT		c;
 #endif
 	
+
+errors = warnings = fatals = 0;
 strcpy (ada_package, "");
 ada_flags = 0;
 input_char = input_buffer;
