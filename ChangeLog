@@ -1,3 +1,9 @@
+2002-10-18 16:51  dimitr
+
+	* interbase/jrd/: jrd.c, why.c:
+	
+	Fixed two 2PC related issues.
+
 2002-10-16 11:07  eku
 
 	* interbase/dsql/preparse.c:
