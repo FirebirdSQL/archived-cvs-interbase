@@ -818,7 +818,7 @@ if (!Quiet)
     buf [0] = '-';
     while (isc_interprete (buf + 1, &vec))
 	{
-	#ifndef GUI_TOOLS
+#ifndef GUI_TOOLS
 	TRANSLATE_CP;
 	STDERROUT (buf, 1);
 #else
