@@ -2943,6 +2943,7 @@ if (ib_prefix_msg == NULL)
         {
         strncat (ib_prefix_msg_val, ib_prefix_msg,
         sizeof(ib_prefix_msg_val)-1);
+		ib_prefix_msg = ib_prefix_msg_val;
         }
     }
 
