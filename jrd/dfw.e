@@ -331,7 +331,7 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
     if ((work->dfw_sav_number == sav_number) || (sav_number == -1))
 	{
 	*ptr = work->dfw_next;
-	ALL_release (work);
+	ALL_release ((FRB) work);
 	}
     else
 	{
@@ -404,7 +404,7 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
 		if (work_m->dfw_name_length)
 		    work_m->dfw_count += work->dfw_count;
 
-		ALL_release (work);
+		ALL_release ((FRB) work);
 		work = (DFW) 0;
 		break;
 		}
@@ -492,7 +492,7 @@ if (SETJMP (env))
 
 do {
     more = FALSE;
-    for (task = task_table; task->task_type != dfw_null; task++)
+    for (task = (char *) task_table; task->task_type != dfw_null; task++)
 	for (work = transaction->tra_deferred_work; work; work = work->dfw_next)
 	    if (work->dfw_type == task->task_type)
 		{
@@ -519,7 +519,7 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
     else
 	{
 	*ptr = work->dfw_next;
-	ALL_release (work);
+	ALL_release ((FRB) work);
 	}
 
 transaction->tra_flags &= ~TRA_deferred_meta;
@@ -572,13 +572,13 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
 		work->dfw_count);
 #endif
 	*ptr = work->dfw_next;
-	ALL_release (work);
+	ALL_release ((FRB) work);
 	}
     else if (work->dfw_type == dfw_delete_shadow)
 	{
 	unlink (work->dfw_name);
 	*ptr = work->dfw_next;
-	ALL_release (work);
+	ALL_release ((FRB) work);
 	}
     else
 	ptr = &(*ptr)->dfw_next;
@@ -603,7 +603,7 @@ void DFW_post_work (
  **************************************/
 DFW		work, *ptr;
 UCHAR		*p, *q, *string;
-USHORT		l, length;
+USHORT		length;
 TEXT		temp [256];	/* Must hold largest metadata field */
 SLONG		sav_number;
 
@@ -686,12 +686,12 @@ void DFW_update_index (
  **************************************/
 TDBB	tdbb;
 DBB	dbb;
-BLK	request;
+REQ	request;
 
 tdbb = GET_THREAD_DATA;
 dbb  = tdbb->tdbb_database;
 
-request = (BLK) CMP_find_request (tdbb, irq_m_index, IRQ_REQUESTS);
+request = (REQ) CMP_find_request (tdbb, irq_m_index, IRQ_REQUESTS);
 
 FOR (REQUEST_HANDLE request)
     IDX IN RDB$INDICES WITH IDX.RDB$INDEX_NAME EQ work->dfw_name
@@ -704,7 +704,7 @@ FOR (REQUEST_HANDLE request)
 END_FOR;
 
 if (!REQUEST (irq_m_index))
-    REQUEST (irq_m_index) = request;
+    REQUEST (irq_m_index) = (BLK) request;
 }
 
 static BOOLEAN add_file (
@@ -1029,7 +1029,7 @@ static void check_dependencies (
  *
  **************************************/
 DBB	dbb;
-BLK	request;
+REQ	request;
 USHORT	dep_counts [obj_count], i;
 STATUS	obj_type;
 
@@ -1041,7 +1041,7 @@ for (i = 0; i < (USHORT) obj_count; i++)
 
 if (field_name)
     {
-    request = (BLK) CMP_find_request (tdbb, irq_ch_f_dpd, IRQ_REQUESTS);
+    request = (REQ) CMP_find_request (tdbb, irq_ch_f_dpd, IRQ_REQUESTS);
 
     FOR (REQUEST_HANDLE request) 
 	    DEP IN RDB$DEPENDENCIES
@@ -1051,7 +1051,7 @@ if (field_name)
 	    REDUCED TO DEP.RDB$DEPENDENT_NAME
 
 	if (!REQUEST (irq_ch_f_dpd))
-	    REQUEST (irq_ch_f_dpd) = request;
+	    REQUEST (irq_ch_f_dpd) = (BLK) request;
 
 	/* If the found object is also being deleted, there's no dependency */
 
@@ -1061,11 +1061,11 @@ if (field_name)
     END_FOR;
 
     if (!REQUEST (irq_ch_f_dpd))
-	REQUEST (irq_ch_f_dpd) = request;
+	REQUEST (irq_ch_f_dpd) = (BLK) request;
     }
 else
     {
-    request = (BLK) CMP_find_request (tdbb, irq_ch_dpd, IRQ_REQUESTS);
+    request = (REQ) CMP_find_request (tdbb, irq_ch_dpd, IRQ_REQUESTS);
 
     FOR (REQUEST_HANDLE request) 
 	    DEP IN RDB$DEPENDENCIES
@@ -1074,7 +1074,7 @@ else
 	    REDUCED TO DEP.RDB$DEPENDENT_NAME
 
 	if (!REQUEST (irq_ch_dpd))
-	    REQUEST (irq_ch_dpd) = request;
+	    REQUEST (irq_ch_dpd) = (BLK) request;
 
 	/* If the found object is also being deleted, there's no dependency */
 
@@ -1085,7 +1085,7 @@ else
     END_FOR;
 
     if (!REQUEST (irq_ch_dpd))
-	REQUEST (irq_ch_dpd) = request;
+	REQUEST (irq_ch_dpd) = (BLK) request;
     }
 
 for (i = 0; i < obj_count; i++)
@@ -1173,9 +1173,6 @@ static BOOLEAN compute_security (
 DBB	dbb;
 BLK	handle;
 SCL	class;
-REL	relation;
-FLD	field;
-USHORT	id;
 
 SET_TDBB (tdbb);
 dbb =  tdbb->tdbb_database;
@@ -1246,7 +1243,7 @@ static BOOLEAN create_index (
  *
  **************************************/
 DBB	dbb;
-BLK	request;
+REQ	request;
 REL	relation, partner_relation;
 IDX	idx;
 int	key_count;
@@ -1314,7 +1311,7 @@ switch (phase)
 	   time thru, check to see if the index already exists.  If so, delete
 	   it.  If the index inactive flag is set, don't create the index */
 
-	request = (BLK) CMP_find_request (tdbb, irq_c_index, IRQ_REQUESTS);
+	request = (REQ) CMP_find_request (tdbb, irq_c_index, IRQ_REQUESTS);
 
 	FOR (REQUEST_HANDLE request) 
 	    IDX IN RDB$INDICES CROSS
@@ -1326,7 +1323,7 @@ switch (phase)
 	        IDX.RDB$INDEX_NAME EQ work->dfw_name 
 
 	    if (!REQUEST (irq_c_index))
-		REQUEST (irq_c_index) = request;
+		REQUEST (irq_c_index) = (BLK) request;
 
 	    if (!relation)
 	        {
@@ -1438,7 +1435,7 @@ switch (phase)
 	END_FOR;
 
 	if (!REQUEST (irq_c_index))
-	    REQUEST (irq_c_index) = request;
+	    REQUEST (irq_c_index) = (BLK) request;
 
 	if (key_count != idx.idx_count)
             ERR_post (gds__no_meta_update,
@@ -1595,10 +1592,7 @@ static BOOLEAN create_procedure (
  *	Create a new procedure.
  *
  **************************************/
-BLK		request;
 PRC		procedure;
-USHORT		prc_id;
-BLK		handle;
 
 SET_TDBB (tdbb);
 
@@ -1636,13 +1630,11 @@ static BOOLEAN create_relation (
  *
  **************************************/
 DBB		dbb;
-BLK		request;
+REQ		request;
 REL		relation;
 USHORT		rel_id, external_flag;
 GDS__QUAD	blob_id;
 BLK		handle;
-CSB		csb;
-PLB		old_pool;
 LCK		lock;
 USHORT          major_version, minor_original, local_min_relation_id;
 
@@ -1664,7 +1656,7 @@ switch (phase)
 	if (work->dfw_lock)
 	    {
 	    LCK_release (tdbb, work->dfw_lock);
-	    ALL_release (work->dfw_lock);
+	    ALL_release ((FRB) work->dfw_lock);
 	    work->dfw_lock = NULL;
 	    }
 	break;
@@ -1697,13 +1689,13 @@ switch (phase)
 	   usable relation ID until the search space is exhausted. */
 
 	rel_id = 0;
-	request = (BLK) CMP_find_request (tdbb, irq_c_relation, IRQ_REQUESTS);
+	request = (REQ) CMP_find_request (tdbb, irq_c_relation, IRQ_REQUESTS);
 
 	FOR (REQUEST_HANDLE request) 
 		X IN RDB$DATABASE CROSS Y IN RDB$RELATIONS WITH
 		Y.RDB$RELATION_NAME EQ work->dfw_name
 	    if (!REQUEST (irq_c_relation))
-		REQUEST (irq_c_relation) = request;
+		REQUEST (irq_c_relation) = (BLK) request;
 
 	    blob_id = Y.RDB$VIEW_BLR;
 	    external_flag = Y.RDB$EXTERNAL_FILE [0];
@@ -1755,11 +1747,11 @@ switch (phase)
 	END_FOR;
 
 	LCK_release (tdbb, lock);
-	ALL_release (lock);
+	ALL_release ((FRB) lock);
 	work->dfw_lock = NULL;
 
 	if (!REQUEST (irq_c_relation))
-	    REQUEST (irq_c_relation) = request;
+	    REQUEST (irq_c_relation) = (BLK) request;
 
 	/* If relation wasn't found, don't do anymore. This can happen
 	   when the relation is created and deleted in the same transaction. */
@@ -2069,9 +2061,9 @@ switch (phase)
 	    	if (index->idl_lock)
 		    {
 		    LCK_release (tdbb, index->idl_lock);
-		    ALL_release (index->idl_lock);
+		    ALL_release ((FRB) index->idl_lock);
 		    }
-	    	ALL_release (index);
+	    	ALL_release ((FRB) index);
 
 		/* Release index refresh lock and memory. */
 
@@ -2084,8 +2076,8 @@ switch (phase)
 			/* Lock was released in IDX_delete_index(). */
 
 	    		if (index_block->idb_lock)
-		    	    ALL_release (index_block->idb_lock);
-	    		ALL_release (index_block);
+		    	    ALL_release ((FRB) index_block->idb_lock);
+	    		ALL_release ((FRB) index_block);
 		    	break;
 		    	}
 		}
@@ -2304,7 +2296,7 @@ static BOOLEAN delete_relation (
  *
  **************************************/
 DBB	dbb;
-BLK	request;
+REQ	request;
 REL	relation;
 RSC	rsc;
 USHORT	wait, view_count, adjusted;
@@ -2492,7 +2484,6 @@ BLK	handle;
 TEXT	f [32], *p, *q;
 REL	relation;
 VEC	vector;
-USHORT	dep_counts [obj_count], i;
 
 SET_TDBB (tdbb);
 dbb  = tdbb->tdbb_database;
@@ -2686,7 +2677,7 @@ static BOOLEAN find_depend_in_dfw (
  *
  **************************************/
 DBB		dbb;
-BLK		request;
+REQ		request;
 TEXT		*p;
 ENUM dfw_t	dfw_type;
 DFW		work;
@@ -2733,7 +2724,7 @@ if (dfw_type == dfw_delete_global)
     /* Computed fields are more complicated.  If the global field isn't being
        deleted, see if all of the fields it is the source for, are. */
 
-    request = (BLK) CMP_find_request (tdbb, irq_ch_cmp_dpd, IRQ_REQUESTS);
+    request = (REQ) CMP_find_request (tdbb, irq_ch_cmp_dpd, IRQ_REQUESTS);
 
     FOR (REQUEST_HANDLE request)
 	    FLD IN RDB$FIELDS CROSS
@@ -2743,7 +2734,7 @@ if (dfw_type == dfw_delete_global)
 	    AND FLD.RDB$FIELD_NAME EQ object_name
 	    AND REL.RDB$RELATION_NAME EQ RFR.RDB$RELATION_NAME
 	if (!REQUEST (irq_ch_cmp_dpd))
-	    REQUEST (irq_ch_cmp_dpd) = request;
+	    REQUEST (irq_ch_cmp_dpd) = (BLK) request;
 	if (!find_depend_in_dfw (tdbb, RFR.RDB$FIELD_NAME, obj_computed,
 				 REL.RDB$RELATION_ID, transaction))
 	    {
@@ -2753,7 +2744,7 @@ if (dfw_type == dfw_delete_global)
     END_FOR;
 
     if (!REQUEST (irq_ch_cmp_dpd))
-	REQUEST (irq_ch_cmp_dpd) = request;
+	REQUEST (irq_ch_cmp_dpd) = (BLK) request;
 
     return TRUE;
     }
@@ -2777,18 +2768,18 @@ static void get_array_desc (
  *
  **************************************/
 DBB			dbb;
-BLK			request;
+REQ			request;
 struct ads_repeat	*ranges;
 
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
 
-request = (BLK) CMP_find_request (tdbb, irq_r_fld_dim, IRQ_REQUESTS);
+request = (REQ) CMP_find_request (tdbb, irq_r_fld_dim, IRQ_REQUESTS);
 
 FOR (REQUEST_HANDLE request) 
     D IN RDB$FIELD_DIMENSIONS WITH D.RDB$FIELD_NAME EQ field_name
     if (!REQUEST (irq_r_fld_dim))
-	REQUEST (irq_r_fld_dim) = request;
+	REQUEST (irq_r_fld_dim) = (BLK) request;
     if (D.RDB$DIMENSION >= 0 && D.RDB$DIMENSION < desc->ads_dimensions)
 	{
 	ranges = desc->ads_rpt + D.RDB$DIMENSION;
@@ -2966,7 +2957,7 @@ FMT	format;
 VEC	vector;
 TFB	tfb;
 BLB	blob;
-USHORT	count, dtype;
+USHORT	count;
 ULONG	offset, old_offset;
 DSC	*desc;
 
@@ -3034,12 +3025,12 @@ format->fmt_length = offset;
 while (tfb = stack)
     {
     stack = tfb->tfb_next;
-    ALL_release (tfb);
+    ALL_release ((FRB) tfb);
     }
 
 if (offset > MAX_FORMAT_SIZE)
     {
-    ALL_release (format);
+    ALL_release ((FRB) format);
     ERR_post (gds__no_meta_update,
 	gds_arg_gds, gds__rec_size_err, gds_arg_number, (SLONG) offset,
 	gds_arg_gds, gds__table_name, gds_arg_string, ERR_cstring (relation->rel_name),
@@ -3100,8 +3091,7 @@ REL		relation;
 BLB		blob;
 GDS__QUAD blob_id;
 BLK		temp;
-UCHAR		*p, *q;
-USHORT		version, length, n, external_flag;
+USHORT		version, n, external_flag;
 BOOLEAN	 null_view, computed_field;
 SLONG		stuff [64];
 ADS		array;
@@ -3358,7 +3348,8 @@ switch (phase)
 			TRG IN RDB$TRIGGERS 
 			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
 			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			AND TRG.RDB$TRIGGER_NAME NOT STARTING WITH 'CHECK_'
+			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_'
+			    AND  TRG.RDB$TRIGGER_SOURCE MISSING)
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 
 		    if (!REQUEST (irq_format5))
@@ -3392,7 +3383,7 @@ switch (phase)
 			TRG IN RDB$TRIGGERS
 			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
 			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_' OR
+			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_' AND
 			     TRG.RDB$TRIGGER_SOURCE MISSING)
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 
