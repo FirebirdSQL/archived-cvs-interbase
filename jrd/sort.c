@@ -41,6 +41,10 @@
 #include "../jrd/all_proto.h"
 #include "../jrd/sch_proto.h"
 
+#ifdef SOLARIS
+#include "../jrd/ib_stdio.h"
+#endif
+
 #if defined WIN_NT
 /* for SEEK_SET */
 #include <stdio.h>
