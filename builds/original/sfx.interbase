@@ -20,6 +20,9 @@ EXTERNAL_P_OBJECTS=	$(CSI_P_OBJS) dsql_p_objects lock.bin $(PYXIS_P_OBJS) rem_p_
 
 INCLUDE_DEST=	source/interbase/include/
 
+SRC_DIRS= alice burp dudley dsql extlib gpre intl isql journal jrd lock msgs \
+		  pyxis qli remote super/remote utilities wal 
+
 GPRE=		source/interbase/bin/gpre
 GBAK=		source/interbase/bin/gbak
 GDEF=		source/interbase/bin/gdef
@@ -588,5 +591,24 @@ clean_executables:
 	source/utilities/relay \
 	source/utilities/ibmgr source/utilities/ibguard \
 	source/wal/wal_writer
+
+realclean: clean clean_obj clean_build_gdb
+	$(QUIET_ECHO) "Removed compiled binaries and build files."
+
+clean_obj:
+	-for ND in ${SRC_DIRS} ; do \
+		rm $${ND}/*.o ; \
+		rm $${ND}/*.a ; \
+		rm $${ND}/*.j ; \
+		rm $${ND}/*.bin ; \
+	done 
+
+clean_build_gdb:
+	-$(RM) \
+	source/example5/*.gdb \
+	jrd/isc.gdb \
+	jrd/yachts.gdb \
+	msgs/msg.gdb
+
 
 force:
