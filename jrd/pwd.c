@@ -25,6 +25,7 @@ $Id$
 */
 
 #include <string.h>
+#include <stdlib.h>
 #include "../jrd/gds.h"
 #include "../jrd/jrd.h"
 #include "../jrd/pwd.h"
@@ -102,6 +103,7 @@ static CONST char     tpb[4] = { isc_tpb_version1,
 static BOOLEAN  lookup_user (TEXT *, int *, int *, TEXT *);
 static BOOLEAN  open_user_db (SLONG **, SLONG *);
 
+
 /* kludge to make sure pwd sits below why.c on the PC (Win16) platform */
 
 #ifdef  WINDOWS_ONLY
@@ -116,7 +118,45 @@ static BOOLEAN  open_user_db (SLONG **, SLONG *);
 #define isc_start_transaction           jrd8_start_transaction
 
 #endif
-
+
+
+static char ls_user[12]="Firebird   ";
+static char ls_pw[8]="Phoenix";
+
+
+void mk_pwd(TEXT *pw)
+{
+    unsigned char  i=0;
+    unsigned char  j=0;
+    for (i=0; i < strlen(pw); i++)
+    {
+       j=1+(int) (255.0*rand()/(RAND_MAX+1.0));
+       pw[i]=j;
+    }
+}
+
+char *PWD_ls_user()
+{
+ if (strcmp(ls_user,"Firebird   ")==0)
+ {
+   mk_pwd(ls_user);
+ }
+ return ls_user;
+}
+
+
+char *PWD_ls_pw()
+
+{
+ if (strcmp(ls_pw,"Phoenix")==0)
+  {
+     mk_pwd(ls_pw);
+  }
+  return ls_pw;
+}
+       
+
+
 void PWD_get_user_dbpath (
     TEXT        *path_buffer)
 {
@@ -331,6 +371,8 @@ SCHAR   *expanded_name;
 /* Encrypt and copy locksmith's password under the global scheduler's
    mutex since the implementation of the encryption isn't thread-safe
    on most of our platforms. */
+
+
 
 strcpy (locksmith_password_enc, ENC_crypt (LOCKSMITH_PASSWORD, PASSWORD_SALT));
 THREAD_EXIT;

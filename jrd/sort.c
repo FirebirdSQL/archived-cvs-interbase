@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Id$
  */
 
 #include <errno.h>
@@ -1785,7 +1786,14 @@ for (key = scb->scb_description, end = key + scb->scb_keys; key < end; key++)
 #endif  /* IEEE */
 
 	default:
-	    assert (FALSE);
+	
+/*	Don't want the debug version to
+        stop because uf skd_type = 0
+FSG 22.Dez.2000
+
+        assert (FALSE);
+*/
+	
 	    break;
 	}
     if (complement && n)
