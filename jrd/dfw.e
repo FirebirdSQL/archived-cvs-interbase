@@ -1481,7 +1481,7 @@ switch (phase)
 
 	partner_relation = (REL) NULL_PTR;
 	if (idx.idx_flags & idx_foreign)
-	    {
+    {
 	    /* Get an exclusive lock on the database if the index being
 	       defined enforces a foreign key constraint. This will prevent
 	       the constraint from being violated during index construction. */
@@ -1493,7 +1493,15 @@ switch (phase)
 			gds_arg_gds, gds__obj_in_use,
 			gds_arg_string, partner_relation->rel_name, 
 			0);
-	    }
+	/* CVC: Currently, the server doesn't enforce FK creation more than at DYN level.
+	If DYN is bypassed, then FK creation succeeds and operation will fail at run-time.
+	The aim is to check REFERENCES at DDL time instead of DML time and behave accordingly
+	to ANSI SQL rules for REFERENCES rights.
+	For testing purposes, I'm calling SCL_check_index, although most of the DFW ops are
+	carried using internal metadata structures that are refreshed from system tables. */
+		if (partner_relation)
+			SCL_check_index (tdbb, work->dfw_name, SCL_sql_references);
+    }
 		    
 	assert (work->dfw_id == MAX_IDX);
 	IDX_create_index (tdbb, relation, &idx,
