@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2002.04.16  Paul Beach - HP10 Define changed from -4 to (-4) to make it
+ * compatible with the HP Compiler
  */
 
 #ifndef _JRD_DSC_H_
@@ -191,6 +193,6 @@ typedef struct xdsc {
 
 
 #define ISC_TIME_SECONDS_PRECISION		10000L
-#define ISC_TIME_SECONDS_PRECISION_SCALE	-4
+#define ISC_TIME_SECONDS_PRECISION_SCALE	(-4)
 
 #endif  /* _JRD_DSC_H_ */

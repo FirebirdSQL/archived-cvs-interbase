@@ -53,6 +53,8 @@
  * 2001.6.18 Claudio Valderrama: substring() is working with international charsets,
  * thanks to Dave Schnepper's directions.
  * 2002.2.15 Claudio Valderrama: divide2() should not mangle negative values.
+ * 2002.04.16 Paul Beach HP10 Port - (UCHAR*) desc.dsc_address = p; modified for HP 
+ * Compiler
  */
 
 #include <string.h>
@@ -5013,7 +5015,12 @@ else
 	else
 	{
 		/* Keep our starting pos safe. */
+#ifdef HPUX /* RITTER - removed the below cast on HP-UX to avoid compiler error */
+	        /*(UCHAR*)*/ desc.dsc_address = p;
+#else
 		(UCHAR*) desc.dsc_address = p;
+#endif // HPUX
+		desc.dsc_address = p;
 		while (length && pcount)
 		{
 			if (!INTL_getch (tdbb, &text_obj, INTL_TTYPE (&desc), &p, &pcount))

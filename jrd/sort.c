@@ -26,7 +26,7 @@
 
 #include <errno.h>
 #include <string.h>
-#if ( defined FREEBSD || defined NETBSD || defined LINUX || defined DARWIN || defined SINIXZ)
+#if ( defined (FREEBSD) || defined (NETBSD) || defined (HPUX) || defined (LINUX) || defined (DARWIN) || defined (SINIXZ))
 #include <sys/types.h>
 #include <unistd.h>
 #endif
@@ -53,6 +53,12 @@
 /* for SEEK_SET */
 #include <stdio.h>
 #include <windows.h>
+#endif
+
+/* RITTER - declare seek and off_t - :ATTENTION: for 64bit I/O we might need ib_stdio.h ! */
+#if defined HP11
+/* for SEEK_SET */
+#include <stdio.h>
 #endif
 
 #ifdef	WINDOWS_ONLY

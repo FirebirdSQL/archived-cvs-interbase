@@ -19,7 +19,7 @@
 
 #    Contributor(s):
 #       Tom Coleman TMC Systems <tcoleman@autowares.com>
-#       Reed Mideke <rfm@cruzers.com>
+#	    Reed Mideke <rfm@cruzers.com>
 #       Mark O'Donohue <mark.odonohue@ludwig.edu.au>
 #       Neil McCalden <nm@zizz.org>
 #       Erik Kunze <kunze@philosys.de>
@@ -83,12 +83,12 @@ Answer=""
 AskQuestion() {
     Test=$1
     DefaultAns=$2
+    echo ${MN} "${1}${SC}"
     Answer="$DefaultAns"
 
     if [ -z "$NOPROMPT_SETUP" ]
       then
-        echo ${MN} "${1}${SC}"
-        read Answer 
+        read Answer
     fi
 }
 
@@ -138,14 +138,13 @@ buildSuperDir() {
     mkdir -p $SuperDirName
 
     cd $SuperDirName
-    case $BuildHostType in
-     SOLARIS|SCO_EV|SINIXZ)
+    # RITTER - added HP11 to the line below to ensure that the symlinks from the
+    # classic source directories to the super server directories are properly set.
+    if [ $BuildHostType = "SOLARIS" -o $BuildHostType = "SCO_EV" -o $BuildHostType = "SINIXZ" -o $BuildHostType = "HP11" ]; then
       ln -s ../../$ClassicDirName/[a-z0-9]*[!oa] .  
-      ;;
-     *)
+    else
       ln -s ../../$ClassicDirName/[a-z0-9]*[^oa] .  
-      ;;
-    esac
+    fi
     cd ../..
 
 }
@@ -229,7 +228,7 @@ rmIfExists() {
 
 #------------------------------------------------------------------------
 # print usage for calling this script
-
+# RITTER: Added HP11 to the list of OS's
 printUsage() {
     echo ""
     echo "usage is : ./Configure.sh DEV|PROD [system]"
@@ -237,7 +236,7 @@ printUsage() {
     echo "Where system defaults to : `uname -s` "
     echo "or you can manually specify one of the following:"
     echo "               AIX|AP|AX|DELTA|DG|EPSON|HP700|HP800|HP9.0|"
-    echo "               HP10|IMP|MU|SCO|SGI|SOLARIS|SUN4|UNIXWARE|"
+    echo "               HP10|HP11|IMP|MU|SCO|SGI|SOLARIS|SUN4|UNIXWARE|"
     echo "               AIX_PPC|LINUX|FREEBSD|NETBSD|DARWIN|SINIXZ"
     echo ""
     echo ""
@@ -362,6 +361,13 @@ checkVariables() {
                else
                  INTERBASE="/opt/interbase"
                  export INTERBASE
+
+                 ## RITTER - the library path is and modified during the build process
+                 # In order to ensure correct behaviour in case of a re-build, it's a
+                 # good idea to reset the variable.
+                 LD_LIBRARY_PATH="${INTERBASE}/lib"
+                 export LD_LIBRARY_PATH
+
                fi
 	   fi
      fi
@@ -380,19 +386,19 @@ checkVariables() {
      echo "- Firebird - Database build setup ----------------------------"
      echo "" 
      echo "From command line :"
-     echo "Host  OS Type                            : $BuildHostType"
-     echo "Build Type                               : $BuildBuildType"
-     echo "Boot Type Build                          : $BuildBootFlg"
-     echo ""
-     echo "File IO bit size (32/64)                 : $BuildIOsize"
+     echo "Host  OS Type                          : $BuildHostType"
+     echo "Build Type                             : $BuildBuildType"
+     echo "Boot Type Build                        : $BuildBootFlg"
+	 echo ""
+	 echo "File IO bit size (32/64)               : $BuildIOsize"
      echo ""
      echo "From env. variables:"
      if [ "$BuildBootFlg" = "No" ]
        then
-         echo "INTERBASE    (previous firebird install) : $INTERBASE "
+         echo "INTERBASE    (previous firebird install)   : $INTERBASE "
      fi
-     echo "ISC_USER     (admin user)                : $ISC_USER"
-     echo "ISC_PASSWORD (admin password)            : $ISC_PASSWORD"
+     echo "ISC_USER     (admin user)                  : $ISC_USER"
+     echo "ISC_PASSWORD (admin password)              : $ISC_PASSWORD"
      echo "" 
      echo "If you wish to have different values please set them before running" 
      echo "this script"
@@ -858,7 +864,8 @@ if [ $BuildHostType = 'DG' ]
     refreshLink source/interbase/lib/gdsf.so jrd/libgdsf.so
     refreshLink source/interbase/lib/gds_pyxis.a jrd/libgds_pyxis.a
 fi
-if [ $BuildHostType = 'HP700' -o $BuildHostType = 'HP9.0' -o $BuildHostType = 'HP10' ]; then
+# RITTER - added support for HP11 in the condition below
+if [ $BuildHostType = 'HP700' -o $BuildHostType = 'HP9.0' -o $BuildHostType = 'HP10' -o $BuildHostType = 'HP11' ]; then
     if [ -d super ]; then
        refreshLink source/builds/original/bind_gds.hp super/remote/gds.bind
        refreshLink source/builds/original/bind_gds.hp super/client/gds.bind

@@ -28,9 +28,9 @@ SPIT_OBJECTS=	spit.o
 all:		burp$(EXEC_EXT) spit$(EXEC_EXT)
 
 # JMB $(JRD_LINK) already in shared library
-burp:		burplib.a $(BURP_REMOTE_LINK) $(GDSSHR)
+burp:		burplib.a $(JRD_LINK) $(BURP_REMOTE_LINK) $(GDSSHR)
 	-$(RM) burp
-	$(CC) $(LINK_OPTS) $(BURP_OBJECTS) $(T_SWITCH) \
+	$(CC) $(LINK_OPTS) $(BURP_OBJECTS) $(T_SWITCH) $(JRD_LINK) \
 	$(BURP_REMOTE_LINK) -o burp $(GDSSHR_LINK) $(SO_NETWORK_LIB)
 	$(CHMOD_7) burp
 	$(MV) burp $(BURP)
@@ -116,7 +116,7 @@ $(GDSSHR) $(GDSLIB_BACKEND) $(JRD_LINK):
 $(REMOTE_LINK) remote_dummy:
 	$(SH) '$(CD) source/remote; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" $(@F)'
 
-# This entry is used to programatically update the include file dependencies 
+# This entry is used to programatically update the include file dependencies
 # for all *.c files in the current directory.
 #
 # Note that it is specific to Solaris by using the -xM1 compiler option.
@@ -140,7 +140,7 @@ depends.mak:
 		depends.out |sort|uniq >> depends.mak
 	-$(RM) depends.out
 
-# In the event that a platform does not support the make directive "include" - 
+# In the event that a platform does not support the make directive "include" -
 # concatenate "depends.mak" with the makefile.
 #
 include depends.mak

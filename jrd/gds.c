@@ -5257,7 +5257,8 @@ static void init (void)
 #ifdef UNIX
     gds_pid = getpid();
 #ifdef SUPERSERVER
-#if (defined SOLARIS || defined HP10 || defined LINUX)
+    /* RITTER - changed HP10 to HPUX */
+#if (defined SOLARIS || defined HPUX || defined LINUX)
     {
         /* Increase max open files to hard limit for Unix
            platforms which are known to have low soft limits. */

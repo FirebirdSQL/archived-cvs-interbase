@@ -634,12 +634,12 @@ gds.a.solaris:	$(HEAD_J_OBJECTS)
 # JMB MERGE_MISC (merge.o) is already in the shlib with REMOTE_P_OBJECTS.
 # allp.bin already in the shared library. ($(ALLP_OBJECT))
 # So don't link in with executable.
-gds_pipe:	$(FOOT_OBJECTS) $(WHYPS_O) $(GDSSHR) \
+gds_pipe:	$(FOOT_OBJECTS) $(WHYPS_O) $(MERGE_MISC) $(GDSSHR) \
 		$(GDSLIB_BACKEND) $(NOLINK_MACHINES)
 	-$(RM) gds_pipe gdsshr_pipe
 	$(CC) $(LINK_OPTS) $(FOOT_OBJECT) \
-		$(T_SWITCH) $(T_SWITCH) \
-		$(WHYPS_O) -o gds_pipe $(SERVER_LINK)
+		$(T_SWITCH) $(ALLP_OBJECT) $(T_SWITCH) $(MERGE_MISC) \
+		$(WHYPS_O) -o gds_pipe $(SERVER_LINK)  
 	$(CHMOD_7) gds_pipe
 	$(MV) gds_pipe $(FOOT)
 	$(TOUCH) gds_pipe
@@ -1062,7 +1062,7 @@ rse.o:		rse.c jrd.h req.h val.h exe.h rse.h sbm.h sort.h \
 sbm.o:		sbm.c jrd.h req.h sbm.h all.h \
 		all_proto.h sbm_proto.h thd_proto.h
 sch.o:		sch.c thd.h isc.h \
-		gds_proto.h isc_proto.h sch_proto.h thd_proto.h 
+		gds_proto.h isc_proto.h sch_proto.h thd_proto.h
 scl.c:		scl.e
 scl.o:		scl.c jrd.h scl.h acl.h blb.h irq.h req.h tra.h pwd.h \
 		nlm_thd.h \

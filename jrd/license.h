@@ -66,6 +66,9 @@
 #ifdef HP10
 #define FB_PLATFORM	"HU"
 #endif /* HP10 */
+#ifdef HP11  /* RITTER */
+#define FB_PLATFORM     "HU"
+#endif /* HP11 */
 #endif
 #endif
 

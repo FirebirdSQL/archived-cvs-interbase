@@ -28,9 +28,6 @@
  * 2002.02.25 Claudio Valderrama: concatenate() should be a civilized function.
  *   This closes the heart of SF Bug #518282.
  */
-/*
-$Id$
-*/
 
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
@@ -105,7 +102,8 @@ typedef ENUM rids {
 #define REQ_TAIL		sizeof (((REQ) 0)->req_rpb[0])
 #define MAP_LENGTH		256
 
-#if defined (HP10) && defined (SUPERSERVER)
+/* RITTER - changed HP10 to HPUX */
+#if defined (HPUX) && defined (SUPERSERVER)
 #define MAX_RECURSION		96
 #endif
 
@@ -5054,7 +5052,7 @@ if (tail->csb_map)
                 relation = duplicate_tail->csb_relation;	
 	        if (relation && relation->rel_id == plan_relation->rel_id)
 		    {
-		    if (duplicate_relation)	             
+		    if (duplicate_relation)
 			/* table %s is referenced twice in view; use an alias to distinguish */
 		        ERR_post (gds__duplicate_base_table,
 				  gds_arg_string, duplicate_relation->rel_name, 0);

@@ -88,7 +88,8 @@ typedef struct itm {
 #define GETWD(buf)		getcwd (buf, MAXPATHLEN)
 #define MTAB			"/etc/mnttab"
 #include <sys/types.h>
-#ifndef HP10
+/* RITTER - added HP11 to the pre-processor condition below */
+#if !(defined HP10 || defined HP11)
 #include <cluster.h>
 #endif
 #endif
@@ -549,7 +550,8 @@ MTAB_CLOSE (mtab);
 #endif
 
 #ifdef hpux
-#ifndef HP10
+/* RITTER - added HP11 to the pre-processor condition below */
+#if !(defined HP10 || defined HP11)
 if (!flag)
     flag = get_server (expanded_filename, node_name);
 #endif
@@ -2428,7 +2430,7 @@ while (getmnt (context, &fs, sizeof (fs), NOSTAT_MANY, NULL) > 0)
 return FALSE;
 }
 #endif
- 
+
 #if (defined AIX || defined AIX_PPC)
 #define GET_MOUNTS
 static BOOLEAN get_mounts (
@@ -2675,7 +2677,7 @@ if (getmntent (file, mptr) == 0)
     return TRUE;
     }
 else
-    return FALSE;
+	return FALSE;
 }
 #endif
 #ifdef SOLARIS
@@ -2937,7 +2939,8 @@ return FALSE;
 #endif
 
 #ifdef hpux
-#ifndef HP10
+/* RITTER - added HP11 to the pre-processor condition below */
+#if !(defined HP10 || defined HP11)
 static BOOLEAN get_server (
     TEXT	*file_name,
     TEXT	*node_name)

@@ -24,7 +24,7 @@
  *  fixed Bug No. 526204*
  */
 
- /* $Id$ */
+/* $Id$ */
  
 #include "../jrd/ib_stdio.h"
 #include "../jrd/common.h"
@@ -74,7 +74,7 @@
 #define ISC_INSERT 		"ISC_EMBED_DSQL_INSERT" 
 #define ISC_OPEN		"ISC_EMBED_DSQL_OPEN" 
 #define ISC_OPEN2		"ISC_EMBED_DSQL_OPEN2" 
-#define ISC_PREPARE	 	"ISC_EMBED_DSQL_PREPARE_D" 
+#define ISC_PREPARE	 	"ISC_EMBED_DSQL_PREPARE_D"
 #define ISC_DSQL_ALLOCATE	"ISC_DSQL_ALLOC_STATEMENT2"
 #define ISC_DSQL_EXECUTE	"ISC_DSQL_EXECUTE_M"
 #define ISC_DSQL_FREE		"ISC_DSQL_FREE_STATEMENT"
@@ -112,7 +112,7 @@
 #define ISC_COMMIT_RETAINING 	"ISC_COMMIT_RETAINING" 
 #define PYXIS_CREATE_WINDOW 	"PYXIS__CREATE_WINDOW" 
 #define PYXIS_DELETE_WINDOW 	"PYXIS__DELETE_WINDOW" 
-#define PYXIS_SUSPEND_WINDOW 	"PYXIS__SUSPEND_WINDOW" 
+#define PYXIS_SUSPEND_WINDOW 	"PYXIS__SUSPEND_WINDOW"
 #define ISC_ATTACH_DATABASE_D 	"ISC_ATTACH_DATABASE_D" 
 #define ISC_ATTACH_DATABASE 	"ISC_ATTACH_DATABASE" 
 #define ISC_MODIFY_DPB 		"ISC_MODIFY_DPB" 
@@ -134,7 +134,8 @@
 #ifdef DGUX
 #define MICROFOCUS
 #endif
-#if (defined HP700 || defined HP10)
+/* RITTER - added HP11 to the line below */
+#if (defined HP700 || defined HP10 || defined HP11)
 #define MICROFOCUS
 #endif
 #ifdef UNIXWARE
@@ -225,7 +226,7 @@
 #define ISC_DSQL_SET_CURSOR	"isc_dsql_set_cursor_name"
 #define ISC_COMMIT_ROLLBACK_TRANSACTION 	"isc_%s_transaction" 
 #define ISC_DETACH_DATABASE 	"isc_detach_database" 
-#define PYXIS_DRIVE_FORM 	"isc_drive_form" 
+#define PYXIS_DRIVE_FORM 	"isc_drive_form"
 #define PYXIS_POP_WINDOW 	"isc_pop_window" 
 #define PYXIS_LOAD_FORM 	"isc_load_form" 
 #define PYXIS_COMPILE_MAP 	"isc_compile_map" 
@@ -263,7 +264,7 @@
 #define ISC_FREE		"isc_free"
 #ifdef GIVING_SUPPORTED
 #define ISC_SQLCODE_CALL	"isc_sqlcode"
-#define ISC_FETCH 		"isc_embed_dsql_fetch" 
+#define ISC_FETCH 		"isc_embed_dsql_fetch"
 #define ISC_EVENT_BLOCK		"isc_event_block_a"
 #else
 #define ISC_SQLCODE_CALL 	"isc_sqlcode_s" 
@@ -302,7 +303,8 @@
 #endif /* DG_X86 */
 #endif
 
-#if (defined HP700 || defined HP10)
+/* RITTER - added HP11 to the line below */
+#if (defined HP700 || defined HP10 || defined HP11)
 #define USAGE_COMP		" USAGE IS COMP"
 #endif
 
@@ -1674,7 +1676,7 @@ sprintf (db_name, "\"%s\"", db->dbb_filename);
 for (dbisc = isc_databases; dbisc; dbisc = dbisc->dbb_next)
 	if( strcmp(dbisc->dbb_filename, db->dbb_filename) == 0)
 		db->dbb_id = dbisc->dbb_id;
-sprintf (db_name, "isc_%ddb", db->dbb_id);
+sprintf (db_name, "isc-%ddb", db->dbb_id);
 #endif
 
 sprintf (output_buffer,
@@ -4247,7 +4249,7 @@ for (ready = (RDY) action->act_object; ready; ready = ready->rdy_next)
 	    {
 	    namelength = strlen (filename);
 #ifndef VMS
-	    sprintf (dbname, "isc_%ddb", dbisc->dbb_id); 
+	    sprintf (dbname, "isc-%ddb", dbisc->dbb_id);
 	    filename = dbname;
 #endif
 	    }
@@ -4261,7 +4263,7 @@ for (ready = (RDY) action->act_object; ready; ready = ready->rdy_next)
 
 	if (ready->rdy_id)
 	    {
-	    sprintf (dbname, "isc_%ddb", ready->rdy_id); 
+	    sprintf (dbname, "isc-%ddb", ready->rdy_id);
 	    filename = dbname;
 	    namelength -= 2;
 	    }
@@ -4982,7 +4984,7 @@ if (sw_auto)
 #ifndef VMS
 	    if (filename)
 		{
-		sprintf (dbname, "isc_%ddb", db->dbb_id);
+		sprintf (dbname, "isc-%ddb", db->dbb_id);
 		filename = dbname;
 		}
 #endif
@@ -5914,7 +5916,7 @@ if (sw_auto)
 #ifndef VMS
 	    if (filename)
 		{
-		sprintf (dbname, "isc_%ddb", db->dbb_id);
+		sprintf (dbname, "isc-%ddb", db->dbb_id);
 		filename = dbname;
 		}
 #endif
@@ -5940,12 +5942,12 @@ else
 
 col = (stat) ? names [COLUMN_INDENT] : names [COLUMN];
 
-printa (col, TRUE, "CALL \"%s\" USING %s, %s%s, %s%d%s", 
-	ISC_START_TRANSACTION, vector, BY_REF, trname, 
+printa (col, TRUE, "CALL \"%s\" USING %s, %s%s, %s%d%s",
+	ISC_START_TRANSACTION, vector, BY_REF, trname,
 	BY_VALUE, count, END_VALUE);
 
 for (db = isc_databases; db; db = db->dbb_next)
-    printa (names [CONTINUE], TRUE, ", %s%s, %s, %s", 
+    printa (names [CONTINUE], TRUE, ", %s%s, %s, %s",
     BY_REF, db->dbb_name->sym_string,
     OMITTED, OMITTED);
 

@@ -35,7 +35,7 @@ all:	gpre$(EXEC_EXT)
 gpre:		gprelib.a $(JRD_LINK) $(GDSSHR)
 	-$(RM) gpre
 	$(CC) $(LINK_OPTS) $(GPRE_OBJECTS) $(FORM_OBJECTS) $(FORM_TRN_OBJECTS) \
-		$(T_SWITCH) $(NODE_LINK) $(T_SWITCH) \
+		$(T_SWITCH) $(NODE_LINK) $(T_SWITCH) $(DSC_LINK) \
 		-o gpre $(GDSSHR_LINK) $(CURSES_LIB)
 	$(CHMOD_7) gpre
 	$(MV) gpre $(GPRE)

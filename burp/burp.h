@@ -302,7 +302,7 @@ enum att_type {
 
     att_class_security_class = SERIES + 10,
     att_class_acl,
-    att_class_description,           
+    att_class_description,
 
 
     /* Array attributes */
@@ -601,7 +601,7 @@ typedef struct gfld {
 /* Note that this typedef is also defined in JRD.H and REMOTE.H */
 /* but for some reason we are avoiding including JRD.H          */
 /* and this typedef is needed to include SVC.H                  */
-#if !(defined _REMOTE_REMOTE_H_ || defined _JRD_JRD_H_)
+#if !(defined (_REMOTE_REMOTE_H_) || defined (_JRD_JRD_H_))
 typedef struct blk {
     UCHAR	blk_type;
     UCHAR	blk_pool_id_mod;

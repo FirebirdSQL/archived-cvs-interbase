@@ -44,7 +44,14 @@ all:	qli$(EXEC_EXT)
 qli:	qlilib.a $(GPRE_LINK) $(GDSSHR)
 	-$(RM) qli
 	$(CC) $(LINK_OPTS) $(QLI_OBJECTS) \
-		$(GPRE_LINK) -o qli $(GDSSHR_LINK) $(CURSES_LIB)
+		$(T_SWITCH) $(ISC_LINK) \
+		$(T_SWITCH) $(ISC_FILE_LINK) \
+		$(T_SWITCH)	$(WALF_LINK) \
+		$(T_SWITCH) $(LLIO_LINK) \
+		$(T_SWITCH) $(MISC_LINK) \
+		$(T_SWITCH) $(IBERR_LINK) \
+		$(T_SWITCH) $(DSC_LINK) \
+		$(T_SWITCH) $(GPRE_LINK) -o qli $(GDSSHR_LINK) $(CURSES_LIB)
 	$(CHMOD_7) qli
 	$(MV) qli $(QLI)
 	$(TOUCH) qli
@@ -143,7 +150,7 @@ picstr.o:	picstr.c dtr.h format.h all_proto.h err_proto.h \
 proc.c:		proc.e
 proc.o:		proc.c dtr.h parse.h compile.h procddl1.h procddl2.h \
 		procddl3.h procddl4.h \
-		err_proto.h lex_proto.h meta_proto.h proc_proto.h 
+		err_proto.h lex_proto.h meta_proto.h proc_proto.h
 report.o:	report.c dtr.h exe.h compile.h report.h \
 		all_proto.h eval_proto.h exe_proto.h repor_proto.h
 show.c:		show.e

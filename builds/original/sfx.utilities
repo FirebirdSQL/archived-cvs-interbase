@@ -85,9 +85,10 @@ ibmgr:	ibmgr.o srvrmgr.o $(GDSSHR)
 
 # JMB $(ENC_LINK) already in shared library
 # JMB security.o already in shared library
-gsec:		gsec.o $(GDSSHR)
+# RITTER - re-added $(ENC_LINK) to resolve security_... symbols
+gsec:		gsec.o $(GDSSHR) security.o $(ENC_LINK)
 	-$(RM) gsec
-	$(CC) $(LINK_OPTS) gsec.o $(STDIO) -o gsec $(GDSSHR_LINK)
+	$(CC) $(LINK_OPTS) gsec.o security.o $(STDIO) -o gsec $(GDSSHR_LINK) $(ENC_LINK)
 	$(CHMOD_7) gsec
 	$(MV) gsec $(GSEC)
 	$(TOUCH) gsec

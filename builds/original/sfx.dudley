@@ -41,7 +41,10 @@ all:		dudley$(EXEC_EXT)
 dudley:		ddllib.a $(DDL_LINK_OBJECTS) $(GDSSHR)
 	-$(RM) dudley
 	$(CC) $(LINK_OPTS) $(DUDLEY_OBJECTS) \
-		$(GPRE_LINK) -o dudley $(GDSSHR_LINK)
+		$(T_SWITCH) $(ISC_LINK) \
+		$(T_SWITCH) $(JRD_LINK) \
+		$(T_SWITCH) $(WALF_LINK) \
+		$(T_SWITCH) $(GPRE_LINK) -o dudley $(GDSSHR_LINK)
 	$(CHMOD_7) dudley
 	$(MV) dudley $(DUDLEY)
 	$(TOUCH) dudley
@@ -153,8 +156,8 @@ depends.mak:
 		depends.out |sort|uniq >> depends.mak
 	-$(RM) depends.out
 
-# In the event that a platform does not support the make directive "include" - 
+# In the event that a platform does not support the make directive "include" -
 # concatenate "depends.mak" with the makefile.
 #
 include depends.mak
-
+    

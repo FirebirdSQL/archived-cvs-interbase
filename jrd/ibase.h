@@ -23,6 +23,8 @@
  * 2001.07.28: John Bellardo:  Added blr_skip
  * 2001.09.18: Ann Harrison:   New info codes
  * 17-Oct-2001 Mike Nordell: CPU affinity
+ * 2001-04-16 Paul Beach: ISC_TIME_SECONDS_PRECISION_SCALE modified for HP10
+ * Compiler Compatibility
  */
 /*
 $Id$
@@ -115,7 +117,7 @@ typedef struct {
 #endif
 
 #define ISC_TIME_SECONDS_PRECISION          10000L
-#define ISC_TIME_SECONDS_PRECISION_SCALE    -4
+#define ISC_TIME_SECONDS_PRECISION_SCALE    (-4)
 
 /*******************************************************************/
 /* Blob id structure                                               */

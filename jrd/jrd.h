@@ -714,10 +714,11 @@ typedef struct ihndl {
 #define PLATFORM_GET_THREAD_DATA ((TDBB) THD_get_specific())
 #endif
 
+/* RITTER - changed HP10 to HPUX in the expression below */
 #ifdef MULTI_THREAD
 #if (defined APOLLO || defined DECOSF || defined NETWARE_386 || \
 	defined NeXT || defined SOLARIS_MT || defined WIN_NT || \
-	defined OS2_ONLY || defined HP10 || defined LINUX || defined DARWIN)
+	defined OS2_ONLY || defined HPUX || defined LINUX || defined DARWIN)
 #define PLATFORM_GET_THREAD_DATA ((TDBB) THD_get_specific())
 #endif
 #endif
