@@ -234,10 +234,14 @@ union semun {
 #endif
 
 #if !(defined M88K || defined hpux || defined DECOSF || defined SOLARIS || \
-      defined DG_X86 || defined linux || defined FREEBSD || defined NETBSD)
+      defined DG_X86 || defined linux || defined FREEBSD || defined NETBSD || defined(SINIXZ))
 extern SLONG		ftok();
 #endif
 #endif
+#ifdef SINIXZ
+#include <sys/param.h>
+static int getpagesize() {return PAGESIZE;}
+#endif /* SINIXZ*/
 
 /* Windows NT */
 

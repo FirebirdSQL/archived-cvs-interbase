@@ -66,7 +66,9 @@
 #if !(defined(HP10) && defined(SUPERSERVER))
 #if !(defined(LINUX) && defined(SUPERSERVER))
 #ifndef DARWIN
+#ifndef SINIXZ
 #define MANAGER_PROCESS
+#endif
 #endif
 #endif
 #endif
@@ -152,6 +154,10 @@
 #endif
 
 #ifdef DGUX
+#define SEMAPHORES      25
+#endif
+
+#ifdef SINIXZ
 #define SEMAPHORES      25
 #endif
 

@@ -35,8 +35,10 @@ MESSAGES=$(REFDBPATH)/msgs/msg.gdb
 HELP=$(REFDBPATH)/qli/help.gdb
 ISC=$(REFDBPATH)/jrd/isc.gdb
 
-EXTERNAL_OBJECTS=	$(CSI_OBJS) dsql_objects lock.o $(PYXIS_OBJECTS) rem_objects $(INTL) wal_objects
-EXTERNAL_P_OBJECTS=	$(CSI_P_OBJS) dsql_p_objects lock.bin $(PYXIS_P_OBJS) rem_p_objects $(INTL_P_OBJS) wal_p_objects
+#EXTERNAL_OBJECTS=	$(CSI_OBJS) dsql_objects lock.o $(PYXIS_OBJECTS) rem_objects $(INTL) wal_objects
+EXTERNAL_OBJECTS=	$(CSI_OBJS) dsql_objects lock.o $(PYXIS_OBJECTS) rem_objects $(INTL)
+#EXTERNAL_P_OBJECTS=	$(CSI_P_OBJS) dsql_p_objects lock.bin $(PYXIS_P_OBJS) rem_p_objects $(INTL_P_OBJS) wal_p_objects
+EXTERNAL_P_OBJECTS=	$(CSI_P_OBJS) dsql_p_objects lock.bin $(PYXIS_P_OBJS) rem_p_objects $(INTL_P_OBJS)
 
 INCLUDE_DEST=	source/interbase/include/
 
@@ -181,7 +183,8 @@ alice gfix:	gpre force
 	$(SH) '$(CD) source/alice; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" alice'
 
 #burp gbak:	gpre msgs force
-burp gbak $(GBAK):      pyxis
+#burp gbak $(GBAK):      pyxis
+burp gbak $(GBAK): force
 	$(QUIET_ECHO) "Building GBAK..."
 	$(SH) '$(CD) source/burp; $(MAKE) CFLAGS="$(CFLAGS)" SYSTEM="$(SYSTEM)" burp'
 

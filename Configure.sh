@@ -137,11 +137,14 @@ buildSuperDir() {
     mkdir -p $SuperDirName
 
     cd $SuperDirName
-    if [ $BuildHostType = "SOLARIS" -o $BuildHostType = "SCO_EV" ]; then
+    case $BuildHostType in
+     SOLARIS|SCO_EV|SINIXZ)
       ln -s ../../$ClassicDirName/[a-z0-9]*[!oa] .  
-    else   
+      ;;
+     *)
       ln -s ../../$ClassicDirName/[a-z0-9]*[^oa] .  
-    fi
+      ;;
+    esac
     cd ../..
 
 }
@@ -174,7 +177,7 @@ refreshLink() {
    RealFile=$1
    LinkFile=$2
 
-   if [ $BuildHostType = "SOLARIS" ]; then   
+   if [ $BuildHostType = "SOLARIS"  -o $BuildHostType = "SINIXZ" ]; then   
       if [ -h $LinkFile ]; then
          rm -f $LinkFile
       fi    
@@ -234,7 +237,7 @@ printUsage() {
     echo "or you can manually specify one of the following:"
     echo "               AIX|AP|AX|DELTA|DG|EPSON|HP700|HP800|HP9.0|"
     echo "               HP10|IMP|MU|SCO|SGI|SOLARIS|SUN4|UNIXWARE|"
-    echo "               AIX_PPC|LINUX|FREEBSD|NETBSD|DARWIN"
+    echo "               AIX_PPC|LINUX|FREEBSD|NETBSD|DARWIN|SINIXZ"
     echo ""
     echo ""
 
@@ -269,6 +272,9 @@ getDefaultSystemType() {
         esac
 
         Arch=`uname -p`
+       ;;
+    SINIX-Z)
+       BuildHostType=SINIXZ
        ;;
     *)
        BuildHostType=""
@@ -810,6 +816,12 @@ if [ $BuildHostType = 'DELTA' -o $BuildHostType = 'IMP' -o $BuildHostType = 'MU'
     refreshLink source/interbase/lib/gds_b.a jrd/libgds_b.a
 else
     refreshLink gds_b.a jrd/libgds_b.a
+fi
+
+if [ $SYS_TYPE = 'SINIXZ' ]
+  then
+    refreshLink gds.so.0 source/interbase/lib/gds.so
+    refreshLink gds.so.0 source/interbase/lib/libgds.so.0
 fi
 
 if [ $SYS_TYPE = 'SUNOS4' ]

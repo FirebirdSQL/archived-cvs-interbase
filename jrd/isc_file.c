@@ -126,6 +126,15 @@ typedef struct itm {
 #include <sys/mount.h>
 #endif
 
+#ifdef SINIXZ
+#include <sys/mnttab.h>
+#define SV_MNTENT
+#define NON_MNTENT
+#define MTAB			"/etc/mnttab"
+#define MTAB_OPEN(path,type)	fopen (path, type)
+#define MTAB_CLOSE(stream)	fclose (stream)
+#endif
+
 #ifdef DELTA
 #define NON_MNTENT
 #define MTAB			"/etc/mnttab"
@@ -146,7 +155,7 @@ typedef struct itm {
 #include <sys/vmount.h>
 #endif
 
-#if (defined SOLARIS || defined UNIXWARE || defined NCR3000 || defined linux || defined M88K || defined FREEBSD || defined NETBSD || defined DARWIN)
+#if (defined SOLARIS || defined UNIXWARE || defined NCR3000 || defined linux || defined M88K || defined FREEBSD || defined NETBSD || defined DARWIN || defined SINIXZ)
 #define GETWD(buf)		getcwd (buf, MAXPATHLEN)
 #endif
 

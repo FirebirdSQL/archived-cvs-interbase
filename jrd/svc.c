@@ -304,7 +304,7 @@ extern		main_gsec();
 
 /* DARWIN - Changed syntax of #ifdef because of compile problems */
 static CONST struct serv	services [] = {
-#if !(defined LINUX || defined FREEBSD || defined NETBSD)
+#if !(defined LINUX || defined FREEBSD || defined NETBSD || defined(SINIXZ))
 #ifndef NETWARE386
 #ifdef WIN_NT
     isc_action_max, "print_cache",      "-svc",             "bin/ibcachpr",          NULL,             0,

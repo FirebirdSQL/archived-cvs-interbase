@@ -25,7 +25,8 @@ ISQL_LINK_OBJS=	$(ISQL_OBJECTS)
 JRD_LINK=
 MUISQL_LINK_OBJS= extract.o muisql.o show.o
 
-all:		isql$(EXEC_EXT) muisql$(EXEC_EXT) 
+#all:		isql$(EXEC_EXT) muisql$(EXEC_EXT) 
+all:		isql$(EXEC_EXT)
 
 isql:		isqllib.a $(ISQL_OBJECTS) $(GDSSHR)
 	-$(RM) isql

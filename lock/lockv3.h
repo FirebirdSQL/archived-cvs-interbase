@@ -120,6 +120,10 @@ union semun {
 #define SEMAPHORES	25
 #endif
 
+#ifdef SINIXZ
+#define SEMAPHORES	25
+#endif
+
 #ifdef SOLARIS
 #define SEMAPHORES	25
 #endif

@@ -225,6 +225,10 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
 #define CLASS		14
 #endif
 
+#ifdef SINIXZ
+#define CLASS		19
+#endif
+
 #ifdef linux
 #ifdef i386
 #define CLASS           19

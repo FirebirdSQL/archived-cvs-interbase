@@ -26,7 +26,7 @@
 
 #include <errno.h>
 #include <string.h>
-#if ( defined FREEBSD || defined NETBSD || defined LINUX || defined DARWIN )
+#if ( defined FREEBSD || defined NETBSD || defined LINUX || defined DARWIN || defined SINIXZ)
 #include <sys/types.h>
 #include <unistd.h>
 #endif

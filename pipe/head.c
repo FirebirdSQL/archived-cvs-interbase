@@ -54,7 +54,7 @@
 #include <fcntl.h>
 #endif
 
-#if (defined DELTA || defined M88K || defined SCO_UNIX || defined EPSON)
+#if (defined DELTA || defined M88K || defined SCO_UNIX || defined EPSON || defined(SINIXZ))
 #include <fcntl.h>
 #endif
 

@@ -318,7 +318,11 @@ static void 	isc_signal2 (int, FPTR_VOID, void *, ULONG);
 static SLONG 	overflow_handler (void *);
 static SIG	que_signal (int, FPTR_VOID, void *, int);
 #if !(defined mpexl || defined HANDLER_ADDR_ARG)
+#ifdef SINIXZ
+static void CLIB_ROUTINE signal_handler (int, int);
+#else
 static void CLIB_ROUTINE signal_handler (int, int, struct sigcontext *);
+#endif
 #endif
 #ifdef HANDLER_ADDR_ARG
 static void CLIB_ROUTINE signal_handler (int, int, void *, void *);
@@ -1786,6 +1790,9 @@ return sig;
 #ifndef REQUESTER
 static void CLIB_ROUTINE signal_handler (
     int		number,
+#ifdef SINIXZ
+    int		code)
+#else
     int		code,
 #ifdef HANDLER_ADDR_ARG
     void	*scp,
@@ -1793,6 +1800,7 @@ static void CLIB_ROUTINE signal_handler (
 #else
     struct sigcontext *scp)
 #endif
+#endif /* SINIXZ */
 {
 /**************************************
  *
@@ -1835,6 +1843,8 @@ else
 	    if (sig->sig_flags & SIG_client)
 #ifdef HANDLER_ADDR_ARG
 		(*sig->sig_routine) (number, code, scp, addr);
+#elif defined(SINIXZ)
+		(*sig->sig_routine) (number, code);
 #else
 		(*sig->sig_routine) (number, code, scp);
 #endif

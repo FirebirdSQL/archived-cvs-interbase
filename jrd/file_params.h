@@ -151,6 +151,8 @@
 #define WORKFILE	"/tmp/"
 #ifdef LINUX
 #define ISC_PREFIX	"/opt/interbase/"
+#elif defined(SINIXZ)
+#define ISC_PREFIX	"/usr/apc/firebird/"
 #else
 #ifdef DARWIN /* Use Darwin specific paths */
 #define ISC_PREFIX      "/all/files/are/in/framework/resources"   

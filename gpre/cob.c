@@ -140,6 +140,9 @@
 #ifdef UNIXWARE
 #define MICROFOCUS
 #endif
+#ifdef SINIXZ
+#define MICROFOCUS
+#endif
 
 #ifdef linux
 #define MICROFOCUS

@@ -485,7 +485,7 @@ static CONST_IMAGE IMAGE	images [] = {
 #endif
 
 #if (defined UNIX) && \
-    !(defined SUPERCLIENT || defined SUPERSERVER || defined DECOSF || defined NCR3000 || defined DG_X86 || defined linux || defined FREEBSD || defined NETBSD || defined AIX_PPC || defined DARWIN /* platforms without a V3 bridge */)
+    !(defined SUPERCLIENT || defined SUPERSERVER || defined DECOSF || defined NCR3000 || defined DG_X86 || defined linux || defined FREEBSD || defined NETBSD || defined AIX_PPC || defined DARWIN || defined SINIXZ /* platforms without a V3 bridge */)
 #ifndef PIPE_SERVER_YVALUE
 #define PIPE_BRIDGE_TO_V3
 #endif

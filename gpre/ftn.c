@@ -235,6 +235,27 @@ static ADL      array_decl_list;
 #define COMMA		","
 #endif
 
+#ifdef SINIXZ
+#error This file hasn't been compiled before. It is now so have a close look why that's the case before you continue
+ 
+#define INCLUDE_ISC_FTN  "       INCLUDE  '/usr/interbase/include/gds.f\' \n\n"
+#define INCLUDE_FTN_FILE "include/gds.f"
+#define DOUBLE_DCL      "DOUBLE PRECISION"
+#define I2CONST_1       ""
+#define I2CONST_2       ""
+#define I2_1            ""
+#define I2_2            ""
+#define VAL_1           ""
+#define VAL_2           ""
+#define REF_1           ""
+#define REF_2           ""
+#define I4CONST_1       ""
+#define I4CONST_2       ""
+#define COMMENT         "*     "
+#define INLINE_COMMENT  "\n*                "
+#define COMMA           ","
+#endif
+
 #ifdef linux
 #define INCLUDE_ISC_FTN  "       INCLUDE  '/usr/interbase/include/gds.f\' \n\n"
 #define INCLUDE_FTN_FILE "include/gds.f"

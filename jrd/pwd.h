@@ -58,6 +58,10 @@ $Id$
 #define USER_INFO_NAME	"isc4.gdb"
 #endif
 
+#ifdef SINIXZ
+#define USER_INFO_NAME	"isc4.gdb"
+#endif
+
 #if defined FREEBSD || defined NETBSD
 #define USER_INFO_NAME	"isc4.gdb"
 #endif

@@ -2012,6 +2012,7 @@ enum  info_db_implementations
 	isc_info_db_impl_freebsd = 61,
 	isc_info_db_impl_netbsd = 62,
 	isc_info_db_impl_darwin = 63,
+	isc_info_db_impl_sinixz = 64,
 
 	isc_info_db_impl_last_value   /* Leave this LAST! */
     };

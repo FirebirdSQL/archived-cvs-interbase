@@ -2098,7 +2098,7 @@ if (ast)
 #else
 
 #if !(defined VMS || defined NETWARE_386 || defined PC_PLATFORM || \
-	defined OS2_ONLY || defined WIN_NT)
+	defined OS2_ONLY || defined WIN_NT || defined SINIXZ)
 if (ast)
     {
 #ifdef APOLLO
@@ -2922,7 +2922,7 @@ if (!strcmp (entry1, "+"))
 
 if (strcmp (entry1, host_name))
 #ifdef UNIX
-#if !(defined XENIX || defined EPSON || defined UNIXWARE || defined NCR3000)
+#if !(defined XENIX || defined EPSON || defined UNIXWARE || defined NCR3000 || defined SINIXZ)
     if (entry1[1] == '@')
 	{
 	if (!innetgr (&entry1[2], host_name, 0, 0))
@@ -2952,7 +2952,7 @@ if (!entry2[0] || !strcmp (entry2, user_name))
 /* if they're in the user group: + they're in, - they're out */
       
 #ifdef UNIX
-#if !(defined XENIX || defined EPSON || defined UNIXWARE || defined NCR3000)
+#if !(defined XENIX || defined EPSON || defined UNIXWARE || defined NCR3000 || defined SINIXZ)
 if (entry2[1] == '@') 
     {
     if (innetgr (&entry2[2], 0, user_name, 0))
