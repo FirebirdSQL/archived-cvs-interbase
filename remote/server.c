@@ -393,7 +393,7 @@ while (TRUE)
 #ifdef DEBUG
     if((request_count++ % 4) == 0)
 	{
-	LONGJMP (trdb->trdb_setjmp, gds__virmemexh);
+	LONGJMP (*trdb->trdb_setjmp, gds__virmemexh);
 	}
 #endif /* DEBUG */
 #endif /* DEV_BUILD */
@@ -419,7 +419,7 @@ while (TRUE)
 #ifdef DEBUG
 	if((request_count % 5) == 0)
 	    {
-	    LONGJMP (trdb->trdb_setjmp, gds__virmemexh);
+	    LONGJMP (*trdb->trdb_setjmp, gds__virmemexh);
 	    }
 #endif /* DEBUG */
 #endif /* DEV_BUILD */
