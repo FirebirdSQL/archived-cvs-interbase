@@ -1,3 +1,15 @@
+2001-06-20 18:02  nmcc
+
+	* interbase/builds/original/sfx.jrd:
+	
+	Fix compile options for Solaris Sparc build.
+
+2001-06-20 17:58  nmcc
+
+	* interbase/jrd/flu.c:
+	
+	Output the system error message if a UDF library can not be loaded.
+
 2001-06-18 11:02  tamlin
 
 	* interbase/jrd/winnt.c:
