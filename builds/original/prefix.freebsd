@@ -30,7 +30,7 @@
 PROD_DEBUG_OBJECTS=	nodebug.o
 PROD_SHRLIB_DIR=	
 PROD_VERSION_FLAG=	-DPROD_BUILD
-PROD_CFLAGS=            -O3 -m486 -fpic -DFLINTSTONE
+PROD_CFLAGS=            -O -m486 -fpic -DFLINTSTONE
 
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
@@ -48,8 +48,7 @@ SPECIAL_OBJECTS=	j
 UDF_LINK_CMD=		gcc
 UDF_CFLAGS=         	-fPIC -mieee-fp
 UDF_LFLAGS=         	-shared
-UDF_SHRLIBS=        	-L/usr/local/lib -lgds -lm -lc -mieee-fp -lcrypt
-#UDF_SHRLIBS=        	-lgds -lm -lc -mieee-fp -ldl -lcrypt
+UDF_SHRLIBS=        	-L/usr/local/lib -lgds -lm -lc -mieee-fp -ldescrypt
 
 #NOTE: PIC_J_CFLAGS is special CFLAGS used to build PIPD_IS_SHRLIB modules
 #      to workaround the Solaris threading problems with signals
@@ -73,14 +72,11 @@ GDS_LINK=		$(GDSSHR_LINK)
 #GDS_PYXIS=
 GDS_PYXIS=		gds_pyxis.a
 GDSLIB_BACKEND=		source/interbase/lib/gds_b.a
-GDSLIB_LINK=		-Lsource/jrd -lgds_b -lc -lcrypt
-#GDSLIB_LINK=		-Lsource/jrd -lgds_b -lc ldl -lcrypt
+GDSLIB_LINK=		-Lsource/jrd -lgds_b -lc -ldescrypt
 
 GDSSHR=			source/interbase/lib/gds.so
 LINUX_GDSSHR=		$(GDSSHR)
-GDSSHR_LINK=		$(SHRLIB_DIR) -L/usr/local/lib -lgds -lgds_pyxis -lcrypt
-#GDSSHR_LINK=		$(SHRLIB_DIR) -lgds -ldl -lgds_pyxis -lcrypt -lncurses
-#PIPE_GDSSHR=		source/interbase/lib/gds.so.0
+GDSSHR_LINK=		$(SHRLIB_DIR) -L/usr/local/lib -lgds -lgds_pyxis -ldescrypt
 PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) -L/usr/local/lib -lgds -lgds_pyxis
 #PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) -lgds -lgds_pyxis
 HLPDIR=			source/qli/
@@ -136,7 +132,7 @@ SUN_FUNCSHR=		$(FUNCSHR)
 LX_SUPER_GDSSHR=		source/interbase/lib/gds.so.1
 SUPER_CLIENT_GDSSHR=    $(LX_SUPER_GDSSHR)
 SUPER_BACKEND=		source/jrd/gds_ss.a
-SUPER_LINK=		-Lsource/jrd -lgds_ss -lc -lcrypt -L/usr/local/lib -llthread
+SUPER_LINK=		-Lsource/jrd -lgds_ss -lc -ldescrypt -L/usr/local/lib -llthread
 SUPER_SERVER=	
 UTILITIES=		
 WAL_P_OBJS=		wal_p_objects
