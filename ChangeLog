@@ -1,3 +1,81 @@
+2003-01-18 00:11  brodsom
+
+	* interbase/intl/: csjis2_p.h, cs_jis.c, cs_jis_20208_1990.c:
+	
+	Remove wrong mapping
+
+2003-01-18 00:07  brodsom
+
+	* interbase/intl/: undef.h, tx865_lat1.h, tx437_lat1.h,
+	tx437_865.h, turk.h, swedfin.h, slovene.h, polish.h, maptest2.cpp,
+	nordan40.h, maptest.c, mapdump.c, mapgen4.c, make.maps,
+	mapcompare.cpp, lt2czech.h, iceland.h, intl.h, dtest.c, dtest2.c,
+	hun852dc.h, db866ru0.h, db865no0.h, db865da0.h, db860pt0.h,
+	db863cf1.h, db857tr0.h, db852po0.h, db852sl0.h, db850us0.h,
+	db852cz0.h, db852hdc.h, db850sv1.h, db850uk0.h, db850it1.h,
+	db850nl0.h, db850pt0.h, db437us0.h, db850cf0.h, db850de0.h,
+	db850es0.h, db850fr0.h, db437sv0.h, db437uk0.h, db437it0.h,
+	db437nl0.h, db437fi0.h, db437fr0.h, czech.h, db437de0.h,
+	db437es1.h, cyrr.h, cs_w1253.h, cs_w1254.h, cs_w1252.h, cs_w1251.h,
+	cs_sjis.h, cs_w1250.h, cs_latin2.h, cs_next.h, cs_latin1.h,
+	cs_ksc5601.h, cs_jis_0208_1990.h, cs_gb2312.h, cs_cyrl.h,
+	cs_big5.h, cs_865.h, cs_860.h, cs_861.h, cs_863.h, cs_852.h,
+	cs_857.h, cs_437.h, cs_850.h, blnxtfr0.h, blnxtit0.h, blnxtus0.h,
+	blnxtde0.h, blnxtes0.h, bllt1us0.h, bllt1pt0.h, bllt1sv0.h,
+	bllt1uk0.h, bllt1no0.h, bllt1it0.h, bllt1nl0.h, bllt1is0.h,
+	bllt1es0.h, bllt1fi0.h, bllt1fr0.h, bllt1da0.h, bllt1de0.h,
+	bllt1ca0.h, ascii2.h, ascii.h, anturk.h, ansispan.h, ansiswfn.h,
+	ansinor4.h, ansislov.h, ansiintl.h, anpolish.h, ansii850.h,
+	anhundc.h, anhun.h, angreek1.h, ancyrr.h, anczech.h:
+	
+	Remove moved files
+
+2003-01-18 00:04  brodsom
+
+	* interbase/intl/utils/: maptest.c, maptest2.cpp, mapcompare.cpp,
+	mapdump.c, mapgen4.c, dtest.c, dtest2.c, make.maps:
+	
+	Move utils to utils dir
+
+2003-01-18 00:03  brodsom
+
+	* interbase/intl/conversions/: tx437_lat1.h, tx865_lat1.h,
+	tx437_865.h:
+	
+	Move conversion headers to conversions dir
+
+2003-01-18 00:00  brodsom
+
+	* interbase/intl/collations/: xx88592czech.h, pw1254turk.h,
+	undef.h, pw1253greek1.h, pw1252swfn.h, pw1252span.h, pw1252intl.h,
+	pw1252nor4.h, pw1252i850.h, pw1251cyrr.h, pw1250polish.h,
+	pw1250slov.h, pd865nordan40.h, pd866cyrr.h, pw1250czech.h,
+	pw1250hun.h, pw1250hundc.h, pd857turk.h, pd861iceland.h,
+	pd852polish.h, pd852slovene.h, pd852hundc.h, pd852czech.h,
+	pd437swedfin.h, db866ru0.h, pd437intl.h, db865no0.h, db865da0.h,
+	db863cf1.h, db860pt0.h, db857tr0.h, db852cz0.h, db852hdc.h,
+	db852po0.h, db852sl0.h, db850us0.h, db850pt0.h, db850sv1.h,
+	db850uk0.h, db850nl0.h, db850it1.h, db850fr0.h, db850de0.h,
+	db850es0.h, db437us0.h, db850cf0.h, db437sv0.h, db437uk0.h,
+	db437nl0.h, db437it0.h, db437fi0.h, db437fr0.h, db437es1.h,
+	db437de0.h, blNEXTit0.h, blNEXTus0.h, blNEXTfr0.h, blNEXTes0.h,
+	blNEXTde0.h, bl88591uk0.h, bl88591us0.h, bl88591sv0.h,
+	bl88591fr0.h, bl88591is0.h, bl88591it0.h, bl88591nl0.h,
+	bl88591no0.h, bl88591pt0.h, ascii.h, ascii2.h, bl88591ca0.h,
+	bl88591da0.h, bl88591de0.h, bl88591es0.h, bl88591fi0.h:
+	
+	Move collation headers to collations dir
+
+2003-01-17 23:57  brodsom
+
+	* interbase/intl/charsets/: cs_w1254.h, cs_w1253.h, cs_w1252.h,
+	cs_w1251.h, cs_w1250.h, cs_sjis.h, cs_next.h, cs_latin2.h,
+	cs_latin1.h, cs_ksc5601.h, cs_jis_0208_1990.h, cs_gb2312.h,
+	cs_cyrl.h, cs_big5.h, cs_865.h, cs_861.h, cs_863.h, cs_860.h,
+	cs_857.h, cs_852.h, cs_850.h, cs_437.h:
+	
+	Move charset headers to charsets dir
+
 2003-01-07 14:30  paul_reeves
 
 	* interbase/builds_win32/original/build_lib.bat:
