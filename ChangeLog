@@ -1,3 +1,12 @@
+2001-10-28 00:30  awharrison
+
+	* interbase/isql/isql.e:
+	
+	
+	Turns out that procedures are honorary select statements ... fixed.
+	 Also moved a statement type check before the debugging stuff that
+	uses it.
+
 2001-10-27 03:42  nmcc
 
 	* interbase/dsql/parse.c:
