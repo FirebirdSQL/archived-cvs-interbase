@@ -4897,9 +4897,10 @@ they aren't accepted, so they will cause error() to be called anyway.
 
 SET_TDBB (tdbb);
 desc.dsc_dtype = dtype_text;
+desc.dsc_scale = 0;
 
 if (dtype_blob == value->dsc_dtype && (BLOB_text != value->dsc_sub_type
-	|| (ttype = value->dsc_scale) == ttype_ascii || ttype == ttype_none
+	|| (ttype = value->dsc_scale) == ttype_ascii || ttype == ttype_none || ttype == ttype_binary
 	|| ((obj1 = INTL_obj_lookup (tdbb, type_texttype, ttype, (FPTR_VOID) ERR_post, NULL)) != 0
 		&& 1 == obj1->texttype_bytes_per_char)))
 {
@@ -4962,6 +4963,7 @@ but it's resolved by INTL_obj_lookup() to UNICODE_FSS in the cases I observed. H
 distinguish between user calls and system calls. Unlike the original ASCII substring(),
 this one will get correctly the amount of UNICODE characters requested. */
 else if (desc.dsc_ttype == ttype_ascii || desc.dsc_ttype == ttype_none
+	  || ttype == ttype_binary
 	 /*|| desc.dsc_ttype == ttype_metadata) */)
 {
 	/* Redundant.
