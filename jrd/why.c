@@ -4320,7 +4320,10 @@ for (sub = transaction; sub; sub = sub->next)
 	CALL (PROC_ROLLBACK, sub->implementation)(
 	    status,
 	    &sub->handle))
-	return error (status, local);
+		{
+		if (status[1] != isc_network_error)
+			return error (status, local);
+		}
 
 subsystem_exit();
 

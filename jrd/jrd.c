@@ -2084,6 +2084,10 @@ tdbb->tdbb_setjmp = (UCHAR*) env;
 tdbb->tdbb_status_vector = user_status;
 if (SETJMP (env))
     {
+    V4_JRD_MUTEX_LOCK(databases_mutex);
+	dbb->dbb_flags &= ~DBB_not_in_use;
+	V4_JRD_MUTEX_UNLOCK(databases_mutex);
+
     JRD_SS_MUTEX_UNLOCK;
     return error (user_status);
     }
