@@ -1,3 +1,15 @@
+2001-08-15 08:59  kkuznetsov
+
+	* interbase/builds/original/prefix.solx86:
+	
+	add debug c flag
+
+2001-08-15 06:01  robocop
+
+	* interbase/dsql/pass1.c:
+	
+	Fixed crash with trigger and explicit cursor usage.
+
 2001-08-13 07:14  robocop
 
 	* interbase/jrd/: dfw.e, scl.e:
