@@ -3310,6 +3310,7 @@ static NOD pass1_rse (
  *
  **************************************/
 NOD	rse, parent_rse, target_rse, aggregate, node, list, sub, *ptr, *end, proj;
+PAR	limPar;
 LLS	stack;
 CTX	context, parent_context;
 TSQL	tdsql;
@@ -3382,20 +3383,46 @@ if (node = input->nod_arg [e_sel_limit])
     if (node->nod_arg [e_limit_length])
         {
         if (!parent_rse)
-            rse->nod_arg [e_rse_first] =
+        {
+            rse->nod_arg [e_rse_first] = 
                 PASS1_node (request, node->nod_arg [e_limit_length], 0);
+            limPar = (PAR) rse->nod_arg[e_rse_first]->nod_arg[e_par_parameter];
+        }
         else
+        {
             parent_rse->nod_arg [e_rse_first] =
                 PASS1_node (request, node->nod_arg [e_limit_length], 0);
+            limPar = (PAR) parent_rse->nod_arg[e_rse_first]->nod_arg[e_par_parameter];
+        }
+
+        if (node->nod_arg [e_limit_length]->nod_type == nod_parameter)
+            {
+            limPar->par_desc.dsc_dtype = dtype_int64; 
+            limPar->par_desc.dsc_sub_type = 0;  
+            limPar->par_desc.dsc_length = sizeof(SINT64);
+            }
         }
     if (node->nod_arg [e_limit_skip])
         {
         if (!parent_rse)
-            rse->nod_arg [e_rse_skip] =
+        {
+            limPar = (PAR) rse->nod_arg [e_rse_skip] =
 		    PASS1_node (request, node->nod_arg [e_limit_skip], 0);
+            limPar = (PAR) rse->nod_arg[e_rse_skip]->nod_arg[e_par_parameter];
+        }
         else
-            parent_rse->nod_arg [e_rse_skip] =
+        {
+            limPar = (PAR) parent_rse->nod_arg [e_rse_skip] =
 		    PASS1_node (request, node->nod_arg [e_limit_skip], 0);
+            limPar = (PAR) parent_rse->nod_arg[e_rse_skip]->nod_arg[e_par_parameter];
+        }
+
+        if (node->nod_arg[e_limit_skip]->nod_type == nod_parameter)
+            {
+            limPar->par_desc.dsc_dtype = dtype_int64; 
+            limPar->par_desc.dsc_sub_type = 0;  
+            limPar->par_desc.dsc_length = sizeof (SINT64);
+            }
         }
     }
 
