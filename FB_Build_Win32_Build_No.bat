@@ -34,7 +34,7 @@
 :: This method is also used in a few other projects (linux kernel, gcc etc).
 
 @echo off
-set BUILD_TYPE=T
+set BUILD_TYPE=V
 set MAJOR_VER=1
 set MINOR_VER=0
 set REV_NO=0
