@@ -64,7 +64,7 @@ static int	condition_handler (int *, int *, int *);
 
 /* SGI, EPSON, UNIXWARE, M88K, DECOSF specific stuff */
 
-#if (defined SOLARIS || defined sgi || defined EPSON || defined M88K || defined UNIXWARE || defined NCR3000 || defined DECOSF || defined SCO_EV || defined linux || defined AIX_PPC)
+#if (defined SOLARIS || defined sgi || defined EPSON || defined M88K || defined UNIXWARE || defined NCR3000 || defined DECOSF || defined SCO_EV || defined linux || defined AIX_PPC || defined SINIXZ)
 #include <dlfcn.h>
 #define DYNAMIC_SHARED_LIBRARIES
 #include <unistd.h>
@@ -270,7 +270,7 @@ for (mod = &FLU_modules; *mod; mod = &(*mod)->mod_next)
 shl_unload (module->mod_handle);
 #endif
 
-#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD) || defined(NETBSD) || defined (AIX_PPC)
+#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD) || defined(NETBSD) || defined (AIX_PPC) || defined(SINIXZ)
 dlclose (module->mod_handle);
 #endif
 #ifdef WIN_NT
