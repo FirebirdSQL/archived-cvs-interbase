@@ -22,6 +22,7 @@
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ * 17-Oct-2001 Mike Nordell: Non-shared file access
  */
 
 #ifdef _MSC_VER
@@ -77,20 +78,32 @@ static BOOLEAN	nt_error (TEXT *, FIL, STATUS, STATUS *);
 static USHORT	ostype;
 
 #ifdef SUPERSERVER_V2
-static const DWORD g_dwShareFlags = 0;	// no sharing
+static const DWORD g_dwShareFlags = 0;	/* no sharing */
 static const DWORD g_dwExtraFlags = FILE_FLAG_OVERLAPPED |
 									FILE_FLAG_NO_BUFFERING |
 									FILE_FLAG_RANDOM_ACCESS;
 #elif SUPERSERVER
-// TMN: Can't disable sharing since the engine tries to open the
-// isc4.gdb at least twice...
-//static const DWORD g_dwShareFlags = 0;	// no sharing
-static const DWORD g_dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
+/* TMN: Disable file sharing */
+static const DWORD g_dwShareFlags = 0;	/* no sharing */
 static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
 #else
 static const DWORD g_dwShareFlags = FILE_SHARE_READ | FILE_SHARE_WRITE;
 static const DWORD g_dwExtraFlags = FILE_FLAG_RANDOM_ACCESS;
 #endif
+
+
+/* A little helper function to clean up closing of file handles. */
+static BOOL MaybeCloseFile(SLONG* pFile)
+{
+	if (pFile && (HANDLE)*pFile != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle((HANDLE)*pFile);
+		*pFile = (SLONG) INVALID_HANDLE_VALUE;
+		return TRUE;
+	}
+	return FALSE;
+}
+
 
 
 /**************************************
@@ -139,27 +152,26 @@ void PIO_close(FIL main_file)
  * Functional description
  *
  **************************************/
-FIL	file;
+	FIL	file;
 
-for (file = main_file; file; file = file->fil_next)
+	for (file = main_file; file; file = file->fil_next)
 	{
-    if ((HANDLE) file->fil_desc != INVALID_HANDLE_VALUE)
-	{
-	CloseHandle ((HANDLE) file->fil_desc);
-	file->fil_desc = (SLONG) INVALID_HANDLE_VALUE;
-	if ((HANDLE) file->fil_force_write_desc != INVALID_HANDLE_VALUE)
-			{
-	    CloseHandle ((HANDLE) file->fil_force_write_desc);
-			}
-	file->fil_force_write_desc = (SLONG) INVALID_HANDLE_VALUE;
+		if (MaybeCloseFile(&file->fil_desc) ||
+			MaybeCloseFile(&file->fil_force_write_desc))
+		{
 #ifdef SUPERSERVER_V2
-	for (i = 0; i < MAX_FILE_IO; i++)
-	    if (file->fil_io_events [i])
-		CloseHandle ((HANDLE) file->fil_io_events [i]);
+			for (i = 0; i < MAX_FILE_IO; i++)
+			{
+				if (file->fil_io_events [i])
+				{
+					CloseHandle ((HANDLE) file->fil_io_events [i]);
+					file->fil_io_events[i] = 0;
+				}
+			}
 #endif
-	THD_MUTEX_DESTROY (file->fil_mutex);
+			THD_MUTEX_DESTROY (file->fil_mutex);
+		}
 	}
-}
 }
 
 
@@ -311,6 +323,9 @@ if (flag)
     {
     if (!(file->fil_flags & FIL_force_write_init))
 	{
+	/* TMN: Close the existing handle since we're now opening */
+	/* the files for exclusive access */
+	MaybeCloseFile(&file->fil_desc);
 	desc = CreateFile (file->fil_string,
 	    GENERIC_READ | GENERIC_WRITE,
 								g_dwShareFlags,
@@ -336,7 +351,7 @@ if (flag)
 			}
 
 			/* TMN: Take note! Assumes sizeof(long) == sizeof(void*) ! */
-	file->fil_force_write_desc = desc;
+	file->fil_force_write_desc = (SLONG) desc;
 	}
     file->fil_flags |= (FIL_force_write | FIL_force_write_init);
     }
@@ -1068,8 +1083,8 @@ BY_HANDLE_FILE_INFORMATION	file_info;
 /* Allocate file block and copy file name string */
 
 file = (FIL) ALLOCPV (type_fil, file_length+1);
-file->fil_desc = desc;
-file->fil_force_write_desc = INVALID_HANDLE_VALUE;
+file->fil_desc = (SLONG) desc;
+file->fil_force_write_desc = (SLONG) INVALID_HANDLE_VALUE;
 file->fil_length = file_length;
 file->fil_max_page = -1;
 MOVE_FAST (file_name, file->fil_string, file_length);

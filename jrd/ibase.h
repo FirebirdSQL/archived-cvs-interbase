@@ -22,6 +22,7 @@
  * FSG 16.03.2001 
  * 2001.07.28: John Bellardo:  Added blr_skip
  * 2001.09.18: Ann Harrison:   New info codes
+ * 17-Oct-2001 Mike Nordell: CPU affinity
  */
 /*
 $Id$
@@ -2390,6 +2391,14 @@ enum	info_db_provider
 #ifdef SET_TCP_NO_DELAY
 #define ISCCFG_NO_NAGLE_KEY	21 
 #endif
+
+#ifdef WIN_NT
+#if defined SET_TCP_NO_DELAY
+#error Currently unsupported configuration
+#endif
+#define ISCCFG_CPU_AFFINITY_KEY	21
+#endif
+
 
 /***************/
 /* Error codes */

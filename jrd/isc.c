@@ -23,6 +23,7 @@
  * FSG 16.03.2001 
  * Solaris x86 changes - Konstantin Kuznetsov, Neil McCalden
  * 26-Sept-2001 Paul Beach - External File Directory Config. Parameter
+ * 17-Oct-2001 Mike Nordell: CPU affinity
  */
 /*
 $Id$
@@ -74,6 +75,9 @@ static struct cfgtbl ISC_def_cfg_tbl[] = {
     ISCCFG_REMOTE_BUFFER, ISCCFG_REMOTE_BUFFER_KEY, ISCCFG_REMOTE_BUFFER_DEF, ISCCFG_REMOTE_BUFFER_DEF,
 #ifdef SET_TCP_NO_DELAY
     ISCCFG_NO_NAGLE,ISCCFG_NO_NAGLE_KEY,ISCCFG_NO_NAGLE_DEF,ISCCFG_NO_NAGLE_DEF,
+#endif
+#ifdef WIN_NT
+	ISCCFG_CPU_AFFINITY_TAG, ISCCFG_CPU_AFFINITY_KEY, ISCCFG_CPU_AFFINITY_DEF, ISCCFG_CPU_AFFINITY_DEF,
 #endif
     NULL, 0, 0, 0
 };

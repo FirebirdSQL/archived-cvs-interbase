@@ -22,6 +22,7 @@
  * Added TCP_NO_DELAY option for superserver on Linux
  * FSG 16.03.2001 
  * 26-Sept-2001 Paul Beach - External File Directory Config. Parameter
+ * 17-Oct-2001  Mike Nordell - CPU affinity
  */
 /*
 $Id$
@@ -115,6 +116,11 @@ $Id$
 #ifdef SET_TCP_NO_DELAY
 #define ISCCFG_NO_NAGLE	"TCP_NO_NAGLE" 
 #define ISCCFG_NO_NAGLE_DEF	0	/*Disable Nagle Algorithm */
+#endif
+
+#ifdef WIN_NT
+#define ISCCFG_CPU_AFFINITY_TAG		"CPU_AFFINITY"
+#define ISCCFG_CPU_AFFINITY_DEF		1	/* bit 0 set, only first CPU */
 #endif
 
 
