@@ -743,21 +743,18 @@ while (items < end_items && *items != gds__info_end)
 	case isc_info_oldest_active:
 	    file = dbb->dbb_file;
 	    PAG_header (file->fil_string, file->fil_length) ;
-	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    length = INF_convert (dbb->dbb_oldest_active, buffer);
 	    break;
 
 	case isc_info_oldest_snapshot:
 	    file = dbb->dbb_file;
 	    PAG_header (file->fil_string, file->fil_length) ;
-	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    length = INF_convert (dbb->dbb_oldest_snapshot, buffer);
 	    break;
 
 	case isc_info_next_transaction:
 	    file = dbb->dbb_file;
 	    PAG_header (file->fil_string, file->fil_length) ;
-	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    length = INF_convert (dbb->dbb_next_transaction, buffer);
 	    break;
 
