@@ -251,6 +251,23 @@ typedef struct paramdsc {
     unsigned char	*dsc_address;
 } PARAMDSC;
 
+/* values for dsc_flags */
+/* Note: DSC_null is only reliably set for local variables
+   (blr_variable) */
+#define DSC_null			1
+#define DSC_no_subtype		2	/* dsc has no sub type specified */
+#define DSC_nullable  		4   /* not stored. instead, is derived
+                                   from metadata primarily to flag
+                                    SQLDA (in DSQL)               */
+
+/* Overload text typing information into the dsc_sub_type field.
+   See intl.h for definitions of text types */ 
+
+#ifndef dsc_ttype
+#define dsc_ttype	dsc_sub_type
+#endif
+
+
 /* Note that dtype_null actually means that we do not yet know the
    dtype for this descriptor.  A nice cleanup item would be to globally
    change it to dtype_unknown.  --chrisj 1999-02-17 */
