@@ -38,7 +38,7 @@ INTL_SHLIBS = gdsintl.sl
 # Note: Definition of INTL_OBJECTS & INTL_P_OBJECTS must match sfx.jrd.
 
 INTL_OBJECTS1=	ld.o         cv_narrow.o \
-		cs_narrow.o  lc_ascii.o lc_narrow.o lc_latin1.o lc_dos.o \
+		cs_narrow.o  lc_ascii.o lc_narrow.o lc_latin1.o lc_latin2.o lc_dos.o \
 		cs_unicode.o lc_unicode.o \
 		cs_utffss.o \
 		cs_big5.o    cv_big5.o   lc_big5.o \
@@ -50,7 +50,7 @@ INTL_OBJECTS2=	ld2.o
 INTL_OBJECTS=	$(INTL_OBJECTS1) $(INTL_OBJECTS2)
 
 INTL_P_OBJECTS1= ld.bin         cv_narrow.bin \
-		cs_narrow.bin  lc_ascii.bin lc_narrow.bin lc_latin1.bin lc_dos.bin \
+		cs_narrow.bin  lc_ascii.bin lc_narrow.bin lc_latin1.bin lc_latin2.bin lc_dos.bin \
 		cs_unicode.bin lc_unicode.bin \
 		cs_utffss.bin \
 		cs_big5.bin    cv_big5.bin   lc_big5.bin \
@@ -136,7 +136,7 @@ gdsintl_nt_bc4.dll: $(INTL_OBJECTS1)
 		-e 's/LIBRARY gdsintl/LIBRARY gdsintl INITINSTANCE/' \
 		-e 's/ LD_lookup/ _LD_lookup/' gdsintl.bind > tmpintl.bind
 	$(LINK) -Tpd -ap -c $(LD_OPTS) -w-inq -x /Lc:\bc4\lib c0d32 \
-		ld.o+cv_narrow.o+cs_narrow.o+lc_ascii.o+lc_narrow.o+lc_latin1.o+lc_dos.o+cs_unicode.o+lc_unicode.o+cs_utffss.o+cs_jis.o+cv_jis.o+lc_jis.o+cs_big.o+cs_gb2312.o+cs_ksc.o+cv_big.o+cv_gb2312.o+cv_ksc.o+lc_big.o+lc_gb2312.o+lc_ksc.o,\
+		ld.o+cv_narrow.o+cs_narrow.o+lc_ascii.o+lc_narrow.o+lc_latin1.o+lc_latin2.o+lc_dos.o+cs_unicode.o+lc_unicode.o+cs_utffss.o+cs_jis.o+cv_jis.o+lc_jis.o+cs_big.o+cs_gb2312.o+cs_ksc.o+cv_big.o+cv_gb2312.o+cv_ksc.o+lc_big.o+lc_gb2312.o+lc_ksc.o,\
 		gdsintl.dll,,import32 cw32mt,tmpintl.bind
 	implib gdsintl.lib gdsintl.dll
 	$(MV) gdsintl.dll ..\interbase\bin
@@ -149,7 +149,7 @@ gdsintl_os2_bc4.dll: $(INTL_OBJECTS1)
 		-e 's/LIBRARY gdsintl/LIBRARY gdsintl INITINSTANCE/' \
 		-e 's/ LD_lookup/ _LD_lookup/' gdsintl.bind > tmpintl.bind
 	$(LINK) -Tod -ap -c $(LD_OPTS) -x /Lc:\bcos2\lib c02d \
-		ld.o+cv_narrow.o+cs_narrow.o+lc_ascii.o+lc_narrow.o+lc_latin1.o+lc_dos.o+cs_unicode.o+lc_unicode.o+cs_utffss.o+cs_jis.o+cv_jis.o+lc_jis.o+cs_big.o+cs_gb2312.o+cs_ksc.o+cv_big.o+cv_gb2312.o+cv_ksc.o+lc_big.o+lc_gb2312.o+lc_ksc.o,\
+		ld.o+cv_narrow.o+cs_narrow.o+lc_ascii.o+lc_narrow.o+lc_latin1.o+lc_latin2.o+lc_dos.o+cs_unicode.o+lc_unicode.o+cs_utffss.o+cs_jis.o+cv_jis.o+lc_jis.o+cs_big.o+cs_gb2312.o+cs_ksc.o+cv_big.o+cv_gb2312.o+cv_ksc.o+lc_big.o+lc_gb2312.o+lc_ksc.o,\
 		gdsintl.dll,,os2 c2mt,tmpintl.bind
 	implib gdsintl.lib gdsintl.dll
 	$(MV) gdsintl.dll ..\interbase\bin
@@ -162,7 +162,7 @@ gdsintl_os2_ibm.dll: $(INTL_OBJECTS1)
 		-e 's/LIBRARY gdsintl/LIBRARY gdsintl INITINSTANCE/' \
 		gdsintl.bind > bindintl.tmp
 	$(LINK) $(LD_OPTS) \
-		ld.o+cv_narrow.o+cs_narrow.o+lc_ascii.o+lc_narrow.o+lc_latin1.o+lc_dos.o+cs_unicode.o+lc_unicode.o+cs_utffss.o+cs_jis.o+cv_jis.o+lc_jis.o+cs_big.o+cs_gb2312.o+cs_ksc.o+cv_big.o+cv_gb2312.o+cv_ksc.o+lc_big.o+lc_gb2312.o+lc_ksc.o,\
+		ld.o+cv_narrow.o+cs_narrow.o+lc_ascii.o+lc_narrow.o+lc_latin1.o+lc_latin2.o+lc_dos.o+cs_unicode.o+lc_unicode.o+cs_utffss.o+cs_jis.o+cv_jis.o+lc_jis.o+cs_big.o+cs_gb2312.o+cs_ksc.o+cv_big.o+cv_gb2312.o+cv_ksc.o+lc_big.o+lc_gb2312.o+lc_ksc.o,\
 		gdsintl.dll,,,bindintl.tmp
 	c:\toolkt21\os2bin\implib gdsintl.lib gdsintl.dll
 	$(MV) gdsintl.dll ..\interbase\bin
@@ -194,7 +194,7 @@ cs_ksc.o:	cs_ksc.c	$(COMMON_INCLUDES) \
 	$(CC) -c $(INTL_CFLAGS) $(VERSION_FLAG) cs_ksc.c
 cs_narrow.o:	cs_narrow.c	$(COMMON_INCLUDES) \
 		cs_437.h cs_850.h cs_852.h cs_857.h cs_860.h \
-		cs_861.h cs_863.h cs_865.h cs_cyrl.h cs_latin1.h \
+		cs_861.h cs_863.h cs_865.h cs_cyrl.h cs_latin1.h cs_latin2.h \
 		cs_w1250.h cs_w1251.h cs_w1252.h cs_w1253.h \
 		cs_w1254.h cs_next.h
 cs_unicode.o:	cs_unicode.c	$(COMMON_INCLUDES)
@@ -234,6 +234,7 @@ lc_latin1.o:	lc_latin1.c	$(COMMON_INCLUDES) \
 		ansiintl.h ansii850.h ansinor4.h ansispan.h \
 		ansiswfn.h angreek1.h anturk.h blnxtus0.h \
 		blnxtde0.h blnxtfr0.h blnxtit0.h
+lc_latin2.o:    lc_latin2.c $(COMMON_INCLUDES) lt2czech.h
 lc_narrow.o:	lc_narrow.c	$(COMMON_INCLUDES)
 lc_unicode.o:	lc_unicode.c	$(COMMON_INCLUDES)
 ld.o:		ld.c		$(COMMON_INCLUDES)
@@ -279,6 +280,7 @@ lc_jis.bin:	lc_jis.o
 lc_ksc.bin:	lc_ksc.o
 lc_narrow.bin:	lc_narrow.o
 lc_latin1.bin:	lc_latin1.o
+lc_latin2.bin:  lc_latin2.o
 lc_unicode.bin:	lc_unicode.o
 ld.bin:		ld.o
 ld2.bin: 	ld2.o

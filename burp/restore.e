@@ -123,6 +123,7 @@ static CONST struct s_t_cvtbl {
 	152,	CS_LATIN1,		12,				/* EN_UK */
 	153,	CS_LATIN1,		14,				/* EN_US */
 	154,	CS_LATIN1,		15,				/* PT_PT */
+    160,    CS_LATIN2,      1,              /* CS_CZ */
 	180,	CS_NEXT,		1,				/* NXT_US */
 	181,	CS_NEXT,		2,				/* NXT_GERMANY */
 	182,	CS_NEXT,		3,				/* NXT_FRANCE */

@@ -26,7 +26,7 @@
 !include ..\include.mak
 
 INTL_FILES1=	ld.c cv_narrow.c \
-		cs_narrow.c  lc_ascii.c   lc_narrow.c lc_latin1.c lc_dos.c \
+		cs_narrow.c  lc_ascii.c   lc_narrow.c lc_latin1.c lc_latin2.c lc_dos.c \
 		cs_unicode.c lc_unicode.c cs_utffss.c \
 		cs_jis.c     cv_jis.c     lc_jis.c    \
 		cs_big5.c    cv_big5.c    lc_big5.c   \
@@ -75,7 +75,7 @@ gdsintl_bc.dll: $(INTL_OBJECTS1)
 		-e 's/LIBRARY gdsintl/LIBRARY gdsintl INITINSTANCE/' \
 		-e 's/ LD_lookup/ _LD_lookup/' gdsintl.bind > tmpintl.bind
 	$(LINK) -Tpd -ap -c $(LINK_OPTS) -w-inq -x /Lc:\bc4\lib c0d32 \
-		ld.obj+cv_narrow.obj+cs_narrow.obj+lc_ascii.obj+lc_narrow.obj+lc_latin1.obj+lc_dos.obj+cs_unicode.obj+lc_unicode.obj+cs_utffss.obj+cs_jis.obj+cv_jis.obj+lc_jis.obj,\
+		ld.obj+cv_narrow.obj+cs_narrow.obj+lc_ascii.obj+lc_narrow.obj+lc_latin1.obj+lc_latin2.obj+lc_dos.obj+cs_unicode.obj+lc_unicode.obj+cs_utffss.obj+cs_jis.obj+cv_jis.obj+lc_jis.obj,\
 		gdsintl.dll,,import32 cw32mt,tmpintl.bind
 	implib gdsintl.lib gdsintl.dll
 	$(MV) gdsintl.dll ..\interbase\bin
