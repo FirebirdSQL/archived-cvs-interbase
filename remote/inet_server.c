@@ -108,6 +108,7 @@
 #endif
 #define INTERBASE_USER          "interbase"
 #define INTERBASE_USER_SHORT    "interbas"
+#define FIREBIRD_USER_NAME	"firebird"
 #endif
 
 static int	assign (SCHAR *);
@@ -323,12 +324,14 @@ if (standalone)
         /* check user id */
         ISC_get_user (user_name, NULL, NULL, NULL, NULL, NULL, NULL);
 
-        if (strcmp (user_name, INTERBASE_USER) && strcmp (user_name, "root")
-            && strcmp (user_name, INTERBASE_USER_SHORT))
+        if (strcmp (user_name, "root") &&
+            strcmp (user_name, FIREBIRD_USER_NAME) &&
+            strcmp (user_name, INTERBASE_USER_NAME) &&
+            strcmp (user_name, INTERBASE_USER_SHORT))
             {
             /* invalid user -- bail out */
-            ib_fprintf (ib_stderr, "ibserver: Invalid user (must be %s, %s, or root)\n",
-                        INTERBASE_USER, INTERBASE_USER_SHORT);
+            ib_fprintf (ib_stderr, "%s: Invalid user (must be %s, %s, %s or root).\n",
+                "ibserver", FIREBIRD_USER, INTERBASE_USER, INTERBASE_USER_SHORT);
             exit (STARTUP_ERROR);
             }
 #else
