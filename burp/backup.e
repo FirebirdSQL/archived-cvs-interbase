@@ -3549,7 +3549,7 @@ if ((tdgbl->BCK_capabilities & BCK_ods8) &&
 	if (!X.RDB$EXTERNAL_FILE.NULL)
 	    if (!tdgbl->gbl_sw_convert_ext_tables)
 	        {
-	        put_text (att_relation_ext_file_name, X.RDB$EXTERNAL_FILE, 254);
+	        PUT_TEXT (att_relation_ext_file_name, X.RDB$EXTERNAL_FILE);
 	        flags |= REL_external;
 	        }
 
@@ -3617,7 +3617,7 @@ else
 	        if (!R.RDB$EXTERNAL_FILE.NULL)
 		    if (!tdgbl->gbl_sw_convert_ext_tables)
 		        {
-		        put_text (att_relation_ext_file_name, R.RDB$EXTERNAL_FILE, 254);
+		        PUT_TEXT (att_relation_ext_file_name, R.RDB$EXTERNAL_FILE);
 		        flags |= REL_external;
 		        }
             END_FOR;

@@ -4833,7 +4833,8 @@ SLONG		rel_flags, sys_flag;
 short		rel_flags_null, sys_flag_null;
 GDS_QUAD	view_blr, view_src, rel_desc, ext_desc;
 USHORT		view_blr_null, view_src_null, rel_desc_null, ext_desc_null;
-TEXT		sec_class [GDS_NAME_LEN];
+
+BASED_ON RDB$RELATIONS.RDB$SECURITY_CLASS sec_class;
 short		sec_class_null;
 
 BASED_ON RDB$RELATIONS.RDB$EXTERNAL_FILE ext_file_name;
