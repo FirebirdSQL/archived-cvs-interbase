@@ -48,6 +48,12 @@
  *
  * copyright (c) Borland International
  */
+
+/* Since it's a Win32-only file, we might as well assert it*/
+#if !defined(_WIN32) && !defined(WIN32) && !defined(__WIN32__)
+#error This is a Win32 only file.
+#endif
+
 #include <windows.h>
 #include <shellapi.h>
 #include <prsht.h>
@@ -75,6 +81,10 @@
 
 #include "../remote/ibsvrhlp.h"
 #include "../remote/chop_proto.h"
+
+#include "../jrd/thd.h"         /* get jrd_proto.h to declare the function */
+#include "../jrd/jrd_proto.h"	/* JRD_num_attachments() */
+#include <stdio.h>              /* sprintf() */
 
 #define WIN_TEXTLEN                     128
 #define MSG_STRINGLEN           64
@@ -141,7 +151,11 @@ usServerFlags = usServerFlagMask;
 PSPages[0].dwSize = sizeof(PROPSHEETPAGE);
 PSPages[0].dwFlags = PSP_USETITLE | PSP_HASHELP;
 PSPages[0].hInstance = hInstance;
+#ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
+PSPages[0].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(GENERAL_DLG);
+#else
 PSPages[0].pszTemplate = MAKEINTRESOURCE(GENERAL_DLG);
+#endif
 PSPages[0].pszTitle = "General";
 PSPages[0].pfnDlgProc = (DLGPROC) GeneralPage;
 PSPages[0].pfnCallback = NULL;
@@ -151,11 +165,20 @@ PSHdr.dwFlags = PSH_PROPTITLE | PSH_PROPSHEETPAGE |
 		PSH_USEICONID | PSH_MODELESS;
 PSHdr.hwndParent = hParentWnd;
 PSHdr.hInstance = hInstance;
+#ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
+PSHdr.DUMMYUNIONNAME.pszIcon = MAKEINTRESOURCE(IDI_IBSVR);
+#else
 PSHdr.pszIcon = MAKEINTRESOURCE(IDI_IBSVR);
+#endif
 PSHdr.pszCaption = (LPSTR) APP_NAME;
 PSHdr.nPages = sizeof(PSPages)/sizeof(PROPSHEETPAGE);
+#ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
+PSHdr.DUMMYUNIONNAME2.nStartPage = 0;
+PSHdr.DUMMYUNIONNAME3.ppsp = (LPCPROPSHEETPAGE) &PSPages;
+#else
 PSHdr.nStartPage = 0;
 PSHdr.ppsp = (LPCPROPSHEETPAGE) &PSPages;
+#endif
 PSHdr.pfnCallback = NULL;
 
 // Initialize the gray brush to paint the background
@@ -202,7 +225,6 @@ switch (unMsg)
 	{
 	char  *pszPtr;
 	char  szText[MSG_STRINGLEN];
-	char  szText2[MSG_STRINGLEN];
 	char  szWindowText[WIN_TEXTLEN];
 
 	lstrcpy(szText, GDS_VERSION);
@@ -323,7 +345,6 @@ static char *MakeVersionString(char *pchBuf, int nLen, USHORT usServerFlagMask)
  *****************************************************************************/
 char* p = pchBuf;
 char* end = p + nLen;
-int   l;
 
 if (usServerFlagMask & SRVR_inet)
     {
@@ -376,3 +397,4 @@ SetDlgItemText(hDlg, IDC_STAT3, szText);
 
 SetCursor(hOldCursor);
 }
+

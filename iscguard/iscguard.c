@@ -789,7 +789,11 @@ HINSTANCE hInstance = hInst;
 PSPages[0].dwSize = sizeof(PROPSHEETPAGE);
 PSPages[0].dwFlags = PSP_USETITLE;
 PSPages[0].hInstance = hInstance;
+#ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
+PSPages[0].DUMMYUNIONNAME.pszTemplate = MAKEINTRESOURCE(IDD_PROPSHEET);
+#else
 PSPages[0].pszTemplate = MAKEINTRESOURCE(IDD_PROPSHEET);
+#endif
 PSPages[0].pszTitle = MAKEINTRESOURCE(IDS_PROP_TITLE);
 PSPages[0].pfnDlgProc = (DLGPROC) GeneralPage;
 PSPages[0].pfnCallback = NULL;
@@ -799,11 +803,20 @@ PSHdr.dwFlags = PSH_PROPTITLE | PSH_PROPSHEETPAGE |
 		PSH_USEICONID | PSH_MODELESS;
 PSHdr.hwndParent = hParentWnd;
 PSHdr.hInstance = hInstance;
+#ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
+PSHdr.DUMMYUNIONNAME.pszIcon = MAKEINTRESOURCE(IDI_IBGUARD);
+#else
 PSHdr.pszIcon = MAKEINTRESOURCE(IDI_IBGUARD);
+#endif
 PSHdr.pszCaption = (LPSTR) APP_NAME;
 PSHdr.nPages = sizeof(PSPages)/sizeof(PROPSHEETPAGE);
+#ifdef  __BORLANDC__            /* Anonymous unions not working in BC */
+PSHdr.DUMMYUNIONNAME2.nStartPage = 0;
+PSHdr.DUMMYUNIONNAME3.ppsp = (LPCPROPSHEETPAGE) &PSPages;
+#else
 PSHdr.nStartPage = 0;
 PSHdr.ppsp = (LPCPROPSHEETPAGE) &PSPages;
+#endif
 PSHdr.pfnCallback = NULL;
 
 hPSDlg = (HWND) PropertySheet(&PSHdr);
