@@ -642,7 +642,7 @@ if (!fAnsiCP)
 }
 #endif
 if (sw_version)
-    dba_print (5, GDS_VERSION, 0, 0, 0, 0); /* msg 5: gstat version %s */
+    dba_print (5, FB_VERSION, 0, 0, 0, 0); /* msg 5: gstat version %s */
 
 /* Open database and go to work */
 
@@ -919,15 +919,15 @@ for (relation = tddba->relations; relation; relation = relation->rel_next)
 	    sprintf(buf,"%.2f", average);
 	    FPRINTF (sw_outfile, "    Average record length: %s, total records: %ld\n",
 		     buf, relation->rel_records);
-/*	    dba_print(18, buf, relation->rel_records,
-		  0, 0, 0); */ /* msg 18: "    Average record length: %s, total records: %ld */
+	    dba_print(18, buf, relation->rel_records,
+		  0, 0, 0); /* msg 18: "    Average record length: %s, total records: %ld */
 	    average = (relation->rel_versions) ?
 		(double) relation->rel_version_space / relation->rel_versions : 0.0;
 	    sprintf(buf,"%.2f", average);
 	    FPRINTF (sw_outfile, "    Average version length: %s, total versions: %ld, max versions: %ld\n",
 		     buf, relation->rel_versions, relation->rel_max_versions);
-/*	    dba_print(19, buf, relation->rel_versions, relation->rel_max_versions,
-		  0, 0); */ /* msg 19: "    Average version length: %s, total versions: %ld, max versions: %ld */
+	    dba_print(19, buf, relation->rel_versions, relation->rel_max_versions,
+		  0, 0);  /* msg 19: "    Average version length: %s, total versions: %ld, max versions: %ld */
 	    }
 
 	average = (relation->rel_data_pages) ?
@@ -1189,7 +1189,7 @@ static void analyze_index (
 BTR	bucket;
 IRT	index_root;
 BTN	node;
-SSHORT	space, duplicates, key_length, l, dup, n;
+SLONG	space, duplicates, key_length, l, dup, n;
 UCHAR	key [256], *p, *q;
 SLONG	number, page;
 TDBA	tddba;
