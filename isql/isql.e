@@ -5224,6 +5224,11 @@ while (*p != isc_info_end)
 	    ** Error indicates an option was not understood by the
 	    ** remote server.
 	    */
+		if (*p == isc_info_firebird_version) 
+		{
+			/* must be an old or non Firebird server */
+			break;
+		}
 	    if (SQL_dialect && SQL_dialect != SQL_DIALECT_V5 && Warnings)
 		{
 		ISQL_printf(Out, NEWLINE);
@@ -5264,7 +5269,7 @@ while (*p != isc_info_end)
 
 	case isc_info_firebird_version: 
 		strcpy(server_version, "Server: "); 
-		strncat(server_version, p, length); 
+		strncat(server_version, &(p[2]), (length - 2)); 
 		if (Version_info == TRUE) 
 		{ 
 			strcat(server_version, NEWLINE); 
