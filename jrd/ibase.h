@@ -246,21 +246,29 @@ typedef struct blobcallback {
 /* This is the famous internal descriptor that UDFs can use, too. */
 typedef struct paramdsc {
     unsigned char	dsc_dtype;
-    char			dsc_scale;
+    signed char		dsc_scale;
     ISC_USHORT		dsc_length;
-    short			dsc_sub_type;
+    short		dsc_sub_type;
     ISC_USHORT		dsc_flags;
     unsigned char	*dsc_address;
 } PARAMDSC;
 
+#if !defined(_JRD_VAL_H_)
+/* This is a helper struct to work with varchars. */
+typedef struct paramvary {
+    ISC_USHORT		vary_length;
+    unsigned char	vary_string [1];
+} PARAMVARY;
+#endif /* !defined(_JRD_VAL_H_) */
+
 /* values for dsc_flags */
 /* Note: DSC_null is only reliably set for local variables
    (blr_variable) */
-#define DSC_null			1
+#define DSC_null		1
 #define DSC_no_subtype		2	/* dsc has no sub type specified */
-#define DSC_nullable  		4   /* not stored. instead, is derived
-                                   from metadata primarily to flag
-                                    SQLDA (in DSQL)               */
+#define DSC_nullable  		4	/* not stored. instead, is derived
+                                	from metadata primarily to flag
+                                 	SQLDA (in DSQL)               */
 
 /* Overload text typing information into the dsc_sub_type field.
    See intl.h for definitions of text types */ 
