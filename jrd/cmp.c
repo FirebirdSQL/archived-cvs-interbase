@@ -974,10 +974,10 @@ switch (node->nod_type)
 			else if (dtype1 == dtype2)
 			    dtype = dtype1;
 		 	else if ((dtype1 == dtype_timestamp) && 
-				(dtype2 = dtype_sql_date))
+				(dtype2 == dtype_sql_date))
 			    dtype = dtype_timestamp;
 		 	else if ((dtype2 == dtype_timestamp) && 
-				(dtype1 = dtype_sql_date))
+				(dtype1 == dtype_sql_date))
 			    dtype = dtype_timestamp;
 			else
 			    ERR_post (gds__expression_eval_err, 0);
