@@ -3611,11 +3611,13 @@ TEXT	name [20];
 
 gen_s_start (action);
 request = action->act_request;
+printa (names [COLUMN], FALSE, "IF SQLCODE = 0 THEN");
 port = request->req_primary;
 gen_receive (action, port);
 gen_name (name, port->por_references, TRUE);
 printa (names [COLUMN], FALSE, "IF SQLCODE = 0 AND %s = 0 THEN ", name);
 printa (names [COLUMN], FALSE, "MOVE 100 TO SQLCODE");
+printa (names [COLUMN], FALSE, "END-IF");
 printa (names [COLUMN], FALSE, "END-IF");
 }
 
