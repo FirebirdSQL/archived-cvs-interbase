@@ -806,12 +806,6 @@ PSHdr.nStartPage = 0;
 PSHdr.ppsp = (LPCPROPSHEETPAGE) &PSPages;
 PSHdr.pfnCallback = NULL;
 
-/* Initialize the gray brush to paint the background
-   for all prop. sheet pages and their controls
-*/
-
-CreateSolidBrush(GetSysColor(COLOR_BTNFACE));
-
 hPSDlg = (HWND) PropertySheet(&PSHdr);
 
 if (hPSDlg <= 0)
