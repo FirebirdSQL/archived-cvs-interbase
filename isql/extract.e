@@ -2596,9 +2596,18 @@ FOR FUN IN RDB$FUNCTIONS
 
         /* If a return argument, save it for the end, otherwise print */
 
+/*
+// Changed the following to not return a BLOB by value.
+// To be sincere, this code doesn't cater for the RETURNS PARAMETER syntax but
+// it would require more surgery than I'm willing to do, since I'm sick of isql
+// so I started my own metadata extraction utility based on IBO that does this
+// trick and others. 
+// Claudio Valderrama (by way of) MOD 23-Apr-2001
+*/
+
         if (FUN.RDB$RETURN_ARGUMENT == FNA.RDB$ARGUMENT_POSITION)
             sprintf (return_buffer, "RETURNS %s %s %s", type_buffer, 
-                ((SSHORT) abs (FNA.RDB$MECHANISM) == FUN_reference ? "" : "BY VALUE"), 
+                (((SSHORT) abs (FNA.RDB$MECHANISM) == FUN_reference || FNA.RDB$FIELD_TYPE == BLOB) ? "" : "BY VALUE"), 
                 (FNA.RDB$MECHANISM < 0 ? "FREE_IT" : ""));
         else
             {
