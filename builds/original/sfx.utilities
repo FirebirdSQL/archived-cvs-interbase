@@ -57,11 +57,9 @@ dba.exe:	dba.o ppg.o
 	$(RM) dba.exe
 	$(TOUCH) dba.exe
 
-# JMB all $(JRD_LINK) $(LOCK_LINK) files are in the shared library, so I
-# removed them from the link line.
-drop:		drop.o dropv3.o
+drop:		drop.o dropv3.o $(JRD_LINK) $(LOCK_LINK)
 	-$(RM) drop
-	$(CC) $(LINK_OPTS) drop.o dropv3.o \
+	$(CC) $(LINK_OPTS) drop.o dropv3.o $(JRD_LINK) $(LOCK_LINK) \
 		$(STDIO) -o drop $(SCO_SOCKET_LIB) $(SO_THREAD_LIB) $(NSL_LIB)
 	$(CHMOD_S7) drop
 	$(MV) drop $(DROP)
