@@ -286,7 +286,8 @@ while (argv < end)
          }
     }
 #if (defined SUPERSERVER && defined UNIX )
-    set_signal (SIGPIPE, signal_sigpipe_handler);
+/*    set_signal (SIGPIPE, signal_sigpipe_handler);*/
+    set_signal (SIGPIPE, signal_handler);
     set_signal (SIGUSR1, signal_handler);
     set_signal (SIGUSR2, signal_handler);
 #endif
@@ -624,11 +625,13 @@ static void signal_sigpipe_handler (void)
  ****************************************************
  *
  * Functional description
- *	Dummy signal handler.
+ *	Another dummy signal handler.
  *
  **************************************/
 
 ++INET_SERVER_start;
+/*
 gds__log ("Super Server/main: Bad client socket, send() resulted in SIGPIPE, caught by server\n                   client exited improperly or crashed ????");
+*/
 }
 #endif
