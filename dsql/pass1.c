@@ -30,6 +30,7 @@
  * variable it can't find in the error message.
  * 2001.6.30: Claudio Valderrama: Enhanced again to provide (line, col), see node.h.
  * 2001.7.28: John Bellardo: added code to handle nod_limit and associated fields.
+ * 2001.08.14 Claudio Valderrama: fixed crash with trigger and CURRENT OF <cursor> syntax.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -579,7 +580,9 @@ switch (input->nod_type)
 	cursor = node->nod_arg [e_flp_cursor] = input->nod_arg [e_flp_cursor];
 	if (cursor && (procedure = request->req_ddl_node) &&
 		    ((procedure->nod_type == nod_def_procedure) ||
-		     (procedure->nod_type == nod_mod_procedure)))
+		     (procedure->nod_type == nod_mod_procedure) ||
+			 procedure->nod_type == nod_def_trigger ||
+			 procedure->nod_type == nod_mod_trigger))
 	    {
 	    cursor->nod_arg [e_cur_next] = procedure->nod_arg [e_prc_cursors];
 	    procedure->nod_arg [e_prc_cursors] = cursor;
@@ -611,7 +614,9 @@ switch (input->nod_type)
 	if (cursor &&
 	    procedure &&
 	    ((procedure->nod_type == nod_def_procedure) ||
-	     (procedure->nod_type == nod_mod_procedure)))
+	     (procedure->nod_type == nod_mod_procedure) ||
+		 procedure->nod_type == nod_def_trigger ||
+		 procedure->nod_type == nod_mod_trigger))
 	    procedure->nod_arg [e_prc_cursors] = cursor->nod_arg [e_cur_next];
 
 	if (request->req_error_handlers && 
