@@ -22,12 +22,24 @@
  * 2001.6.25 Claudio Valderrama: Implement deferred check for udf usage
  * inside a procedure before dropping the uff and creating stub for future
  * processing of dependencies from dropped generators.
+ *
  * 2001.8.12 Claudio Valderrama: find_depend_in_dfw() and other functions
- *   should respect identifiers with embedded blanks instead of chopping them.
+ *   should respect identifiers with embedded blanks instead of chopping them
+ *.
  * 2001.10.01 Claudio Valderrama: check constraints should fire AFTER the
  *   BEFORE <action> triggers; otherwise they allow invalid data to be stored.
  *   This is a quick fix for SF Bug #444463 until a more robust one is devised
  *   using trigger's rdb$flags or another mechanism.
+ *
+ * 2001.10.10 Ann Harrison:  Don't increment the format version unless the
+ *   table is actually reformatted.  At the same time, break out some of
+ *   the parts of make_version making some new subroutines with the goal
+ *   of making make_version readable.
+ *
+ * 2001.10.18 Ann Harrison: some cleanup of trigger & constraint handling.
+ *   it now appears to work correctly on new Firebird databases with lots
+ *   of system types and on InterBase databases, without checking for 
+ *   missing source.
  */
 
 #ifdef SHLIB_DEFS
@@ -162,17 +174,23 @@ static BOOLEAN	make_version		(TDBB, SSHORT, DFW, TRA);
 
 static void	check_dependencies	(TDBB, TEXT *, TEXT *,
 						USHORT, TRA);
-static void	check_filename (TEXT *, USHORT);
+static void	check_filename		(TEXT *, USHORT);
+static BOOLEAN	compare_formats		(FMT, FMT);
 static BOOLEAN	find_depend_in_dfw	(TDBB, TEXT *, USHORT,
 						USHORT, TRA);
 static void	get_array_desc		(TDBB, TEXT *, ADS);
 static void	get_procedure_dependencies (DFW);
 static void	get_trigger_dependencies (DFW);
-static FMT	make_format		(TDBB, REL, USHORT, TFB);
-static USHORT	name_length (TEXT *);
-static void	put_summary_blob (BLB, enum rsr_t, SLONG [2]);
-static void	put_summary_record (BLB, enum rsr_t, UCHAR *, USHORT);
+static void	load_trigs		(TDBB, REL, VEC *);
+static FMT	make_format		(TDBB, REL, USHORT *, TFB);
+static USHORT	name_length		(TEXT *);
+static void	put_summary_blob	(BLB, enum rsr_t, SLONG [2]);
+static void	put_summary_record	(BLB, enum rsr_t, UCHAR *, USHORT);
+static void	setup_array		(TDBB, BLB, UCHAR *, USHORT, TFB);
+static BLB	setup_triggers		(TDBB, REL, BOOLEAN, VEC *, BLB);
+static void	setup_trigger_details	(TDBB, REL, BLB, VEC *, UCHAR *, UCHAR *, BOOLEAN);
 static BOOLEAN	shadow_defined		(TDBB);
+static BOOLEAN	validate_text_type	(TDBB, STATUS *, TFB);
 static BOOLEAN	wal_defined		(TDBB);
 
 static CONST UCHAR nonnull_validation_blr [] =
@@ -245,7 +263,7 @@ extern int		unlink();
 extern IB_FILE		_iob [];
 extern int		ib_fprintf();
 #endif
-
+
 USHORT DFW_assign_index_type (
     DFW		work,
     SSHORT	field_type,
@@ -311,7 +329,7 @@ if (field_type == dtype_int64)
 
 return idx_numeric;
 }
-
+
 void DFW_delete_deferred (
     TRA		transaction,
     SLONG	sav_number)
@@ -357,7 +375,7 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
 if (!deferred_meta)
     transaction->tra_flags &= ~TRA_deferred_meta;
 }
-
+
 void DFW_merge_work (
     TRA		transaction,
     SLONG	old_sav_number,
@@ -429,7 +447,7 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
 	ptr = &(*ptr)->dfw_next;
     }
 }
-
+
 void DFW_perform_system_work (void)
 {
 /**************************************
@@ -449,7 +467,7 @@ dbb = GET_DBB;
 
 DFW_perform_work (dbb->dbb_sys_trans);
 }
-
+
 void DFW_perform_work (
     TRA	transaction)
 {
@@ -541,7 +559,7 @@ transaction->tra_flags &= ~TRA_deferred_meta;
 if (dump_shadow)
     SDW_dump_pages();
 }
-
+
 void DFW_perform_post_commit_work (
     TRA		transaction)
 {
@@ -597,7 +615,7 @@ for (ptr = &transaction->tra_deferred_work; work = *ptr;)
     else
 	ptr = &(*ptr)->dfw_next;
 }
-
+
 void DFW_post_work (
     TRA		transaction,
     ENUM dfw_t	type,
@@ -681,7 +699,7 @@ if (type != dfw_post_event)
 else if (transaction->tra_save_point)
     transaction->tra_save_point->sav_flags |= SAV_event_post;
 }
-
+
 void DFW_update_index (
     DFW		work,
     USHORT	id,
@@ -720,7 +738,7 @@ END_FOR;
 if (!REQUEST (irq_m_index))
     REQUEST (irq_m_index) = (BLK) request;
 }
-
+
 static BOOLEAN add_file (
     TDBB	tdbb,
     SSHORT	phase,
@@ -848,7 +866,7 @@ switch (phase)
 return FALSE;
 }
 
-
+
 static BOOLEAN add_shadow (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1023,7 +1041,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static void check_dependencies (
     TDBB	tdbb,
     TEXT	*dpdo_name,
@@ -1140,7 +1158,7 @@ for (i = 0; i < obj_count; i++)
 		0);                           /* there are %ld dependencies */
 	}
 }
-
+
 static void check_filename (
     TEXT	*name,
     USHORT	l)
@@ -1172,7 +1190,53 @@ if (!valid || ISC_check_if_remote (file_name, FALSE))
 	gds_arg_gds, gds__node_name_err, 0);
     /* Msg305: A node name is not permitted in a secondary, shadow, or log file name */
 }
-
+
+static BOOLEAN compare_formats (
+    FMT old_format,
+    FMT	new_format)
+{
+/**************************************
+ *
+ *	c o m p a r e _ f o r m a t s
+ *
+ **************************************
+ *
+ * Functional description
+ *	Compare two format blocks
+ *
+ **************************************/
+DSC * old_desc, * new_desc, * end;
+
+
+if ((old_format->fmt_length != new_format->fmt_length)
+    || (old_format->fmt_count != new_format->fmt_count))
+    {
+    return TRUE;
+    }
+
+old_desc = old_format->fmt_desc;
+new_desc = new_format->fmt_desc;
+end = old_format->fmt_desc + old_format->fmt_count;
+
+while (old_desc < end)
+    {
+    if ((old_desc->dsc_dtype != new_desc->dsc_dtype)
+	||(old_desc->dsc_scale != new_desc->dsc_scale)
+	||(old_desc->dsc_length != new_desc->dsc_length)
+	||(old_desc->dsc_sub_type != new_desc->dsc_sub_type)
+	||(old_desc->dsc_flags != new_desc->dsc_flags)
+	|| (old_desc->dsc_address != new_desc->dsc_address))
+	{
+	return TRUE;
+	}
+    old_desc++;
+    new_desc++;
+    }
+
+return FALSE;
+
+}
+
 static BOOLEAN compute_security (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1245,7 +1309,7 @@ CMP_release (tdbb, handle);
 
 ****/
 }
-
+
 static BOOLEAN create_index (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1497,17 +1561,20 @@ switch (phase)
 			gds_arg_gds, gds__obj_in_use,
 			gds_arg_string, partner_relation->rel_name, 
 			0);
+
 	/* CVC: Currently, the server doesn't enforce FK creation more than at DYN level.
 	If DYN is bypassed, then FK creation succeeds and operation will fail at run-time.
 	The aim is to check REFERENCES at DDL time instead of DML time and behave accordingly
 	to ANSI SQL rules for REFERENCES rights.
 	For testing purposes, I'm calling SCL_check_index, although most of the DFW ops are
 	carried using internal metadata structures that are refreshed from system tables. */
+
 		if (partner_relation)
 		{
 			/* Don't bother if the master's owner is the same than the detail's owner.
 			If both tables aren't defined in the same session, partner_relation->rel_owner_name
 			won't be loaded hence, we need to be careful about null pointers. */
+
 			if (!relation->rel_owner_name || !partner_relation->rel_owner_name
 				|| strcmp(relation->rel_owner_name, partner_relation->rel_owner_name))
 				SCL_check_index (tdbb, partner_relation->rel_name, idx.idx_id + 1, SCL_sql_references);
@@ -1532,7 +1599,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN create_log (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1610,7 +1677,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN create_procedure (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1647,7 +1714,7 @@ switch (phase)
 
 return FALSE;
 }   
-
+
 static BOOLEAN create_relation (
     TDBB	tdbb,
     SSHORT	phase,
@@ -1812,7 +1879,7 @@ switch (phase)
 
 return FALSE;
 }   
-
+
 static BOOLEAN create_trigger (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2045,7 +2112,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_global (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2093,7 +2160,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_index (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2210,7 +2277,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_log (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2262,7 +2329,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_parameter (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2300,7 +2367,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_procedure (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2400,7 +2467,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_relation (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2582,7 +2649,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_rfr (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2715,7 +2782,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_shadow (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2749,7 +2816,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN delete_trigger (
     TDBB	tdbb,
     SSHORT	phase,
@@ -2784,7 +2851,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN find_depend_in_dfw (
     TDBB	tdbb,
     TEXT	*object_name,
@@ -2806,7 +2873,6 @@ static BOOLEAN find_depend_in_dfw (
  **************************************/
 DBB		dbb;
 REQ		request;
-TEXT		*p;
 ENUM dfw_t	dfw_type;
 DFW		work;
 
@@ -2877,7 +2943,7 @@ if (dfw_type == dfw_delete_global)
 
 return FALSE;
 }
-
+
 static void get_array_desc (
     TDBB	tdbb,
     TEXT	*field_name,
@@ -2930,7 +2996,7 @@ desc->ads_length = ADS_LEN (MAX (desc->ads_struct_count, desc->ads_dimensions));
 desc->ads_element_length = desc->ads_rpt [0].ads_desc.dsc_length;
 desc->ads_total_length = desc->ads_element_length * desc->ads_count;
 }
-
+
 static void get_procedure_dependencies (
     DFW	work)
 {
@@ -2997,7 +3063,7 @@ if (procedure && !NULL_BLOB (blob_id))
     tdbb->tdbb_default = old_pool;
     }
 }
-
+
 static void get_trigger_dependencies (
     DFW	work)
 {
@@ -3060,11 +3126,56 @@ if (relation && !NULL_BLOB (blob_id))
     tdbb->tdbb_default = old_pool;
     }
 }
-
+
+static void load_trigs (
+    TDBB	tdbb,
+    REL		relation,
+    VEC		* triggers)
+{
+/**************************************
+ *
+ *	l o a d _ t r i g s
+ *
+ **************************************
+ *
+ * Functional description
+ *	We have just loaded the triggers onto the local vector 
+ *      triggers. Its now time to place them at their rightful 
+ *      place ie the relation block. 
+ *
+ **************************************/
+VEC tmp_vector;
+
+tmp_vector = relation->rel_pre_store;
+relation->rel_pre_store = triggers [TRIGGER_PRE_STORE];
+MET_release_triggers (tdbb, &tmp_vector);
+
+tmp_vector = relation->rel_post_store;
+relation->rel_post_store = triggers [TRIGGER_POST_STORE];
+MET_release_triggers (tdbb, &tmp_vector);
+
+tmp_vector = relation->rel_pre_erase;
+relation->rel_pre_erase = triggers [TRIGGER_PRE_ERASE];
+MET_release_triggers (tdbb, &tmp_vector);
+
+tmp_vector = relation->rel_post_erase;
+relation->rel_post_erase = triggers [TRIGGER_POST_ERASE];
+MET_release_triggers (tdbb, &tmp_vector);
+
+tmp_vector = relation->rel_pre_modify;
+relation->rel_pre_modify = triggers [TRIGGER_PRE_MODIFY];
+MET_release_triggers (tdbb, &tmp_vector);
+
+tmp_vector = relation->rel_post_modify;
+relation->rel_post_modify = triggers [TRIGGER_POST_MODIFY];
+MET_release_triggers (tdbb, &tmp_vector);
+
+}
+
 static FMT make_format (
     TDBB	tdbb,
     REL		relation,
-    USHORT	version,
+    USHORT	* version,
     TFB		stack)
 {
 /**************************************
@@ -3079,7 +3190,7 @@ static FMT make_format (
  **************************************/
 DBB	dbb;
 BLK	request;
-FMT	format;
+FMT	format, old_format;
 VEC	vector;
 TFB	tfb;
 BLB	blob;
@@ -3098,7 +3209,7 @@ for (tfb = stack; tfb; tfb = tfb->tfb_next)
 
 format = (FMT) ALLOCPV (type_fmt, count + 1);
 format->fmt_count = count + 1;
-format->fmt_version = version;
+format->fmt_version = * version;
 
 /* Fill in the format block from the temporary field blocks */
 
@@ -3164,10 +3275,19 @@ if (offset > MAX_FORMAT_SIZE)
 	/* Msg361: new record size of %ld bytes is too big */
     }
 
+if ((format->fmt_version)
+    && (old_format = MET_format (tdbb, relation, (format->fmt_version - 1)))    
+    && (!compare_formats (old_format, format)))
+    {
+    ALL_release ((FRB) format);
+    *version = old_format->fmt_version;
+    return old_format;
+    }
+
 /* Link the format block into the world */
 
-vector = ALL_vector (dbb->dbb_permanent, &relation->rel_formats, version);
-vector->vec_object [version] = (BLK) format;
+vector = ALL_vector (dbb->dbb_permanent, &relation->rel_formats, format->fmt_version);
+vector->vec_object [format->fmt_version] = (BLK) format;
 
 /* Store format in system relation */
 
@@ -3177,7 +3297,7 @@ STORE (REQUEST_HANDLE request)
 	FMT IN RDB$FORMATS
     if (!REQUEST (irq_format3))
 	REQUEST (irq_format3) = request;
-    FMT.RDB$FORMAT = version;
+    FMT.RDB$FORMAT = format->fmt_version;
     FMT.RDB$RELATION_ID = relation->rel_id;
     blob = BLB_create (tdbb, dbb->dbb_sys_trans, &FMT.RDB$DESCRIPTOR);
     BLB_put_segment (tdbb, blob, format->fmt_desc, format->fmt_count * sizeof (struct dsc));
@@ -3189,7 +3309,7 @@ if (!REQUEST (irq_format3))
 
 return format;
 }
-
+
 static BOOLEAN make_version (
     TDBB	tdbb,
     SSHORT	phase,
@@ -3218,12 +3338,10 @@ BLB		blob;
 GDS__QUAD blob_id;
 BLK		temp;
 USHORT		version, n, external_flag;
-BOOLEAN	 null_view, computed_field;
-SLONG		stuff [64];
-ADS		array;
+BOOLEAN		null_view, computed_field;
 STATUS		status [20];
 SSHORT		collation;
-VEC		triggers [TRIGGER_MAX], tmp_vector;
+VEC		triggers [TRIGGER_MAX];
 
 SET_TDBB (tdbb);
 dbb =  tdbb->tdbb_database;
@@ -3267,7 +3385,6 @@ switch (phase)
 		    /* Msg357: too many versions */
 		}
 	    MODIFY REL USING
-		version = ++REL.RDB$FORMAT;
 		blob = BLB_create (tdbb, dbb->dbb_sys_trans, &REL.RDB$RUNTIME);
 		request_fmtx = (BLK) CMP_find_request (tdbb, irq_format2, IRQ_REQUESTS);
 		FOR (REQUEST_HANDLE request_fmtx)
@@ -3275,9 +3392,6 @@ switch (phase)
 		    FLD IN RDB$FIELDS WITH
 			RFR.RDB$RELATION_NAME EQ work->dfw_name AND
 			RFR.RDB$FIELD_SOURCE EQ FLD.RDB$FIELD_NAME
-
-		    if (!REQUEST (irq_format2))
-			REQUEST (irq_format2) = request_fmtx;
 
 		    /* Update RFR to reflect new fields id */
 
@@ -3380,39 +3494,25 @@ switch (phase)
 			FLD.RDB$FIELD_SUB_TYPE, FLD.RDB$CHARACTER_SET_ID, 
 			collation);
 
-		    /* Make sure the text type specified is implemented */
-		    if ((IS_DTYPE_ANY_TEXT (tfb->tfb_desc.dsc_dtype) &&
-			!INTL_defined_type (tdbb, status, tfb->tfb_desc.dsc_ttype))
-			||
-			(tfb->tfb_desc.dsc_dtype == dtype_blob && 
-			 tfb->tfb_desc.dsc_sub_type == BLOB_text && 
-			 !INTL_defined_type (tdbb, status, tfb->tfb_desc.dsc_scale)))
-			{
+		    if (!(validate_text_type (tdbb, status, tfb)))
+			    {
 			    EXE_unwind (tdbb, request_fmt1);
 			    EXE_unwind (tdbb, request_fmtx);
     			    ERR_post (gds__no_meta_update, 
-			        gds_arg_gds, gds__random, 
+				gds_arg_gds, gds__random, 
 				gds_arg_string, ERR_cstring (work->dfw_name), 
-			        status [0], status [1], status [2], status [3],
-			        0);
-		    	}
+				status [0], status [1], status [2], status [3],
+				0);
+			    }
+
 
 		    if (!NULL_BLOB (FLD.RDB$COMPUTED_BLR))
 			tfb->tfb_flags |= TFB_computed;
+		    
 		    tfb->tfb_id = RFR.RDB$FIELD_ID;
 
 		    if (n = FLD.RDB$DIMENSIONS)
-			{
-			put_summary_record (blob, RSR_dimensions, &n, sizeof (n));
-			tfb->tfb_flags |= TFB_array;
-			array = (ADS) stuff;
-			MOVE_CLEAR (array, (SLONG) sizeof (struct ads));
-			array->ads_dimensions = n;
-			array->ads_struct_count = 1;
-			array->ads_rpt[0].ads_desc = tfb->tfb_desc;
-			get_array_desc (tdbb, FLD.RDB$FIELD_NAME, array);
-			put_summary_record (blob, RSR_array_desc, array, array->ads_length);
-			}
+			setup_array (tdbb, blob, FLD.RDB$FIELD_NAME, n, tfb);
 
 		    if (external_flag)
 			{
@@ -3429,181 +3529,14 @@ switch (phase)
 		if (!REQUEST (irq_format2))
 		    REQUEST (irq_format2) = request_fmtx;
 
-		request_fmtx = (BLK) CMP_find_request (tdbb, irq_format4, IRQ_REQUESTS);
-		FOR (REQUEST_HANDLE request_fmtx) 
-			TRG IN RDB$TRIGGERS 
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
-			TRG.RDB$SYSTEM_FLAG != 0 AND TRG.RDB$SYSTEM_FLAG NOT MISSING
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-
-		    if (!REQUEST (irq_format4))
-			REQUEST (irq_format4) = request_fmtx;
-
-		    if (!TRG.RDB$TRIGGER_INACTIVE)
-			{
-			put_summary_record (blob, RSR_trigger_name, 
-			    TRG.RDB$TRIGGER_NAME, name_length (TRG.RDB$TRIGGER_NAME));
-
-			/* for a view, load the trigger temporarily -- 
-			   this is inefficient since it will just be reloaded
-			   in MET_scan_relation () but it needs to be done
-			   in case the view would otherwise be non-updatable */
-
-			if (!null_view)
-			    {
-			    if (!relation->rel_name)
-				relation->rel_name = MET_save_name (tdbb, TRG.RDB$RELATION_NAME);
-			    MET_load_trigger (tdbb, relation,
-						TRG.RDB$TRIGGER_NAME, triggers);
-			    }
-			}	
-		END_FOR;
-
-		if (!REQUEST (irq_format4))
-		    REQUEST (irq_format4) = request_fmtx;
-
-		request_fmtx = (BLK) CMP_find_request (tdbb, irq_format5, IRQ_REQUESTS);
-		/* BUG #8458: Check constraint triggers have to be loaded
-		              (and hence executed) after the user-defined 
-			      triggers because user-defined triggers can modify
-			      the values being inserted or updated so that
-			      the end values stored in the database don't
-			      fulfill the check constraint */
-
-/*
-This is the wrong statement.
-		FOR (REQUEST_HANDLE request_fmtx) 
-			TRG IN RDB$TRIGGERS 
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
-			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_'
-			    AND  TRG.RDB$TRIGGER_SOURCE MISSING)
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-This is a comprehensive albeit ugly solution.
-		FOR (REQUEST_HANDLE request_fmtx)
-		UTRIG IN RDB$TRIGGERS
-		WITH TRG.RDB$RELATION_NAME EQ work->dfw_name
-		AND NOT ANY (
-			TRG IN RDB$TRIGGERS CROSS 
-			CHK IN RDB$CHECK_CONSTRAINTS CROSS
-			RCN IN RDB$RELATION_CONSTRAINTS
-			WITH TRG.RDB$RELATION_NAME EQ work->dfw_name
-			AND TRG.RDB$TRIGGER_NAME EQ UTRIG.RDB$TRIGGER_NAME
-			AND TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
-			AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
-			AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
-				OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
-			)
-		SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-*/
-/* Firebird will do:
-		FOR (REQUEST_HANDLE request_fmtx) 
-			TRG IN RDB$TRIGGERS 
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name
-			AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-*/
-
-		FOR (REQUEST_HANDLE request_fmtx) 
-			TRG IN RDB$TRIGGERS 
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name
-			AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_')
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-
-		    if (!REQUEST (irq_format5))
-			REQUEST (irq_format5) = request_fmtx;
-
-		    if (!TRG.RDB$TRIGGER_INACTIVE)
-			{
-			put_summary_record (blob, RSR_trigger_name, 
-			    TRG.RDB$TRIGGER_NAME, name_length (TRG.RDB$TRIGGER_NAME));
-
-			/* for a view, load the trigger temporarily -- 
-			   this is inefficient since it will just be reloaded
-			   in MET_scan_relation () but it needs to be done
-			   in case the view would otherwise be non-updatable */
-
-			if (!null_view)
-			    {
-			    if (!relation->rel_name)
-				relation->rel_name = MET_save_name (tdbb, TRG.RDB$RELATION_NAME);
-			    MET_load_trigger (tdbb, relation,
-						TRG.RDB$TRIGGER_NAME, triggers);
-			    }
-			}	
-		END_FOR;
-
-		if (!REQUEST (irq_format5))
-		    REQUEST (irq_format5) = request_fmtx;
-
-		request_fmtx = (BLK) CMP_find_request (tdbb, irq_format6, IRQ_REQUESTS);
-/*
-This is the wrong statement.
-		FOR (REQUEST_HANDLE request_fmtx)
-			TRG IN RDB$TRIGGERS
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
-			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_' AND
-			     TRG.RDB$TRIGGER_SOURCE MISSING)
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-This is a comprehensive albeit ugly solution.
-		FOR (REQUEST_HANDLE request_fmtx)
-			TRG IN RDB$TRIGGERS CROSS 
-			CHK IN RDB$CHECK_CONSTRAINTS CROSS
-			RCN IN RDB$RELATION_CONSTRAINTS
-			WITH TRG.RDB$RELATION_NAME EQ work->dfw_name
-			AND TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
-			AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
-			AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
-				OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-*/
-/* Firebird will do:
-		FOR (REQUEST_HANDLE request_fmtx) 
-			TRG IN RDB$TRIGGERS 
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name
-			AND NOT (TRG.RDB$SYSTEM_FLAG MISSING)
-			AND (TRG.RDB$SYSTEM_FLAG EQ frb_sysflag_check_constraint
-				OR TRG.RDB$SYSTEM_FLAG EQ frb_sysflag_referential_constraint
-				OR TRG.RDB$SYSTEM_FLAG EQ frb_sysflag_view_check)
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-*/
-
-		FOR (REQUEST_HANDLE request_fmtx)
-			TRG IN RDB$TRIGGERS
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name
-			AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
-			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_')
-			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
-
-		if (!REQUEST (irq_format6))
-		    REQUEST (irq_format6) = request_fmtx;
-
-		if (!TRG.RDB$TRIGGER_INACTIVE)
-		    {
-		    put_summary_record (blob, RSR_trigger_name,
-			TRG.RDB$TRIGGER_NAME, name_length (TRG.RDB$TRIGGER_NAME));
-
-		    /* for a view, load the trigger temporarily --
-		       this is inefficient since it will just be reloaded
-		       in MET_scan_relation () but it needs to be done
-		       in case the view would otherwise be non-updatable */
-
-		    if (!null_view)
-			{
-			if (!relation->rel_name)
-			    relation->rel_name = MET_save_name (tdbb, TRG.RDB$RELATION_NAME);
-			MET_load_trigger (tdbb, relation,
-					    TRG.RDB$TRIGGER_NAME, triggers);
-			}
-		    }
-		END_FOR;
-
-		if (!REQUEST (irq_format6))
-		    REQUEST (irq_format6) = request_fmtx;
+		blob = setup_triggers (tdbb, relation, null_view, triggers, blob);
 
 		BLB_close (tdbb, blob);
+		version = REL.RDB$FORMAT;
+		version++;
+		relation->rel_current_format = make_format (tdbb, relation,
+						    &version, stack);
+		REL.RDB$FORMAT = version;
 	    END_MODIFY;
 	END_FOR;
 
@@ -3616,37 +3549,7 @@ This is a comprehensive albeit ugly solution.
 	    return FALSE;
 
 	if (!(relation->rel_flags & REL_sys_trigs_being_loaded))
-	    {
-	    /* We have just loaded the triggers onto the local vector triggers.
-	       Its now time to place them at their rightful place ie the relation
-	       block. 
-	    */
-	    tmp_vector = relation->rel_pre_store;
-	    relation->rel_pre_store = triggers [TRIGGER_PRE_STORE];
-	    MET_release_triggers (tdbb, &tmp_vector);
-
-	    tmp_vector = relation->rel_post_store;
-	    relation->rel_post_store = triggers [TRIGGER_POST_STORE];
-	    MET_release_triggers (tdbb, &tmp_vector);
-
-	    tmp_vector = relation->rel_pre_erase;
-	    relation->rel_pre_erase = triggers [TRIGGER_PRE_ERASE];
-	    MET_release_triggers (tdbb, &tmp_vector);
-
-	    tmp_vector = relation->rel_post_erase;
-	    relation->rel_post_erase = triggers [TRIGGER_POST_ERASE];
-	    MET_release_triggers (tdbb, &tmp_vector);
-
-	    tmp_vector = relation->rel_pre_modify;
-	    relation->rel_pre_modify = triggers [TRIGGER_PRE_MODIFY];
-	    MET_release_triggers (tdbb, &tmp_vector);
-
-	    tmp_vector = relation->rel_post_modify;
-	    relation->rel_post_modify = triggers [TRIGGER_POST_MODIFY];
-	    MET_release_triggers (tdbb, &tmp_vector);
-	    }
-	relation->rel_current_format = make_format (tdbb, relation,
-						    version, stack);
+	    load_trigs (tdbb, relation, triggers);
 
 	/* in case somebody changed the view definition or a computed
 	   field, reset the dependencies by deleting the current ones
@@ -3677,7 +3580,7 @@ This is a comprehensive albeit ugly solution.
 
 return FALSE;
 }
-
+
 static BOOLEAN modify_procedure (
     TDBB	tdbb,
     SSHORT	phase,
@@ -3840,7 +3743,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN modify_trigger (
     TDBB	tdbb,
     SSHORT	phase,
@@ -3876,7 +3779,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static USHORT name_length (
     TEXT	*name)
 {
@@ -3903,7 +3806,7 @@ for (p = name; *p; p++)
 
 return ((q+1) - name);
 }
-
+
 static void put_summary_blob (
     BLB		blob,
     RSR_T	type,
@@ -3962,7 +3865,7 @@ tdbb->tdbb_setjmp = (UCHAR*) old_env;
 if (buffer != temp)
     ALL_free (buffer);
 }
-
+
 static void put_summary_record (
     BLB		blob,
     RSR_T	type,
@@ -4013,7 +3916,7 @@ tdbb->tdbb_setjmp = (UCHAR*) old_env;
 if (buffer != temp)
     ALL_free (buffer);
 }
-
+
 static BOOLEAN scan_relation (
     TDBB	tdbb,
     SSHORT	phase,
@@ -4047,7 +3950,7 @@ switch (phase)
 
 return FALSE;
 }
-
+
 static BOOLEAN shadow_defined (TDBB	tdbb)
 {
 /**************************************
@@ -4079,7 +3982,216 @@ CMP_release (tdbb, handle);
 
 return result;
 }
-
+
+static void setup_array (
+    TDBB    tdbb,
+    BLB	    blob,
+    UCHAR   * field_name,
+    USHORT  n,
+    TFB	    tfb)
+{
+/**************************************
+ *
+ *	s e t u p _ a r r a y
+ *
+ **************************************
+ *
+ * Functional description
+ *
+ *	setup an array descriptor in a tfb
+ *
+ **************************************/
+
+SLONG		stuff [64];
+ADS		array;
+
+put_summary_record (blob, RSR_dimensions, &n, sizeof (n));
+tfb->tfb_flags |= TFB_array;
+array = (ADS) stuff;
+MOVE_CLEAR (array, (SLONG) sizeof (struct ads));
+array->ads_dimensions = n;
+array->ads_struct_count = 1;
+array->ads_rpt[0].ads_desc = tfb->tfb_desc;
+get_array_desc (tdbb, field_name, array);
+put_summary_record (blob, RSR_array_desc, array, array->ads_length);
+}
+
+static BLB setup_triggers (
+     TDBB	tdbb,
+     REL	relation,
+     BOOLEAN	null_view,
+     VEC	* triggers,
+     BLB	blob)
+{
+/**************************************
+ *
+ *	s e t u p _ t r i g g e r s
+ *
+ **************************************
+ *
+ * Functional description
+ *
+ *	Get the triggers in the right order, which appears
+ *      to be system triggers first, then user triggers,
+ *      then triggers that implement check constraints. 
+ *
+ * BUG #8458: Check constraint triggers have to be loaded
+ *	      (and hence executed) after the user-defined 
+ *	      triggers because user-defined triggers can modify
+ *	      the values being inserted or updated so that
+ *	      the end values stored in the database don't
+ *	      fulfill the check constraint.     .
+ *
+ **************************************/
+BLK	request_fmtx;
+DBB	dbb;
+
+if (!relation)
+    return blob;
+
+dbb = tdbb->tdbb_database;
+
+
+/* system triggers */
+
+request_fmtx = (BLK) CMP_find_request (tdbb, irq_format4, IRQ_REQUESTS);
+
+FOR (REQUEST_HANDLE request_fmtx) 
+	TRG IN RDB$TRIGGERS 
+	WITH TRG.RDB$RELATION_NAME = relation->rel_name 
+	    AND TRG.RDB$SYSTEM_FLAG = 1 
+	SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+
+    if (!TRG.RDB$TRIGGER_INACTIVE)
+	setup_trigger_details (tdbb, relation,  blob,  triggers,  
+	    TRG.RDB$TRIGGER_NAME, TRG.RDB$RELATION_NAME, null_view);
+	        	
+END_FOR;
+
+if (!REQUEST (irq_format4))
+    REQUEST (irq_format4) = request_fmtx;
+
+
+/* user triggers */
+
+request_fmtx = (BLK) CMP_find_request (tdbb, irq_format5, IRQ_REQUESTS);
+
+FOR (REQUEST_HANDLE request_fmtx)
+    TRG IN RDB$TRIGGERS
+    WITH TRG.RDB$RELATION_NAME EQ relation->rel_name
+	AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+	AND NOT ANY 
+	    CHK IN RDB$CHECK_CONSTRAINTS CROSS
+	    RCN IN RDB$RELATION_CONSTRAINTS
+	    WITH TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
+		AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
+		AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
+		    OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
+	    
+    SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+    if (!TRG.RDB$TRIGGER_INACTIVE)
+	setup_trigger_details (tdbb, relation,  blob,  triggers,  
+	    TRG.RDB$TRIGGER_NAME, TRG.RDB$RELATION_NAME, null_view);
+END_FOR;
+
+if (!REQUEST (irq_format5))
+    REQUEST (irq_format5) = request_fmtx;
+
+/* check constraint triggers */
+
+request_fmtx = (BLK) CMP_find_request (tdbb, irq_format6, IRQ_REQUESTS);
+
+FOR (REQUEST_HANDLE request_fmtx)
+    TRG IN RDB$TRIGGERS
+    WITH TRG.RDB$RELATION_NAME = relation->rel_name 
+	AND TRG.RDB$SYSTEM_FLAG = 3
+	OR ((TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+	    AND ANY 
+		CHK IN RDB$CHECK_CONSTRAINTS CROSS
+		RCN IN RDB$RELATION_CONSTRAINTS
+		    WITH TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
+			AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
+			AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
+			    OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
+	    )
+    SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+
+    if (!TRG.RDB$TRIGGER_INACTIVE)
+	setup_trigger_details (tdbb, relation,  blob,  triggers,  
+	    TRG.RDB$TRIGGER_NAME, TRG.RDB$RELATION_NAME, null_view);
+    
+END_FOR;
+
+if (!REQUEST (irq_format6))
+    REQUEST (irq_format6) = request_fmtx;
+return blob;
+}
+
+static void setup_trigger_details (
+    TDBB    tdbb,
+    REL	    relation,
+    BLB	    blob,
+    VEC	    * triggers,
+    UCHAR * trigger_name,
+    UCHAR * relation_name, 
+    BOOLEAN null_view)
+{
+/**************************************
+ *
+ *	s e t u p _ t r i g g e r _ d e t a i l s
+ *
+ **************************************
+ *
+ * Functional description
+ *	Stuff trigger details in places.
+ *
+ * for a view, load the trigger temporarily -- 
+ * this is inefficient since it will just be reloaded
+ *  in MET_scan_relation () but it needs to be done
+ *  in case the view would otherwise be non-updatable 
+ *
+ **************************************/
+
+put_summary_record (blob, RSR_trigger_name, 
+    trigger_name, name_length (trigger_name));
+
+if (!null_view)
+    {
+    if (!relation->rel_name)
+	relation->rel_name = MET_save_name (tdbb, relation_name);
+    MET_load_trigger (tdbb, relation,
+			trigger_name, triggers);
+    }
+}	
+
+static BOOLEAN validate_text_type (
+    TDBB    tdbb,
+    STATUS  * status,
+    TFB	    tfb)
+{
+/**************************************
+ *
+ *	v a l i d a t e _ t e x t _ t y p e
+ *
+ **************************************
+ *
+ * Functional description
+ *	Make sure the text type specified is implemented 
+ *
+ **************************************/
+
+if ((IS_DTYPE_ANY_TEXT (tfb->tfb_desc.dsc_dtype) &&
+    !INTL_defined_type (tdbb, status, tfb->tfb_desc.dsc_ttype))
+    ||
+    (tfb->tfb_desc.dsc_dtype == dtype_blob && 
+     tfb->tfb_desc.dsc_sub_type == BLOB_text && 
+     !INTL_defined_type (tdbb, status, tfb->tfb_desc.dsc_scale)))
+
+     return FALSE;
+
+return TRUE;
+}
+
 static BOOLEAN wal_defined (TDBB	tdbb)
 {
 /**************************************
