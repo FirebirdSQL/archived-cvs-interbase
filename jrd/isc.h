@@ -19,8 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Added TCP_NO_DELAY option for superserver on Linux
+ * FSG 16.03.2001 
  */
-
+/*
+$Id$
+*/
 #ifndef _JRD_ISC_H_
 #define _JRD_ISC_H_
         
@@ -105,6 +109,12 @@
 
 #define ISCCFG_REMOTE_BUFFER	"TCP_REMOTE_BUFFER" 
 #define ISCCFG_REMOTE_BUFFER_DEF	8192	/* xdr buffer size */
+
+#ifdef SET_TCP_NO_DELAY
+#define ISCCFG_NO_NAGLE	"TCP_NO_NAGLE" 
+#define ISCCFG_NO_NAGLE_DEF	0	/*Disable Nagle Algorithm */
+#endif
+
 
 typedef struct cfgtbl {
     TEXT	*cfgtbl_keyword;

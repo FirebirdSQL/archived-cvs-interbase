@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Added TCP_NO_DELAY option for superserver on Linux
+ * FSG 16.03.2001 
  */
 /*
 $Id$
@@ -58,6 +60,10 @@ $Id$
 #define QUADFORMAT "ll"
 #define QUADCONST(n) (n##LL)
 #define MMAP_SUPPORTED
+
+#ifdef SUPERSERVER
+#define SET_TCP_NO_DELAY
+#endif
 
 #define KILLER_SIGNALS
 #define SIGACTION_SUPPORTED

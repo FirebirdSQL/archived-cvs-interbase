@@ -25,7 +25,6 @@
 #ifndef _UTILITIES_IBMGR_H_
 #define _UTILITIES_IBMGR_H_
 
-#include "../utilities/tcp_nd.h"
 
 #ifdef APOLLO
 #include "/sys/ins/base.ins.c"
@@ -105,9 +104,6 @@ typedef struct ibmgr_data_t {
     TEXT		real_user[128];	/* the os user name */
     TEXT		password[32];	/* user's passwd */
     BOOLEAN		shutdown;	/* shutdown is in progress */
-#ifdef SET_TCP_NODELAY
-    BOOLEAN		nonagle;	/*disable Nagle algorithm */
-#endif
     USHORT		reattach;	/* need to reattach because host,
 					   passwd or user has been changed */
     isc_svc_handle	attached;	/* !=NULL if we attached to service */

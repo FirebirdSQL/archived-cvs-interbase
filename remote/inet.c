@@ -19,8 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Added TCP_NO_DELAY option for superserver on Linux
+ * FSG 16.03.2001 
  */
-
+/*
+$Id$
+*/
 #include "../jrd/ib_stdio.h"
 #include <errno.h>
 #include <string.h>
@@ -35,6 +39,11 @@
 #ifdef	WIN_NT
 #define FD_SETSIZE 1024
 #endif
+
+#ifdef SET_TCP_NO_DELAY
+#include <netinet/tcp.h>
+#endif
+
 #endif /* SUPERSERVER */
 
 #if !(defined VMS || defined WIN_NT || defined WINDOWS_ONLY)
@@ -247,6 +256,16 @@ static struct ipccfg   INET_tcp_buffer [] = {
    NULL,                0, NULL,            0, 0
 };
 
+
+
+#ifdef SET_TCP_NO_DELAY
+USHORT      INET_no_nagle;
+ 
+static struct ipccfg   INET_tcp_delay [] = {
+   ISCCFG_NO_NAGLE, 0, &INET_no_nagle, 0, 0,
+   NULL,                0, NULL,            0, 0
+};
+#endif
 /*
 #define DEBUG	1
 */
@@ -1058,7 +1077,8 @@ PORT DLL_EXPORT INET_connect (
     STATUS	*status_vector,
     USHORT	flag,
     SCHAR       *dpb, 
-    SSHORT      dpb_length)
+    SSHORT      dpb_length
+    )
 {
 /**************************************
  *
@@ -1087,6 +1107,8 @@ SCHAR			optval;
 #else
 int			optval;
 #endif
+
+
  
 #ifdef DEBUG
 {
@@ -1351,6 +1373,33 @@ if (flag & SRVR_multi_client)
         disconnect (port);
         return NULL;
         }
+
+#ifdef SET_TCP_NO_DELAY
+
+     ISC_get_config (LOCK_HEADER, INET_tcp_delay);
+     if (INET_no_nagle)
+        {
+        
+         optval = TRUE;
+         n = setsockopt ((SOCKET) port->port_handle, SOL_SOCKET, TCP_NODELAY,
+		         (SCHAR*) &optval, sizeof (optval));
+        
+         gds__log ("inet log: disabled Nagle algorithm \n");
+                                        
+        
+        
+         if (n == -1)
+             {
+              inet_error (port, "setsockopt TCP_NODELAY", isc_net_connect_listen_err, ERRNO);
+              disconnect (port);
+              return NULL;
+             }
+       }      
+#endif
+
+
+
+
     }
 
 n = bind ((SOCKET) port->port_handle, 

@@ -34,7 +34,6 @@
 #include "../utilities/ibmgrswi.h"
 #include "../jrd/license.h"
 #include "../utilities/srvrmgr_proto.h"
-#include "../utilities/tcp_nd.h"
 
 
 #define MAXARGS		20	/* max number of args allowed on command line */
@@ -162,9 +161,6 @@ ibmgr_data.shutdown = FALSE;
 ibmgr_data.attached = NULL;
 ibmgr_data.reattach |= (REA_HOST | REA_USER | REA_PASSWORD);
 
-#ifdef SET_TCP_NODELAY
-  ibmgr_data.nonagle = FALSE;
-#endif
 
 
 
@@ -433,9 +429,6 @@ for (--argc; argc > 0; argc--)
 	    case IN_SW_IBMGR_QUIT:
 	    case IN_SW_IBMGR_HELP:
 	    case IN_SW_IBMGR_Z:
-#ifdef SET_TCP_NODELAY
-            case IN_SW_IBMGR_NONAGLE:
-#endif
 		SRVRMGR_msg_get (MSG_SWNOPAR, msg);
 		ib_fprintf (OUTFILE, "%s\n", msg); 
 		return ERR_SYNTAX;
@@ -720,13 +713,6 @@ for (--argc; argc > 0; argc--)
 		    }
 		break;
 	  
-#ifdef SET_TCP_NODELAY
-	
-	    case IN_SW_IBMGR_NONAGLE:	
-                 ibmgr_data->nonagle = TRUE;
-
-            break; 
-#endif
 	    case IN_SW_IBMGR_0:
 		SRVRMGR_msg_get (MSG_INVSW, msg);
 		ib_fprintf (OUTFILE, "%s\n", msg);  
@@ -821,11 +807,6 @@ ib_fprintf (OUTFILE, "\n\n");
 ib_fprintf (OUTFILE, "Usage:		ibmgr -command [-option [parameter]]\n\n");
 ib_fprintf (OUTFILE, "or		ibmgr<RETURN>\n");
 ib_fprintf (OUTFILE, "		IBMGR> command [-option [parameter]]\n\n");
-#ifdef SET_TCP_NODELAY
-ib_fprintf (OUTFILE, "Commands are:	start [-once|-signore|-forever]	[-nonagle] start server\n");
-#else
-ib_fprintf (OUTFILE, "Commands are:	start [-once|-signore|-forever] start server\n");
-#endif
 ib_fprintf (OUTFILE, "		shut  [-now]		shutdown server\n");
 ib_fprintf (OUTFILE, "		show			show host and user\n");
 ib_fprintf (OUTFILE, "		user <user_name>	set user name\n");

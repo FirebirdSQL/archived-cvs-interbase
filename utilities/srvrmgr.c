@@ -30,7 +30,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "../utilities/tcp_nd.h"
 
 
 #include "../jrd/common.h"
@@ -492,15 +491,6 @@ else if (data->suboperation == SOP_START_SIGNORE)
     argv[1] = "-s";
 else
     argv[1] = "-f";
-
-#ifdef SET_TCP_NODELAY
-if (data->nonagle)
-{
-    argv[2] = "-n"; /*tell ibguard to disable Nagle algorithm FSG 27.Dez.2000*/
-    argv[3] = NULL; 
-}
-else
-#endif
     argv[2] = NULL;
 
 

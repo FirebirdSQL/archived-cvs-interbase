@@ -18,6 +18,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Added TCP_NO_DELAY option for superserver on Linux
+ * FSG 16.03.2001 
+ */
+/*
+$Id$
  */
 
 #ifndef _JRD_IBASE_H_
@@ -2209,6 +2214,10 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define ISCCFG_DUMMY_INTRVL_KEY 18
 #define ISCCFG_TRACE_POOLS_KEY  19   /* Internal Use only */
 #define ISCCFG_REMOTE_BUFFER_KEY	20
+
+#ifdef SET_TCP_NO_DELAY
+#define ISCCFG_NO_NAGLE_KEY	21 
+#endif
 
 /***************/
 /* Error codes */

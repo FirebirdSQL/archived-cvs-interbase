@@ -19,8 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Added TCP_NO_DELAY option for superserver on Linux
+ * FSG 16.03.2001 
  */
-
+/*
+$Id$
+*/
 #include "../jrd/ib_stdio.h"
 #include <stdlib.h>
 #include "../jrd/common.h"
@@ -138,7 +142,7 @@ static struct ipccfg   trace_pooltbl [] = {
 static TEXT	protocol [128];
 static int	INET_SERVER_start = 0;
 static USHORT	INET_SERVER_flag = 0;
-
+
 #ifdef WINDOWS_ROUTER
 int PASCAL WinMain (
     HINSTANCE	hInstance,
@@ -195,6 +199,8 @@ channel = 0;
 protocol [0] = 0;
 multi_client = multi_threaded = FALSE;
 
+
+
 #ifdef APOLLO
 standalone = TRUE;
 #endif
@@ -242,6 +248,7 @@ while (argv < end)
 		case 'S':
 		    standalone = TRUE;
 		    break;
+
 
 		case 'I':
 		    standalone = FALSE;
@@ -351,7 +358,8 @@ if (standalone)
     STATUS	status_vector [ISC_STATUS_LENGTH];
     THREAD_ENTER;
     port = INET_connect (protocol, NULL_PTR, status_vector, INET_SERVER_flag,
-			 NULL_PTR, 0);
+			 NULL_PTR, 0
+			 );
     THREAD_EXIT;
     if (!port)
 	{

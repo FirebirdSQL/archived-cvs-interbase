@@ -26,7 +26,6 @@
 #define _IBMGR_IBMGRSWI_H_
 
 #include "../jrd/common.h"
-#include "../utilities/tcp_nd.h"
 
 /* Switch constants */
 #define IN_SW_IBMGR_0		0	/* not a known switch */
@@ -56,14 +55,6 @@
 
 #define IN_SW_IBMGR_SIGNORE     19      /* start server, restart when it dies, even if it was a start up error */
 
-#ifdef SET_TCP_NODELAY
-/* as some Linux users report that disabling Nagle algorithm will result in
-   better performance, I decided to add this option to ibmgr and ibguard
-   on Linux
-   FSG 26.Dez.2000
-*/
-#define IN_SW_IBMGR_NONAGLE     20      /* disable Nagle algorithm */
-#endif
 
 #define IN_SW_IBMGR_AMBIG	99	/* ambiguous switch */
 
@@ -72,9 +63,6 @@ static struct in_sw_tab_t ibmgr_in_sw_table [] = {
     IN_SW_IBMGR_ONCE,		0,	"ONCE",		0, 0, 0, FALSE,	0,	1,	NULL,	/* start server once */
     IN_SW_IBMGR_FOREVER,	0,	"FOREVER",	0, 0, 0, FALSE,	0,	1,	NULL,	/* restart when server dies */
     IN_SW_IBMGR_SIGNORE,        0,      "SIGNORE",      0, 0, 0, FALSE, 0,      1,      NULL,   /* dito, ignore start up error */
-#ifdef SET_TCP_NODELAY
-    IN_SW_IBMGR_NONAGLE,        0,      "NONAGLE",      0, 0, 0, FALSE, 0,      3,      NULL,   /* disable Nagle algorithm */
-#endif
     IN_SW_IBMGR_SHUT,		0,	"SHUT",		0, 0, 0, FALSE,	0,	3,      NULL,   /* shutdown server */
     IN_SW_IBMGR_NOW,		0,	"NOW",		0, 0, 0, FALSE,	0,	3,      NULL,   /* immidiate shutdown */
 

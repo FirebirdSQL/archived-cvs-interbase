@@ -19,8 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Added TCP_NO_DELAY option for superserver on Linux
+ * FSG 16.03.2001 
  */
-
+/*
+$Id$
+*/
 #ifndef _REMOTE_PROTOCOL_H_
 #define _REMOTE_PROTOCOL_H_
 
