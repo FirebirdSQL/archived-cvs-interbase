@@ -343,7 +343,7 @@ if (procedure)
     else
 	count = 0;
 
-    if (!(request->req_type & REQ_procedure))
+    if (!(request->req_flags & REQ_procedure))
 	{	
     	if (count != procedure->prc_in_count)
 	    ERRD_post (gds__prcmismat, gds_arg_string, relation_name->str_data, 0);
