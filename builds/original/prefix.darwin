@@ -52,10 +52,10 @@ CFLAGS_COMMON=		$($(VERSION)_CFLAGS) -DDARWIN -w -Fsource/interbase
 CFLAGS=			$(CFLAGS_COMMON) $(SUPER_FLAG)
 PIC_J_CFLAGS=		$(CFLAGS_COMMON) -DPIPE_IS_SHRLIB -dynamic -fno-common
 SPECIAL_OBJECTS=	j
-UDF_LINK_CMD=		libtool
-UDF_CFLAGS=         	-dynamic -fno-common
-UDF_LFLAGS=         	-dynamic
-UDF_SHRLIBS=        	-lcc_dynamic -framework System
+UDF_LINK_CMD=		cc
+UDF_CFLAGS=         	-bundle $(CFLAGS)
+UDF_LFLAGS=         	-bundle
+UDF_SHRLIBS=        	-framework System
 
 #NOTE: PIC_J_CFLAGS is special CFLAGS used to build PIPD_IS_SHRLIB modules
 #      to workaround the Solaris threading problems with signals

@@ -13,6 +13,8 @@ framework:
 		$(FB_FW)/Versions/A/Resources/English.lproj/var
 	$(CP) -r $(FB_BUILD)/intl \
  		$(FB_FW)/Versions/A/Resources/English.lproj/var
+	$(CP) -r $(FB_BUILD)/UDF \
+ 		$(FB_FW)/Versions/A/Resources/English.lproj/var
 	$(CP) -r $(FB_BUILD)/help \
  		$(FB_FW)/Versions/A/Resources/English.lproj/var
 	-$(RM) -fr $(FB_FW)/Versions/A/Resources/bin/CVS
@@ -41,6 +43,8 @@ super_framework:
 	$(CP) $(FB_BUILD)/interbase.msg \
 		$(FB_FW)/Versions/A/Resources/English.lproj/var
 	$(CP) -r $(FB_BUILD)/intl \
+ 		$(FB_FW)/Versions/A/Resources/English.lproj/var
+	$(CP) -r $(FB_BUILD)/UDF \
  		$(FB_FW)/Versions/A/Resources/English.lproj/var
 	$(CP) -r $(FB_BUILD)/help \
  		$(FB_FW)/Versions/A/Resources/English.lproj/var

@@ -368,6 +368,7 @@ include_darwin: include_generic force
 	ln -s ../../../../../../interbase.msg \
 		source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/interbase.msg
 	ln -s ../../../../../../bin source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/bin
+	ln -s ../../../../../../UDF source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/UDF
 	ln -s ../../../../../../intl source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/intl
 	ln -s ../../../../../../isc4.gdb source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/isc4.gdb
 	ln -s ../../../../../../help source/interbase/Firebird.framework/Versions/A/Resources/English.lproj/var/help

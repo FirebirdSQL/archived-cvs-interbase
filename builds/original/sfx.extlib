@@ -33,7 +33,7 @@ ib_util.o:       ib_util.c
 	$(CC) $(UDF_CFLAGS) -c ib_util.c
 
 ib_udf:    ib_udf.o 
-	$(UDF_LINK_CMD) $(UDF_LFLAGS) ib_udf.o -L. -lib_util $(UDF_SHRLIBS) -o ib_udf
+	$(UDF_LINK_CMD) $(UDF_LFLAGS) ib_udf.o ib_util.o $(UDF_SHRLIBS) -o ib_udf
 	$(MV) ib_udf $(FUNCLIB_DEST)/ib_udf
 	$(TOUCH) ib_udf
 	$(CHMOD_6) ib_udf
