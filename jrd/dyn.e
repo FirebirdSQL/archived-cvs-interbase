@@ -56,6 +56,7 @@
 #include "../jrd/all_proto.h"
 #include "../jrd/blb_proto.h"
 #include "../jrd/cmp_proto.h"
+#include "../jrd/dpm_proto.h"
 #include "../jrd/dyn_proto.h"
 #include "../jrd/dyn_df_proto.h"
 #include "../jrd/dyn_dl_proto.h"
@@ -66,6 +67,7 @@
 #include "../jrd/inf_proto.h"
 #include "../jrd/intl_proto.h"
 #include "../jrd/isc_f_proto.h"
+#include "../jrd/met_proto.h"
 #include "../jrd/thd_proto.h"
 #include "../jrd/vio_proto.h"
 
@@ -79,12 +81,13 @@
 DATABASE
     DB = STATIC "yachts.gdb";
 
-
+
 static void	grant (GBL, UCHAR **);
 static BOOLEAN  grantor_can_grant_role (TDBB, GBL, TEXT*, TEXT*);
 static BOOLEAN  grantor_can_grant (GBL, TEXT*, TEXT*, TEXT*, TEXT*, BOOLEAN);
 static void	revoke_permission (GBL, UCHAR **);
 static void 	store_privilege (GBL, TEXT *, TEXT *,TEXT *, TEXT *, SSHORT, SSHORT, int);
+static void	set_field_class_name (TEXT *, TEXT *);
 
 void DYN_ddl (
     ATT		attachment,
@@ -2071,7 +2074,74 @@ for (p = privileges; temp [0] = *p; p++)
 
 tdbb->tdbb_setjmp = (UCHAR*) old_env;
 }
-
+
+static void set_field_class_name (
+    GBL		gbl,
+    TEXT	*relation,
+    TEXT	*field)
+{
+/**************************************
+ *
+ *	s e t _ f i e l d _ c l a s s _ n a m e
+ *
+ **************************************
+ *
+ * Functional description
+ *	For field level grants, be sure the
+ *      field has a unique class name.
+ *
+ **************************************/
+BLK	request, request2 = NULL;
+BOOLEAN	unique = FALSE;
+TDBB	tdbb;
+DBB	dbb;
+
+
+tdbb = GET_THREAD_DATA;
+dbb = tdbb->tdbb_database;
+
+
+request = (BLK) CMP_find_request (tdbb, drq_s_f_class, DYN_REQUESTS);
+
+FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+    RFR IN RDB$RELATION_FIELDS 
+    WITH RFR.RDB$FIELD_NAME = field AND
+        RFR.RDB$RELATION_NAME = relation AND
+	RFR.RDB$SECURITY_CLASS MISSING
+
+    MODIFY RFR
+	while (!unique)
+	    {
+	    sprintf (RFR.RDB$SECURITY_CLASS, "%s%" QUADFORMAT "d\0", "SQL$GRANT", 
+		DPM_gen_id (tdbb, 
+		    MET_lookup_generator (tdbb, "RDB$SECURITY_CLASS"), 					 
+		    0, (SINT64) 1));
+
+	    unique = TRUE;
+	    request2 = (BLK) CMP_find_request (tdbb, drq_s_u_class, DYN_REQUESTS);
+	    FOR (REQUEST_HANDLE request2 TRANSACTION_HANDLE gbl->gbl_transaction)
+		RFR1 IN RDB$RELATION_FIELDS 
+		WITH RFR1.RDB$SECURITY_CLASS = RFR.RDB$SECURITY_CLASS
+		unique = FALSE;
+	    END_FOR;
+	    }
+
+	RFR.RDB$SECURITY_CLASS.NULL = FALSE;
+    END_MODIFY;
+    
+END_FOR;
+
+if (!DYN_REQUEST (drq_s_f_class))
+    DYN_REQUEST (drq_s_f_class) = request;
+
+
+if (request2 && !DYN_REQUEST (drq_s_u_class))
+    DYN_REQUEST (drq_s_u_class) = request;
+}
+
+
+    
+
 static void store_privilege (
     GBL		gbl,
     TEXT	*object,
@@ -2128,6 +2198,7 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	{
 	strcpy (PRIV.RDB$FIELD_NAME, field);
 	PRIV.RDB$FIELD_NAME.NULL = FALSE;
+	set_field_class_name (gbl, object, field);
 	}
     PRIV.RDB$PRIVILEGE [0] = privilege [0];
     PRIV.RDB$PRIVILEGE [1] = 0;
