@@ -67,6 +67,9 @@
 
 #ifdef WIN_NT
 #include <windows.h>
+#ifdef TEXT
+#undef TEXT
+#endif
 #define TEXT		SCHAR
 #endif
 
@@ -269,7 +272,7 @@ int LLIO_read (
  *	Read a record from a file.
  *
  **************************************/	
-DWORD	method, len;
+DWORD	len;
 
 if ((whence != LLIO_SEEK_NONE) && 
     (LLIO_seek (status_vector, file_desc, filename, offset, whence) == FAILURE))
@@ -371,7 +374,7 @@ int LLIO_write (
  *	Write a record to a file.
  *
  **************************************/	
-DWORD	method, len;
+DWORD	len;
 
 if ((whence != LLIO_SEEK_NONE) && 
     (LLIO_seek (status_vector, file_desc, filename, offset, whence) == FAILURE))
