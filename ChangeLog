@@ -1,3 +1,16 @@
+2001-11-22 09:16  robocop
+
+	* interbase/dsql/pass1.c:
+	
+	Do not check for ambiguity when the field or procedure parameter
+	comes fully qualified.
+
+2001-11-22 08:52  robocop
+
+	* interbase/dsql/make.c:
+	
+	Fixes SF bug #484399. UDFs now can return NULL to the DSQL layer.
+
 2001-11-21 23:25  awharrison
 
 	* interbase/jrd/winnt.c:
