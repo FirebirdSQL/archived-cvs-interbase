@@ -1,3 +1,10 @@
+2001-11-04 19:10  nmcc
+
+	* interbase/jrd/dyn.e:
+	
+	Change prototype to match procedure definition to fix compile
+	problem.
+
 2001-11-03 20:50  awharrison
 
 	* interbase/jrd/: drq.h, dyn.e, grant.e:
