@@ -172,7 +172,7 @@ namespace internal
 			break;
 		case dtype_varying:
 			v->dsc_length = static_cast<short>(len + varchar_indicator);
-			internal::set_varchar_len(v->dsc_address, len);
+			set_varchar_len(v->dsc_address, len);
 			if (text)
 				memcpy(v->dsc_address + varchar_indicator, text, len);
 			break;
@@ -182,6 +182,13 @@ namespace internal
 	bool isnull(const paramdsc* v)
 	{
 		return !v || !v->dsc_address || (v->dsc_flags & DSC_null);
+	}
+
+	paramdsc* setnull(paramdsc* v)
+	{
+		if (v)
+			v->dsc_flags |= DSC_null;
+		return v;
 	}
 } // namespace internal
 
@@ -209,7 +216,7 @@ FBUDF_API paramdsc* sNvl(paramdsc* v, paramdsc* v2, paramdsc* rc)
 		internal::set_string_type(rc, len, sv2);
 		return rc;
 	}
-	return 0;
+	return internal::setnull(rc);
 }
 
 
@@ -230,14 +237,14 @@ FBUDF_API paramdsc* iNullIf(paramdsc* v, paramdsc* v2)
 FBUDF_API paramdsc* sNullIf(paramdsc* v, paramdsc* v2, paramdsc* rc)
 {
 	if (internal::isnull(v) || internal::isnull(v2))
-		return 0;
+		return internal::setnull(rc);
 	unsigned char *sv, *sv2;
 	short len = internal::get_string_type(v, sv);
 	short len2 = internal::get_string_type(v2, sv2);
 	if (len < 0 || len2 < 0)
 		return v;
 	if (len == len2 && (!len || !memcmp(sv, sv2, len)))
-		return 0;
+		return internal::setnull(rc);
 	internal::set_string_type(rc, len, sv);
 	return rc;
 }
