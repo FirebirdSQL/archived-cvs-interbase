@@ -37,6 +37,7 @@
 #include "../jrd/gds_proto.h"
 #include "../jrd/isc_proto.h"
 #include "../jrd/svc_proto.h"
+#include "../jrd/thd_proto.h"
 
 static ULONG	ask (void);
 static void	print_description (TDR);
@@ -349,7 +350,7 @@ flag = TRUE;
 while (flag)
     {
     item = *ptr++;
-    length = gds__vax_integer (ptr, 2);
+    length = (USHORT)gds__vax_integer (ptr, 2);
     ptr += 2;
     switch (item)
 	{
@@ -431,11 +432,8 @@ BOOLEAN TDR_reconnect_multiple (
  **************************************/
 TDR	trans, ptr;
 STATUS	status_vector [20];
-USHORT	advice, error;
-UCHAR	description [1024];
-UCHAR	warning [256];
-
-error = FALSE;
+USHORT	advice;
+BOOLEAN error = FALSE;
 
 /* get the state of all the associated transactions */
         
@@ -578,8 +576,8 @@ for (ptr = trans; ptr; ptr = ptr->tdr_next)
 #else
 	SVC_putc (tdgbl->service_blk, (UCHAR) isc_spb_tra_host_site);
 	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_host_site->str_data));
-	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_host_site->str_data) >> 8);
-	for (i = 0; i < strlen (ptr->tdr_host_site->str_data); i++);
+	SVC_putc (tdgbl->service_blk, (UCHAR) (strlen (ptr->tdr_host_site->str_data) >> 8));
+	for (i = 0; i < (int)strlen (ptr->tdr_host_site->str_data); i++);
 	    SVC_putc (tdgbl->service_blk, (UCHAR) ptr->tdr_host_site->str_data[i]);
 #endif
 	}
@@ -653,8 +651,8 @@ for (ptr = trans; ptr; ptr = ptr->tdr_next)
 #else
 	SVC_putc (tdgbl->service_blk, (UCHAR) isc_spb_tra_remote_site);
 	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_remote_site->str_data));
-	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_remote_site->str_data) >> 8);
-	for (i = 0; i < strlen (ptr->tdr_remote_site->str_data); i++)
+	SVC_putc (tdgbl->service_blk, (UCHAR) (strlen (ptr->tdr_remote_site->str_data) >> 8));
+	for (i = 0; i < (int)strlen (ptr->tdr_remote_site->str_data); i++)
 	    SVC_putc (tdgbl->service_blk, (UCHAR) ptr->tdr_remote_site->str_data[i]);
 #endif
 	}
@@ -666,8 +664,8 @@ for (ptr = trans; ptr; ptr = ptr->tdr_next)
 #else
 	SVC_putc (tdgbl->service_blk, (UCHAR) isc_spb_tra_db_path);
 	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_fullpath->str_data));
-	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_fullpath->str_data) >> 8);
-	for (i = 0; i < strlen (ptr->tdr_fullpath->str_data); i++)
+	SVC_putc (tdgbl->service_blk, (UCHAR) (strlen (ptr->tdr_fullpath->str_data) >> 8));
+	for (i = 0; i < (int)strlen (ptr->tdr_fullpath->str_data); i++)
 	    SVC_putc (tdgbl->service_blk, (UCHAR) ptr->tdr_fullpath->str_data[i]);
 #endif
 	}
@@ -721,8 +719,6 @@ static ULONG ask (void)
  **************************************/
 UCHAR	response [32], *p;
 int	c;
-int	*transaction;
-STATUS	status_vector [20];
 ULONG	switches;
 TGBL    tdgbl;
 
@@ -987,7 +983,7 @@ int	*transaction;
 SLONG	id;
 STATUS	status_vector [20];
 
-id = gds__vax_integer (&number, 4);
+id = gds__vax_integer ((UCHAR*)&number, 4);
 transaction = NULL;
 if (gds__reconnect_transaction (status_vector,
 	    GDS_REF (handle),
