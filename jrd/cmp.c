@@ -2496,6 +2496,7 @@ switch (input->nod_type)
 
 
     case nod_gen_id:
+    case nod_gen_id2:    /* 20001013 PJPG */
 	node = PAR_make_node (tdbb, e_gen_length);
 	node->nod_count = input->nod_count;
 	node->nod_type = input->nod_type;
