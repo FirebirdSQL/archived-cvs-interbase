@@ -1,3 +1,11 @@
+2003-04-09 10:01  paul_reeves
+
+	* interbase/jrd/gds.c:
+	
+	Add suggested patch from Bugtraq item SRT2003-04-03-1300 reported
+	to SecurityFocus. With thanks to Marius Popa Adrian for monitoring
+	this.
+
 2003-03-31 15:45  paul_reeves
 
 	* interbase/jrd/cch.c:
