@@ -23,16 +23,17 @@
  * 2001.05.20 Neil McCalden: Allow a udf to be used in a 'group by' clause.
  * 2001.05.30 Claudio Valderrama: DROP TABLE and DROP VIEW lead now to two
  *   different node types so DDL can tell which is which.
- * 2001.06.13: Claudio Valderrama: SUBSTRING is being surfaced.
- * 2001.06.30: Claudio valderrama: Feed (line,column) for each node. See node.h.
- * 2001.07.10: Claudio Valderrama: Better (line,column) report and "--" for comments.
- * 2001.07.28: John Bellardo: Changes to support parsing LIMIT and FIRST
- * 2001.08.03: John Bellardo: Finalized syntax for LIMIT, change LIMIT to SKIP
- * 2001.08.05: Claudio Valderrama: closed Bug #448062 and other spaces that appear
+ * 2001.06.13 Claudio Valderrama: SUBSTRING is being surfaced.
+ * 2001.06.30 Claudio valderrama: Feed (line,column) for each node. See node.h.
+ * 2001.07.10 Claudio Valderrama: Better (line,column) report and "--" for comments.
+ * 2001.07.28 John Bellardo: Changes to support parsing LIMIT and FIRST
+ * 2001.08.03 John Bellardo: Finalized syntax for LIMIT, change LIMIT to SKIP
+ * 2001.08.05 Claudio Valderrama: closed Bug #448062 and other spaces that appear
  *   in rdb$*_source fields when altering domains plus one unexpected null pointer.
- * 2001.08.12: Claudio Valderrama: adjust SUBSTRING's starting pos argument here
+ * 2001.08.12 Claudio Valderrama: adjust SUBSTRING's starting pos argument here
  *   and not in gen.c; this closes Bug #450301.
- * 2001.10.01: Claudio Valderrama: enable explicit GRANT...to ROLE role_name.
+ * 2001.10.01 Claudio Valderrama: enable explicit GRANT...to ROLE role_name.
+ * 2001.10.06 Claudio Valderrama: Honor explicit USER keyword in GRANTs and REVOKEs.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -571,7 +572,7 @@ explicit grant/revoke for both USER and ROLE keywords & object types. */
 user_grantee	: symbol_user_name
 		{ $$ = make_node (nod_user_name, (int) 1, $1); }
 	| USER symbol_user_name
-		{ $$ = make_node (nod_user_name, (int) 1, $2); }
+		{ $$ = make_node (nod_user_name, (int) 2, $2, NULL); }
 	| GROUP symbol_user_name
 		{ $$ = make_node (nod_user_group, (int) 1, $2); }
 	;

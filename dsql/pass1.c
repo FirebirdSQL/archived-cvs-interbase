@@ -38,7 +38,10 @@
  *   names because they use OLD and NEW as aliases of the same table. However, if the
  *   check constraint has an embedded ambiguous SELECT statement, it won't be detected.
  *   The code should be revisited if check constraints' before delete triggers are used
- *   for whatever reason. Currently they are never generated.
+ *   for whatever reason. Currently they are never generated. The code can be improved
+ *   to not report errors for fields between NEW and OLD contexts but complain otherwise.
+ * 2001.10.05 Neil McCalden: validate udf and parameters when comparing select list and
+ *   group by list, to detect invalid SQL statements when grouping by UDFs.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -1457,9 +1460,6 @@ if (node->nod_type == nod_field)
 	    field == (FLD) reference->nod_arg[e_fld_field] &&
 	    context == (CTX) reference->nod_arg[e_fld_context])
 	    return FALSE;
-	else
-		if (reference->nod_type == nod_udf ) 
-			return FALSE;
 	}
     return TRUE; 
     }
@@ -1495,12 +1495,58 @@ else
     {
     if ((node->nod_type == nod_gen_id) || 
 	(node->nod_type == nod_gen_id2)    || 
-	(node->nod_type == nod_udf)    || 
 	(node->nod_type == nod_cast))
 	{
 	if (node->nod_count == 2)
             invalid |= invalid_reference (node->nod_arg [1], list);
 	}
+	else if (node->nod_type == nod_udf) 
+	{
+		/* does this udf appear in list of group by  */
+		NOD reference;
+		STR udf_name1;
+		STR udf_name2;
+
+		if (!list)
+			return TRUE;
+
+		for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++) 
+		{
+			DEV_BLKCHK(*ptr, type_nod);
+			reference = *ptr;
+			if ((*ptr)->nod_type == nod_cast) 
+			{
+				reference = (*ptr)->nod_arg[e_cast_source];
+			}
+			DEV_BLKCHK(reference, type_nod);
+			if (reference->nod_type == nod_udf) 
+			{
+				udf_name1 = (STR)(node->nod_arg[0]);
+				udf_name2 = (STR)(reference->nod_arg[0]);
+				if ((udf_name1->str_length == udf_name2->str_length) &&
+					(strncmp(udf_name1->str_data, udf_name2->str_data,
+						udf_name1->str_length) == 0)) 
+				{
+
+					if (node->nod_count == 2) 
+					{
+						if (node_match (node, reference) == TRUE)
+						{
+							invalid = FALSE;
+						}
+						else
+						{
+							invalid = TRUE;
+						}
+						return invalid;
+					}
+					else return FALSE;
+				}
+			}
+		}
+		return TRUE;			
+	}
+	
 #ifdef	CHECK_HAVING
 /*
 ******************************************************
@@ -3486,6 +3532,11 @@ if (node = input->nod_arg [e_sel_group])
 
 if (parent_context)
     LLS_PUSH (parent_context, &request->req_context);
+
+#ifdef DEV_BUILD
+	if (DSQL_debug > 2)
+		DSQL_pretty(input, 0);
+#endif
 	
 /* Process select list, if any.  If not, generate one */
 

@@ -1545,7 +1545,10 @@ switch (node->nod_type)
 	FREE_MEM_RETURN;
 
     case nod_udf:
-	PRINTF ("%sfunction: \"%s\"\n", buffer, *ptr++);
+	PRINTF ("%sfunction: \"", buffer);
+	string = (STR) node->nod_arg [e_udf_name];
+	ptr++;
+	PRINTF ("%s\"\n", string->str_data);
 	if (node->nod_count == 2)
 	    DSQL_pretty (*ptr, column + 1);
 	FREE_MEM_RETURN;
