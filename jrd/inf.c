@@ -26,6 +26,9 @@
  *	oldest_transaction, oldest_active, oldest_snapshot and next_transaction.
  *      Make INF_put_item() to reserve 4 bytes: item + length as short + info_end;
  *	otherwise to signal output buffer truncation.
+ *
+ * 2001.11.28 Ann Harrison - the dbb has to be refreshed before reporting
+ *      oldest_transaction, oldest_active, oldest_snapshot and next_transaction.
  */
 
 #include <string.h>
@@ -731,23 +734,30 @@ while (items < end_items && *items != gds__info_end)
 	    length = INF_convert (PIO_act_alloc (dbb), buffer);
 	    break;
 
-/* CVC: Time will say if we need this artifact for the 4 cases below:
-	    if (!transaction)
-		transaction = TRA_start (tdbb, 0, NULL);
-*/
 	case isc_info_oldest_transaction:
+	    file = dbb->dbb_file;
+	    PAG_header (file->fil_string, file->fil_length) ;
 	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    break;
 
 	case isc_info_oldest_active:
+	    file = dbb->dbb_file;
+	    PAG_header (file->fil_string, file->fil_length) ;
+	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    length = INF_convert (dbb->dbb_oldest_active, buffer);
 	    break;
 
 	case isc_info_oldest_snapshot:
+	    file = dbb->dbb_file;
+	    PAG_header (file->fil_string, file->fil_length) ;
+	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    length = INF_convert (dbb->dbb_oldest_snapshot, buffer);
 	    break;
 
 	case isc_info_next_transaction:
+	    file = dbb->dbb_file;
+	    PAG_header (file->fil_string, file->fil_length) ;
+	    length = INF_convert (dbb->dbb_oldest_transaction, buffer);
 	    length = INF_convert (dbb->dbb_next_transaction, buffer);
 	    break;
 
