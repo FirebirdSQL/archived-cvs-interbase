@@ -22,6 +22,10 @@
  * 2001.6.21 Claudio Valderrama: Allow inserting strings into blob fields.
  * 2001.6.28 Claudio Valderrama: Move code to cleanup_rpb() as directed
  * by Ann Harrison and cleanup of new record in store() routine.
+ * 2001.10.11 Claudio Valderrama: Fix SF Bug #436462: From now, we only
+ * count real store, modify and delete operations either in an external
+ * file or in a table. Counting on a view caused up to three operations
+ * being reported instead of one.
  */
 /*
 $Id$
@@ -1203,7 +1207,10 @@ if (!relation->rel_file & !relation->rel_view_rse)
         ERR_duplicate_error (error_code, bad_relation, bad_index);
     }
 
-request->req_records_deleted++;
+    /* CVC: Increment the counter only if we called VIO/EXT_erase() and
+    we were successful. */
+    if (relation->rel_file || !relation->rel_view_rse)
+	request->req_records_deleted++;
 
 if (transaction != dbb->dbb_sys_trans)
     --transaction->tra_save_point->sav_verb_count;
@@ -2699,7 +2706,10 @@ switch (request->req_operation)
 	VIO_modify (tdbb, org_rpb, new_rpb, transaction, node->nod_arg [e_mod_sql]);
 #endif
 
-	request->req_records_updated++;
+	/* CVC: Increment the counter only if we called VIO/EXT_modify() and
+	we were successful. */
+	if (relation->rel_file || !relation->rel_view_rse)
+	    request->req_records_updated++;
 
 	if (which_trig != PRE_TRIG)
 	    {
@@ -3593,7 +3603,10 @@ switch (request->req_operation)
 					 NULL_PTR, record)))
 	    trigger_failure (tdbb, trigger);
 
-	request->req_records_inserted++;
+	/* CVC: Increment the counter only if we called VIO/EXT_store() and
+	we were successful. */
+	if (relation->rel_file || !relation->rel_view_rse)
+	    request->req_records_inserted++;
 
 	if (transaction != dbb->dbb_sys_trans)
 	    --transaction->tra_save_point->sav_verb_count;
