@@ -1,3 +1,15 @@
+2001-09-05 07:01  robocop
+
+	* interbase/jrd/ibase.h:
+	
+	Descriptor flags made public.
+
+2001-09-05 06:59  robocop
+
+	* interbase/extlib/fbudf.cpp:
+	
+	Better handling of NULLs and getExactTimestamp ported to UNIX.
+
 2001-09-04 10:52  kkuznetsov
 
 	* interbase/builds/original/prefix.solx86:
