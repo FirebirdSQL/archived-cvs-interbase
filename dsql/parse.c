@@ -103,6 +103,10 @@ ASSERT_FILENAME
 #define MIN_CACHE_BUFFERS       250
 #define DEF_CACHE_BUFFERS       1000
 
+/* Fix 69th procedure problem - solution from Oleg Loa */
+#define YYSTACKSIZE		2048
+#define YYMAXDEPTH		2048
+
 #define YYSTYPE		NOD
 #if defined(DEBUG) || defined(DEV_BUILD)
 #define YYDEBUG		1
