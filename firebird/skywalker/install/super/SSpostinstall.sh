@@ -151,10 +151,9 @@ generateNewDBAPassword() {
 # does different things.  So if not at this specific place leave as default
 
 
-    NewPasswd=`/usr/bin/mkpasswd -l 8`
    
     DBAPasswordFile=$IBRootDir/SYSDBA.password
-    NewPasswd=`mkpasswd -l 8`
+    NewPasswd=`/usr/bin/mkpasswd -l 8`
     echo "Firebird generated password " > $DBAPasswordFile
     echo "for user SYSDBA is : $NewPasswd" >> $DBAPasswordFile
     echo "generated on `hostname` at time `date`" >> $DBAPasswordFile
