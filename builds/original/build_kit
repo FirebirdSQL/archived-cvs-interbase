@@ -22,6 +22,17 @@ if [ $# -lt 2 -o $# -gt 3 ]; then
     exit 1
 fi
 
+
+# set up the username and password if they have not already been
+# set.
+
+if [ "$ISC_PASSWORD" = "" ]
+  then
+    export ISC_USER="sysdba"
+    export ISC_PASSWORD="masterkey"
+fi
+
+
 # The following no longer makes sense, since $1 is always builds, rather
 # than the name of the platform.  Hence it has been commented out.
 #    if [ $1 = 'SCO_EV' ]; then

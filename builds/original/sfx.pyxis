@@ -92,10 +92,18 @@ adm.o:		adm.c pyxis.h scr.h
 allp.o:		allp.c $(PYXIS_HEADERS)
 altp.o:		altp.c 
 blk.o:		blk.c $(PYXIS_HEADERS)
+
 cdm.o:		cdm.c pyxis.h scr.h
 	$(CC) -c $(CFLAGS) $(VERSION_FLAG) cdm.c
-	ld -r cdm.o $(LIB_TYPE) $(SCREEN_LIBS) -o cdmfoo.o
+
+# The following line has been replaced as it caused an error with
+# loading the lncurses library.  The create of relocatable code
+# works without it, obviously this will need some testing on 
+# platofrms other than linux.  
+#	ld -r cdm.o $(LIB_TYPE) $(SCREEN_LIBS) -o cdmfoo.o
+	ld -r cdm.o $(LIB_TYPE)  -o cdmfoo.o
 	$(MV) cdmfoo.o cdm.o
+
 debug.o:	debug.c pyxis.h scr.h attributes.h
 	$(CP) debug.c debugfoo.c
 	$(CC) -c $(CFLAGS) $(VERSION_FLAG) debugfoo.c
