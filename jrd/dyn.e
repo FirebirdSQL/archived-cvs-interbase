@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *    20-Apr-2001 Claudio Valderrama  - Fix bug in grant/revolk by making user
+ *                                      case insensitive.
+ *                                      
  */
 
 #include <stdio.h>
@@ -1304,8 +1307,11 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 	    GET_STRING (ptr, user);
 	    if (DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
 	        user_type = obj_sql_role;
-	    else
+	    else {
 	        user_type = obj_user;
+		for (ptr1 = user; *ptr1; ptr1++)
+		   *ptr1 = UPPER7 (*ptr1);
+		}
 	    break;
 
 	case isc_dyn_sql_role_name:      /* role name in role_name_list */
@@ -1977,8 +1983,11 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 	    GET_STRING (ptr, user);
 	    if (DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
 	        user_type = obj_sql_role;
-	    else
+	    else {
 	        user_type = obj_user;
+		for (ptr1 = user; *ptr1; ptr1++)
+		   *ptr1 = UPPER7 (*ptr1);
+		}
 	    break;
 
 	case isc_dyn_sql_role_name:       /* role name in role_name_list */
