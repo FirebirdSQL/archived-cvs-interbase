@@ -1,3 +1,10 @@
+2003-10-27 08:47  eku
+
+	* interbase/alice/tdr.c:
+	
+	Backport of bug fixes from firebird/firebird2/src/alice/tdr.cpp
+	1.25
+
 2003-10-14 08:14  eku
 
 	* interbase/extlib/ib_udf.c:
