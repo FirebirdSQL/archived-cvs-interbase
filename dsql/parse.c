@@ -3588,6 +3588,7 @@ static NOD	make_flag_node (NOD_TYPE, SSHORT, int, ...);
 static void	prepare_console_debug (int, int *);
 static BOOLEAN	short_int (NOD, SLONG *, SSHORT);
 static void	stack_nodes (NOD, LLS *);
+static int 	swallow_single_line_comment (void);
 static int	yylex (USHORT, USHORT, USHORT, BOOLEAN *);
 static void	yyerror (TEXT *);
 static void	yyabandon (SSHORT, STATUS);
@@ -3598,7 +3599,8 @@ static void	check_log_file_attrs (void);
 static TEXT	*ptr, *end, *last_token, *line_start;
 static TEXT	*last_token_bk, *line_start_bk;
 static SSHORT	lines, att_charset;
-static SSHORT	lines_bk, first_time;
+static SSHORT	lines_bk;
+static BOOLEAN	first_time;
 
 typedef struct tok {
     USHORT	tok_ident;
@@ -3668,7 +3670,7 @@ lines = 1;
 att_charset = character_set;
 line_start_bk = line_start;
 lines_bk = lines;
-first_time = 1;
+first_time = TRUE;
 }
 
 #ifndef WINDOWS_ONLY
@@ -4095,7 +4097,51 @@ if ( end_chain)
 for (ptr = node->nod_arg, end = ptr + node->nod_count; ptr < end; ptr++)
     stack_nodes (*ptr, stack);
 }
-
+
+static int swallow_single_line_comment (void)
+{
+/**************************************
+ *
+ *	s w a l l o w _ s i n g l e _ l i n e _ c o m m e n t
+ *
+ **************************************
+ *
+ * Functional description:
+ *  Discard single line comments (SLC) starting with --
+ *  and takes care of end of input if necessary.
+ *  There may be multiple consecutive SLC, multiple SLC
+ *  separated by valid commands or by LF.
+ *
+ **************************************/
+	SSHORT	c;
+	
+	if (ptr >= end)
+		return -1;
+	while (ptr + 1 < end)
+	{
+		c = *ptr++;
+		if (c == '-' && *ptr == '-')
+		{
+			ptr++;
+			while (ptr < end)
+				if ((c = *ptr++) == '\n')
+				{
+					lines++;
+					line_start = ptr;
+					break;
+				}
+				if (ptr >= end)
+					return -1;
+		}
+		else 
+		{
+			--ptr;
+			break;
+		}
+	}
+	return 0;
+}
+
 static int yylex (
     USHORT	client_dialect,
     USHORT	db_dialect,
@@ -4108,7 +4154,7 @@ static int yylex (
  *
  **************************************
  *
- * Functional description
+ * Functional description: lexer.
  *
  **************************************/
 UCHAR	*p, class, string [MAX_TOKEN_LEN], *buffer, *buffer_end, *new_buffer;
@@ -4123,24 +4169,11 @@ STR	delimited_id_str;
 /* CVC: Experiment to see if -- can be implemented as one-line comment. 
 This is almost the same block than below in the loop when \n is detected,
 but here we should "unget" the first character if there're not 2 hyphens. */
-if (first_time && ptr + 1 < end)
+if (first_time)
 {
-	first_time = 0;
-	c = *ptr++;
-	if (c == '-' && *ptr == '-')
-	{
-		ptr++;
-		while (ptr < end)
-			if ((c = *ptr++) == '\n')
-			{
-				lines++;
-				line_start = ptr;
-				break;
-			}
-		if (ptr >= end)
-			return -1;
-	}
-	else --ptr; /* that's the difference. */
+	first_time = FALSE;
+	if (swallow_single_line_comment() < 0)
+		return -1;
 }
 
 for (;;)
@@ -4150,28 +4183,14 @@ for (;;)
     
     c = *ptr++;
 
-    if (c == '\n')
+    while (c == '\n')
     {
 		lines++;
 		line_start = ptr /* + 1*/; /* CVC: +1 left out. */
 		/* CVC: Experiment to see if -- can be implemented as one-line comment. */
-		if (ptr + 1 < end)
-		{
-			c = *ptr++;
-			if (c == '-' && *ptr == '-')
-			{
-				ptr++;
-				while (ptr < end)
-					if ((c = *ptr++) == '\n')
-					{
-						lines++;
-						line_start = ptr;
-						break;
-					}
-				if (ptr >= end)
-					return -1;
-			}
-		}
+		if (swallow_single_line_comment() < 0)
+			return -1;
+		c = *ptr++;
 	}
 
     if ((c == '/') && (*ptr == '*'))
