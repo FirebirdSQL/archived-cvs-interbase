@@ -1,3 +1,10 @@
+2001-12-13 06:07  robocop
+
+	* interbase/jrd/ibase.h:
+	
+	Change a wrong declaration in paramdsc and include paramvary for
+	handling varchar from descriptors in UDFs.
+
 2001-12-11 07:13  robocop
 
 	* interbase/isql/show.e:
