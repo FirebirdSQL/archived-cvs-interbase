@@ -1,3 +1,15 @@
+2001-07-13 00:31  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Removed gds_pipe from the Darwin build.
+
+2001-07-13 00:14  bellardo
+
+	* interbase/jrd/tra.c:
+	
+	Fixed missing #endif.
+
 2001-07-12 23:56  bellardo
 
 	* interbase/jrd/jrd.c:
