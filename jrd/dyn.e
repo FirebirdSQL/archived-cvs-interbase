@@ -87,7 +87,7 @@ static BOOLEAN  grantor_can_grant_role (TDBB, GBL, TEXT*, TEXT*);
 static BOOLEAN  grantor_can_grant (GBL, TEXT*, TEXT*, TEXT*, TEXT*, BOOLEAN);
 static void	revoke_permission (GBL, UCHAR **);
 static void 	store_privilege (GBL, TEXT *, TEXT *,TEXT *, TEXT *, SSHORT, SSHORT, int);
-static void	set_field_class_name (TEXT *, TEXT *);
+static void	set_field_class_name (GBL, TEXT *, TEXT *);
 
 void DYN_ddl (
     ATT		attachment,
