@@ -30,6 +30,7 @@
 #include "../alice/lls.h"
 #include "../alice/all_proto.h"
 #include "../jrd/gds_proto.h"
+#include "../jrd/thd_proto.h"
 
 #define BLKDEF(type, root, tail) sizeof (struct root), tail,
 static struct {
@@ -65,7 +66,6 @@ BLK ALLA_alloc (
  **************************************/
 register BLK	block;
 FRB		free, *best, *ptr;
-HNK		hunk;
 SLONG		best_tail, tail;
 USHORT		units;
 register SLONG	size;
@@ -86,7 +86,9 @@ if ((tail = block_sizes[type].typ_tail_length) &&
     size += (count - FUDGE) * tail;
 
 size = (size + MIN_ALLOC - 1) & ~((ULONG)MIN_ALLOC - 1);
-units = size >> SHIFT;
+/* TMN: Here we should probably have the following assert */
+/* assert((size >> SHIFT) <= MAX_USHORT); */
+units = (USHORT)(size >> SHIFT);
 
 if (size >= MAX_BLOCK)
     ALICE_error (63,0,0,0,0,0); /* msg 63:internal block exceeds maximum size */
@@ -143,7 +145,9 @@ p = (USHORT*) block;
 do *p++ = 0; while (--size);
 
 block->blk_type = type;
-block->blk_pool_id_mod = pool->plb_pool_id;
+/* TMN: Here we should probably have the following assert */
+/* assert(pool->plb_pool_id <= MAX_UCHAR); */
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 block->blk_length = units;
 
 return block;
@@ -296,6 +300,7 @@ if (memory = (SCHAR*) gds__alloc (size))
     return memory;
 
 ALICE_error (65,0,0,0,0,0); /* msg 65: virtual memory exhausted */
+return (SCHAR*)0; /* Keep compilers happy. ALICE_error() never returns. */
 }
 
 PLB ALLA_pool (void)
@@ -325,11 +330,11 @@ tdgbl = GET_THREAD_DATA;
 
 vector = tdgbl->pools;
 
-for (pool_id = 0; pool_id < vector->vec_count; pool_id++)
+for (pool_id = 0; pool_id < (int)vector->vec_count; pool_id++)
     if (!(vector->vec_object [pool_id]))
 	break;
 
-if (pool_id >= vector->vec_count)
+if (pool_id >= (int)vector->vec_count)
     vector = (VEC) ALLA_extend (&(tdgbl->pools), pool_id + 10);
 
 vector->vec_object[pool_id] = (BLK) &temp_pool;
@@ -430,7 +435,7 @@ void ALLA_release (
  *
  **************************************/
 
-release (block, find_pool (block));
+	release (block, find_pool (block ? &block->frb_header : (BLK)0));
 }
 
 void ALLA_rlpool (
@@ -509,14 +514,18 @@ static void extend_pool (
  *	of given size.
  *
  **************************************/
-register HNK	hunk, *ptr;
+register HNK	hunk;
 register BLK	block;
 
 size = (size + sizeof (struct hnk) + MIN_ALLOCATION - 1) & ~((ULONG)MIN_ALLOCATION - 1);
 block = (BLK) ALLA_malloc ((SLONG) size);
-block->blk_length = size >> SHIFT;
+/* TMN: Here we should probably have the following assert */
+/* assert((size >> SHIFT) <= MAX_USHORT); */
+block->blk_length = (USHORT)size >> SHIFT;
 block->blk_type = (UCHAR) type_frb;
-block->blk_pool_id_mod = pool->plb_pool_id;
+/* TMN: Here we should probably have the following assert */
+/* assert(pool->plb_pool_id <= MAX_UCHAR); */
+block->blk_pool_id_mod = (UCHAR)pool->plb_pool_id;
 release (block, pool);
 
 hunk = (HNK) ALLA_alloc (pool, type_hnk, 0);
@@ -556,6 +565,7 @@ for (pool_id = block->blk_pool_id_mod;
 	    return pool;
 
 ALICE_error (66,0,0,0,0,0); /* msg 66: bad pool id */
+return (PLB)0; /* Keep compilers happy. ALICE_error() never returns. */
 }
 
 static void release (
