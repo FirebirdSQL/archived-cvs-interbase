@@ -1,3 +1,17 @@
+2001-07-31 00:24  bellardo
+
+	* interbase/msgs/msg.gbak:
+	
+	Forgot to commit the message database in my last commit.  Here it
+	is now with the new error message I added.
+
+2001-07-31 00:21  bellardo
+
+	* interbase/jrd/: codes.h, codetext.h, iberror.h, msgs.h,
+	rdb_codes.h, rse.c, rse.h, sql_code.h:
+	
+	Added an error check to FIRST/LIMIT parameter.
+
 2001-07-30 00:59  awharrison
 
 	* interbase/msgs/msg.gbak:
