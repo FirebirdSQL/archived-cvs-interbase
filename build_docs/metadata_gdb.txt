@@ -1,0 +1,76 @@
+COPYRIGHT NOTICE
+This document is copyright 2000 by Reed Mideke. All rights
+not specifically granted are reserved. Certain rights 
+are hereby granted to all persons who are identified by the following
+criteria:
+	Persons who are NOT employees, executives or board members of
+	Inprise corporation, it's agents, subcontractors or
+	subsidiaries.
+
+All persons meeting this criteria are henceforth referred to as 'you'.
+
+The rights granted to you are:
+1) You are granted the right to copy this document verbatim.
+2) You are granted the right to create and distribute modified versions
+of this document (derivative works), so long as all of the following
+conditions are met:
+	a) this notice is included in unmodified form
+	b) You distribute the modified document under the terms of
+	this notice.
+	c) You do not mis-represent your changes as being authored
+	by Reed Mideke.
+
+NO OTHER RIGHTS ARE GRANTED TO ANY PERSONS. NO RIGHTS ARE GRANTED TO
+PERSONS NOT MEETING THE CRITERIA ABOVE.
+
+This information is provided as is, without ANY WARRANTY OF ANY KIND.
+END OF COPYRIGHT NOTICE
+
+-the purpose of yachts.gdb/metadata.gdb- 
+metadata_gdb.txt version 1.0.1 last revised 7/31/2000
+
+The latest version of this file is available at
+http://www.cruzers.com/~rfm/metadata_gdb.txt
+
+Please send comments and corrections to
+rfm@cruzers.com or the ib-build mailing list at mers.com
+the ib-build mailing list is also available as a newsgroup at
+news.mers.com:mers.interbase.build
+
+
+The build process uses a database, which is refered to in the .e files
+as yachts.gdb, yachts.lnk etc. gpre expects to be able to connect
+to this database when processing the .e files. In the win32 build 
+process, this database is actually created as metatdata.gdb (which
+is a more informative name)
+
+Historically on unix, each build directory that needed it had a
+symbolic link to yachts.gdb on a remote server. On windows,
+this is obviously not possible, so two batch files (expand_dbs.bat
+and compress_dbs.bat) use 'sed' to expand the database name in
+the .e file to a complete path (optionally including a remote
+server name) before gpre is run. 
+
+The purpose of yachts is to allow gpre to know about the system
+table structure of interbase databases. This means that yachts
+can normally be an ordinary empty database (the reason for the name
+yachts is that originally the yachts example from 3.x was used)
+(actually, yachts also has a couple of 'system' tables that
+are specific to QLI, so it can't be just any database)
+
+Anyway, during development, yachts can become a very strange database,
+because it needs to contain the system relations for the current
+ODS and the NEXT one. Thus, if a system relation is added for 7.x,
+the yachts.gdb for 7.x will have to include the relation, possibly
+>before< 7.x is built. So if you are using a 6.x server to build
+a 7.x server, you would need to create your yachts.gdb, and add a
+normal table with the same name as your new system table. If you
+try to back up and restore this db with 7.x (after you've got 
+it built) you will fail (on the restore) because it has a user
+table with the same name as a system table.
+
+Additionally, if gbak must understand system relations that existed
+only in an earlier release, then yachts would have to have those
+as well. Currently this is not the case.
+
+Hope that helps everyone understand the purpose of yachts.

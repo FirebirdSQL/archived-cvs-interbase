@@ -1,0 +1,80 @@
+COPYRIGHT NOTICE
+This document is copyright 2000 by Reed Mideke. All rights
+not specifically granted are reserved. Certain rights 
+are hereby granted to all persons who are identified by the following
+criteria:
+	Persons who are NOT employees, executives or board members of
+	Inprise corporation, it's agents, subcontractors or
+	subsidiaries.
+
+All persons meeting this criteria are henceforth referred to as 'you'.
+
+The rights granted to you are:
+1) You are granted the right to copy this document verbatim.
+2) You are granted the right to create and distribute modified versions
+of this document (derivative works), so long as all of the following
+conditions are met:
+	a) this notice is included in unmodified form
+	b) You distribute the modified document under the terms of
+	this notice.
+	c) You do not mis-represent your changes as being authored
+	by Reed Mideke.
+
+NO OTHER RIGHTS ARE GRANTED TO ANY PERSONS. NO RIGHTS ARE GRANTED TO
+PERSONS NOT MEETING THE CRITERIA ABOVE.
+
+This information is provided as is, without ANY WARRANTY OF ANY KIND.
+END OF COPYRIGHT NOTICE
+
+-General overview of unix build process for the *****Base server- 
+ibbuild-unix-overview.txt version 1.0.0 last revised 7/31/2000
+
+The latest version of this file is available at
+http://www.cruzers.com/~rfm/ibbuild-unix-overview.txt
+
+Please send comments and corrections to
+rfm@cruzers.com or the ib-build mailing list at mers.com
+the ib-build mailing list is also available as a newsgroup at
+news.mers.com:mers.interbase.build
+
+
+A couple of comments on how it is supposed to work:
+setup_dirs takes you platform name (LINUX, SOLARIS etc), your
+desired build type (PROD | DEV} and a master database directory.
+I think that some of the problems Mark encountered are due
+to setting the master database directory to be the same
+as the source directory. This is not really right. At interbase
+this would have been toolsdbs:/dbs
+where toolsdbs was a server whose job was to serve
+the databases msg.gdb, isc.gdb, yachts.gdb etc.
+However, if you create these databases, you can put them in
+SOME OTHER DIRECTORY on your local machine and have the same effect.
+
+setup_dirs takes the information you gave it, and creates the
+makefiles in the builds directory (as make.{component} where component
+is something like jrd etc), using the files under builds/original.
+Most of the file in builds/original are of the form prerix.{platform}
+and sfx.{component}
+This is a historical thing that dates back to the days when many
+make programs did not have conditionals or includes.
+
+So, prefix.{platform} is pre-appended to each of the sfx.{component}
+files,
+with some 'sed' magic happening for things like the master db dir,
+and the result is put in builds/make.{component}
+then links are made from each {component}/makefile to
+builds/make.component
+
+note that sfx.interbase is special, because it becomes make_kit
+in the root.
+
+setup_dirs also sets up the 'super' tree, which is basically a clone
+of some of the component using a forest of symlinks. sfx files
+that are different between classic and super are known as 
+sfx.{component_ss}
+
+One thing to keep in mind is that changes you intend to commit
+to the build process should be in the prefix and sfx files. 
+Thus, make your changes in original, then re-run setup_dirs.
+
+I hope this helps a little.

@@ -1,0 +1,312 @@
+COPYRIGHT NOTICE
+This document is copyright 2000 by Reed Mideke. All rights
+not specifically granted are reserved. Certain rights 
+are hereby granted to all persons who are identified by the following
+criteria:
+	Persons who are NOT employees, executives or board members of
+	Inprise corporation, it's agents, subcontractors or
+	subsidiaries.
+
+All persons meeting this criteria are henceforth referred to as 'you'.
+
+The rights granted to you are:
+1) You are granted the right to copy this document verbatim.
+2) You are granted the right to create and distribute modified versions
+of this document (derivative works), so long as all of the following
+conditions are met:
+	a) this notice is included in unmodified form
+	b) You distribute the modified document under the terms of
+	this notice.
+	c) You do not mis-represent your changes as being authored
+	by Reed Mideke.
+
+NO OTHER RIGHTS ARE GRANTED TO ANY PERSONS. NO RIGHTS ARE GRANTED TO
+PERSONS NOT MEETING THE CRITERIA ABOVE.
+
+This information is provided as is, without ANY WARRANTY OF ANY KIND.
+END OF COPYRIGHT NOTICE
+
+-Building the *****Base server on win32 platforms- 
+ibbuild-win32.txt version 1.0.4 last revised 7/31/2000
+
+The latest version of this file is available at
+http://www.cruzers.com/~rfm/ibbuild-win32.txt
+
+Please send comments and corrections to
+rfm@cruzers.com or the ib-build mailing list at mers.com
+the ib-build mailing list is also available as a newsgroup at
+news.mers.com:mers.interbase.build
+
+Introduction:
+	This document describes the steps I took to compile the server
+under windows NT 4.0, service pack 6. This information should
+apply on other windows platforms, but I have not tested it.
+
+Directory structure:
+I refer to the directory in which you unpacked the source as
+the build directory {BUILD_DIR}, and the directory to which the
+binary release was installed as the install directory {INST_DIR}.
+These directories MUST be different.
+
+I also created a directory tree I refer to as the build database
+directory {DB_DIR}. This can reside anywhere on your system,
+except that it must not be the same as {DB_DIR}
+Historically, the 'build databases' were stored on a central
+server. If you see references to toolsdbs, yoda or jabba, these
+were all incarnations of it. For the most part it doesn't matter,
+but their should be one authoritative messages database somewhere,
+otherwise the messages files will diverge, which will make
+the divergent distributions incompatible.
+I highly recommend the use of a separate server for the
+build databases if you have multiple developers on a single
+lan working with the interbase code.
+
+Tools requirements:
+ * InterBase 6 final binary release. 
+ * A borland C compiler (the 'free' one should be ok)
+This is required for the 'make' program, and also to build
+the import library for borland tools.
+
+ * Microsoft visual C (I used 6, but 5.x should be workable as well)
+
+ * Cygnus cygwin32 or MKS korn shell (I wrote these instructions
+based on a build using cygwin. I've tried to note what would be
+different if you used MKS, but since I haven't tried with MKS,
+there are probably some things I missed.)
+Other unix-like tools should be usable as well. At a minimum, you
+need bash or ksh, sed and cp.  A few other common unix commands are
+probably also used, but with a little work you could substitute
+the dos equivalents.
+
+ * an echo.exe that behaves like the dos builtin
+Here's the problem: The makefiles use echo to build temp text files. 
+Unix like toolkits (MKS, cygwin) include an echo executable which
+does not behave like the dos echo command (because they treat \ as
+special). But the dos echo command is a built into command.com, so
+borland make does not use it unless no echo.exe is on the path.
+So i created the following quick and dirty echo.exe:
+--begin echo.c
+#include <stdio.h>
+int main(int argc, char **argv)
+{
+	int i;
+	for(i = 1; i < argc; i++) {
+		printf("%s",argv[i]);
+		if(i < argc - 1)
+			printf(" ");
+		else
+			printf("\n");
+	}
+	return 0;
+}
+--end echo.c
+
+PATH requirements:
+ * The echo.exe resulting from the above C code MUST be in your path
+before the cygwin or MKS echo.exe.
+
+ * Borland make must be in your path before any other make (for
+example, the one provided by MKS, CYGWIN etc.)
+
+ * If you have the NT Resource Kit installed (it is not required, but
+many developers probably have it) you should either remove the
+so-called posix tools provided with it, or ensure that they are after
+MKS or cygwin in you path.
+
+ * The microsoft C and borland C bin directories need to be on your
+path.
+
+ * the interbase/bin directory of the install dir must be on the
+path
+
+additional downloads:
+	codes.tgz from the interbase.com download area. Unzip this
+	into the {BUILD_DIR}/jrd directory.
+
+Databases:
+Create the following file structure. The subdirectories 
+should not be the same as the ones in {BUILD_DIR}
+ {DB_DIR}/
+	jrd/
+		isc.gdb
+		I just copied isc4.gdb from {INST_DIR} to isc.gdb
+	msgs/
+		msg.gdb
+		master_msg_db
+		These are actually the same database. Create them
+		from the msgs.gbak stored in codes.zip. Really the
+		makefiles and .e files should just be changed
+		to refer to a single name.
+
+ if you want to build qli
+	qli/
+		help.gdb 
+		master_help_db (once again these are the same file)
+		NOTE: the help database provided with qli is owned by
+		a user named bbandy (hi brett!). The install_qli_help
+		target tries to gbak it, which requires that it be
+		be owned by the user doing the build. This is builder
+		by default.
+		install_qli_help is fairly pointless anyway. All it
+		does is gbak the help database from one place to another.
+
+ if you want to build examples
+	example5/
+		empbuild.gdb 
+		intlbld.gdb 
+	These are copies of employee.gdb and intlemp.gdb, respectivly.
+	Since they are just used by gpre, they probably don't need to
+	have the data. But it doesn't hurt.
+
+Binary icon resources:
+The windows resources used be the server and guardian executables
+expect to find binary icon. These were not provided with the source
+you need to create the following:
+ * caution.ico and server.ico in {BUILD_DIR}/remote
+ * sgard23i.ico and salrt23i.ico in {BUILD_DIR}/iscguard
+Not wanting to go to the trouble to make icons from scratch,
+I looked around my harddrive until I found a .ico. So my server
+uses the icon from Need For Speed, Porsche Unleashed ;-)
+
+Files changed to unix format:
+Depending on how you set it up, the cygwin tools may expect files to
+be in unix, rather than dos format. MKS generally doesn't care.
+I changed the following files to unix format before preparing
+running setup_dirs.ksh:
+{BUILD_DIR}/
+	setup_build.ksh
+	setup_dirs.ksh
+	build_win32/original/
+			*.sed
+	jrd/
+		dyn_def.sed
+If you use text, rather than binary mounts, you should not need to
+do this. (But I use binary mounts, so your mileage may vary)
+
+Modified files:
+NOTE: all these file modification should be done BEFORE you run
+setup_dirs.ksh for the first time.
+ * in setup_dirs.ksh
+ 	changed the line that said 
+		setup_build
+	to say
+		setup_build.ksh
+	This is required for cygwin. MKS assumes the .ksh extension
+
+	Copy the lines starting starting at
+		mkdir ib_debug 
+	through
+		mkdir ib_debug/help
+	and paste them immediately below. In the pasted lines
+	replace ib_debug with interbase.
+	The fact that this is missing in the shipped code appears to
+	be a bug.
+
+ * setup_build.ksh
+ 	changed DB_PATH to {DB_DIR}
+
+ * builds_win32/original/include.mak
+ 	change UNIX_DEV_ROOT to {DB_DIR}
+ 	change MSGSDIR to {DB_DIR}/msgs
+NOTE: These should be changed so the one refers to the other
+
+Commented build commands:
+ If your not interested in building QLI or the examples,
+ you can comment out the following:
+ * builds_win32/original/build_lib.bat
+ 	comment out the four line section beginning with cd qli
+    comment out the line
+		make %FLAGS% -fmakefile.lib install_qli_help
+	and the following if ...
+	comment out the two four line sections beginning with
+		cd example5
+
+ * builds_win32/original/make.jrd
+ 	(note that this change must be made BEFORE running
+	setup_dirs.ksh, otherwise, make the equivalent change in
+	jrd/makefile.lib)
+
+	in the install_client target, comment out the lines 
+	referring to qli.exe and qli.pdb
+
+Preparing to build for the first time:
+make sure server is running from {INST_DIR} not {BUILD_DIR}
+
+make sure your {INST_DIR}/isc4.gdb has a user named builder
+with password builder
+
+start an MKS korn or Cygwin bash shell
+make sure ISC_USER and ISC_PASSWORD set to valid values before
+running setup_dirs.ksh (for metadata.gdb). As in:
+	ISC_USER=builder
+	ISC_PASSWORD=builder
+	export ISC_USER
+	export ISC_PASSWORD
+
+Run setup_dirs.ksh
+
+NOTE: in MKS, the .ksh extension is assumed, but in cygwin
+it must be specified. If you just type setup_dirs in cygwin bash
+you will attempt to run the unix setup_dirs script and fail.
+
+Error messages from setup_dirs.ksh and setup_build.ksh:
+The first time you run setup_build.ksh (via setup_dirs.ksh),
+it generates a harmless error because it tries to drop
+'metadata.gdb' even when it is not there.
+
+Errors are also generated creating register/ms_obj/*
+and copying iblicen.bind to register/iblicen.bind
+presumably because register (the licensing component) does not exist
+in open source distribution. These can be ignored.
+
+copy 
+	{INST_DIR}/SDK/lib_ms/gds32_ms.lib
+to
+	{BUILD_DIR}/jrd/ms_obj/client
+(this allows the codes.exe and the messages tools to be built)
+
+
+BUILDING:
+set the environment variable IBSERVER to the root of {INST_DIR}
+run build_lib.bat 
+If all goes well there will be about 8000 warnings and no errors.
+build_lib.bat has some options:
+-DDEV makes a build with debug info, delivering the built kit
+to {BUILD_DIR}/ib_debug, with associated PDB files.
+Without -DDEV, an optimized build is done, delivering to
+{BUILD_DIR}/interbase
+-B forces and unconditional build (ignores file change dates,
+by passing -B on to borland make)
+
+I usually invoke build_lib as build_lib -DDEV > build.log 2>&1,
+and then start a tail -f build.log in another window, so I have
+a log file and can watch the progress.
+
+Running the new server:
+The easiest way to do this is to:
+rename your {INST_DIR} and then copy {BUILD_DIR}/interbase (optimized) 
+or {BUILD_DIR}/ib_debug (debug) to where your INST_DIR was.
+Remember to shut down your running server first.
+If you don't want to replace your existing isc4.gdb, you can
+just copy the bin directory. Remember to copy lib and include as well,
+if you are compiling your own applications against the installed 
+kit.
+To debug the server, you might want to invoke it with the -a command
+line option, so it runs as an application on your desktop,
+rather than a service.
+
+When you install the new server, you need to do something with
+gds32.dll, which ends up in {BUILD_DIR}/interbase/bin or
+{BUILD_DIR}/ib_debug/bin.
+You should either copy it to windows\system[32] (as the normal
+install does) OR delete whatever gds32.dll is in system, and keep
+the gds32.dll in the bin dir of the newly created build. I usually
+use the latter method, since that makes it so that you can replace
+all of IB (or just the bin dir) as a unit. You do have to ensure,
+however that there are no other gds32.dlls on the path that you
+might pick up first.
+
+TRADEMARKS:
+All trademarks are property of their respective owners.
+
+
