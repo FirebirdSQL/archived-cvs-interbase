@@ -1,6 +1,0 @@
-Test:
- FETCH BCR INTO :M.Buffer:M.BufferLen   (NULL blob)
---------------------------------------------------------------------------------
-Row_id: 10 Comment: 10th row                                                                                             
-
-...Done

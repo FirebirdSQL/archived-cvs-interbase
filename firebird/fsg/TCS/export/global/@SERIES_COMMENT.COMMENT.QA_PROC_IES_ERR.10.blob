@@ -1,5 +1,0 @@
-QA_PROC_IES_ERR:
-
-History:
-5July95: clare: This was failing to run all 4 tests and not completing
-	 the first test.  

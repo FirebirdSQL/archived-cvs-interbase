@@ -1,7 +1,0 @@
-C_DSQL_RI_DROP_TAB    Bug 8397  (PENDING in build69.clare.) See series
-				comments for RI_TESTS_ISQL for full comments)
-
-  In 4.0 we allowed columns to be deleted when an index existed on the 
-  column.  We left the index dangling.  This behavior was fixed (Bug 8054)
-  for 4.5 and caused the new behavior to surface.  The old behavior was
-  causing problems on restore of the database from a .gbk file.

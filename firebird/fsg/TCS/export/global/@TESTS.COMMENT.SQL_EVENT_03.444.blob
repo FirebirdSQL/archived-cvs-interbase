@@ -1,4 +1,0 @@
-11-Mar-1998:dsmirnov: Cloning a new version of the test.
-main(0 is edited and EXEC SQL DISCONNECT DB; is added.
-For some reason Named Pipe do not realize the connection went away
-and keeps the attachment open.

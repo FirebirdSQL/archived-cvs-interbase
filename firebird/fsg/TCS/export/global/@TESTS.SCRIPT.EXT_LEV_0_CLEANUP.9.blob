@@ -1,2 +1,0 @@
-$DEL inp.sql create.sql
-$DELETE inp.isql awk.* ls.out rm_file.sh

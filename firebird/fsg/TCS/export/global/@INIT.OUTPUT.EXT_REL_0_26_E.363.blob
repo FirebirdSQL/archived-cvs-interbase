@@ -1,8 +1,0 @@
-Use CONNECT or CREATE DATABASE to specify a database
-Database:  "ext_rel.gdb"
-
- FIELD1  FIELD2 
-======= ======= 
-
-  12000   24000 
-

@@ -1,5 +1,0 @@
-This apparently fails as the request to SELECT from the
-table hasn't been released by the time the DROP table
-is attempted.  (Design issue?)
-
-1994-December-2 David Schnepper 
