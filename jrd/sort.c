@@ -83,6 +83,7 @@ extern double   MTH$CVT_D_G(), MTH$CVT_G_D();
  --------------------------------------------------*/
 #define MAX_TEMPFILE_SIZE       1900000000
 
+#include <windows.h>
 
 #define DIFF_LONGS(a,b)         ((a) - (b))
 #define SWAP_LONGS(a,b,t)       {t=a; a=b; b=t;}
@@ -1391,16 +1392,16 @@ while (length)
                 write_len = write (sfb->sfb_file, address + write_len,
                                    len - write_len);
             if ((SSHORT) write_len == -1 && !SYSCALL_INTERRUPTED(errno))
-	        {
-		THREAD_ENTER;
-                SORT_error (status_vector, sfb, "write", isc_io_write_err, errno);
-                }
+	          {
+             THREAD_ENTER;
+             SORT_error (status_vector, sfb, "write", isc_io_write_err, errno);
+             }
             }
-	}
+	    }
 
     if (i == IO_RETRY)
 	{
-	THREAD_ENTER;
+   THREAD_ENTER;
 	SORT_error (status_vector, sfb, "write", isc_io_write_err, errno);
 	}
     length -= write_len;
@@ -1913,12 +1914,20 @@ if (!best)
     /* -----------------2001-09-24 --------------------
       SJL - Temporary fix for large sort file bug
      --------------------------------------------------*/
-    if ( (!sfb || !DLS_get_temp_space(size, sfb)) || ((sfb->sfb_file_size + size) > MAX_TEMPFILE_SIZE) )
+    if ( (!sfb || !DLS_get_temp_space(size, sfb)) || ((sfb->sfb_file_size + size) >= MAX_TEMPFILE_SIZE) )
     /* Mike Grover */
     /*if (!sfb || !DLS_get_temp_space(size, sfb) || ((scb->scb_runs->run_seek + size) > MAX_TEMPFILE_SIZE) )*/
     {
     sfb = (SFB) alloc (scb, (ULONG) sizeof (struct sfb));
 	 /* FREE: scb_sfb chain is freed in local_fini() */
+
+
+    /* Is the last DLS at it's size limit? */
+    /* If so, Add a new DLS dir   M.E.G       */
+    if (last_sfb && last_sfb->sfb_dls->dls_inuse + size >= MAX_TEMPFILE_SIZE)
+     if(!DLS_add_dir(MAX_TEMPFILE_SIZE, last_sfb->sfb_dls->dls_directory))
+      error_memory(scb);
+
 
 	 if (last_sfb)
 	   last_sfb->sfb_next = sfb;
@@ -1926,11 +1935,9 @@ if (!best)
 	   scb->scb_sfb = sfb;
 
      /* Find a free space */
-
-        sfb->sfb_dls = NULL;
-        if (!DLS_get_temp_space(size, sfb))
-            /* There is not enough space */
-            error_memory(scb);
+     sfb->sfb_dls = NULL;
+      if (!DLS_get_temp_space(size, sfb))
+        error_memory(scb);
 
 	 /* Create a scratch file */
     sfb->sfb_file = (int) gds__tmp_file2 (FALSE, SCRATCH, file_name, sfb->sfb_dls->dls_directory);
