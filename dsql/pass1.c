@@ -19,29 +19,50 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
+ * 2001.5.26: Claudio Valderrama: field names should be skimmed from trailing
+ *
  * 2001.5.26: Claudio Valderrama: COMPUTED fields will be skipped if a dummy
  *       "insert into tbl values(...)" sentence is issued.
+ *
+ * 2001.5.26: Claudio Valderrama: field names should be skimmed from trailing
+ *
  * 2001.5.26: Claudio Valderrama: field names should be skimmed from trailing
  *		blanks to allow reliable comparisons in pass1_field. Same for table and
  *		and index names in plans.
+ *
  * 2001.5.29: Claudio Valderrama: handle DROP VIEW case in pass1_statement().
+ *
  * 2001.6.12: Claudio Valderrama: add basic BREAK capability to procedures.
+ *
  * 2001.6.27: Claudio Valderrama: pass1_variable() now gives the name of the
  * variable it can't find in the error message.
+ *
  * 2001.6.30: Claudio Valderrama: Enhanced again to provide (line, col), see node.h.
+ *
  * 2001.7.28: John Bellardo: added code to handle nod_limit and associated fields.
+ *
  * 2001.08.14 Claudio Valderrama: fixed crash with trigger and CURRENT OF <cursor> syntax.
+ *
  * 2001.09.10 John Bellardo: fixed gen_rse to attribute skip/first nodes to the parent_rse
  *   if present instead of the child rse.  BUG #451798
+ *
  * 2001.09.26 Claudio Valderrama: ambiguous field names are rejected from now.
+ *
  * 2001.10.01 Claudio Valderrama: check constraints are allowed to have ambiguous field
  *   names because they use OLD and NEW as aliases of the same table. However, if the
  *   check constraint has an embedded ambiguous SELECT statement, it won't be detected.
  *   The code should be revisited if check constraints' before delete triggers are used
  *   for whatever reason. Currently they are never generated. The code can be improved
  *   to not report errors for fields between NEW and OLD contexts but complain otherwise.
+ *
  * 2001.10.05 Neil McCalden: validate udf and parameters when comparing select list and
  *   group by list, to detect invalid SQL statements when grouping by UDFs.
+ *
+ * 2001.10.23 Ann Harrison:  allow reasonable checking of ambiguous names in unions.
+ *   Remembering, later, that LLS_PUSH expects an object, not an LLS block.  Also
+ *   stuck in the code for handling variables in pass1 - it apparently doesn't happen
+ *   because the code returned an uninitialized pointer.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -63,6 +84,8 @@
 #include "../dsql/pass1_proto.h"
 #include "../jrd/dsc_proto.h"
 #include "../jrd/thd_proto.h"
+//#include "../jrd/err_proto.h"
+#include "../dsql/dsql_proto.h"
 
 ASSERT_FILENAME				/* Define things assert() needs */
 
@@ -170,8 +193,8 @@ else
     relation_name = (STR) relation_node->nod_arg [e_rln_name];
 
 /* CVC: Let's skim the context, too. */
-if (relation_name && relation_name -> str_data)
-	pass_exact_name (relation_name -> str_data);
+if (relation_name && relation_name->str_data)
+	pass_exact_name (relation_name->str_data);
 
 DEV_BLKCHK (relation_name, type_str);
 
@@ -740,7 +763,6 @@ switch (input->nod_type)
     case nod_breakleave:
 	input->nod_arg [e_break_number] = (NOD) (request->req_loop_number - 1);
 	return input;
-
 
     case nod_return:
 	if (request->req_flags & REQ_trigger)
@@ -2582,7 +2604,6 @@ FLD	field;
 DSQL_REL	relation;
 CTX	context;
 LLS	stack;
-PAR	parameter;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -2678,7 +2699,6 @@ NOD	node, temp, *ptr, *end, *ptr2, rse, sub1, sub2, sub3;
 LLS	base;
 FLD	field;
 CTX	agg_context;
-CTX	context;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
@@ -2824,6 +2844,9 @@ switch (input->nod_type)
 	    return pass1_field (request, input, 0, fcount);
 
     case nod_variable:
+	node = MAKE_node (input->nod_type, e_var_count);
+	node->nod_arg [0] = input->nod_arg [0];
+	node->nod_desc = input->nod_desc;
 	return node;
 
     case nod_var_name:
@@ -3378,7 +3401,7 @@ static NOD pass1_rse (
 NOD	rse, parent_rse, target_rse, aggregate, node, list, sub, *ptr, *end, proj;
 PAR	limPar;
 LLS	stack;
-CTX	context, parent_context;
+CTX	parent_context;
 TSQL	tdsql;
 
 DEV_BLKCHK (request, type_req);
@@ -3651,7 +3674,6 @@ static NOD pass1_sel_list (
  *
  **************************************/
 NOD	node, *ptr, *end, frnode;
-CTX	context;
 LLS	stack;
 USHORT	fcount;
 
@@ -3912,7 +3934,7 @@ for (ptr = input->nod_arg, end = ptr + input->nod_count; ptr < end; ptr++, uptr+
     *uptr = PASS1_rse (request, *ptr, NULL_PTR);
      while (request->req_context != base)
 	{
-	LLS_PUSH (request->req_context, &request->req_union_context);
+	LLS_PUSH (request->req_context->lls_object, &request->req_union_context);
 	LLS_POP (&request->req_context);
 	}
     }
