@@ -24,6 +24,10 @@
  * processing of dependencies from dropped generators.
  * 2001.8.12 Claudio Valderrama: find_depend_in_dfw() and other functions
  *   should respect identifiers with embedded blanks instead of chopping them.
+ * 2001.10.01 Claudio Valderrama: check constraints should fire AFTER the
+ *   BEFORE <action> triggers; otherwise they allow invalid data to be stored.
+ *   This is a quick fix for SF Bug #444463 until a more robust one is devised
+ *   using trigger's rdb$flags or another mechanism.
  */
 
 #ifdef SHLIB_DEFS
@@ -3466,12 +3470,19 @@ switch (phase)
 			      the end values stored in the database don't
 			      fulfill the check constraint */
 
-		FOR (REQUEST_HANDLE request_fmtx) 
+/*		FOR (REQUEST_HANDLE request_fmtx) 
 			TRG IN RDB$TRIGGERS 
 			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
 			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
 			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_'
 			    AND  TRG.RDB$TRIGGER_SOURCE MISSING)
+			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+*/
+		FOR (REQUEST_HANDLE request_fmtx) 
+			TRG IN RDB$TRIGGERS 
+			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
+			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_')
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 
 		    if (!REQUEST (irq_format5))
@@ -3501,12 +3512,19 @@ switch (phase)
 		    REQUEST (irq_format5) = request_fmtx;
 
 		request_fmtx = (BLK) CMP_find_request (tdbb, irq_format6, IRQ_REQUESTS);
-		FOR (REQUEST_HANDLE request_fmtx)
+/*		FOR (REQUEST_HANDLE request_fmtx)
 			TRG IN RDB$TRIGGERS
 			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
 			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
 			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_' AND
 			     TRG.RDB$TRIGGER_SOURCE MISSING)
+			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+*/
+		FOR (REQUEST_HANDLE request_fmtx)
+			TRG IN RDB$TRIGGERS
+			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
+			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_')
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 
 		if (!REQUEST (irq_format6))
