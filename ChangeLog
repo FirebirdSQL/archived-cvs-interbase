@@ -1,3 +1,9 @@
+2000-11-22 08:02  PJPG
+
+	* interbase/isql/show.e:
+	
+	Change comment from // to /* style in get_procedure_args.
+
 2000-11-19 08:02  fsg
 
 	* interbase/isql/show.e:

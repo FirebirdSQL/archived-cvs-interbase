@@ -20,6 +20,12 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * $Log$
+ * Revision 1.2  2000/11/18 16:49:24  fsg
+ * Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans
+ * Fixed Bug #122563 in extract.e get_procedure_args
+ * Apparently this has to be done in show.e also,
+ * but that is for another day :-)
+ *
  */
 
 #include "../jrd/ib_stdio.h"
@@ -765,11 +771,11 @@ SCHAR   char_sets [86];
 	    {
 	    first_time = FALSE;
             if (ptype==0)
-               { // this is the input part
+               { /* this is the input part */
                ISQL_printf (Out, "(");
 	       }
             else
-               { // we are in the output part
+               { /* we are in the output part */
                ISQL_printf (Out, "RETURNS (");
                }
             }
