@@ -15,7 +15,7 @@
 # All Rights Reserved.
 # Contributor(s): ______________________________________.
 # Start of file prefix.linux:	$(VERSION)	$(PLATFORM)
-#$Id$
+#$Log$
 
 .SUFFIXES: .c .e
 .e.c:
@@ -49,6 +49,7 @@ UDF_LINK_CMD=		gcc
 UDF_CFLAGS=         	-fPIC -mieee-fp
 UDF_LFLAGS=         	-shared
 UDF_SHRLIBS=        	-lgds -lm -lc -mieee-fp -ldl -lcrypt
+
 
 #NOTE: PIC_J_CFLAGS is special CFLAGS used to build PIPD_IS_SHRLIB modules
 #      to workaround the Solaris threading problems with signals
@@ -162,6 +163,9 @@ COMPRESS_DBNAME=	@echo No need to compress...
 
 ARCH_EXT=		.a
 EXEC_EXT=
+#      FSG 1.Dez.2000
+SHRLIB_EXT=             .so
+
 
 V3PRINTER=		source/lock/printv3.o
 
