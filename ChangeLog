@@ -1,9 +1,65 @@
-2001-04-11 tamlin
-	* gpre/: c_cxx.c, cmd.c, cme.c, cmp.c, exp.c, gpre.c, hsh.c
-	jrdmet.c, movg.c, msc.c, par.c, pretty.c, sqe.c, sql.c
+2001-04-11 19:22  tamlin
 
-	Reduced compiler warnings for gpre and reduced compiler
-	warnings from gpre generated C code.
+	* interbase/remote/cntl.c:
+	
+	Removed redundant CloseHandle call
+
+2001-04-11 19:13  tamlin
+
+	* interbase/jrd/: isc.c, jrn.c, scl.e:
+	
+	compiler warnings
+
+2001-04-11 17:43  tamlin
+
+	* interbase/jrd/: evl.c, evl_like.c:
+	
+	compilation guard
+
+2001-04-11 17:41  tamlin
+
+	* interbase/jrd/: dsc.c, dsc_proto.h:
+	
+	compiler warnings and const correctness
+
+2001-04-11 17:37  tamlin
+
+	* interbase/jrd/cch.c:
+	
+	compiler warnings
+
+2001-04-11 17:28  tamlin
+
+	* interbase/gpre/int.c:
+	
+	Reduced compiler warnings from gpre generated C code.
+
+2001-04-11 17:22  tamlin
+
+	* interbase/gpre/: c_cxx.c, cmd.c, cme.c, cmp.c, exp.c, gpre.c,
+	hsh.c, jrdmet.c, movg.c, msc.c, par.c, pretty.c, sqe.c, sql.c:
+	
+	Reduced compiler warnings for gpre and reduced compiler warnings
+	from gpre generated C code.
+
+2001-04-09 18:56  bellardo
+
+	* interbase/firebird/bellardo/darwin/makefile:
+	
+	Updated to reflect the name change of the Info.plist file.
+
+2001-04-09 18:53  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Removed references to -lcc and added path need to compile in OS X.
+
+2001-04-06 01:07  bellardo
+
+	* interbase/firebird/bellardo/darwin/: FrameworkInfo.plist,
+	Info.plist:
+	
+	Renamed Info.plist to FrameworkInfo.plist
 
 2001-04-05 19:05  skywalker
 
@@ -560,10 +616,7 @@
 	isql/extract.e, isql/isql.e, isql/isql.h, isql/show.e,
 	jrd/license.h, pyxis/debug.c, pyxis/edit.e, pyxis/fred.e:
 	
-	Changed all $Log$
-	Changed all Revision 1.22  2001/04/05 19:05:47  fsg
-	Changed all Updated ChangeLog
-	Changed all tags to $Id$ BTW this will hopefully set
+	Changed all $Log$ tags to $Id$ BTW this will hopefully set
 	this_build to 2 :-)
 
 2000-12-08 17:18  fsg
