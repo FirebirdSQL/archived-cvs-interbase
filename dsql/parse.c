@@ -1,18 +1,10 @@
-#include <sys/cdefs.h>
 #ifndef lint
-#if 0
 static char yysccsid[] = "@(#)yaccpar	1.9 (Berkeley) 02/21/93";
-#else
-__IDSTRING(yyrcsid, "$NetBSD: skeleton.c,v 1.14 1997/10/20 03:41:16 lukem Exp $");
 #endif
-#endif
-#include <stdlib.h>
 #define YYBYACC 1
 #define YYMAJOR 1
 #define YYMINOR 9
-#define YYLEX yylex(client_dialect, db_dialect, parser_version, stmt_ambiguous)
-#define YYEMPTY -1
-#define yyclearin (DSQL_yychar=(YYEMPTY))
+#define yyclearin (DSQL_yychar=(-1))
 #define yyerrok (DSQL_yyerrflag=0)
 #define YYRECOVERING (DSQL_yyerrflag!=0)
 #define YYPREFIX "yy"
@@ -3535,11 +3527,10 @@ typedef int YYSTYPE;
 #ifdef YYMAXDEPTH
 #define YYSTACKSIZE YYMAXDEPTH
 #else
-#define YYSTACKSIZE 10000
-#define YYMAXDEPTH 10000
+#define YYSTACKSIZE 500
+#define YYMAXDEPTH 500
 #endif
 #endif
-#define YYINITSTACKSIZE 200
 static int yydebug;
 static int yynerrs;
 #ifndef SHLIB_DEFS
@@ -3552,10 +3543,9 @@ short *yyssp;
 static YYSTYPE *yyvsp;
 static YYSTYPE yyval;
 static YYSTYPE yylval;
-short *yyss;
-short *yysslim;
-static YYSTYPE *yyvs;
-static int yystacksize;
+static short yyss[YYSTACKSIZE];
+static YYSTYPE yyvs[YYSTACKSIZE];
+#define yystacksize YYSTACKSIZE
 
 /*
  *	PROGRAM:	Dynamic SQL runtime support
@@ -4622,35 +4612,6 @@ static void yyabandon (
 ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) sql_code, 
 	gds_arg_gds, error_symbol, 0);
 }
-/* allocate initial stack or double stack size, up to YYMAXDEPTH */
-int dsql_yyparse __P((USHORT, USHORT, USHORT, BOOLEAN*));
-static int yygrowstack __P((void));
-static int yygrowstack()
-{
-    int newsize, i;
-    short *newss;
-    YYSTYPE *newvs;
-
-    if ((newsize = yystacksize) == 0)
-        newsize = YYINITSTACKSIZE;
-    else if (newsize >= YYMAXDEPTH)
-        return -1;
-    else if ((newsize *= 2) > YYMAXDEPTH)
-        newsize = YYMAXDEPTH;
-    i = yyssp - yyss;
-    if ((newss = (short *)realloc(yyss, newsize * sizeof *newss)) == NULL)
-        return -1;
-    yyss = newss;
-    yyssp = newss + i;
-    if ((newvs = (YYSTYPE *)realloc(yyvs, newsize * sizeof *newvs)) == NULL)
-        return -1;
-    yyvs = newvs;
-    yyvsp = newvs + i;
-    yystacksize = newsize;
-    yysslim = yyss + newsize - 1;
-    return 0;
-}
-
 #define YYABORT goto yyabort
 #define YYREJECT goto yyabort
 #define YYACCEPT goto yyaccept
@@ -4658,11 +4619,12 @@ static int yygrowstack()
 int
 dsql_yyparse(USHORT client_dialect, USHORT db_dialect, USHORT parser_version, BOOLEAN *stmt_ambiguous)
 {
-    int yym, yyn, yystate;
+    register int yym, yyn, yystate;
 #if YYDEBUG
-    char *yys;
+    register char *yys;
+    extern char *getenv();
 
-    if ((yys = getenv("YYDEBUG")) != NULL)
+    if (yys = getenv("YYDEBUG"))
     {
         yyn = *yys;
         if (yyn >= '0' && yyn <= '9')
@@ -4674,13 +4636,12 @@ dsql_yyparse(USHORT client_dialect, USHORT db_dialect, USHORT parser_version, BO
     DSQL_yyerrflag = 0;
     DSQL_yychar = (-1);
 
-    if (yyss == NULL && yygrowstack()) goto yyoverflow;
     yyssp = yyss;
     yyvsp = yyvs;
     *yyssp = yystate = 0;
 
 yyloop:
-    if ((yyn = yydefred[yystate]) != 0) goto yyreduce;
+    if (yyn = yydefred[yystate]) goto yyreduce;
     if (DSQL_yychar < 0)
     {
         if ((DSQL_yychar = yylex(client_dialect, db_dialect, parser_version, stmt_ambiguous)) < 0) DSQL_yychar = 0;
@@ -4703,7 +4664,7 @@ yyloop:
             printf("%sdebug: state %d, shifting to state %d\n",
                     YYPREFIX, yystate, yytable[yyn]);
 #endif
-        if (yyssp >= yysslim && yygrowstack())
+        if (yyssp >= yyss + yystacksize - 1)
         {
             goto yyoverflow;
         }
@@ -4720,10 +4681,14 @@ yyloop:
         goto yyreduce;
     }
     if (DSQL_yyerrflag) goto yyinrecovery;
+#ifdef lint
     goto yynewerror;
+#endif
 yynewerror:
     yyerror("syntax error");
+#ifdef lint
     goto yyerrlab;
+#endif
 yyerrlab:
     ++yynerrs;
 yyinrecovery:
@@ -4740,7 +4705,7 @@ yyinrecovery:
                     printf("%sdebug: state %d, error recovery shifting\
  to state %d\n", YYPREFIX, *yyssp, yytable[yyn]);
 #endif
-                if (yyssp >= yysslim && yygrowstack())
+                if (yyssp >= yyss + yystacksize - 1)
                 {
                     goto yyoverflow;
                 }
@@ -7199,7 +7164,7 @@ break;
         printf("%sdebug: after reduction, shifting from state %d \
 to state %d\n", YYPREFIX, *yyssp, yystate);
 #endif
-    if (yyssp >= yysslim && yygrowstack())
+    if (yyssp >= yyss + yystacksize - 1)
     {
         goto yyoverflow;
     }

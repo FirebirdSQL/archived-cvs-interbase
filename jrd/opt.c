@@ -100,6 +100,7 @@ static RSB	gen_procedure (TDBB, OPT, NOD);
 static RSB	gen_residual_boolean (TDBB, register OPT, RSB);
 static RSB	gen_retrieval (TDBB, OPT, SSHORT, NOD *, NOD *, BOOLEAN, BOOLEAN, NOD *);
 static RSB	gen_rsb (TDBB, OPT, RSB, NOD, SSHORT, REL, STR, NOD, float);
+static RSB	gen_skip (TDBB, OPT, RSB, NOD);
 static RSB	gen_sort (TDBB, OPT, UCHAR *, UCHAR *, RSB, NOD, USHORT);
 static BOOLEAN	gen_sort_merge (TDBB, OPT, LLS *);
 static RSB	gen_union (TDBB, OPT, NOD, UCHAR *, USHORT);
@@ -3265,47 +3266,6 @@ rsb->rsb_impure = CMP_impure (csb, sizeof (struct irsb_first_n));
 return rsb;
 }
 
-static RSB gen_skip (
-    TDBB		tdbb,
-    register OPT	opt,
-    RSB			prior_rsb,
-    NOD			node)
-{
-/**************************************
- *
- *	g e n _ s k i p
- *
- **************************************
- *
- * Functional description
- *	Compile and optimize a record selection expression into a
- *	set of record source blocks (rsb's).
- *
- *      NOTE: The rsb_skip node MUST appear in the rsb list after the
- *          rsb_first node.  The calling code MUST call gen_skip before
- *          gen_first.
- *
- **************************************/
-register CSB	csb;
-register RSB	rsb;
-
-DEV_BLKCHK (opt, type_opt);
-DEV_BLKCHK (prior_rsb, type_rsb);
-DEV_BLKCHK (node, type_nod);
-
-SET_TDBB (tdbb);
-
-csb = opt->opt_csb;
-rsb = (RSB) ALLOCDV (type_rsb, 1);
-rsb->rsb_count = 1;
-rsb->rsb_type = rsb_skip;
-rsb->rsb_next = prior_rsb;
-rsb->rsb_arg [0] = (RSB) node;
-rsb->rsb_impure = CMP_impure (csb, sizeof (struct irsb_skip_n));
-
-return rsb;
-}
-
 static void gen_join (
     TDBB	tdbb,
     OPT		opt,
@@ -4187,7 +4147,48 @@ rsb->rsb_cardinality = (ULONG) cardinality;
 
 return rsb;
 }
-
+
+static RSB gen_skip (
+    TDBB		tdbb,
+    register OPT	opt,
+    RSB			prior_rsb,
+    NOD			node)
+{
+/**************************************
+ *
+ *	g e n _ s k i p
+ *
+ **************************************
+ *
+ * Functional description
+ *	Compile and optimize a record selection expression into a
+ *	set of record source blocks (rsb's).
+ *
+ *      NOTE: The rsb_skip node MUST appear in the rsb list after the
+ *          rsb_first node.  The calling code MUST call gen_skip before
+ *          gen_first.
+ *
+ **************************************/
+register CSB	csb;
+register RSB	rsb;
+
+DEV_BLKCHK (opt, type_opt);
+DEV_BLKCHK (prior_rsb, type_rsb);
+DEV_BLKCHK (node, type_nod);
+
+SET_TDBB (tdbb);
+
+csb = opt->opt_csb;
+rsb = (RSB) ALLOCDV (type_rsb, 1);
+rsb->rsb_count = 1;
+rsb->rsb_type = rsb_skip;
+rsb->rsb_next = prior_rsb;
+rsb->rsb_arg [0] = (RSB) node;
+rsb->rsb_impure = CMP_impure (csb, sizeof (struct irsb_skip_n));
+
+return rsb;
+}
+
 static RSB gen_sort (
     TDBB	tdbb,
     OPT		opt,
