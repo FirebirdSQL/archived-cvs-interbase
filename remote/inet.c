@@ -312,12 +312,18 @@ static ULONG inet_debug_timer(void)
  *	need tweeking on any other platform where DEBUG is needed.
  *
  **************************************/
+#if defined(SINIXZ)
+struct timeval tv;
+(void) gettimeofday(&tv, 0);
+return (tv.tv_sec*1000 + tv.tv_usec - INET_start_time);
+#else
 struct timeb	now;
 (void) ftime (&now);
 return (now.time*1000 + now.millitm - INET_start_time);
+#endif /* SINIXZ */
 }
-#endif
-#endif
+#endif /* DEBUG */
+#endif /* REQUESTER */
 
 
 
@@ -4455,7 +4461,7 @@ for (;;)
 	       	return FALSE;
 	    continue;
 	    }
-	
+
     	if (!slct_count && port->port_protocol == 0)
 	    return FALSE;
     	}
