@@ -131,6 +131,86 @@ replaceLineInFile() {
 }
 
 
+#------------------------------------------------------------------------
+#  changeXinetdServiceUser
+#  Change the run user of the xinetd service
+
+changeXinetdServiceUser() {
+
+    InitFile=/etc/xinetd.d/firebird
+    if [ -f $InitFile ] 
+      then
+        ed -s $InitFile <<EOF
+/	user	/s/=.*$/= $RunUser/g
+w
+q
+EOF
+    fi
+}
+
+#------------------------------------------------------------------------
+#  Update inetd service entry
+#  This just adds/replaces the service entry line
+
+updateInetdEntry() {
+
+    FileName=/etc/inetd.conf
+    newLine="gds_db  stream  tcp     nowait.30000      $RunUser $IBBin/gds_inet_server gds_inet_server # InterBase Database Remote Server"
+    oldLine=`grep "^gds_db" $FileName`
+
+    replaceLineInFile "$FileName" "$newLine" "$oldLine"
+}
+
+#------------------------------------------------------------------------
+#  Update xinetd service entry
+# we assume the xinetd script file already exists since we are changing user
+# not installing from scratch.
+
+updateXinetdEntry() {
+
+#    cp $IBRootDir/misc/firebird.xinetd /etc/xinetd.d/firebird
+    changeXinetdServiceUser
+}
+
+#------------------------------------------------------------------------
+#  Update inetd service entry 
+#  Check to see if we have xinetd installed or plain inetd.  Install differs
+#  for each of them.
+
+updateInetdServiceEntry() {
+
+    if [ -d /etc/xinetd.d ] 
+      then
+        updateXinetdEntry
+    else
+        updateInetdEntry
+    fi
+
+}
+
+
+#------------------------------------------------------------------------
+#  resetXinitdServer
+#  Check for both inetd and xinetd, only one will actually be running.
+#  depending upon your system.
+
+resetInetdServer() {
+
+    if [ -f /var/run/inetd.pid ]
+      then
+        kill -HUP `cat /var/run/inetd.pid`
+    fi
+
+    if [ -f /var/run/xinetd.pid ]
+      then
+        kill -HUP `cat /var/run/xinetd.pid`
+    fi
+}
+
+
+#== Main Start ==============================================================
+
+
 IBRootDir=/opt/interbase
 IBBin=$IBRootDir/bin
 
@@ -236,12 +316,13 @@ chmod ugo=rw isc4.gdb
 
 
 
-# Get inetd to reread new init files.
 
-if [ -f /var/run/inetd.pid ]
-  then
-    kill -HUP `cat /var/run/inetd.pid`
-fi
+# Update the /etc/inetd.conf or xinetd entry
+updateInetdServiceEntry
+
+
+# Get inetd to reread new init files.
+resetInetdServer
 
 
 echo "Completed."

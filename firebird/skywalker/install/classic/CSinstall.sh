@@ -32,7 +32,7 @@
     mkdir /opt/interbase/lib 
     mkdir /opt/interbase/doc 
     mkdir /opt/interbase/UDF 
-
+    mkdir /opt/interbase/misc
 
     cp -f interbase/bin/gds_inet_server /opt/interbase/bin/gds_inet_server 
 
@@ -92,6 +92,8 @@
 
     cp interbase/services.isc /opt/interbase/services.isc
     cp interbase/README /opt/interbase/README
+
+    cp interbase/misc/firebird.xinetd /opt/interbase/misc/firebird.xinetd
 
     # June 23 2000, 6:00AM 
     #TIMESTAMP="200006230600.00" 

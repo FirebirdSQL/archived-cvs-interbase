@@ -4,6 +4,7 @@
 %dir /opt/interbase/UDF 
 %dir /opt/interbase/intl 
 %dir /opt/interbase/help 
+%dir /opt/interbase/misc
 
 /opt/interbase/bin/gds_inet_server 
 /opt/interbase/bin/gbak 
@@ -52,7 +53,7 @@
 /opt/interbase/UDF/ib_udf 
 /opt/interbase/services.isc 
 
-
+/opt/interbase/misc/firebird.xinetd
 
 
 

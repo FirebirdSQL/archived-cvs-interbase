@@ -27,9 +27,9 @@ SuperSrcDir=$(InstallRoot)/super
 LastClassicInstallFlg=.classicinstallflg
 LastSuperInstallFlg=.superinstallflg
 
-all: 
+install: 
 	@echo "you need to make a choice here "
-	@echo "make -f <makefile> target"
+	@echo "make target"
 	@echo ""
 	@echo "Firebird classic targets:"
 	@echo "runclassicinstall - install classic from build tree"
@@ -43,7 +43,7 @@ all:
 	@echo "supertarfile      - build tar install file"
 	@echo "superrpmfile      - build redhat rpm install file"
 	@echo ""
-	
+
 all2: CSrpmscript SSrpmscript csinstall ssinstall
 
 

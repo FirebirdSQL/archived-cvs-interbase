@@ -99,6 +99,9 @@ if [ -e firebird ]
         chmod ugo=rx interbase/bin/$i
       done
 
+    mkdir -p interbase/misc
+    cp $ScriptsSrcDir/misc/firebird.xinetd interbase/misc
+
     ($ScriptsSrcDir/classic/CSinstall.sh)
 
     ($ScriptsSrcDir/classic/CSpostinstall.sh)
