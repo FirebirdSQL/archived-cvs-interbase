@@ -1531,8 +1531,18 @@ for (n = 0; n < SUBSYSTEMS; n++)
 		0,
 		expanded_filename))
 	{
+#ifdef WIN_NT
+	/*
+	if (!(length = (*handle)->att_database->dbb_filename->str_length))
+		length = strlen ((*handle)->att_database->dbb_filename->str_data);
+	*/
+	/* Now we can expand, the file exists. */
+	ISC_expand_filename (temp_filename, org_length, expanded_filename);
+	length = strlen (expanded_filename);
+#else
 	if (!(length = org_length))
 	    length = strlen (temp_filename);
+#endif
 	if (!(database = allocate_handle (n, *handle, HANDLE_database)) ||
 	    !(database->db_path = (TEXT*) alloc ((SLONG) (length + 1))))
 	    {
@@ -1552,8 +1562,15 @@ for (n = 0; n < SUBSYSTEMS; n++)
 
 	*handle = database;
 	p = database->db_path;
+
+#ifdef WIN_NT
+	/* for (q = (*handle)->dbb_filename->str_data; length; length--) */
+	for (q = expanded_filename; length; length--)
+	    *p++ = *q++;
+#else
 	for (q = temp_filename; length; length--)
 	    *p++ = *q++;
+#endif
 	*p = 0;
 
 	if (current_dpb_ptr != dpb)

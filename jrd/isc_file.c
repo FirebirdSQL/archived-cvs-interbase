@@ -1673,7 +1673,7 @@ if (length && length < MAXPATHLEN)
 	   /* convert then name to its shorter version ie. convert
 	    * longfilename.gdb to longfi~1.gdb */
 	   length = (USHORT)GetShortPathName (expanded_name, expanded_name2, MAXPATHLEN);
-	   if (length)
+	   if (length && length < MAXPATHLEN)
 	       strcpy (expanded_name, expanded_name2);
 	   }
        else
@@ -1695,13 +1695,21 @@ else
 	/* convert then name to its shorter version ie. convert longfilename.gdb 
 	 * to longfi~1.gdb */
 	file_length = (USHORT)GetShortPathName (expanded_name, expanded_name2, MAXPATHLEN);
-	if (!file_length)
-            file_length = (USHORT)strlen (expanded_name);
-	else
+	if (file_length && file_length < MAXPATHLEN)
 	    strcpy (expanded_name, expanded_name2);
+	else
+            file_length = (USHORT)strlen (expanded_name);
 	}
     else
-	length = 0;
+	file_length = (USHORT)strlen (expanded_name);
+	/* CVC: I know this is incorrect. If _fullpath (that in turn calls GetFullPathName)
+	returns NULL, the path + file given are invalid, but the original and useless code
+	set length=0 that has no effect and setting file_length to zero stops the code below
+	from uppercasing the filename. Following the logic in the prior block of code, the
+	action to take is to get the length of the output buffer. Unfortunately, there's
+	no function that checks the result of ISC_expand_filename. Since _fullpath is
+	GetFullPathName with some checks, the code above looks strange when SUPERSERVER
+	is not defined. I decided to make file_length as the length of the output buffer. */
     }
 
 /* Filenames are case insensitive on NT.  If filenames are

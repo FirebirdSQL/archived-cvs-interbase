@@ -1560,6 +1560,7 @@ JMP_BUF		env1;
 struct tdbb	thd_context, *tdbb = NULL;
 BOOLEAN		internal;
 IHNDL		ihandle;
+FIL		first_dbb_file;
 
 API_ENTRY_POINT_INIT;
 
@@ -1765,6 +1766,7 @@ V4_JRD_MUTEX_LOCK (dbb->dbb_mutexes + DBB_MUTX_init_fini);
 #endif
 length = PIO_expand (file_name, length, expanded_name);
 dbb->dbb_file = PIO_create (dbb, expanded_name, length, options.dpb_overwrite);
+first_dbb_file = dbb->dbb_file;
 if (options.dpb_set_page_buffers)
     dbb->dbb_page_buffers = options.dpb_page_buffers;
 CCH_init (tdbb, (ULONG) options.dpb_buffers);
@@ -1850,7 +1852,12 @@ CCH_release_exclusive (tdbb);
 
 find_intl_charset (tdbb, attachment, &options);
 
+#ifdef WIN_NT
+dbb->dbb_filename = copy_string (first_dbb_file->fil_string,
+								 first_dbb_file->fil_length);
+#else
 dbb->dbb_filename = copy_string (expanded_name, length);
+#endif
 
 #ifdef GOVERNOR
 if (!options.dpb_sec_attach) 
