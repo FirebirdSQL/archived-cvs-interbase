@@ -1,3 +1,57 @@
+2002-03-06 09:40  robocop
+
+	* interbase/this_build (1.792):
+	
+	inc_build_no
+
+2002-03-06 09:39  robocop
+
+	* interbase/remote/: window.c (1.3), window.h (1.4):
+	
+	We are Firebird and want to be known as Firebird.
+
+2002-03-06 08:34  robocop
+
+	* interbase/: this_build (1.790), this_build (1.791):
+	
+	inc_build_no
+
+2002-03-06 08:34  robocop
+
+	* interbase/: iscguard/cntl_guard.c (1.4), iscguard/iscguard.c
+	(1.8), iscguard/iscguard.h (1.2), iscguard/iscguard.rc (1.6),
+	remote/cntl.c (1.6), remote/property.c (1.5):
+	
+	We are Firebird and want to be known as Firebird.
+
+2002-03-05 20:42  paul_reeves
+
+	* interbase/: FB_Build_Win32.bat (1.4), FB_Build_Win32_Readme.txt
+	(1.4), builds_win32/install/BuildExecutableInstall.bat (1.1),
+	builds_win32/install/FirebirdInstall.iss (1.1.2.3):
+	
+	Update some Win32 build and install stuff.
+
+2002-03-05 20:41  paul_reeves
+
+	* interbase/: remote/inet_server.c (1.6), utilities/install_reg.c
+	(1.2):
+	
+	Be sure to leave no doubt that we are Firebird.
+
+2002-03-05 20:41  paul_reeves
+
+	* interbase/: this_build (1.787), this_build (1.786), this_build
+	(1.789), this_build (1.788):
+	
+	inc_build_no
+
+2002-03-05 17:44  fsg
+
+	* interbase/this_build (1.785):
+	
+	inc_build_no
+
 2002-03-05 09:02  robocop
 
 	* interbase/: jrd/msgs.h (1.10), msgs/msg.gbak (1.14),
