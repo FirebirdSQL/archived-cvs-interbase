@@ -1,3 +1,158 @@
+2001-01-28 11:38  fsg
+
+	* interbase/isql/isql.e:
+	
+	Fixed Bug #112263 [command line isql ignores -user / -password with
+	-a or -x]
+	
+	fsg
+
+2001-01-18 17:07  fsg
+
+	* interbase/jrd/misc.h:
+	
+	Removed my changes from jrd/misc.h use of mkstemp on Linux caused
+	Bug #129121
+	
+	So we use mktemp again :-(
+	
+	fsg
+
+2001-01-18 01:47  patrickgriffin
+
+	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/dsql.h, dsql/make.c,
+	dsql/make_proto.h, dsql/parse.c, dsql/parse.y, dsql/parse_proto.h,
+	jrd/ibase.h, jrd/inf.c:
+	
+	Background: When a column has a default value, or it's domain has a
+	default value, and that column is defined for a specific character
+	set, then GBAK can abort with a transliteration error.	The default
+	value is stored in BLR in the system tables and the generated BLR
+	indicates that value was created with the character set DYNAMIC. 
+	Consider the following ISQL statements:
+	
+	set names win1251; create database "cf.gdb"; create table
+	bug_bugbase (	  s varchar(20) character set win1251	       
+	default 'RôbértNélsôn' not null collate win1251,     i smallint
+	default '1234' not null);
+	
+	The generated BLR is:
+	
+	blr_version5, blr_literal, blr_text2, 127,0, 12,0,
+	'R',-12,'b',-23,'r','t','N',-23,'l','s',-12,'n', blr_eoc
+	
+	where the 127 represents the DYNAMIC character set.  When DYNAMIC
+	is encountered it is reassigned to the current character set, in
+	the case of GBAK that character set is NONE, and then the value is
+	transliterated into the character set of the column.  If there are
+	non-English characters involved then it can not be transliterated
+	from character set NONE to any other character set.  Consider this
+	ISQL code:
+	
+	set names win1251; connect "cf.gdb"; insert into bug_bugbase (s)
+	values('BruceNélsôn');
+	
+	When the insert is Prepared, the following steps are preformed:
+	
+	1) Fetch the default value from the meta data 2) Since it has a
+	character set of DYNAMIC (the 127), re-assign it to the current
+	character set (SET NAMES WIN1251 of the current ISQL session).	3)
+	Copy it into the holding area, and transliterate the field into the
+	correct character set.	Since it's been reassigned to win1251 and
+	since the holding area is win1251 a simple data copy is performed.
+	
+	And everything is happy.
+	
+	Now consider GBAK.  GBAK does not include any opportunity to enter
+	a SET NAMES command, and since there can be default values in
+	different character sets a SET NAMES command would not help.  GBAK
+	operates using the character set NONE.	When GBAK Prepares the
+	insert statement to load the data from the backup file into the
+	restored database the following happens:
+	
+	1) Fetch the default value from the meta data 2) Since it has a
+	character set of DYNAMIC (the 127), re-assign it to the current
+	character set NONE.  3) Copy it into the holding area, and
+	transliterate the field into the correct character set.  Since it's
+	been reassigned to the character set NONE and since the holding
+	area is win1251 then an attempt is made to transliterate the
+	default from NONE to WIN1251.  Under the covers a valiant effort is
+	made to first transliterate it into UNICODE, but the first
+	non-english character brings that to an abrupt halt.
+	
+	This patch is written to change how the default value is stored so
+	that it has the correct character set identifier, either the
+	character set specified when the connection was made to the
+	database, or ,if it exists, the character set specified with a
+	character set introducer.  From the example above, the new BLR
+	becomes: blr_version5, blr_literal, blr_text2, 52,0, 12,0,
+	'R',-12,'b',-23,'r','t','N',-23,'l','s',-12,'n', blr_eoc
+	
+	(52 represent the WIN1251 character set.) Design: I've considered
+	the following three components to be separate: 1.     Engine 2.    
+	  DSQL 3. Parser
+	
+	The significance of this is separation is in the methods available
+	to communicate information across the different components.
+	
+	The Engine knows the attachment character set, so to communicate
+	that value I've added a tag to the INF_database_info routine to
+	report it.  I've modified DSQL to request this parameter and to
+	pass it to the Parser when the string is passed.  I've modified the
+	Parser to report this value to when creating a new String Constant.
+	 I've created a new MAKE_str_constant routine to take the character
+	set ID and use it when creating the string.  I've modified DSQL to
+	properly process any character set identifiers.
+	
+	Important Considerations
+	
+	Because this change introduces a new tag in the INF_database_info
+	routine, I have taken two precautions to prevent a conflict with
+	other implementations of Interbase.  1) The tag name is  prefixed
+	with FRB_ instead of GDS_ or ISC_.  2) The internal number is 101,
+	not the next available number 65.
+	
+	Because this change is to the DSQL DDL component, and not to GBAK,
+	existing databases are not directly affected or corrected by this
+	change.  Values already converted to BLR are not modified in any
+	way.
+	
+	Limitations Because this change only modifies how strings are
+	stored it does not make reference to any db-wide character set
+	definition.  Also, the character set identifier set with each
+	string is controlled by either the attachment character set (SET
+	NAMES) or the string character set specification (_WIN1251 'string
+	value'). This can lead to some unexpected results.  Consider:
+	create database "cf.gdb"; create table bug_bugbase (	 s
+	varchar(20) character set win1251	    default 'Narf' not null
+	collate win1251,     i smallint default '1234' not null);
+	
+	Also Consider:
+	
+	create database "cf.gdb" default character set win1251 ; create
+	table bug_bugbase (	s varchar(20)		default 'Narf' not
+	null,	  i smallint default '1234' not null);
+	
+	What character set is the default value?  My change would consider
+	this default value to have been coded in the character set  NONE. 
+	When referenced Interbase will attempt to transliterate the default
+	value from NONE into WIN1251, and if that transliteration is not
+	possible then an error will be reported.
+	
+	In addition, the character set name used is not stored in the
+	Default Source field.  For proper documentation the value stored in
+	the Default Source field should include the character set name, for
+	example "default _WIN1252 'Point'", but I've not been able to
+	develop the proper code to accomplish this.
+	
+	...pat
+
+2001-01-17 15:23  pcisar
+
+	* interbase/intl/anczech.h:
+	
+	PXW_CSZ correction - CH character
+
 2001-01-14 16:36  gspeicher
 
 	* interbase/firebird/gspeicher/: README, firebird/Makefile,
