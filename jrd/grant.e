@@ -90,7 +90,6 @@ static USHORT	save_field_privileges	(TDBB, STR *, UCHAR **,
 static void	save_security_class	(TDBB, TEXT *,
 						UCHAR *, USHORT);
 static USHORT	trans_sql_priv (TEXT *);
-static USHORT	terminate (TEXT *);
 static SLONG 	squeeze_acl (UCHAR *, UCHAR **, TEXT *, SSHORT);
 static BOOLEAN  check_string (TEXT *, TEXT *);
 
@@ -500,11 +499,11 @@ if (obj_type == obj_relation)
 
 	if (!REQUEST (irq_grant1))
 	    REQUEST (irq_grant1) = request;
-	terminate (REL.RDB$SECURITY_CLASS);
+	DYN_terminate (REL.RDB$SECURITY_CLASS, sizeof(REL.RDB$SECURITY_CLASS));
 	strcpy (s_class, REL.RDB$SECURITY_CLASS);
-	terminate (REL.RDB$DEFAULT_CLASS);
+	DYN_terminate (REL.RDB$DEFAULT_CLASS, sizeof(REL.RDB$DEFAULT_CLASS));
 	strcpy (default_class, REL.RDB$DEFAULT_CLASS);
-	terminate (REL.RDB$OWNER_NAME);
+	DYN_terminate (REL.RDB$OWNER_NAME, sizeof(REL.RDB$OWNER_NAME));
 	strcpy (owner, REL.RDB$OWNER_NAME);
 	*view = (REL.RDB$VIEW_BLR.gds_quad_high ||
 		 REL.RDB$VIEW_BLR.gds_quad_low) ? TRUE : FALSE;
@@ -523,10 +522,10 @@ else
 
 	if (!REQUEST (irq_grant9))
 	    REQUEST (irq_grant9) = request;
-	terminate (REL.RDB$SECURITY_CLASS);
+	DYN_terminate (REL.RDB$SECURITY_CLASS, sizeof(REL.RDB$SECURITY_CLASS));
 	strcpy (s_class, REL.RDB$SECURITY_CLASS);
 	strcpy (default_class, "");
-	terminate (REL.RDB$OWNER_NAME);
+	DYN_terminate (REL.RDB$OWNER_NAME, sizeof(REL.RDB$OWNER_NAME));
 	strcpy (owner, REL.RDB$OWNER_NAME);
 	*view = FALSE;
     END_FOR;
@@ -583,7 +582,7 @@ FOR (REQUEST_HANDLE request)
 
     if (!REQUEST (irq_grant2))
 	REQUEST (irq_grant2) = request;
-    terminate (PRV.RDB$USER);
+    DYN_terminate (PRV.RDB$USER, sizeof(PRV.RDB$USER));
     if (strcmp (PRV.RDB$USER, user) || PRV.RDB$USER_TYPE != user_type)
 	{
 	if (user [0])
@@ -737,7 +736,7 @@ FOR (REQUEST_HANDLE request)
 
     if (!REQUEST (irq_grant8))
 	REQUEST (irq_grant8) = request;
-    terminate (REL.RDB$DEFAULT_CLASS);
+    DYN_terminate (REL.RDB$DEFAULT_CLASS, sizeof(REL.RDB$DEFAULT_CLASS));
     delete_security_class (tdbb, REL.RDB$DEFAULT_CLASS);
 
     MODIFY REL USING
@@ -849,8 +848,8 @@ FOR (REQUEST_HANDLE request)
 
     if (!REQUEST (irq_grant6))
 	REQUEST (irq_grant6) = request;
-    terminate (PRV.RDB$USER);
-    terminate (PRV.RDB$FIELD_NAME);
+	 DYN_terminate (PRV.RDB$USER, sizeof(PRV.RDB$USER));
+	 DYN_terminate (PRV.RDB$FIELD_NAME, sizeof(PRV.RDB$FIELD_NAME));
 
     /* create a control break on field_name,user */
 
@@ -896,7 +895,7 @@ FOR (REQUEST_HANDLE request)
 	/* initialize for new field */
 
 	strcpy (field_name, PRV.RDB$FIELD_NAME);
-        terminate (FLD.RDB$SECURITY_CLASS);
+		  DYN_terminate (FLD.RDB$SECURITY_CLASS, sizeof(FLD.RDB$SECURITY_CLASS));
 	strcpy (s_class, FLD.RDB$SECURITY_CLASS);
 	if (!s_class [0])
 	    {
@@ -1068,37 +1067,7 @@ switch (UPPER7 (privileges [0]))
 
 return priv;
 }
-
-static USHORT terminate (
-    TEXT	*string)
-{
-/**************************************
- *
- *	t e r m i n a t e
- *
- **************************************
- *
- * Functional description
- *	Zap trailing blank or null terminated string to null terminated string.
- *	Return length.
- *
- **************************************/
-TEXT	*p, *q;
-#define	BLANK	'\040'
 
-/* Scan forwards to end-of-string -- record the last non-BLANK we saw */
-q = string-1;
-for (p = string; *p; p++)
-    {
-    if (*p != BLANK)
-	q = p;
-    }
-
-*(q+1) = '\0';
-
-return (q+1) - string;
-}
-
 static SLONG squeeze_acl (
     UCHAR	*acl_base,
     UCHAR	**acl_ptr,

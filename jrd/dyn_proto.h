@@ -25,5 +25,6 @@
 #define _JRD_DYN_PROTO_H_
 
 extern void	DYN_ddl (struct att *, struct tra *, USHORT, UCHAR *);
+extern void	DYN_terminate (TEXT *, int);
 
 #endif /* _JRD_DYN_PROTO_H_ */

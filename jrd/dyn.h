@@ -84,7 +84,6 @@ extern USHORT	DYN_put_text_blob2 (GBL, UCHAR **, GDS__QUAD *);
 extern void	DYN_rundown_request (JMP_BUF *, BLK, SSHORT);
 extern USHORT	DYN_skip_attribute (UCHAR **);
 extern USHORT	DYN_skip_attribute2 (UCHAR **);
-extern void	DYN_terminate (TEXT *, int);
 extern void	DYN_unsupported_verb (void);
 
 #endif /* _JRD_DYN_H_ */
