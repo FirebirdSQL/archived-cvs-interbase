@@ -766,6 +766,20 @@ dbb = GET_DBB;
 if (file != dbb->dbb_file)
     return TRUE;
 
+/* check the various status flags to see if there
+   is a valid shadow to roll over to */
+
+for (shadow = dbb->dbb_shadow; shadow; shadow = shadow->sdw_next)
+    {
+    if (!(shadow->sdw_flags & SDW_dumped))
+     	continue;
+    if (!(shadow->sdw_flags & SDW_INVALID))
+     	break;
+    }
+
+if (!shadow)
+    return FALSE;
+
 update_lock = &temp_lock;
 MOVE_CLEAR (update_lock, sizeof (struct lck));
 update_lock->lck_header.blk_type = type_lck;
@@ -779,6 +793,7 @@ update_lock->lck_parent = dbb->dbb_lock;
 update_lock->lck_owner = (BLK) tdbb->tdbb_attachment;
 
 LCK_lock (tdbb, update_lock, LCK_EX, LCK_NO_WAIT);
+
 if (update_lock->lck_physical != LCK_EX ||
     file != dbb->dbb_file ||
     !SDW_lck_update (sdw_update_flags))
@@ -799,22 +814,6 @@ if (update_lock->lck_physical != LCK_EX ||
     return TRUE;
     }
     
-/* check the various status flags to see if there
-   is a valid shadow to roll over to */
-
-for (shadow = dbb->dbb_shadow; shadow; shadow = shadow->sdw_next)
-    {
-    if (!(shadow->sdw_flags & SDW_dumped))
-     	continue;
-    if (!(shadow->sdw_flags & SDW_INVALID))
-     	break;
-    }
-
-if (!shadow)
-    {
-    LCK_release (tdbb, update_lock);
-    return FALSE;
-    }
 
 if (file != dbb->dbb_file) 
     {
