@@ -17,6 +17,7 @@
 # Start of file prefix.darwin:	$(VERSION)	$(PLATFORM)
 #$Id$
 
+
 .SUFFIXES: .c .e
 .e.c:
 	$(GPRE) $(GPRE_FLAGS) $<
