@@ -4412,6 +4412,10 @@ else if (!strcmp (parms [0], "SET"))
 	else
 	    ret = ERR;
 	}
+    else if (!strcmp (parms [1], "WARNINGS") || !strcmp (parms [1], "WNG"))
+	{
+	ret = do_set_command (parms[2], &Warnings);
+	}
     else if (!strcmp (parms [1], "GENERATOR"))
 	ret = CONT;
     else if (!strcmp (parms [1], "STATISTICS"))
