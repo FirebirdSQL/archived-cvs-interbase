@@ -1037,6 +1037,7 @@ if (elements)
 	    start = (SLONG) (element->nod_arg [0]) + 1;
 	    break;
 
+        default:
 	}
     }
 
@@ -1136,6 +1137,8 @@ if (elements)
 	    name = (STR) element->nod_arg [0];
 	    put_cstring (request, gds__dyn_fld_character_set_name, name->str_data);
 	    break;
+
+        default:
 	}
     }
 
@@ -2254,6 +2257,8 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position = 0;
 	case nod_rel_constraint:
 	   define_rel_constraint (request, element);
 	   break;
+
+        default:
 	}
     }
 
@@ -3689,6 +3694,8 @@ switch (node->nod_type)
     case nod_set_statistics:
 	set_statistics (request);
 	break;
+
+    default:
     }
 }
 
@@ -3989,6 +3996,8 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	case nod_drop_cache:
 		drop_cache = TRUE;
 		break;
+
+        default:
 	}
     }
 
@@ -4090,6 +4099,8 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	case nod_drop_log:
 	case nod_drop_cache:
 	    break;
+
+        default:
 	}
     }
 
@@ -4202,6 +4213,8 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	case nod_del_default:
            STUFF (gds__dyn_del_default);
 	   break;
+
+        default:
 	}
     }
 
@@ -4311,6 +4324,8 @@ switch (user->nod_type)
     case nod_view_obj:
 	put_cstring (request, gds__dyn_grant_view, name->str_data);
 	break;
+
+    default:
     }
 
 if (field_name)
@@ -4381,6 +4396,8 @@ switch (privs->nod_type)
 	*p = 0;
 	p = privileges;
 	break;
+
+    default:
     }
 
 if (*p)
@@ -4519,6 +4536,8 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	case nod_rel_constraint:
 	   define_rel_constraint (request, element);
 	   break;
+
+        default:
 	}
     }
 

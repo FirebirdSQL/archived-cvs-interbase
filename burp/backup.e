@@ -880,8 +880,10 @@ if (tdgbl->BCK_capabilities & BCK_ods10)
 	    STUFF (blr_assignment);
 		STUFF (blr_gen_id);
 		   STUFF (name_len);
-		   for (; c = *name++, name_len--;)
-		       STUFF (c);
+                   while(name_len--) {
+		      c = *name++;
+		      STUFF (c);
+                   }
 		   STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
 	     STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
     STUFF (blr_end);
@@ -898,8 +900,10 @@ else
 	    STUFF (blr_assignment);
 		STUFF (blr_gen_id); 
 		   STUFF (name_len);
-		   for (; c = *name++, name_len--;)
-		       STUFF (c);
+                   while(name_len--) {
+		      c = *name++;
+		      STUFF (c);
+                   }
 		   STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
 	     STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
     STUFF (blr_end);

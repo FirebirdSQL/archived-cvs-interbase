@@ -411,6 +411,8 @@ switch (node->nod_type)
 	    case nod_total:
 		operator = blr_total;
 		break;
+
+            default:
 	    }
 
 	STUFF (operator);
