@@ -37,9 +37,9 @@
 DATABASE
     DB = STATIC "yachts.lnk";
 
+static void		copy_exact_name (UCHAR *, UCHAR *, SSHORT);
 static STATUS	copy_status (STATUS *, STATUS *);
 static STATUS	error (STATUS *, SSHORT, ...);
-static void	copy_exact_name (UCHAR *, UCHAR *, SSHORT);
 
 void API_ROUTINE isc_blob_default_desc (
     ISC_BLOB_DESC	*desc,
@@ -219,7 +219,34 @@ desc->blob_desc_segment_size = segment_size;
 
 return error (status, 1, (STATUS) SUCCESS);
 }
-
+
+static void copy_exact_name (
+    UCHAR	*from,
+    UCHAR	*to,
+    SSHORT	bsize)
+{
+/**************************************
+ *
+ *	c o p y _ e x a c t _ n a m e 
+ *
+ **************************************
+ *
+ * Functional description
+ *	Copy null terminated name ot stops at bsize - 1.
+ *	CVC: This is just another fc like DYN_terminate.
+ *
+ **************************************/
+
+UCHAR *from_end = from + bsize - 1, *to2 = to - 1;
+while (*from && from < from_end)
+{
+	if (*from != ' ')
+		to2 = to;
+	*to++ = *from++;
+}
+*++to2 = 0;
+}
+
 static STATUS copy_status (
     STATUS	*from,
     STATUS	*to)
@@ -243,7 +270,7 @@ for (end = from + 20; from < end;)
 
 return status;
 }
-
+
 static STATUS error (
     STATUS	*status,
     SSHORT	count,
@@ -272,31 +299,4 @@ for (; count; --count)
 *stat = gds_arg_end;
 
 return status [1];
-}
-
-static void copy_exact_name (
-    UCHAR	*from,
-    UCHAR	*to,
-    SSHORT	bsize)
-{
-/**************************************
- *
- *	c o p y _ e x a c t _ n a m e 
- *
- **************************************
- *
- * Functional description
- *	Copy null terminated name ot stops at bsize - 1.
- *	CVC: This is just another fc like DYN_terminate.
- *
- **************************************/
-
-UCHAR *from_end = from + bsize - 1, *to2 = to - 1;
-while (*from && from < from_end)
-{
-	if (*from != ' ')
-		to2 = to;
-	*to++ = *from++;
-}
-*++to2 = 0;
 }

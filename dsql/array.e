@@ -19,6 +19,12 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.09.18 Claudio Valderrama: get_name() was preventing the API calls
+ *   isc_array_lookup_bounds, isc_lookup_desc & isc_array_set_desc
+ *   from working properly with dialect 3 names. Therefore, incorrect names
+ *   could be returned or a lookup for a blob field could fail. In addition,
+ *   a possible buffer overrun due to unchecked bounds was closed. The fc
+ *   get_name() as been renamed copy_exact_name().
  */
 
 #include <string.h>
@@ -46,10 +52,10 @@ typedef struct gen {
 } *GEN;
 
 static void	adjust_length (ISC_ARRAY_DESC *);
+static void		copy_exact_name (UCHAR *, UCHAR *, SSHORT);
 static STATUS	copy_status (STATUS *, STATUS *);
 static STATUS	error (STATUS *, SSHORT, ...);
 static STATUS	gen_sdl (STATUS *, ISC_ARRAY_DESC *, SSHORT *, SCHAR **, SSHORT *, BOOLEAN);
-static void	get_name (SCHAR *, SCHAR *);
 static STATUS	lookup_desc (STATUS *, void **, void **, SCHAR *, SCHAR *, ISC_ARRAY_DESC *, SCHAR *);
 static STATUS	stuff (GEN, SSHORT, ...);
 static STATUS	stuff_literal (GEN, SLONG);
@@ -236,8 +242,10 @@ STATUS API_ROUTINE isc_array_set_desc (
  **************************************/
 SSHORT	dtype;
 
-get_name (field_name, desc->array_desc_field_name);
-get_name (relation_name, desc->array_desc_relation_name);
+copy_exact_name (field_name, desc->array_desc_field_name,
+				 sizeof(desc->array_desc_field_name));
+copy_exact_name (relation_name, desc->array_desc_relation_name,
+				 sizeof(desc->array_desc_relation_name));
 desc->array_desc_flags = 0;
 desc->array_desc_dimensions = *dimensions;
 desc->array_desc_length = *sql_length;
@@ -292,7 +300,34 @@ static void adjust_length (
  *
  **************************************/
 }
-
+
+static void copy_exact_name (
+    UCHAR	*from,
+    UCHAR	*to,
+    SSHORT	bsize)
+{
+/**************************************
+ *
+ *	c o p y _ e x a c t _ n a m e 
+ *
+ **************************************
+ *
+ * Functional description
+ *	Copy null terminated name ot stops at bsize - 1.
+ *	CVC: This is just another fc like DYN_terminate.
+ *
+ **************************************/
+
+UCHAR *from_end = from + bsize - 1, *to2 = to - 1;
+while (*from && from < from_end)
+{
+	if (*from != ' ')
+		to2 = to;
+	*to++ = *from++;
+}
+*++to2 = 0;
+}
+
 static STATUS copy_status (
     STATUS	*from,
     STATUS	*to)
@@ -453,31 +488,7 @@ STUFF_SDL (gds__sdl_eoc);
 
 return error (status, 1, (STATUS) SUCCESS);
 }
-
-static void get_name (
-    SCHAR	*from,
-    SCHAR	*to)
-{
-/**************************************
- *
- *	g e t _ n a m e 
- *
- **************************************
- *
- * Functional description
- *	Copy null or blank terminated name.
- *
- **************************************/
 
-while (*from && *from != ' ')
-    {
-    *to++ = UPPER7( *from);
-    from++;
-    }
-
-*to = 0;
-}
-
 static STATUS lookup_desc (
     STATUS		*status,
     void		**db_handle,
@@ -503,8 +514,10 @@ if (DB && DB != *db_handle)
 
 DB = *db_handle;
 gds__trans = *trans_handle;
-get_name (field_name, desc->array_desc_field_name);
-get_name (relation_name, desc->array_desc_relation_name);
+copy_exact_name (field_name, desc->array_desc_field_name,
+				 sizeof(desc->array_desc_field_name));
+copy_exact_name (relation_name, desc->array_desc_relation_name,
+				 sizeof(desc->array_desc_relation_name));
 desc->array_desc_flags = 0;
 
 flag = FALSE;
@@ -520,7 +533,7 @@ FOR X IN RDB$RELATION_FIELDS CROSS Y IN RDB$FIELDS
     adjust_length (desc);
     desc->array_desc_dimensions = Y.RDB$DIMENSIONS;
     if (global)
-	get_name (Y.RDB$FIELD_NAME, global);
+		copy_exact_name (Y.RDB$FIELD_NAME, global, sizeof(Y.RDB$FIELD_NAME));
 END_FOR
     ON_ERROR
 	return copy_status (gds__status, status);
