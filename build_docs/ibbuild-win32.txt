@@ -1,5 +1,5 @@
 -Building the *****Base server on win32 platforms- 
-ibbuild-win32.txt version 1.0.6 last revised 8/10/2000
+ibbuild-win32.txt version 1.0.7 last revised 8/21/2000
 
 The latest version of this file is available at
 http://www.cruzers.com/~rfm/ibbuild-win32.txt
@@ -10,27 +10,27 @@ the ib-build mailing list is also available as a newsgroup at
 news.mers.com:mers.interbase.build
 
 For more information see the firebird and interbase projects 
-on sourceforge.net
+on sourceforge.net (http://www.sourceforge.com/projects/firebird)
 
 Introduction:
-	This document describes the steps I took to compile the server
+	This document describes the steps required to compile the server
 under windows NT 4.0, service pack 6. This information should
 apply on other windows platforms, but I have not tested it.
-	This document was written in reference to the orginal
-source download made available by Inprise. Since then, several
-CVS servers have popped up. These instruction should be
-generally applicable to all of them, but as time goes
-on, you can expect differences to pop up.
+	This document specifically refers to the 'firebird' cvs tree
+on sourceforge. If you are looking for instruction for the original
+source distribution from inprise, please see
+http://www.cruzers.com/~rfm/ib/ibbuild-win32-inpr.txt
 
 Directory structure:
-I refer to the directory in which you unpacked the source as
+I refer to the directory in which you did cvs checkout as
 the build directory {BUILD_DIR}, and the directory to which the
 binary release was installed as the install directory {INST_DIR}.
 These directories MUST be different.
 
 I also created a directory tree I refer to as the build database
 directory {DB_DIR}. This can reside anywhere on your system,
-except that it must not be the same as {DB_DIR}
+except that it must not be the same as {BUILD_DIR}
+
 Historically, the 'build databases' were stored on a central
 server. If you see references to toolsdbs, yoda or jabba, these
 were all incarnations of it. For the most part it doesn't matter,
@@ -103,17 +103,8 @@ additional downloads:
 	All of these downloads may be reached from
 	http://www.interbase.com/open/downloads/ib_download.html
 
-	"Additional source files related to codes.h and the message file"
-	codes.tgz or codes.zip Unzip this into the {BUILD_DIR}/jrd directory.
-	
 	"Qli binary for Windows 6.0 kit"
 	qli.wi-v60.zip You only need this if you want to build qli.
-
-	"Missing Incons from Windows source code tree"
-	ib_icons.zip Unzip this in the the root (interbase) of your
-	source tree. 
-	NOTE: This is not required for the 'firebird' cvs tree,
-	because these icons are included.
 
 Databases:
 Create the following file structure. The subdirectories 
@@ -150,23 +141,14 @@ should not be the same as the ones in {BUILD_DIR}
 	Since they are just used by gpre, they probably don't need to
 	have the data. But it doesn't hurt.
 
-Binary icon resources:
-NOTE: This is not required for the 'firebird' cvs tree,
-because these icons are included.
-The windows resources used be the server and guardian executables
-expect to find binary icon. These were not provided with the source
-you need to create the following:
- * caution.ico and server.ico in {BUILD_DIR}/remote
- * sgard23i.ico and salrt23i.ico in {BUILD_DIR}/iscguard
-Not wanting to go to the trouble to make icons from scratch,
-I looked around my harddrive until I found a .ico. So my server
-uses the icon from Need For Speed, Porsche Unleashed ;-)
-
 Files changed to unix format:
 Depending on how you set it up, the cygwin tools may expect files to
 be in unix, rather than dos format. MKS generally doesn't care.
-I changed the following files to unix format before preparing
-running setup_dirs.ksh:
+using:
+	cvs update -kb
+on the following files, will makes CVS update them in binary mode.
+This is a 'sticky' option, so these files will stay in binary mode
+for future updates, unless you set a different -k option.
 {BUILD_DIR}/
 	setup_build.ksh
 	setup_dirs.ksh
@@ -174,35 +156,9 @@ running setup_dirs.ksh:
 			*.sed
 	jrd/
 		dyn_def.sed
+
 If you use text, rather than binary mounts, you should not need to
 do this. (But I use binary mounts, so your mileage may vary)
-
-Modified files:
-NOTE: all these file modification should be done BEFORE you run
-setup_dirs.ksh for the first time.
- * in setup_dirs.ksh
- 	changed the line that said 
-		setup_build
-	to say
-		setup_build.ksh
-	This is required for cygwin. MKS assumes the .ksh extension
-
-	Copy the lines starting starting at
-		mkdir ib_debug 
-	through
-		mkdir ib_debug/help
-	and paste them immediately below. In the pasted lines
-	replace ib_debug with interbase.
-	The fact that this is missing in the shipped code appears to
-	be a bug.
-
- * setup_build.ksh
- 	changed DB_PATH to {DB_DIR}
-
- * builds_win32/original/include.mak
- 	change UNIX_DEV_ROOT to {DB_DIR}
- 	change MSGSDIR to {DB_DIR}/msgs
-NOTE: In the future, these should be changed so the one refers to the other
 
 Commented build commands:
  If your not interested in building QLI or the examples,
@@ -227,7 +183,8 @@ Preparing to build for the first time:
 make sure server is running from {INST_DIR} not {BUILD_DIR}
 
 make sure your {INST_DIR}/isc4.gdb has a user named builder
-with password builder
+with password builder. (or change the ISC_USER and password
+used in the build scripts)
 
 start an MKS korn or Cygwin bash shell
 make sure ISC_USER and ISC_PASSWORD set to valid values before
@@ -237,7 +194,7 @@ running setup_dirs.ksh (for metadata.gdb). As in:
 	export ISC_USER
 	export ISC_PASSWORD
 
-Run setup_dirs.ksh
+Run setup_dirs.ksh {DB_DIR}
 
 NOTE: in MKS, the .ksh extension is assumed, but in cygwin
 it must be specified. If you just type setup_dirs in cygwin bash
@@ -247,11 +204,6 @@ Error messages from setup_dirs.ksh and setup_build.ksh:
 The first time you run setup_build.ksh (via setup_dirs.ksh),
 it generates a harmless error because it tries to drop
 'metadata.gdb' even when it is not there.
-
-Errors are also generated creating register/ms_obj/*
-and copying iblicen.bind to register/iblicen.bind
-presumably because register (the licensing component) does not exist
-in open source distribution. These can be ignored.
 
 copy 
 	{INST_DIR}/SDK/lib_ms/gds32_ms.lib
@@ -302,5 +254,4 @@ might pick up first.
 
 TRADEMARKS:
 All trademarks are property of their respective owners.
-
 
