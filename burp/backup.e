@@ -1353,7 +1353,7 @@ else
 
 PUT (att_blob_data);
 
-while (--segments >= 0)
+while (segments > 0)
     {
     if (isc_get_segment (status_vector, 
 	    GDS_REF (blob), 
@@ -1367,6 +1367,7 @@ while (--segments >= 0)
     PUT (l >> 8);
     if (l)
 	(void) PUT_BLOCK (buffer, l);
+    segments--;
     }
 
 if (isc_close_blob (status_vector, 
