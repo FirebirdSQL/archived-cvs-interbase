@@ -314,11 +314,13 @@ copyFilesFromPortingDir() {
     
     for dir in `ls porting`
       do
-         for portfile in `ls porting/$dir`
-           do
+         if [ -d $dir ]; then
+           for portfile in `ls porting/$dir`
+             do
 #              echo "copying porting/$dir/$portfile"
-              cp porting/$dir/$portfile $dir
-           done
+               cp porting/$dir/$portfile $dir
+             done
+         fi
       done
 }
 
@@ -850,7 +852,7 @@ fi
 
 
 
-echo "- Setting up plaform specific makefiles"
+echo "- Setting up platform specific makefiles"
 echo ""
 
 cd builds/original
@@ -874,7 +876,7 @@ chmod +x setup_prots
 # Save the production/development flag
 
 echo "$BuildHostType" > .platform_type    
-echo "$BuildBuildType" > .version_flg
+echo "$BuildBuildType" > .version_flag
 
 ./platform $BuildHostType
 
