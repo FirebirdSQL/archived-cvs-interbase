@@ -24,7 +24,7 @@
 
 #include <errno.h>
 #include <string.h>
-#if ( defined FREEBSD || defined NETBSD || defined LINUX )
+#if ( defined FREEBSD || defined NETBSD || defined LINUX || defined DARWIN )
 #include <unistd.h>
 #endif
 #include "../jrd/common.h"

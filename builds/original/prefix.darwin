@@ -30,7 +30,7 @@
 PROD_DEBUG_OBJECTS=	nodebug.o
 PROD_SHRLIB_DIR=	
 PROD_VERSION_FLAG=	-DPROD_BUILD
-PROD_CFLAGS=            -O3 -m486 -dynamic -DFLINTSTONE
+PROD_CFLAGS=            -O3
 
 
 DEV_DEBUG_OBJECTS=	grammar.o dbg.o dbt.o dmp.o
