@@ -1,3 +1,26 @@
+2003-08-28 15:22  eku
+
+	* interbase/: alice/exe.c, alice/tdr.c, burp/burp.c,
+	burp/restore.e:
+	
+	The service manager always passes encrypted passwords to the client
+	tools.
+
+2003-08-28 15:20  eku
+
+	* interbase/: jrd/ibase.h, jrd/svc.c, utilities/dbaswi.h:
+	
+	Backport of bug fixes from FB2 svc.cpp: o -svc/-svc_thd passing
+	from client to server o several buffer overflows o added support
+	for "-r" and "-t" GSTAT switches to the Services API
+
+2003-08-28 10:54  paul_reeves
+
+	* interbase/isql/isql.e:
+	
+	Apply patch by Peter Jacobi to display OCTETS strings in hex
+	correctly
+
 2003-07-16 00:14  awharrison
 
 	* interbase/jrd/: btr.c, btr.h, dfw.e, idx.c, idx_proto.h, jrd.h,
