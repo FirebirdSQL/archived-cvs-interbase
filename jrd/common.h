@@ -49,6 +49,10 @@ $Id$
 #ifdef SUPERSERVER
 #define GOVERNOR 1
 #define CANCEL_OPERATION
+#define FB_ARCHITECTURE isc_info_db_class_server_access
+#else
+#define FB_ARCHITECTURE isc_info_db_class_classic_access
+
 #endif
 
 /* this define indicates places where code was merged in
@@ -79,7 +83,7 @@ $Id$
 #ifdef i386
 #define I386    1
 #define VAX     1
-#define IMPLEMENTATION  60 /* next higher unique number, See you later  */
+#define IMPLEMENTATION  isc_info_db_impl_i386 /* 60  next higher unique number, See you later  */
 #endif /* i386 */
 
 #define SETPGRP         setpgrp ()
@@ -102,7 +106,7 @@ $Id$
 #define BSD_UNIX        1
 #define UNIX            1
 #define ATEXIT(c)       atexit (c)
-#define IMPLEMENTATION  63
+#define IMPLEMENTATION  isc_info_db_impl_darwin /* 63 */
 #define IEEE
 #define QUADCONST(n) (n##LL)
 #define QUADFORMAT "q"
@@ -137,7 +141,7 @@ $Id$
 #define IEEE  1
 #define I386  1
 #define VAX   1
-#define IMPLEMENTATION        61
+#define IMPLEMENTATION    isc_info_db_impl_freebsd   /* 61 */
 #define SETPGRP         setpgrp ()
 #define ATEXIT(c)       atexit(c)
 
@@ -168,7 +172,7 @@ $Id$
 #define IEEE  1
 #define I386  1
 #define VAX   1
-#define IMPLEMENTATION        62
+#define IMPLEMENTATION        isc_info_db_impl_netbsd /* 62 */
 
 #define QUADFORMAT "ll"
 #define QUADCONST(n) (n##LL)
@@ -199,7 +203,7 @@ $Id$
 #ifdef apollo
 #define BSD_UNIX        1
 #define APOLLO          1
-#define IMPLEMENTATION  25
+#define IMPLEMENTATION  isc_info_db_impl_isc_apl_68K  /* 25 */
 #define                 IEEE
 #define ENUM            short enum
 #define SETPGRP         setpgrp (0, 0)
@@ -320,7 +324,7 @@ $Id$
 #ifdef sparc
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
-#define IMPLEMENTATION  30
+#define IMPLEMENTATION  isc_info_db_impl_isc_sun4 /* 30 */
 #define DOUBLE_ALIGN    8
 #define INTL
 #else  /* sparc */
@@ -328,10 +332,10 @@ $Id$
 #ifdef i386
 #define I386            1
 #define VAX             1
-#define IMPLEMENTATION  32
+#define IMPLEMENTATION  isc_info_db_impl_isc_sun_386i  /* 32 */
 #else  /* i386 */
 #define FB_ALIGN(n,b)      ((n+1) & ~1)
-#define IMPLEMENTATION  28
+#define IMPLEMENTATION  isc_info_db_impl_isc_sun_68k /* 28 */
 #endif /* i386 */
 
 #endif /* sparc */
@@ -349,7 +353,7 @@ $Id$
 #define SETPGRP         setpgrp (0, 0)
 #define UNIX            1
 #define FB_ALIGN(n,b)      ((n+1) & ~1)
-#define IMPLEMENTATION  34
+#define IMPLEMENTATION  isc_info_db_impl_isc_mac_aux /* 34 */
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
 #endif
@@ -374,7 +378,7 @@ $Id$
 #define VAX             1
 #endif
 
-#define IMPLEMENTATION  46
+#define IMPLEMENTATION  isc_info_db_impl_isc_next /* 46 */
 #define                 IEEE
 
 #endif /* NeXT */
@@ -400,13 +404,13 @@ $Id$
 #define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
-#define IMPLEMENTATION  40
+#define IMPLEMENTATION  isc_info_db_impl_isc_hp_ux68K /* 40 */
 #define SHMEM_PICKY
 #else
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define DOUBLE_ALIGN    8
-#define IMPLEMENTATION  31
+#define IMPLEMENTATION  isc_info_db_impl_isc_hp_ux /* 31 */
 #endif
 
 #define                 IEEE
@@ -442,13 +446,13 @@ $Id$
 #define SETPGRP         setpgrp (0, 0)
 
 #ifdef mips
-#define IMPLEMENTATION  36
+#define IMPLEMENTATION  isc_info_db_impl_isc_mips_ult /* 36 */
 #define                 IEEE
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    8
 #else
 #define CTO32L(p)       (*(long*) p)
-#define IMPLEMENTATION  26
+#define IMPLEMENTATION  isc_info_db_impl_isc_vax_ultr /* 26 */
 #define SHMEM_PICKY
 #endif
 
@@ -472,7 +476,7 @@ $Id$
 #define CONST           const
 
 #ifdef WINDOWS_ONLY
-#define IMPLEMENTATION  55
+#define IMPLEMENTATION  isc_info_db_impl_win_only /* 55 */
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    8
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~((ULONG)(b) - 1))
@@ -521,7 +525,7 @@ $Id$
 #define BLOB_PTR        UCHAR HUGE_PTR
 
 #else  /* WINDOWS_ONLY */
-#define IMPLEMENTATION  47
+#define IMPLEMENTATION  isc_info_db_impl_isc_dos /* 47 */
 #define MEMMOVE(from,to,length)       memmove (to, from, (int) (length))
 #define MOVE_FAST(from,to,length)       memmove (to, from, (int) (length))
 #define MOVE_FASTER(from,to,length)     memmove (to, from, (int) (length))
@@ -568,7 +572,7 @@ $Id$
 #define SYS_ARG		isc_arg_vms
 
 #if __ALPHA
-#define IMPLEMENTATION  53
+#define IMPLEMENTATION  isc_info_db_impl_alpha_vms /* 53 */
 #include <ints.h>
 #define ATOM_DEFINED
 typedef int64		SATOM;		/* 64 bit */
@@ -576,9 +580,9 @@ typedef unsigned int64	UATOM;
 #else
 
 #ifndef GATEWAY
-#define IMPLEMENTATION  27
+#define IMPLEMENTATION  isc_info_db_impl_isc_vms /* 27 */
 #else
-#define IMPLEMENTATION  33
+#define IMPLEMENTATION  isc_info_db_impl_isc_vms_orcl /* 33 */
 #endif
 
 #endif /* __ALPHA */
@@ -607,7 +611,7 @@ typedef unsigned int64	UATOM;
 #define CURSES_KEYPAD   1
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
-#define IMPLEMENTATION  35
+#define IMPLEMENTATION  isc_info_db_impl_isc_rt_aix /* 35 */
 #define                 IEEE
 #define MEMMOVE(from,to,length)       memmove ((void *)to, (void *)from, (size_t) length)
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
@@ -629,7 +633,7 @@ typedef unsigned int64	UATOM;
 #define CURSES_KEYPAD   1
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       4
-#define IMPLEMENTATION  35
+#define IMPLEMENTATION  isc_info_db_impl_isc_rt_aix /* 35 */
 #define                 IEEE
 #define MEMMOVE(from,to,length)       memmove ((void *)to, (void *)from, (size_t) length)
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
@@ -657,7 +661,7 @@ typedef unsigned int64	UATOM;
 #define VAX
 #undef LINKS_EXIST
 #define IEEE
-#define IMPLEMENTATION  29
+#define IMPLEMENTATION  isc_info_db_impl_isc_os /* 29 */
 #define INTL
 #define VA_START(list,parmN)    va_start (list, parmN)
 
@@ -725,14 +729,14 @@ typedef unsigned __int64 UINT64;
 #ifndef I386
 #define I386
 #endif
-#define IMPLEMENTATION  50
+#define IMPLEMENTATION  isc_info_db_impl_isc_winnt_x86 /* 50 */
 #endif
 
 #ifdef _PPC_
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define DOUBLE_ALIGN    8
-#define IMPLEMENTATION	57
+#define IMPLEMENTATION	isc_info_db_impl_winnt_ppc /* 57 */
 #endif
 
 #define ATEXIT(c)       atexit (c)
@@ -791,13 +795,13 @@ typedef unsigned char   BOOLEAN;
 #ifdef M_UNIX
 #define SCO_UNIX        1
 #define SETPGRP         setpgid (0, 0)
-#define IMPLEMENTATION  42
+#define IMPLEMENTATION  isc_info_db_impl_isc_sco_unix /* 42 */
 #define INTL
 #define INTL_BACKEND
 #else
 #define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define SETPGRP
-#define IMPLEMENTATION  37
+#define IMPLEMENTATION  isc_info_db_impl_isc_xenix /* 37 */
 #endif
 
 #define                 IEEE
@@ -824,7 +828,7 @@ typedef unsigned char   BOOLEAN;
 #define KILLER_SIGNALS
 */
 #define INTL
-#define IMPLEMENTATION  59
+#define IMPLEMENTATION  isc_info_db_impl_sco_ev /* 59 */
 #define MEMMOVE(from,to,length)       memmove ((void *)to, (void *)from, (size_t) length)
 #define MOVE_FAST(from,to,length)    memcpy (to, from, (unsigned int) (length))
 #define MOVE_FASTER(from,to,length)  memcpy (to, from, (unsigned int) (length))
@@ -854,10 +858,10 @@ typedef unsigned char   BOOLEAN;
 #ifndef DG_X86
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
-#define IMPLEMENTATION  38
+#define IMPLEMENTATION  isc_info_db_impl_isc_dg /* 38 */
 #define DOUBLE_ALIGN    8
 #else
-#define IMPLEMENTATION        58
+#define IMPLEMENTATION	isc_info_db_impl_dg_x86 /* 58 */
 #define CONST         const
 #define VOLATILE      volatile
 #define I386          1
@@ -889,7 +893,7 @@ typedef unsigned char   BOOLEAN;
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define DOUBLE_ALIGN    8
-#define IMPLEMENTATION  52
+#define IMPLEMENTATION  isc_info_db_impl_alpha_osf,	/* 52 */
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
 
@@ -925,7 +929,7 @@ typedef unsigned long	UATOM;
 #define CURSES_KEYPAD   1
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
-#define IMPLEMENTATION  41
+#define IMPLEMENTATION  isc_info_db_impl_isc_sgi  /* 41 */
 #define DOUBLE_ALIGN    8
 #define                 IEEE
 #define SIGACTION_SUPPORTED
@@ -946,7 +950,7 @@ typedef unsigned long	UATOM;
 #define ATEXIT(c)       atexit (c)
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
-#define IMPLEMENTATION  39
+#define IMPLEMENTATION  isc_info_db_impl_isc_hp_mpexl /* 39 */
 #define NO_NFS
 #define DOUBLE_ALIGN    8
 #define                 IEEE
@@ -969,7 +973,7 @@ typedef unsigned long	UATOM;
 #define AOF32L(l)       (((char*) &l) + 4)
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
-#define IMPLEMENTATION  43
+#define IMPLEMENTATION  isc_info_db_impl_isc_cray /* 43 */
 #define DOUBLE_ALIGN    8
 #define                 IEEE
 #define _BSD_SIGNALS    1
@@ -1026,7 +1030,7 @@ typedef unsigned long       DWORD;
 #define OLD_ALIGNMENT
 #define NO_NFS
 #define SETPGRP
-#define IMPLEMENTATION 54
+#define IMPLEMENTATION isc_info_db_impl_netware_386,	/* 54 */
 #undef LINKS_EXIST
 #define VA_START(list,parmN)    va_start (list, parmN)
 #define CHAR_DEFINED
@@ -1063,7 +1067,7 @@ typedef unsigned char   UCHAR;
 #define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
-#define IMPLEMENTATION  45
+#define IMPLEMENTATION  isc_info_db_impl_isc_delta  /* 45 */
 #define                 IEEE
 #define SHMEM_PICKY
 
@@ -1091,7 +1095,7 @@ typedef unsigned char   UCHAR;
 #define FB_ALIGN(n,b)      ((n + b - 1) & ~(b - 1))
 #define ALIGNMENT       8
 #define DOUBLE_ALIGN    8
-#define IMPLEMENTATION  48
+#define IMPLEMENTATION  isc_info_db_impl_m88K,		/* 48 */
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
 
@@ -1120,7 +1124,7 @@ typedef unsigned char   UCHAR;
 #define VAX             1
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define IMPLEMENTATION  49
+#define IMPLEMENTATION  isc_info_db_impl_unixware,	/* 49 */
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
 #define vfork           fork
@@ -1150,7 +1154,7 @@ typedef unsigned char   UCHAR;
 #define VAX             1
 #define UNIX            1
 #define CURSES_KEYPAD   1
-#define IMPLEMENTATION  56
+#define IMPLEMENTATION  isc_info_db_impl_ncr_3000,	/* 56 */
 #define                 IEEE
 #define ATEXIT(c)       atexit (c)
 
@@ -1183,7 +1187,7 @@ typedef unsigned char   UCHAR;
 #define FB_ALIGN(n,b)      ((n+1) & ~1)
 #define ALIGNMENT       4
 #define DOUBLE_ALIGN    4
-#define IMPLEMENTATION  44
+#define IMPLEMENTATION  isc_info_db_impl_isc_imp /* 44 */
 #define                 IEEE
 #define SHMEM_PICKY
 #undef LINKS_EXIST
@@ -1205,7 +1209,7 @@ typedef unsigned char   UCHAR;
 #define ATEXIT(c)       atexit (c)
 #define KILLER_SIGNALS
 #define INTL
-#define IMPLEMENTATION  51
+#define IMPLEMENTATION  isc_info_db_impl_isc_epson,	/* 51 */
 #define NO_PYXIS
 #define MOVE_FAST(from,to,length)       memcpy (to, from, (int) (length))
 #define MOVE_FASTER(from,to,length)     memcpy (to, from, (int) (length))

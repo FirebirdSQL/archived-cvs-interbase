@@ -21,6 +21,7 @@
  * Added TCP_NO_DELAY option for superserver on Linux
  * FSG 16.03.2001 
  * 2001.07.28: John Bellardo:  Added blr_skip
+ * 2001.09.18: Ann Harrison:   New info codes
  */
 /*
 $Id$
@@ -1860,121 +1861,177 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 /* Database information items */
 /******************************/
 
-#define isc_info_db_id                    4
-#define isc_info_reads                    5
-#define isc_info_writes                   6
-#define isc_info_fetches                  7
-#define isc_info_marks                    8
-#define isc_info_implementation           11
-#define isc_info_version                  12
-#define isc_info_base_level               13
-#define isc_info_page_size                14
-#define isc_info_num_buffers              15
-#define isc_info_limbo                    16
-#define isc_info_current_memory           17
-#define isc_info_max_memory               18
-#define isc_info_window_turns             19
-#define isc_info_license                  20
-#define isc_info_allocation               21
-#define isc_info_attachment_id            22
-#define isc_info_read_seq_count           23
-#define isc_info_read_idx_count           24
-#define isc_info_insert_count             25
-#define isc_info_update_count             26
-#define isc_info_delete_count             27
-#define isc_info_backout_count            28
-#define isc_info_purge_count              29
-#define isc_info_expunge_count            30
-#define isc_info_sweep_interval           31
-#define isc_info_ods_version              32
-#define isc_info_ods_minor_version        33
-#define isc_info_no_reserve               34
-#define isc_info_logfile                  35
-#define isc_info_cur_logfile_name         36
-#define isc_info_cur_log_part_offset      37
-#define isc_info_num_wal_buffers          38
-#define isc_info_wal_buffer_size          39
-#define isc_info_wal_ckpt_length          40
-#define isc_info_wal_cur_ckpt_interval    41
-#define isc_info_wal_prv_ckpt_fname       42
-#define isc_info_wal_prv_ckpt_poffset     43
-#define isc_info_wal_recv_ckpt_fname      44
-#define isc_info_wal_recv_ckpt_poffset    45
-#define isc_info_wal_grpc_wait_usecs      47
-#define isc_info_wal_num_io               48
-#define isc_info_wal_avg_io_size          49
-#define isc_info_wal_num_commits          50
-#define isc_info_wal_avg_grpc_size        51
-#define isc_info_forced_writes		  52
-#define isc_info_user_names		  53
-#define isc_info_page_errors		  54
-#define isc_info_record_errors		  55
-#define isc_info_bpage_errors		  56
-#define isc_info_dpage_errors	  	  57
-#define isc_info_ipage_errors	  	  58
-#define isc_info_ppage_errors		  59
-#define isc_info_tpage_errors	  	  60
-#define isc_info_set_page_buffers         61
-#define isc_info_db_sql_dialect           62
-#define isc_info_db_read_only             63
-#define isc_info_db_size_in_pages	  64
-#define isc_info_oldest_transaction	  65
-#define isc_info_oldest_active     	  66
-#define isc_info_oldest_snapshot   	  67
-#define isc_info_next_transaction  	  68
-#define frb_info_att_charset		 101
+enum db_info_types
+    {
+	isc_info_db_id = 4,
+	isc_info_reads,
+	isc_info_writes,
+	isc_info_fetches,
+	isc_info_marks,
+
+	isc_info_implementation = 11,
+	isc_info_isc_version,
+	isc_info_base_level,
+	isc_info_page_size,
+	isc_info_num_buffers,
+	isc_info_limbo,
+	isc_info_current_memory,
+	isc_info_max_memory,
+	isc_info_window_turns,
+	isc_info_license,   /* 20 */
+
+	isc_info_allocation,
+	isc_info_attachment_id,
+	isc_info_read_seq_count,
+	isc_info_read_idx_count,
+	isc_info_insert_count,
+	isc_info_update_count,
+	isc_info_delete_count,
+	isc_info_backout_count,
+	isc_info_purge_count,
+	isc_info_expunge_count,   /* 30 */
+
+	isc_info_sweep_interval,
+	isc_info_ods_version,
+	isc_info_ods_minor_version,
+	isc_info_no_reserve,
+	isc_info_logfile,
+	isc_info_cur_logfile_name,
+	isc_info_cur_log_part_offset,
+	isc_info_num_wal_buffers,
+	isc_info_wal_buffer_size,
+	isc_info_wal_ckpt_length,   /* 40 */
+
+	isc_info_wal_cur_ckpt_interval,  
+	isc_info_wal_prv_ckpt_fname,
+	isc_info_wal_prv_ckpt_poffset,
+	isc_info_wal_recv_ckpt_fname,
+	isc_info_wal_recv_ckpt_poffset,
+	isc_info_wal_grpc_wait_usecs = 47,
+	isc_info_wal_num_io,
+	isc_info_wal_avg_io_size,
+	isc_info_wal_num_commits,   /* 50 */
+
+	isc_info_wal_avg_grpc_size,
+	isc_info_forced_writes,
+	isc_info_user_names,
+	isc_info_page_errors,
+	isc_info_record_errors,
+	isc_info_bpage_errors,
+	isc_info_dpage_errors,
+	isc_info_ipage_errors,
+	isc_info_ppage_errors,
+	isc_info_tpage_errors,
+	isc_info_set_page_buffers,
+	isc_info_db_sql_dialect,    /* 60 */
+
+	isc_info_db_read_only,
+	isc_info_db_size_in_pages,
+	isc_info_oldest_transaction,
+	isc_info_oldest_active,
+	isc_info_oldest_snapshot,
+	isc_info_next_transaction,
+	isc_info_db_provider,
+	isc_info_db_class,
+	isc_info_firebird_version,
+
+	frb_info_att_charset = 101
+	};
+
+
+#define isc_info_version isc_info_isc_version
 
 /**************************************/
 /* Database information return values */
 /**************************************/
 
-#define isc_info_db_impl_rdb_vms          1
-#define isc_info_db_impl_rdb_eln          2
-#define isc_info_db_impl_rdb_eln_dev      3
-#define isc_info_db_impl_rdb_vms_y        4
-#define isc_info_db_impl_rdb_eln_y        5
-#define isc_info_db_impl_jri              6
-#define isc_info_db_impl_jsv              7
-#define isc_info_db_impl_isc_a            25
-#define isc_info_db_impl_isc_u            26
-#define isc_info_db_impl_isc_v            27
-#define isc_info_db_impl_isc_s            28
-#define isc_info_db_impl_isc_apl_68K      25
-#define isc_info_db_impl_isc_vax_ultr     26
-#define isc_info_db_impl_isc_vms          27
-#define isc_info_db_impl_isc_sun_68k      28
-#define isc_info_db_impl_isc_os2          29
-#define isc_info_db_impl_isc_sun4         30
-#define isc_info_db_impl_isc_hp_ux        31
-#define isc_info_db_impl_isc_sun_386i     32
-#define isc_info_db_impl_isc_vms_orcl     33
-#define isc_info_db_impl_isc_mac_aux      34
-#define isc_info_db_impl_isc_rt_aix       35
-#define isc_info_db_impl_isc_mips_ult     36
-#define isc_info_db_impl_isc_xenix        37
-#define isc_info_db_impl_isc_dg           38
-#define isc_info_db_impl_isc_hp_mpexl     39
-#define isc_info_db_impl_isc_hp_ux68K     40
-#define isc_info_db_impl_isc_sgi          41
-#define isc_info_db_impl_isc_sco_unix     42
-#define isc_info_db_impl_isc_cray         43
-#define isc_info_db_impl_isc_imp          44
-#define isc_info_db_impl_isc_delta        45
-#define isc_info_db_impl_isc_next         46
-#define isc_info_db_impl_isc_dos          47
-#define isc_info_db_impl_isc_winnt        48
-#define isc_info_db_impl_isc_epson        49
 
-#define isc_info_db_class_access          1
-#define isc_info_db_class_y_valve         2
-#define isc_info_db_class_rem_int         3
-#define isc_info_db_class_rem_srvr        4
-#define isc_info_db_class_pipe_int        7
-#define isc_info_db_class_pipe_srvr       8
-#define isc_info_db_class_sam_int         9
-#define isc_info_db_class_sam_srvr        10
-#define isc_info_db_class_gateway         11
-#define isc_info_db_class_cache           12
+enum  info_db_implementations
+    {
+	isc_info_db_impl_rdb_vms  = 1,
+	isc_info_db_impl_rdb_eln,
+	isc_info_db_impl_rdb_eln_dev,
+	isc_info_db_impl_rdb_vms_y,
+	isc_info_db_impl_rdb_eln_y,
+	isc_info_db_impl_jri,
+	isc_info_db_impl_jsv,
+
+	isc_info_db_impl_isc_apl_68K = 25,
+	isc_info_db_impl_isc_vax_ultr,
+	isc_info_db_impl_isc_vms,
+	isc_info_db_impl_isc_sun_68k,
+	isc_info_db_impl_isc_os2,
+	isc_info_db_impl_isc_sun4,	   /* 30 */
+	
+	isc_info_db_impl_isc_hp_ux,
+	isc_info_db_impl_isc_sun_386i,
+	isc_info_db_impl_isc_vms_orcl,
+	isc_info_db_impl_isc_mac_aux,
+	isc_info_db_impl_isc_rt_aix,
+	isc_info_db_impl_isc_mips_ult,
+	isc_info_db_impl_isc_xenix,
+	isc_info_db_impl_isc_dg,
+	isc_info_db_impl_isc_hp_mpexl,
+	isc_info_db_impl_isc_hp_ux68K,	  /* 40 */
+
+	isc_info_db_impl_isc_sgi,
+	isc_info_db_impl_isc_sco_unix,
+	isc_info_db_impl_isc_cray,
+	isc_info_db_impl_isc_imp,
+	isc_info_db_impl_isc_delta,
+	isc_info_db_impl_isc_next,
+	isc_info_db_impl_isc_dos,
+	isc_info_db_impl_m88K,		/* 48 */
+	isc_info_db_impl_unixware,	/* 49 */
+	isc_info_db_impl_isc_winnt_x86,	/* 50 */
+
+	isc_info_db_impl_isc_epson,	/* 51 */
+	isc_info_db_impl_alpha_osf,	/* 52 */
+	isc_info_db_impl_alpha_vms,	/* 53 */
+	isc_info_db_impl_netware_386,	/* 54 */ 
+	isc_info_db_impl_win_only,	/* 55 */
+	isc_info_db_impl_ncr_3000,	/* 56 */
+	isc_info_db_impl_winnt_ppc,	/* 57 */
+	isc_info_db_impl_dg_x86,	/* 58 */
+	isc_info_db_impl_sco_ev,	/* 59 */
+	isc_info_db_impl_i386,		/* 60 */
+
+	isc_info_db_impl_freebsd,	/* 61 */
+	isc_info_db_impl_netbsd,	/* 62 */
+	isc_info_db_impl_darwin		/* 63 */
+    };
+
+#define isc_info_db_impl_isc_a            isc_info_db_impl_isc_apl_68K
+#define isc_info_db_impl_isc_u            isc_info_db_impl_isc_vax_ultr
+#define isc_info_db_impl_isc_v            isc_info_db_impl_isc_vms
+#define isc_info_db_impl_isc_s            isc_info_db_impl_isc_sun_68k
+
+
+
+enum	info_db_class
+    {
+	isc_info_db_class_access = 1,
+	isc_info_db_class_y_valve,
+	isc_info_db_class_rem_int,
+	isc_info_db_class_rem_srvr,
+	isc_info_db_class_pipe_int = 7,
+	isc_info_db_class_pipe_srvr,
+	isc_info_db_class_sam_int,
+	isc_info_db_class_sam_srvr,
+	isc_info_db_class_gateway,
+	isc_info_db_class_cache,
+	isc_info_db_class_classic_access,
+	isc_info_db_class_server_access
+    };
+
+enum	info_db_provider
+    {
+	isc_info_db_code_rdb_eln,
+	isc_info_db_code_rdb_vms,
+	isc_info_db_code_interbase,
+	isc_info_db_code_firebird
+    };
+
 
 /*****************************/
 /* Request information items */

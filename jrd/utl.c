@@ -183,7 +183,7 @@ extern int	ib_printf();
 #endif
 
 #define LOWER7(c) ( (c >= 'A' && c<= 'Z') ? c + 'a' - 'A': c )
-
+
 /* Blob stream stuff */ 
 
 #define BSTR_input	0
@@ -209,14 +209,14 @@ static int	display (GDS__QUAD *, int *, int *);
 
 static CONST SCHAR blob_items [] =
 	{ gds__info_blob_max_segment, gds__info_blob_num_segments, gds__info_blob_total_length };
-
+
 /* gds__version stuff */
 
 static CONST UCHAR	info [] =
-	{ gds__info_version, gds__info_implementation, gds__info_end };
+	{ isc_info_version, isc_info_implementation, isc_info_end };
 
 static CONST UCHAR	ods_info [] =
-	{ gds__info_ods_version, gds__info_ods_minor_version, gds__info_end };
+	{ isc_info_ods_version, isc_info_ods_minor_version, isc_info_end };
 
 static CONST TEXT
     * CONST impl_class [] =
@@ -233,6 +233,8 @@ static CONST TEXT
 	"central interface",		/* 9 */
 	"central server",		/* 10 */
 	"gateway",			/* 11 */
+	"classic server",		/* 12 */
+	"super server"			/* 13 */
 	},
 
     * CONST impl_implementation [] =
@@ -247,11 +249,11 @@ static CONST TEXT
 	"JSV",				/* 7 */
 	NULL,				/* 8 */
 	NULL,				/* 9 */
-	"InterBase/apollo",		/* 10 */
-	"InterBase/ultrix",		/* 11 */
-	"InterBase/vms",		/* 12 */
-	"InterBase/sun",		/* 13 */
-	"InterBase/OS2", 		/* 14 */
+	"Firebird/apollo",		/* 10 */
+	"Firebird/ultrix",		/* 11 */
+	"Firebird/vms",			/* 12 */
+	"Firebird/sun",			/* 13 */
+	"Firebird/OS2", 		/* 14 */
 	NULL, 				/* 15 */
 	NULL, 				/* 16 */
 	NULL, 				/* 17 */
@@ -262,48 +264,48 @@ static CONST TEXT
 	NULL, 				/* 22 */
 	NULL, 				/* 23 */
 	NULL, 				/* 24 */
-	"InterBase/apollo",		/* 25 */
-	"InterBase/ultrix",		/* 26 */
-	"InterBase/vms",		/* 27 */
-	"InterBase/sun",		/* 28 */
-	"InterBase/OS2", 		/* 29 */
-	"InterBase/sun4",		/* 30 */
-	"InterBase/hpux800",		/* 31 */
-	"InterBase/sun386",		/* 32 */
-	"InterBase:ORACLE/vms",		/* 33 */
-	"InterBase/mac/aux",		/* 34 */
-	"InterBase/ibm/aix",		/* 35 */
-	"InterBase/mips/ultrix",	/* 36 */
-	"InterBase/xenix",		/* 37 */
-	"InterBase/AViiON",		/* 38 */
-	"InterBase/hp/mpexl",		/* 39 */
-	"InterBase/hp/ux300",		/* 40 */
-	"InterBase/sgi",		/* 41 */
-	"InterBase/sco/unix",		/* 42 */
-	"InterBase/Cray",		/* 43 */
-	"InterBase/imp",		/* 44 */
-	"InterBase/delta",		/* 45 */
-	"InterBase/NeXT",		/* 46 */
-	"InterBase/DOS",		/* 47 */
-	"InterBase/m88k",		/* 48 */
-	"InterBase/UNIXWARE",		/* 49 */
-	"InterBase/x86/Windows NT",	/* 50 */
-	"InterBase/epson",		/* 51 */
-	"InterBase/DEC/OSF",		/* 52 */
-	"InterBase/Alpha/OpenVMS",	/* 53 */
-        "InterBase/NetWare",            /* 54 */
-	"InterBase/Windows",		/* 55 */
-	"InterBase/NCR3000",		/* 56 */
-	"InterBase/PPC/Windows NT",	/* 57 */
-	"InterBase/DG_X86",		/* 58 */
-	"InterBase/SCO_SV Intel",	/* 59 */ /* 5.5 SCO Port */ 
-        "InterBase/linux Intel",        /* 60 */
-        "InterBase/FreeBSD/i386",       /* 61 */
-        "InterBase/NetBSD/i386",        /* 62 */
-        "InterBase/Darwin/PowerPC"      /* 63 */
+	"Firebird/apollo",		/* 25 */
+	"Firebird/ultrix",		/* 26 */
+	"Firebird/vms",			/* 27 */
+	"Firebird/sun",			/* 28 */
+	"Firebird/OS2", 		/* 29 */
+	"Firebird/sun4",		/* 30 */
+	"Firebird/hpux800",		/* 31 */
+	"Firebird/sun386",		/* 32 */
+	"Firebird:ORACLE/vms",		/* 33 */
+	"Firebird/mac/aux",		/* 34 */
+	"Firebird/ibm/aix",		/* 35 */
+	"Firebird/mips/ultrix",		/* 36 */
+	"Firebird/xenix",		/* 37 */
+	"Firebird/AViiON",		/* 38 */
+	"Firebird/hp/mpexl",		/* 39 */
+	"Firebird/hp/ux300",		/* 40 */
+	"Firebird/sgi",			/* 41 */
+	"Firebird/sco/unix",		/* 42 */
+	"Firebird/Cray",		/* 43 */
+	"Firebird/imp",			/* 44 */
+	"Firebird/delta",		/* 45 */
+	"Firebird/NeXT",		/* 46 */
+	"Firebird/DOS",			/* 47 */
+	"Firebird/m88k",		/* 48 */
+	"Firebird/UNIXWARE",		/* 49 */
+	"Firebird/x86/Windows NT",	/* 50 */
+	"Firebird/epson",		/* 51 */
+	"Firebird/DEC/OSF",		/* 52 */
+	"Firebird/Alpha/OpenVMS",	/* 53 */
+        "Firebird/NetWare",		/* 54 */
+	"Firebird/Windows",		/* 55 */
+	"Firebird/NCR3000",		/* 56 */
+	"Firebird/PPC/Windows NT",	/* 57 */
+	"Firebird/DG_X86",		/* 58 */
+	"Firebird/SCO_SV Intel",	/* 59 */ /* 5.5 SCO Port */ 
+        "Firebird/linux Intel",        /* 60 */
+        "Firebird/FreeBSD/i386",       /* 61 */
+        "Firebird/NetBSD/i386",        /* 62 */
+        "Firebird/Darwin/PowerPC"      /* 63 */
 	};
 
-
+
 #ifdef SHLIB_DEFS
 #define strlen		(*_libgds_strlen)
 #define _iob		(*_libgds__iob)
@@ -343,7 +345,7 @@ extern SCHAR		*strcpy();
 extern SCHAR		*strncpy();
 extern int		ib_fprintf();
 #endif
-
+
 #ifdef VMS
 STATUS API_ROUTINE gds__attach_database_d (
     STATUS	*user_status,
@@ -368,7 +370,7 @@ return gds__attach_database (user_status, file_name->dsc$w_length, file_name->ds
     handle, dpb_length, dpb, db_type);
 }
 #endif
-
+
 int API_ROUTINE gds__blob_size (
     SLONG	*b,
     SLONG	*size,
@@ -435,7 +437,7 @@ while ((item = *p++) != gds__info_end)
 
 return TRUE;
 }
-
+
 void API_ROUTINE_VARARG isc_expand_dpb (
     SCHAR	**dpb,
     SSHORT	*dpb_size,
@@ -553,7 +555,7 @@ while (type = va_arg (args, int))
 *dpb_size = p - new_dpb;
 *dpb = (SCHAR*) new_dpb;
 }
-
+
 int API_ROUTINE isc_modify_dpb (
     SCHAR	**dpb,
     SSHORT	*dpb_size,
@@ -670,7 +672,7 @@ if (!*dpb_size)
 *dpb = (SCHAR*) new_dpb;
 return SUCCESS;
 }
-
+
 #ifdef APOLLO
 int API_ROUTINE gds__edit (
     TEXT	*file_name,
@@ -733,7 +735,7 @@ if (status.all)
 return type;
 }
 #endif
- 
+ 
 #ifdef GDS_EDIT
 int API_ROUTINE GDS_EDIT (
     TEXT	*file_name,
@@ -777,7 +779,7 @@ statistics (file_name, &after);
 return (before.st_mtime != after.st_mtime || before.st_size != after.st_size);
 }
 #endif
-
+
 #ifdef mpexl
 int API_ROUTINE gds__edit (
     TEXT	*file_name,
@@ -811,7 +813,7 @@ stat (file_name, &end_time, &end_date);
 return (start_time != end_time || start_date != end_date);
 }
 #endif
-
+
 #ifdef VMS
 int API_ROUTINE gds__edit (
     TEXT	*file_name,
@@ -848,7 +850,7 @@ return (before.st_ctime != after.st_ctime ||
     before.st_ino [2] != after.st_ino [2]);
 }
 #endif
-
+
 SLONG API_ROUTINE gds__event_block (
     SCHAR	**event_buffer,
     SCHAR	**result_buffer,
@@ -936,7 +938,7 @@ while (i--)
 
 return p - *event_buffer;
 }
-
+
 USHORT API_ROUTINE gds__event_block_a (
     SCHAR	**event_buffer,
     SCHAR	**result_buffer,
@@ -1023,7 +1025,7 @@ while (i--)
 
 return (p - *event_buffer);
 }
-
+
 void API_ROUTINE gds__event_block_s (
     SCHAR	**event_buffer,
     SCHAR	**result_buffer,
@@ -1045,7 +1047,7 @@ void API_ROUTINE gds__event_block_s (
 
 *return_count = gds__event_block_a (event_buffer, result_buffer, count, name_buffer);
 }
-
+
 void API_ROUTINE gds__event_counts (
     ULONG	*result_vector,
     SSHORT	GDS_VAL (buffer_length),
@@ -1102,7 +1104,7 @@ p = event_buffer;
 q = result_buffer;
 do *p++ = *q++; while (--length);
 }
-
+
 #ifndef PIPE_CLIENT
 void API_ROUTINE gds__map_blobs (
     int		*handle1,
@@ -1135,7 +1137,7 @@ BLB_map_blobs (NULL_TDBB, handle1, handle2);
 #endif
 }
 #endif
-
+
 #if !(defined REQUESTER || defined NETWARE_386)
 void API_ROUTINE gds__set_debug (
     int		GDS_VAL (value))
@@ -1156,7 +1158,7 @@ AMBX_set_debug (GDS_VAL (value));
 #endif
 }                
 #endif
-
+
 void API_ROUTINE isc_set_login (
     UCHAR	**dpb,
     SSHORT	*dpb_size)
@@ -1229,7 +1231,7 @@ else if (password && !password_seen)
     isc_expand_dpb (dpb, dpb_size, gds__dpb_password, password, 0);
 #endif
 }
-
+
 BOOLEAN API_ROUTINE isc_set_path (
     TEXT	*file_name,
     USHORT	file_length,
@@ -1279,7 +1281,7 @@ strcat (expanded_name, file_name);
 
 return TRUE;
 }
-
+
 void API_ROUTINE isc_set_single_user (
     UCHAR	**dpb,
     SSHORT	*dpb_size,
@@ -1334,7 +1336,7 @@ if (!single_user_seen)
     isc_expand_dpb (dpb, dpb_size, isc_dpb_reserved, single_user, 0);
 
 }
-
+
 int API_ROUTINE gds__version (
     void	**handle,
     void	(*routine)(),
@@ -1457,7 +1459,7 @@ sprintf (s, "on disk structure version %d.%d", ods_version, ods_minor_version);
 
 return SUCCESS;
 }
-
+
 void API_ROUTINE isc_format_implementation (
     USHORT	implementation,
     USHORT	ibuflen,
@@ -1513,7 +1515,7 @@ if (cbuflen > 0)
     }
 
 }
-
+
 U_IPTR API_ROUTINE isc_baddress (
     SCHAR	*object)
 {
@@ -1530,7 +1532,7 @@ U_IPTR API_ROUTINE isc_baddress (
 
 return (U_IPTR) object;  
 }
-
+
 void API_ROUTINE isc_baddress_s (
     SCHAR	*object,
     U_IPTR	*address)
@@ -1548,7 +1550,7 @@ void API_ROUTINE isc_baddress_s (
 
 *address = (U_IPTR) object;  
 }
-
+
 #ifdef VMS
 void API_ROUTINE gds__wake_init (void)
 {
@@ -1566,7 +1568,7 @@ void API_ROUTINE gds__wake_init (void)
 ISC_wake_init();
 }
 #endif
-
+
 int API_ROUTINE BLOB_close (
     BSTREAM	*bstream)
 {
@@ -1606,7 +1608,7 @@ gds__free (bstream);
 
 return TRUE;
 }
-
+
 int API_ROUTINE blob__display (
     SLONG	blob_id [2],
     void	**database,
@@ -1637,7 +1639,7 @@ if ((l = *name_length) != NULL)
 
 return BLOB_display (blob_id, *database, *transaction, temp);
 }
-
+
 int API_ROUTINE BLOB_display (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -1675,7 +1677,7 @@ return dump (blob_id, database, transaction, ib_stdout);
 
 #endif
 }
-
+
 int API_ROUTINE blob__dump (
     SLONG	blob_id [2],
     void	**database,
@@ -1707,7 +1709,7 @@ if ((l = *name_length) != NULL)
 
 return BLOB_dump (blob_id, *database, *transaction, temp);
 }
-
+
 int API_ROUTINE BLOB_text_dump (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -1736,7 +1738,7 @@ ib_fclose (file);
 
 return ret;
 }
-
+
 int API_ROUTINE BLOB_dump (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -1764,7 +1766,7 @@ ib_fclose (file);
 
 return ret;
 }
-
+
 int API_ROUTINE blob__edit (
     SLONG	blob_id [2],
     void	**database,
@@ -1796,7 +1798,7 @@ if ((l = *name_length) != NULL)
 
 return BLOB_edit (blob_id, *database, *transaction, temp);
 }
-
+
 int API_ROUTINE BLOB_edit (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -1818,7 +1820,7 @@ int API_ROUTINE BLOB_edit (
 
 return edit (blob_id, database, transaction, TRUE, field_name);
 }
-
+
 int API_ROUTINE BLOB_get (
     BSTREAM	*bstream)
 {
@@ -1859,7 +1861,7 @@ while (1)
     bstream->bstr_ptr = bstream->bstr_buffer;
     }
 }
-
+
 int API_ROUTINE blob__load (
     SLONG	blob_id [2],
     void	**database,
@@ -1891,7 +1893,7 @@ if ((l = *name_length) != NULL)
 
 return BLOB_load (blob_id, *database, *transaction, temp);
 }
-
+
 int API_ROUTINE BLOB_text_load (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -1922,7 +1924,7 @@ ib_fclose (file);
  
 return ret;
 }
-
+
 int API_ROUTINE BLOB_load (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -1951,7 +1953,7 @@ ib_fclose (file);
  
 return ret;
 }
-
+
 BSTREAM * API_ROUTINE Bopen (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -2020,7 +2022,7 @@ else
 
 return bstream;
 }
-
+
 BSTREAM * API_ROUTINE BLOB_open (
     void	*blob,
     SCHAR	*buffer,
@@ -2080,7 +2082,7 @@ if (!(bstream->bstr_buffer = buffer))
 
 return bstream;
 }
-
+
 int API_ROUTINE BLOB_put (
    SCHAR	x,
    BSTREAM	*bstream)
@@ -2118,7 +2120,7 @@ bstream->bstr_cnt = bstream->bstr_length;
 bstream->bstr_ptr = bstream->bstr_buffer;
 return TRUE;
 }
-
+
 #ifdef VMS
 static display (
     GDS__QUAD	*blob_id,
@@ -2183,7 +2185,7 @@ gds__close_blob (status_vector, GDS_REF (blob));
 return TRUE;
 }
 #endif	VMS
-
+
 static int dump (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -2253,7 +2255,7 @@ gds__close_blob (status_vector, GDS_REF (blob));
 
 return TRUE;
 }
-
+
 static int edit (
     GDS__QUAD	*blob_id,
     void	*database,
@@ -2361,7 +2363,7 @@ unlink (file_name);
 
 return type;
 }
-
+
 static int get_ods_version (
     void	**handle,
     USHORT	*ods_version,
@@ -2418,7 +2420,7 @@ while ((item = *p++) != gds__info_end)
 return SUCCESS;
 }
 
-
+
 static int load (
     GDS__QUAD   *blob_id,
     void        *database,
@@ -2488,7 +2490,7 @@ gds__close_blob (status_vector, GDS_REF (blob));
  
 return TRUE;
 }
-
+
 #ifdef mpexl
 static stat (
     TEXT	*file_name,

@@ -236,30 +236,30 @@ while (items < end_items && *items != gds__info_end)
     p = buffer;
     switch ((item = *items++))
 	{
-	case gds__info_end:
+	case isc_info_end:
 	    break;
 
-	case gds__info_reads:
+	case isc_info_reads:
 	    length = INF_convert (dbb->dbb_reads, buffer);
 	    break;
 
-	case gds__info_writes:
+	case isc_info_writes:
 	    length = INF_convert (dbb->dbb_writes, buffer);
 	    break;
 
-	case gds__info_fetches:
+	case isc_info_fetches:
 	    length = INF_convert (dbb->dbb_fetches, buffer);
 	    break;
 
-	case gds__info_marks:
+	case isc_info_marks:
 	    length = INF_convert (dbb->dbb_marks, buffer);
 	    break;
 
-	case gds__info_page_size:
+	case isc_info_page_size:
 	    length = INF_convert (dbb->dbb_page_size, buffer);
 	    break;
 
-	case gds__info_num_buffers:
+	case isc_info_num_buffers:
 	    length = INF_convert (dbb->dbb_bcb->bcb_count, buffer);
 	    break;
 
@@ -267,11 +267,11 @@ while (items < end_items && *items != gds__info_end)
 	    length = INF_convert (dbb->dbb_page_buffers, buffer);
 	    break;
 
-	case gds__info_logfile:
+	case isc_info_logfile:
 	    length = INF_convert ((dbb->dbb_wal) ? TRUE : FALSE, buffer);
 	    break;
 
-	case gds__info_cur_logfile_name:
+	case isc_info_cur_logfile_name:
 	    wal_name [0] = 0;
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
@@ -283,7 +283,7 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
-	case gds__info_cur_log_part_offset:
+	case isc_info_cur_log_part_offset:
 	    wal_p_offset = 0;
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
@@ -292,7 +292,7 @@ while (items < end_items && *items != gds__info_end)
 	    length = INF_convert (wal_p_offset, buffer);
 	    break;
 
-	case gds__info_num_wal_buffers:
+	case isc_info_num_wal_buffers:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_maxbufs, buffer);
@@ -301,7 +301,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_buffer_size:
+	case isc_info_wal_buffer_size:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_bufsize, buffer);
@@ -310,7 +310,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_ckpt_length:
+	case isc_info_wal_ckpt_length:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
 		/* User specified checkpoint length multiplied by 1024 (OneK)
@@ -321,7 +321,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_cur_ckpt_interval:
+	case isc_info_wal_cur_ckpt_interval:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_cur_ckpt_intrvl, buffer);
@@ -330,7 +330,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_prv_ckpt_fname:
+	case isc_info_wal_prv_ckpt_fname:
 	    wal_name [0] = 0;
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
@@ -342,7 +342,7 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
-	case gds__info_wal_prv_ckpt_poffset:
+	case isc_info_wal_prv_ckpt_poffset:
 	    wal_p_offset = 0;
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
@@ -351,17 +351,17 @@ while (items < end_items && *items != gds__info_end)
 	    length = INF_convert (wal_p_offset, buffer);
 	    break;
 
-	case gds__info_wal_recv_ckpt_fname:
+	case isc_info_wal_recv_ckpt_fname:
 	    /* Get the information from the header or wal page */
 	    length = 0;
 	    break;
 
-	case gds__info_wal_recv_ckpt_poffset:
+	case isc_info_wal_recv_ckpt_poffset:
 	    /* Get the information from the header or wal page */
 	    length = 0;
 	    break;
 
-	case gds__info_wal_grpc_wait_usecs:
+	case isc_info_wal_grpc_wait_usecs:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_grpc_wait_usecs, buffer);
@@ -370,7 +370,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_num_io:
+	case isc_info_wal_num_io:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_IO_count, buffer);
@@ -379,7 +379,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_avg_io_size:
+	case isc_info_wal_avg_io_size:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_total_IO_bytes /
@@ -390,7 +390,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_num_commits:
+	case isc_info_wal_num_commits:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_commit_count, buffer);
@@ -399,7 +399,7 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_wal_avg_grpc_size:
+	case isc_info_wal_avg_grpc_size:
 #ifndef WINDOWS_ONLY
 	    if (WAL_segment)
     		length = INF_convert (WAL_segment->wals_commit_count /
@@ -410,75 +410,75 @@ while (items < end_items && *items != gds__info_end)
     		length = 0;
 	    break;
 
-	case gds__info_current_memory:
+	case isc_info_current_memory:
 	    length = INF_convert (dbb->dbb_current_memory, buffer);
 	    break;
 
-	case gds__info_max_memory:
+	case isc_info_max_memory:
 	    length = INF_convert (dbb->dbb_max_memory, buffer);
 	    break;
 
-	case gds__info_attachment_id:
+	case isc_info_attachment_id:
 	    length = INF_convert (PAG_attachment_id(), buffer);
 	    break;
 
-	case gds__info_ods_version:
+	case isc_info_ods_version:
 	    length = INF_convert (dbb->dbb_ods_version, buffer);
 	    break;
 
-	case gds__info_ods_minor_version:
+	case isc_info_ods_minor_version:
 	    length = INF_convert (dbb->dbb_minor_version, buffer);
 	    break;
 
-	case gds__info_allocation:
+	case isc_info_allocation:
 	    CCH_flush (tdbb, (USHORT) FLUSH_ALL, 0L);
 	    length = INF_convert (PIO_max_alloc (dbb), buffer);
 	    break;
 
-	case gds__info_sweep_interval:
+	case isc_info_sweep_interval:
 	    length = INF_convert (dbb->dbb_sweep_interval, buffer);
 	    break;
 
-	case gds__info_read_seq_count:
+	case isc_info_read_seq_count:
 	    length = get_counts (DBB_read_seq_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_read_idx_count:
+	case isc_info_read_idx_count:
 	    length = get_counts (DBB_read_idx_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_update_count:
+	case isc_info_update_count:
 	    length = get_counts (DBB_update_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_insert_count:
+	case isc_info_insert_count:
 	    length = get_counts (DBB_insert_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_delete_count:
+	case isc_info_delete_count:
 	    length = get_counts (DBB_delete_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_backout_count:
+	case isc_info_backout_count:
 	    length = get_counts (DBB_backout_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_purge_count:
+	case isc_info_purge_count:
 	    length = get_counts (DBB_purge_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_expunge_count:
+	case isc_info_expunge_count:
 	    length = get_counts (DBB_expunge_count, buffer, sizeof (buffer));
 	    break;
 
-	case gds__info_implementation:
+	case isc_info_implementation:
 	    STUFF (p, 1);		/* Count */
 	    STUFF (p, IMPLEMENTATION);
 	    STUFF (p, 1);		/* Class */
 	    length = p - buffer;
 	    break;
 
-	case gds__info_base_level:
+	case isc_info_base_level:
 	    /* info_base_level is used by the client to represent
 	     * what the server is capable of.  It is equivalent to the
 	     * ods version of a database.  For example,
@@ -497,7 +497,7 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
-	case gds__info_version:
+	case isc_info_isc_version:
 	    STUFF (p, 1);
 	    STUFF (p, sizeof (GDS_VERSION) - 1);
 	    for (q = GDS_VERSION; *q;)
@@ -505,7 +505,16 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
-	case gds__info_db_id:
+	case isc_info_firebird_version:
+	    STUFF (p, 1);
+	    STUFF (p, sizeof (FB_VERSION) - 1);
+	    for (q = FB_VERSION; *q;)
+		STUFF (p, *q++);
+	    length = p - buffer;
+	    break;
+	   
+
+	case isc_info_db_id:
 	    file = dbb->dbb_file;
 	    STUFF (p, 2);
 	    *p++ = l = file->fil_length;
@@ -518,17 +527,17 @@ while (items < end_items && *items != gds__info_end)
 	    length = p - buffer;
 	    break;
 
-	case gds__info_no_reserve:
+	case isc_info_no_reserve:
 	    *p++ = (dbb->dbb_flags & DBB_no_reserve) ? 1 : 0;
 	    length = p - buffer;
 	    break;
 
-	case gds__info_forced_writes:
+	case isc_info_forced_writes:
 	    *p++ = (dbb->dbb_flags & DBB_force_write) ? 1 : 0;
 	    length = p - buffer;
 	    break;
 
-	case gds__info_limbo:
+	case isc_info_limbo:
 	    if (!transaction)
 		transaction = TRA_start (tdbb, 0, NULL);
 	    for (id = transaction->tra_oldest;
@@ -740,6 +749,14 @@ while (items < end_items && *items != gds__info_end)
 
 	case isc_info_next_transaction:
 	    length = INF_convert (dbb->dbb_next_transaction, buffer);
+	    break;
+
+	case isc_info_db_provider:
+	    length = INF_convert (isc_info_db_code_firebird, buffer);
+	    break;
+
+	case isc_info_db_class:
+	    length = INF_convert (FB_ARCHITECTURE, buffer);
 	    break;
 
 	case frb_info_att_charset:
