@@ -1,3 +1,59 @@
+2002-03-10 18:18  nmcc
+
+	* interbase/dsql/pass1.c (1.34):
+	
+	Allow sub-selects in statements with udf's and group by.
+
+2002-03-10 18:18  nmcc
+
+	* interbase/this_build (1.797):
+	
+	inc_build_no
+
+2002-03-08 09:42  robocop
+
+	* interbase/burp/mvol.c (1.5):
+	
+	Fix multi-file backup bug reported by Nando Dessena.
+
+2002-03-08 09:42  robocop
+
+	* interbase/this_build (1.796):
+	
+	inc_build_no
+
+2002-03-07 15:28  paul_reeves
+
+	* interbase/builds_win32/install/: FirebirdInstall.iss (1.4),
+	Readme.txt (1.3), installation_readme.txt (1.2):
+	
+	Updated Win32 installation script, readme, and install notes.
+
+2002-03-07 15:28  paul_reeves
+
+	* interbase/this_build (1.795):
+	
+	inc_build_no
+
+2002-03-06 11:41  fsg
+
+	* interbase/this_build (1.794):
+	
+	inc_build_no
+
+2002-03-06 11:36  paul_reeves
+
+	* interbase/builds_win32/install/FirebirdInstall.iss (1.3):
+	
+	Make sure that the Win32 install script is actually in the MAIN
+	branch.
+
+2002-03-06 11:36  paul_reeves
+
+	* interbase/this_build (1.793):
+	
+	inc_build_no
+
 2002-03-06 09:40  robocop
 
 	* interbase/this_build (1.792):
@@ -127,15 +183,15 @@
 
 2002-03-01 03:13  nmcc
 
-	* interbase/jrd/sort.c (1.18):
-	
-	Move #include to inside existing #ifdef
-
-2002-03-01 03:13  nmcc
-
 	* interbase/this_build (1.773):
 	
 	inc_build_no
+
+2002-03-01 03:13  nmcc
+
+	* interbase/jrd/sort.c (1.18):
+	
+	Move #include to inside existing #ifdef
 
 2002-03-01 03:10  nmcc
 
@@ -261,17 +317,17 @@
 
 2002-02-25 13:57  paul_reeves
 
-	* interbase/builds_win32/install/installation_readme_rus.txt (1.1):
-	
-	file installation_readme_rus.txt was initially added on branch
-	V1-0-0_731.
-
-2002-02-25 13:57  paul_reeves
-
 	* interbase/builds_win32/install/installation_readme_rus.txt
 	(1.1.2.1):
 	
 	D. Kuzmenko's Russian translation of the installation instructions
+
+2002-02-25 13:57  paul_reeves
+
+	* interbase/builds_win32/install/installation_readme_rus.txt (1.1):
+	
+	file installation_readme_rus.txt was initially added on branch
+	V1-0-0_731.
 
 2002-02-25 09:52  robocop
 
@@ -290,15 +346,15 @@
 
 2002-02-25 09:41  robocop
 
-	* interbase/this_build (1.753):
-	
-	inc_build_no
-
-2002-02-25 09:41  robocop
-
 	* interbase/jrd/jrd.c (1.13):
 	
 	Checking bounds. :-)
+
+2002-02-25 09:41  robocop
+
+	* interbase/this_build (1.753):
+	
+	inc_build_no
 
 2002-02-25 09:39  robocop
 
@@ -339,16 +395,16 @@
 
 2002-02-25 09:30  robocop
 
-	* interbase/: this_build (1.748), this_build (1.749):
-	
-	inc_build_no
-
-2002-02-25 09:30  robocop
-
 	* interbase/dsql/gen.c (1.12):
 	
 	Columns with UPPER() built-in function should have a title and name
 	"UPPER" for now instead of an empty name.
+
+2002-02-25 09:30  robocop
+
+	* interbase/: this_build (1.748), this_build (1.749):
+	
+	inc_build_no
 
 2002-02-24 19:40  nmcc
 
@@ -535,16 +591,16 @@
 
 2002-01-14 08:05  robocop
 
+	* interbase/: this_build (1.723), this_build (1.724):
+	
+	inc_build_no
+
+2002-01-14 08:05  robocop
+
 	* interbase/extlib/fbudf/: fbudf.dsp (1.2), fbudf.dsw (1.2),
 	fbudf.plg (1.2):
 	
 	Delete to re-add as binary
-
-2002-01-14 08:05  robocop
-
-	* interbase/: this_build (1.723), this_build (1.724):
-	
-	inc_build_no
 
 2002-01-14 07:41  robocop
 
@@ -887,16 +943,16 @@
 
 2001-12-21 02:10  skywalker
 
+	* interbase/this_build (1.695):
+	
+	inc_build_no
+
+2001-12-21 02:10  skywalker
+
 	* interbase/firebird/install/linux/super/postinstall.sh (1.3):
 	
 	test for SuSE which has a few unique bits, is a bit poor at the
 	moment but is currently if [ -x /bin/fillup ]
-
-2001-12-21 02:10  skywalker
-
-	* interbase/this_build (1.695):
-	
-	inc_build_no
 
 2001-12-21 00:02  fsg
 
@@ -1014,20 +1070,20 @@
 
 2001-12-18 01:12  awharrison
 
-	* interbase/this_build (1.681):
-	
-	inc_build_no
-
-2001-12-18 01:12  awharrison
-
 	* interbase/jrd/flu.c (1.12):
 	
 	Modified Files: 	interbase/jrd/flu.c
+	-------------------------------------------------------------------
+	---
 	
 	Made logging lookup error conditional until we distangle the
 	function lookup from other types.
-	-------------------------------------------------------------------
-	---
+
+2001-12-18 01:12  awharrison
+
+	* interbase/this_build (1.681):
+	
+	inc_build_no
 
 2001-12-18 00:04  fsg
 
@@ -1074,16 +1130,16 @@
 
 2001-12-15 14:46  skywalker
 
+	* interbase/this_build (1.675):
+	
+	inc_build_no
+
+2001-12-15 14:46  skywalker
+
 	* interbase/builds/original/: boot.sfx.interbase (1.4),
 	sfx.interbase (1.17):
 	
 	Change linux classic packages to point to new updated routine
-
-2001-12-15 14:46  skywalker
-
-	* interbase/this_build (1.675):
-	
-	inc_build_no
 
 2001-12-15 14:41  skywalker
 
@@ -1176,19 +1232,13 @@
 
 2001-12-10 21:59  paul_reeves
 
-	* interbase/jrd/version_95.rc (1.7):
-	
-	Win32 interbase
-
-2001-12-10 21:59  paul_reeves
-
 	* interbase/this_build (1.662):
 	
 	inc_build_no
 
-2001-12-10 21:37  paul_reeves
+2001-12-10 21:59  paul_reeves
 
-	* interbase/FB_Build_Win32_Build_No.bat (1.6):
+	* interbase/jrd/version_95.rc (1.7):
 	
 	Win32 interbase
 
@@ -1197,6 +1247,12 @@
 	* interbase/this_build (1.661):
 	
 	inc_build_no
+
+2001-12-10 21:37  paul_reeves
+
+	* interbase/FB_Build_Win32_Build_No.bat (1.6):
+	
+	Win32 interbase
 
 2001-12-10 20:35  awharrison
 
@@ -1513,21 +1569,15 @@
 
 2001-11-30 16:19  paul_reeves
 
-	* interbase/: isql/show.e (1.13), jrd/inf.c (1.10):
-	
-	isql show database is now a little more informative.
-
-2001-11-30 16:19  paul_reeves
-
 	* interbase/: this_build (1.630), this_build (1.629):
 	
 	inc_build_no
 
-2001-11-30 15:51  kkuznetsov
+2001-11-30 16:19  paul_reeves
 
-	* interbase/this_build (1.628):
+	* interbase/: isql/show.e (1.13), jrd/inf.c (1.10):
 	
-	inc_build_no
+	isql show database is now a little more informative.
 
 2001-11-30 15:51  kkuznetsov
 
@@ -1536,6 +1586,12 @@
 	
 	Added some magic to make SOLARIS support LARGE files (only in
 	SUPER)
+
+2001-11-30 15:51  kkuznetsov
+
+	* interbase/this_build (1.628):
+	
+	inc_build_no
 
 2001-11-30 09:08  robocop
 
@@ -1560,16 +1616,16 @@
 
 2001-11-29 12:58  paul_reeves
 
+	* interbase/this_build (1.625):
+	
+	inc_build_no
+
+2001-11-29 12:58  paul_reeves
+
 	* interbase/jrd/version_95.rc (1.4):
 	
 	version_95.rc - 'themslevs' may prefer to be known as 'themselves'.
 	Changed Special Build string to 'Post-release candidate 1'.
-
-2001-11-29 12:58  paul_reeves
-
-	* interbase/this_build (1.625):
-	
-	inc_build_no
 
 2001-11-29 12:16  paul_reeves
 
@@ -1598,17 +1654,17 @@
 
 2001-11-28 21:19  awharrison
 
+	* interbase/this_build (1.620):
+	
+	inc_build_no
+
+2001-11-28 21:19  awharrison
+
 	* interbase/jrd/inf.c (1.9):
 	
 	
 	
 	Bad job of cut and paste - fixed.
-
-2001-11-28 21:19  awharrison
-
-	* interbase/this_build (1.620):
-	
-	inc_build_no
 
 2001-11-28 21:10  awharrison
 
@@ -1671,6 +1727,13 @@
 	 Modified Files:
 		interbase/dsql/ddl.c interbase/dsql/dsql.h
 		interbase/dsql/errd.c interbase/dsql/pass1.c
+	-------------------------------------------------------------------
+	--- Fixed the abiguity checking to distinguish between sql dialects
+	so it returns a warning in dialect 1 and an error in dialect 3.  In
+	the process, decided that the string "table/view" was ugly and that
+	it should know whether the entity was a table or view.	In the
+	process, decided that the whole process was too complex and
+	simplified it in the following ways:
 	
 	   1)  removed ambiguity checking to a subroutine
 	   2)  eliminated the requirement that each routine
@@ -1692,23 +1755,10 @@
 	should unify the error handling of DSQL and JRD.  Since
 	ERRD_post_waring and ERRD_post both copy strings, removed
 	references to ERR_cstring elsewhere.
-	-------------------------------------------------------------------
-	--- Fixed the abiguity checking to distinguish between sql dialects
-	so it returns a warning in dialect 1 and an error in dialect 3.  In
-	the process, decided that the string "table/view" was ugly and that
-	it should know whether the entity was a table or view.	In the
-	process, decided that the whole process was too complex and
-	simplified it in the following ways:
 
 2001-11-27 00:01  fsg
 
 	* interbase/this_build (1.614):
-	
-	inc_build_no
-
-2001-11-26 19:12  awharrison
-
-	* interbase/this_build (1.613):
 	
 	inc_build_no
 
@@ -1723,6 +1773,12 @@
 	 This change removes that code and adds a definition of
 	SYNC_WRITE_DEFAULT to common.h in the section that handles windows
 	defines.
+
+2001-11-26 19:12  awharrison
+
+	* interbase/this_build (1.613):
+	
+	inc_build_no
 
 2001-11-24 00:01  fsg
 
@@ -1843,18 +1899,18 @@
 
 2001-11-21 19:53  awharrison
 
-	* interbase/this_build (1.602):
-	
-	inc_build_no
-
-2001-11-21 19:53  awharrison
-
 	* interbase/isql/: extract.e (1.11), isql.e (1.22), show.e (1.11),
 	show_proto.h (1.4):
 	
 	
 	ISQL did not check the returns status of info calls and crashed if
 	one failed.  Also return the Firebird version on -z.
+
+2001-11-21 19:53  awharrison
+
+	* interbase/this_build (1.602):
+	
+	inc_build_no
 
 2001-11-21 19:20  pcisar
 
@@ -1944,6 +2000,12 @@
 
 2001-11-21 03:56  robocop
 
+	* interbase/this_build (1.589):
+	
+	inc_build_no
+
+2001-11-21 03:56  robocop
+
 	* interbase/isql/isql.e (1.21):
 	
 	If isql accepts -nowarnings as a command-line argument and SET
@@ -1951,12 +2013,6 @@
 	SET WNG or SET WARNINGS to toggle that flag. No other code change
 	as been done as the logic to suppress or show warnings is already
 	in place.
-
-2001-11-21 03:56  robocop
-
-	* interbase/this_build (1.589):
-	
-	inc_build_no
 
 2001-11-21 03:50  robocop
 
@@ -2113,16 +2169,16 @@
 
 2001-11-07 03:38  nmcc
 
-	* interbase/this_build (1.574):
-	
-	inc_build_no
-
-2001-11-07 03:38  nmcc
-
 	* interbase/builds_win32/original/build_no.ksh (1.11):
 	
 	Convert back to a unix file (\n only) so unix builds are not broken
 	and built with wrong version number.
+
+2001-11-07 03:38  nmcc
+
+	* interbase/this_build (1.574):
+	
+	inc_build_no
 
 2001-11-07 00:01  fsg
 
@@ -2145,16 +2201,16 @@
 
 2001-11-06 07:45  robocop
 
+	* interbase/: this_build (1.569), this_build (1.570):
+	
+	inc_build_no
+
+2001-11-06 07:45  robocop
+
 	* interbase/jrd/: dyn.h (1.3), dyn_proto.h (1.2), grant.e (1.4):
 	
 	Replace terminate() by DYN_terminate() that uses sizeof(argument)
 	as the 2nd parameter.
-
-2001-11-06 07:45  robocop
-
-	* interbase/: this_build (1.569), this_build (1.570):
-	
-	inc_build_no
 
 2001-11-06 00:01  fsg
 
@@ -2240,12 +2296,6 @@
 
 2001-11-02 16:08  awharrison
 
-	* interbase/this_build (1.557):
-	
-	inc_build_no
-
-2001-11-02 16:08  awharrison
-
 	* interbase/burp/backup.e (1.13):
 	
 	
@@ -2253,6 +2303,12 @@
 	RDB$SECURITY_CLASSES.  I could have make a corresponding change in
 	restore, but at that point this was too complicated and it's time
 	to look for a better answer.
+
+2001-11-02 16:08  awharrison
+
+	* interbase/this_build (1.557):
+	
+	inc_build_no
 
 2001-11-02 15:50  awharrison
 
@@ -2288,17 +2344,17 @@
 
 2001-10-31 18:09  awharrison
 
-	* interbase/this_build (1.553):
-	
-	inc_build_no
-
-2001-10-31 18:09  awharrison
-
 	* interbase/burp/backup.e (1.11):
 	
 	
 	Backup the system generator rdb$security_class to avoid reusing
 	security class names and wiping out previously granted privileges.
+
+2001-10-31 18:09  awharrison
+
+	* interbase/this_build (1.553):
+	
+	inc_build_no
 
 2001-10-31 08:54  robocop
 
@@ -2347,15 +2403,15 @@
 
 2001-10-31 02:24  nmcc
 
-	* interbase/this_build (1.546):
-	
-	inc_build_no
-
-2001-10-31 02:24  nmcc
-
 	* interbase/jrd/sort.c (1.14):
 	
 	Fix missing declaration of off_t on Linux.
+
+2001-10-31 02:24  nmcc
+
+	* interbase/this_build (1.546):
+	
+	inc_build_no
 
 2001-10-31 02:20  nmcc
 
@@ -2465,15 +2521,21 @@
 
 2001-10-29 08:29  robocop
 
+	* interbase/this_build (1.536):
+	
+	inc_build_no
+
+2001-10-29 08:29  robocop
+
 	* interbase/dsql/alld.c (1.5):
 	
 	ALLD_alloc was calling ERRD_bugcheck() when it doesn't have to call
 	it due to a bad implicit cast. No call to
 	isc_dsql_allocate_statement would succeed due to this small issue.
 
-2001-10-29 08:29  robocop
+2001-10-29 01:52  nmcc
 
-	* interbase/this_build (1.536):
+	* interbase/: this_build (1.535), this_build (1.534):
 	
 	inc_build_no
 
@@ -2482,12 +2544,6 @@
 	* interbase/: dsql/pass1.c (1.22), jrd/ibase.h (1.16):
 	
 	Convert c++ comments to c comments.
-
-2001-10-29 01:52  nmcc
-
-	* interbase/: this_build (1.535), this_build (1.534):
-	
-	inc_build_no
 
 2001-10-28 23:16  fsg
 
@@ -2557,17 +2613,17 @@
 
 2001-10-27 00:17  awharrison
 
+	* interbase/this_build (1.527):
+	
+	inc_build_no
+
+2001-10-27 00:17  awharrison
+
 	* interbase/dsql/alld.c (1.4):
 	
 	
 	Remove an unwanted and very undesirable semi-colon at the end of an
 	if.
-
-2001-10-27 00:17  awharrison
-
-	* interbase/this_build (1.527):
-	
-	inc_build_no
 
 2001-10-27 00:02  fsg
 
@@ -2598,6 +2654,12 @@
 
 2001-10-25 23:25  awharrison
 
+	* interbase/this_build (1.522):
+	
+	inc_build_no
+
+2001-10-25 23:25  awharrison
+
 	* interbase/dsql/: alld.c (1.3), dsql.c (1.13), dsql.h (1.5),
 	dsql_proto.h (1.2), gen.c (1.10), make.c (1.5), make_proto.h (1.3),
 	node.h (1.9), parse.c (1.21), parse.y (1.21):
@@ -2608,12 +2670,6 @@
 	exists passim.	In make, removed the unused and buggy MAKE_numeric.
 	 parse.c and parse.y got touched as I removed the exec_sql code
 	from them.
-
-2001-10-25 23:25  awharrison
-
-	* interbase/this_build (1.522):
-	
-	inc_build_no
 
 2001-10-25 21:35  awharrison
 
@@ -2632,15 +2688,15 @@
 
 2001-10-25 11:07  tamlin
 
-	* interbase/jrd/gds.c (1.11):
-	
-	Win32: Fallback to system known language for system error strings.
-
-2001-10-25 11:07  tamlin
-
 	* interbase/this_build (1.520):
 	
 	inc_build_no
+
+2001-10-25 11:07  tamlin
+
+	* interbase/jrd/gds.c (1.11):
+	
+	Win32: Fallback to system known language for system error strings.
 
 2001-10-25 00:01  fsg
 
@@ -2717,17 +2773,23 @@
 
 2001-10-22 23:58  awharrison
 
-	* interbase/this_build (1.511):
-	
-	inc_build_no
-
-2001-10-22 23:58  awharrison
-
 	* interbase/jrd/gds.c (1.10):
 	
 	
 	make gds_alloc_flag_unfreed a bit less sensitive to zero length
 	blocks.
+
+2001-10-22 23:58  awharrison
+
+	* interbase/this_build (1.511):
+	
+	inc_build_no
+
+2001-10-22 23:46  awharrison
+
+	* interbase/this_build (1.510):
+	
+	inc_build_no
 
 2001-10-22 23:46  awharrison
 
@@ -2741,15 +2803,15 @@
 	from an info call.  In the other, a debugging routine called
 	gds_alloc_unfreed with a zero length block.
 
-2001-10-22 23:46  awharrison
-
-	* interbase/this_build (1.510):
-	
-	inc_build_no
-
 2001-10-20 00:01  fsg
 
 	* interbase/this_build (1.509):
+	
+	inc_build_no
+
+2001-10-19 22:08  awharrison
+
+	* interbase/this_build (1.508):
 	
 	inc_build_no
 
@@ -2759,12 +2821,6 @@
 	
 	
 	Get rid of a debugging statement.
-
-2001-10-19 22:08  awharrison
-
-	* interbase/this_build (1.508):
-	
-	inc_build_no
 
 2001-10-19 22:00  awharrison
 
@@ -2800,13 +2856,19 @@
 
 2001-10-18 23:30  bellardo
 
+	* interbase/this_build (1.504):
+	
+	inc_build_no
+
+2001-10-18 23:30  bellardo
+
 	* interbase/builds/original/prefix.darwin (1.17):
 	
 	Yet Another Test.
 
-2001-10-18 23:30  bellardo
+2001-10-18 23:24  bellardo
 
-	* interbase/this_build (1.504):
+	* interbase/this_build (1.503):
 	
 	inc_build_no
 
@@ -2815,12 +2877,6 @@
 	* interbase/builds/original/prefix.darwin (1.16):
 	
 	Testing syncmail some more.
-
-2001-10-18 23:24  bellardo
-
-	* interbase/this_build (1.503):
-	
-	inc_build_no
 
 2001-10-18 23:20  bellardo
 
@@ -2842,15 +2898,15 @@
 
 2001-10-18 23:03  bellardo
 
-	* interbase/builds/original/prefix.darwin (1.13):
-	
-	Testing new syncmail.
-
-2001-10-18 23:03  bellardo
-
 	* interbase/: this_build (1.500), this_build (1.501):
 	
 	inc_build_no
+
+2001-10-18 23:03  bellardo
+
+	* interbase/builds/original/prefix.darwin (1.13):
+	
+	Testing new syncmail.
 
 2001-10-18 22:46  awharrison
 
@@ -2920,16 +2976,16 @@
 
 2001-10-17 07:02  tamlin
 
+	* interbase/: this_build (1.492), this_build (1.493):
+	
+	inc_build_no
+
+2001-10-17 07:02  tamlin
+
 	* interbase/jrd/: ibase.h (1.15), isc.c (1.7), isc.h (1.4), winnt.c
 	(1.8):
 	
 	Win32: CPU affinity and open DB files in non-shared mode.
-
-2001-10-17 07:02  tamlin
-
-	* interbase/: this_build (1.492), this_build (1.493):
-	
-	inc_build_no
 
 2001-10-16 00:01  fsg
 
@@ -2939,15 +2995,15 @@
 
 2001-10-15 12:14  nmcc
 
-	* interbase/isql/isql.e (1.18):
-	
-	Detect failed version inquiry and clean up version string output.
-
-2001-10-15 12:14  nmcc
-
 	* interbase/this_build (1.490):
 	
 	inc_build_no
+
+2001-10-15 12:14  nmcc
+
+	* interbase/isql/isql.e (1.18):
+	
+	Detect failed version inquiry and clean up version string output.
 
 2001-10-14 00:01  fsg
 
@@ -3216,22 +3272,28 @@
 
 2001-10-10 11:13  robocop
 
-	* interbase/this_build (1.460):
-	
-	inc_build_no
-
-2001-10-10 11:13  robocop
-
 	* interbase/jrd/intlobj.h (1.2):
 	
 	Reinstall the missing field in the interface for the extended
 	collations module
+
+2001-10-10 11:13  robocop
+
+	* interbase/this_build (1.460):
+	
+	inc_build_no
 
 2001-10-10 11:02  robocop
 
 	* interbase/jrd/constants.h (1.2):
 	
 	Defnitions of automatic triggers' new system_flag values
+
+2001-10-10 11:00  robocop
+
+	* interbase/: this_build (1.458), this_build (1.459):
+	
+	inc_build_no
 
 2001-10-10 11:00  robocop
 
@@ -3244,12 +3306,6 @@
 	pw and role is not dumped to the script as it was the behavior
 	before that bug fix.  SHOW GRANTS is possible without arguments. 
 	HELP SET includes PLANONLY brief explanation.
-
-2001-10-10 11:00  robocop
-
-	* interbase/: this_build (1.458), this_build (1.459):
-	
-	inc_build_no
 
 2001-10-10 10:49  robocop
 
@@ -3271,6 +3327,12 @@
 
 2001-10-08 19:40  awharrison
 
+	* interbase/this_build (1.455):
+	
+	inc_build_no
+
+2001-10-08 19:40  awharrison
+
 	* interbase/jrd/dyn_def.e (1.10):
 	
 	
@@ -3282,12 +3344,6 @@
 	happened to be the simple unique index, then the foreign key would
 	be rejected.
 
-2001-10-08 19:40  awharrison
-
-	* interbase/this_build (1.455):
-	
-	inc_build_no
-
 2001-10-05 00:00  fsg
 
 	* interbase/this_build (1.454):
@@ -3296,15 +3352,15 @@
 
 2001-10-04 06:22  bellardo
 
-	* interbase/firebird/bellardo/darwin/install (1.6):
-	
-	Minor changes to the Darwin install script
-
-2001-10-04 06:22  bellardo
-
 	* interbase/this_build (1.453):
 	
 	inc_build_no
+
+2001-10-04 06:22  bellardo
+
+	* interbase/firebird/bellardo/darwin/install (1.6):
+	
+	Minor changes to the Darwin install script
 
 2001-10-04 00:01  fsg
 
@@ -3347,16 +3403,16 @@
 
 2001-10-02 09:36  robocop
 
+	* interbase/this_build (1.448):
+	
+	inc_build_no
+
+2001-10-02 09:36  robocop
+
 	* interbase/extlib/: StdAfx.cpp (1.2), StdAfx.h (1.2), fbudf.cpp
 	(1.4), fbudf.h (1.2), fbudf.sql (1.3):
 	
 	Adds licensing terms.
-
-2001-10-02 09:36  robocop
-
-	* interbase/this_build (1.448):
-	
-	inc_build_no
 
 2001-10-02 09:34  robocop
 
@@ -3388,17 +3444,17 @@
 
 2001-10-02 09:23  robocop
 
+	* interbase/: this_build (1.444), this_build (1.445):
+	
+	inc_build_no
+
+2001-10-02 09:23  robocop
+
 	* interbase/dsql/: ddl.c (1.15), parse.c (1.19), parse.y (1.19),
 	pass1.c (1.16):
 	
 	Supports explicit TO ROLE role_name syntax in GRANTs and FROM ROLE
 	role_name syntax is REVOKEs.
-
-2001-10-02 09:23  robocop
-
-	* interbase/: this_build (1.444), this_build (1.445):
-	
-	inc_build_no
 
 2001-10-01 00:01  fsg
 
@@ -3542,6 +3598,12 @@
 
 2001-09-24 07:44  robocop
 
+	* interbase/: this_build (1.428), this_build (1.429):
+	
+	inc_build_no
+
+2001-09-24 07:44  robocop
+
 	* interbase/jrd/: dfw.e (1.9), dyn_def.e (1.9), scl.e (1.7),
 	scl_proto.h (1.3):
 	
@@ -3549,12 +3611,6 @@
 	own the FK index (wrong first attempt).  Cater for some null
 	pointers that appear.  Do not check if both tables have the same
 	owner (if the owner name has been loaded in metadata structures).
-
-2001-09-24 07:44  robocop
-
-	* interbase/: this_build (1.428), this_build (1.429):
-	
-	inc_build_no
 
 2001-09-24 00:01  fsg
 
@@ -3579,16 +3635,16 @@
 
 2001-09-23 03:33  robocop
 
-	* interbase/this_build (1.425):
-	
-	inc_build_no
-
-2001-09-23 03:33  robocop
-
 	* interbase/isql/: extract.e (1.8), show.e (1.8):
 	
 	Show proper MECHANISM for parameter passing in UDFs.  Handle
 	RETURNS PARAMETER <n> syntax in DDL extraction.
+
+2001-09-23 03:33  robocop
+
+	* interbase/this_build (1.425):
+	
+	inc_build_no
 
 2001-09-23 03:12  robocop
 
@@ -3629,15 +3685,15 @@
 
 2001-09-21 17:24  awharrison
 
-	* interbase/jrd/license.h (1.10):
-	
-	Add the build envirionment to the GDS_VERSION string
-
-2001-09-21 17:24  awharrison
-
 	* interbase/this_build (1.420):
 	
 	inc_build_no
+
+2001-09-21 17:24  awharrison
+
+	* interbase/jrd/license.h (1.10):
+	
+	Add the build envirionment to the GDS_VERSION string
 
 2001-09-21 00:01  fsg
 
@@ -3746,17 +3802,17 @@
 
 2001-09-17 14:50  skywalker
 
+	* interbase/this_build (1.407):
+	
+	inc_build_no
+
+2001-09-17 14:50  skywalker
+
 	* interbase/jrd/: dfw.e (1.6), dyn_util.e (1.2), grant.e (1.2):
 	
 	Removed the EXACT_NUMERICS #define.  The code is needed for correct
 	operation, and was a way of introducing new features.  int64 is now
 	used by default and the conditional #defines have been removed.
-
-2001-09-17 14:50  skywalker
-
-	* interbase/this_build (1.407):
-	
-	inc_build_no
 
 2001-09-17 00:01  fsg
 
@@ -3881,13 +3937,19 @@
 
 2001-09-11 10:45  robocop
 
+	* interbase/this_build (1.392):
+	
+	inc_build_no
+
+2001-09-11 10:45  robocop
+
 	* interbase/dsql/: parse.c (1.17), parse.y (1.17):
 	
 	Fixed bug #457133 with single line comments.
 
-2001-09-11 10:45  robocop
+2001-09-11 03:30  bellardo
 
-	* interbase/this_build (1.392):
+	* interbase/this_build (1.391):
 	
 	inc_build_no
 
@@ -3896,12 +3958,6 @@
 	* interbase/dsql/pass1.c (1.13):
 	
 	Fix for BUG #451798 - FIRST/SKIP applied before aggregates.
-
-2001-09-11 03:30  bellardo
-
-	* interbase/this_build (1.391):
-	
-	inc_build_no
 
 2001-09-06 00:01  fsg
 
@@ -3917,15 +3973,15 @@
 
 2001-09-05 06:59  robocop
 
-	* interbase/: this_build (1.388), this_build (1.389):
-	
-	inc_build_no
-
-2001-09-05 06:59  robocop
-
 	* interbase/extlib/fbudf.cpp (1.2):
 	
 	Better handling of NULLs and getExactTimestamp ported to UNIX.
+
+2001-09-05 06:59  robocop
+
+	* interbase/: this_build (1.388), this_build (1.389):
+	
+	inc_build_no
 
 2001-09-05 00:01  fsg
 
@@ -3990,15 +4046,22 @@
 
 2001-08-24 02:42  bellardo
 
+	* interbase/: this_build (1.378), this_build (1.379):
+	
+	inc_build_no
+
+2001-08-24 02:42  bellardo
+
 	* interbase/: builds/original/prefix.darwin (1.8),
 	firebird/bellardo/darwin/install (1.5):
 	
 	Fine tuned some permissions on the Classic install.  Removed PYXIS
 	from the Darwin build.
 
-2001-08-24 02:42  bellardo
+2001-08-24 01:12  skywalker
 
-	* interbase/: this_build (1.378), this_build (1.379):
+	* interbase/: this_build (1.377), this_build (1.376), this_build
+	(1.375):
 	
 	inc_build_no
 
@@ -4012,13 +4075,6 @@
 	Change install to not install pyxis module and fix copy of init.d
 	file so it works for redhat6.2 systems.  Also check port 3050 when
 	trying to determine if firebird is already installed.
-
-2001-08-24 01:12  skywalker
-
-	* interbase/: this_build (1.377), this_build (1.376), this_build
-	(1.375):
-	
-	inc_build_no
 
 2001-08-24 01:09  skywalker
 
@@ -4449,15 +4505,15 @@
 
 2001-08-07 02:46  skywalker
 
-	* interbase/builds_win32/original/build_no.ksh (1.9):
-	
-	Changed build number to 1.0.0 Firebird Beta2
-
-2001-08-07 02:46  skywalker
-
 	* interbase/this_build (1.323):
 	
 	inc_build_no
+
+2001-08-07 02:46  skywalker
+
+	* interbase/builds_win32/original/build_no.ksh (1.9):
+	
+	Changed build number to 1.0.0 Firebird Beta2
 
 2001-08-07 00:01  fsg
 
@@ -4513,15 +4569,15 @@
 
 2001-08-06 09:13  robocop
 
-	* interbase/isql/isql.e (1.10):
-	
-	Copy and Add commands
-
-2001-08-06 09:13  robocop
-
 	* interbase/this_build (1.317):
 	
 	inc_build_no
+
+2001-08-06 09:13  robocop
+
+	* interbase/isql/isql.e (1.10):
+	
+	Copy and Add commands
 
 2001-08-06 09:10  robocop
 
@@ -4604,16 +4660,16 @@
 
 2001-08-04 00:12  rfm
 
+	* interbase/this_build (1.309):
+	
+	inc_build_no
+
+2001-08-04 00:12  rfm
+
 	* interbase/example5/: empddl.sql (1.2), intlddl.sql (1.2):
 	
 	first is now a keyword. use first_name instead. Use last_name as
 	well, for consistancy.
-
-2001-08-04 00:12  rfm
-
-	* interbase/this_build (1.309):
-	
-	inc_build_no
 
 2001-08-04 00:01  fsg
 
@@ -4712,15 +4768,15 @@
 
 2001-07-29 09:34  robocop
 
-	* interbase/: dsql/parse.c (1.10), jrd/opt.c (1.5):
-	
-	allowing successful compilation on Win32 again
-
-2001-07-29 09:34  robocop
-
 	* interbase/: this_build (1.298), this_build (1.297):
 	
 	inc_build_no
+
+2001-07-29 09:34  robocop
+
+	* interbase/: dsql/parse.c (1.10), jrd/opt.c (1.5):
+	
+	allowing successful compilation on Win32 again
 
 2001-07-29 09:05  bellardo
 
@@ -4860,27 +4916,27 @@
 
 2001-07-13 00:31  bellardo
 
-	* interbase/this_build (1.280):
-	
-	inc_build_no
-
-2001-07-13 00:31  bellardo
-
 	* interbase/builds/original/prefix.darwin (1.7):
 	
 	Removed gds_pipe from the Darwin build.
 
-2001-07-13 00:14  bellardo
+2001-07-13 00:31  bellardo
 
-	* interbase/jrd/tra.c (1.5):
+	* interbase/this_build (1.280):
 	
-	Fixed missing #endif.
+	inc_build_no
 
 2001-07-13 00:14  bellardo
 
 	* interbase/this_build (1.279):
 	
 	inc_build_no
+
+2001-07-13 00:14  bellardo
+
+	* interbase/jrd/tra.c (1.5):
+	
+	Fixed missing #endif.
 
 2001-07-13 00:01  fsg
 
@@ -4963,13 +5019,19 @@
 
 2001-07-10 18:31  awharrison
 
+	* interbase/this_build (1.269):
+	
+	inc_build_no
+
+2001-07-10 18:31  awharrison
+
 	* interbase/jrd/idx.h (1.5):
 	
 	and check constraints
 
-2001-07-10 18:31  awharrison
+2001-07-10 18:18  awharrison
 
-	* interbase/this_build (1.269):
+	* interbase/this_build (1.268):
 	
 	inc_build_no
 
@@ -4978,12 +5040,6 @@
 	* interbase/jrd/idx.h (1.4):
 	
 	allow multi-dimensional arrays again
-
-2001-07-10 18:18  awharrison
-
-	* interbase/this_build (1.268):
-	
-	inc_build_no
 
 2001-07-10 00:01  fsg
 
@@ -5080,6 +5136,13 @@
 
 2001-07-02 09:56  robocop
 
+	* interbase/: this_build (1.253), this_build (1.252), this_build
+	(1.254):
+	
+	inc_build_no
+
+2001-07-02 09:56  robocop
+
 	* interbase/: dsql/ddl.c (1.10), dsql/dsql.c (1.7), dsql/keywords.h
 	(1.3), dsql/node.h (1.4), dsql/parse.c (1.6), dsql/parse.y (1.6),
 	dsql/pass1.c (1.8), jrd/drq.h (1.2), jrd/dyn.e (1.5), jrd/dyn_del.e
@@ -5088,13 +5151,6 @@
 	msgs/msg.gbak (1.5):
 	
 	RECREATE TABLE and DROP GENERATOR
-
-2001-07-02 09:56  robocop
-
-	* interbase/: this_build (1.253), this_build (1.252), this_build
-	(1.254):
-	
-	inc_build_no
 
 2001-07-01 00:33  robocop
 
@@ -5187,13 +5243,6 @@
 
 2001-06-28 18:58  fsg
 
-	* interbase/: this_build (1.241), this_build (1.240), this_build
-	(1.239), this_build (1.242):
-	
-	inc_build_no
-
-2001-06-28 18:58  fsg
-
 	* interbase/: builds/original/sfx.intl (1.2), intl/depends.mak
 	(1.2), intl/lc_latin1.c (1.2), intl/ld.c (1.2), jrd/dfw.e (1.4),
 	jrd/evl.c (1.6), jrd/gdsold.h (1.2), jrd/intlnames.h (1.2),
@@ -5206,6 +5255,13 @@
 	<ssani@freemail.hu>
 	
 	fsg
+
+2001-06-28 18:58  fsg
+
+	* interbase/: this_build (1.241), this_build (1.240), this_build
+	(1.239), this_build (1.242):
+	
+	inc_build_no
 
 2001-06-27 00:03  fsg
 
@@ -5338,15 +5394,15 @@
 
 2001-06-18 11:02  tamlin
 
-	* interbase/jrd/winnt.c (1.5):
-	
-	Allow DB file sharing again.
-
-2001-06-18 11:02  tamlin
-
 	* interbase/this_build (1.222):
 	
 	inc_build_no
+
+2001-06-18 11:02  tamlin
+
+	* interbase/jrd/winnt.c (1.5):
+	
+	Allow DB file sharing again.
 
 2001-06-12 00:20  fsg
 
@@ -5411,15 +5467,15 @@
 
 2001-06-07 01:54  bellardo
 
-	* interbase/this_build (1.213):
-	
-	inc_build_no
-
-2001-06-07 01:54  bellardo
-
 	* interbase/jrd/flu.c (1.9):
 	
 	Fixed a missing #include that caused Darwin port not to compile.
+
+2001-06-07 01:54  bellardo
+
+	* interbase/this_build (1.213):
+	
+	inc_build_no
 
 2001-06-07 01:06  bellardo
 
@@ -5460,14 +5516,21 @@
 
 2001-06-06 00:08  bellardo
 
+	* interbase/this_build (1.207):
+	
+	inc_build_no
+
+2001-06-06 00:08  bellardo
+
 	* interbase/builds/original/: sfx.client (1.3), sfx.remote (1.3):
 	
 	Last two files to get the original Darwin SS port build changes in
 	the repository.
 
-2001-06-06 00:08  bellardo
+2001-06-05 21:43  bellardo
 
-	* interbase/this_build (1.207):
+	* interbase/: this_build (1.206), this_build (1.205), this_build
+	(1.204), this_build (1.203):
 	
 	inc_build_no
 
@@ -5483,13 +5546,6 @@
 	Changes to the build system to allow Darwin classic to compile
 	given other platform constraints.  Also included changes to allow
 	Darwin SS to compile.
-
-2001-06-05 21:43  bellardo
-
-	* interbase/: this_build (1.206), this_build (1.205), this_build
-	(1.204), this_build (1.203):
-	
-	inc_build_no
 
 2001-06-05 00:17  fsg
 
@@ -5523,16 +5579,16 @@
 
 2001-05-31 05:00  robocop
 
+	* interbase/firebird/robocop/: grant.gdl (1.1), trig.h (1.1):
+	
+	Initial revision
+
+2001-05-31 05:00  robocop
+
 	* interbase/firebird/robocop/: grant.gdl (1.1.1.1), trig.h
 	(1.1.1.1):
 	
 	Changes to system triggers to allow deactivating a FK
-
-2001-05-31 05:00  robocop
-
-	* interbase/firebird/robocop/: grant.gdl (1.1), trig.h (1.1):
-	
-	Initial revision
 
 2001-05-30 19:27  fsg
 
@@ -5594,15 +5650,15 @@
 
 2001-05-28 06:47  robocop
 
-	* interbase/msgs/msg.gbak (1.2):
-	
-	New msg 212: Zero length identifiers are not allowed
-
-2001-05-28 06:47  robocop
-
 	* interbase/this_build (1.192):
 	
 	inc_build_no
+
+2001-05-28 06:47  robocop
+
+	* interbase/msgs/msg.gbak (1.2):
+	
+	New msg 212: Zero length identifiers are not allowed
 
 2001-05-26 00:06  fsg
 
@@ -5648,6 +5704,13 @@
 
 2001-05-25 10:16  robocop
 
+	* interbase/: this_build (1.186), this_build (1.187), this_build
+	(1.188):
+	
+	inc_build_no
+
+2001-05-25 10:16  robocop
+
 	* interbase/jrd/: codes.h (1.3), codetext.h (1.3), dyn.e (1.3),
 	dyn_def.e (1.3), dyn_del.e (1.2), dyn_df_proto.h (1.2),
 	dyn_dl_proto.h (1.2), dyn_md_proto.h (1.2), dyn_mod.e (1.5),
@@ -5655,13 +5718,6 @@
 	sql_code.h (1.3):
 	
 	Zero length identifiers not allowed and other bug fixes.
-
-2001-05-25 10:16  robocop
-
-	* interbase/: this_build (1.186), this_build (1.187), this_build
-	(1.188):
-	
-	inc_build_no
 
 2001-05-25 00:07  fsg
 
@@ -5671,15 +5727,15 @@
 
 2001-05-24 16:47  tamlin
 
-	* interbase/this_build (1.184):
-	
-	inc_build_no
-
-2001-05-24 16:47  tamlin
-
 	* interbase/alice/tdr.c (1.3):
 	
 	bugfix
+
+2001-05-24 16:47  tamlin
+
+	* interbase/this_build (1.184):
+	
+	inc_build_no
 
 2001-05-24 06:11  bellardo
 
@@ -5754,15 +5810,15 @@
 
 2001-05-21 09:14  robocop
 
-	* interbase/jrd/dyn_mod.e (1.4):
-	
-	Fixed bug with rdb$dimensions's rdb$field_name out of sync
-
-2001-05-21 09:14  robocop
-
 	* interbase/this_build (1.166):
 	
 	inc_build_no
+
+2001-05-21 09:14  robocop
+
+	* interbase/jrd/dyn_mod.e (1.4):
+	
+	Fixed bug with rdb$dimensions's rdb$field_name out of sync
 
 2001-05-21 09:12  robocop
 
@@ -5816,15 +5872,15 @@
 
 2001-05-20 20:09  nmcc
 
-	* interbase/dsql/: parse.c (1.3), parse.y (1.3), pass1.c (1.4):
-	
-	Allow a udf to be used in a 'group by' clause.
-
-2001-05-20 20:09  nmcc
-
 	* interbase/this_build (1.160):
 	
 	inc_build_no
+
+2001-05-20 20:09  nmcc
+
+	* interbase/dsql/: parse.c (1.3), parse.y (1.3), pass1.c (1.4):
+	
+	Allow a udf to be used in a 'group by' clause.
 
 2001-05-20 14:16  fsg
 
@@ -5858,6 +5914,12 @@
 
 2001-05-13 15:37  fsg
 
+	* interbase/this_build (1.156):
+	
+	inc_build_no
+
+2001-05-13 15:37  fsg
+
 	* interbase/jrd/: jrd.c (1.5), jrd.h (1.2), pwd.c (1.7), pwd.h
 	(1.6), pwd_proto.h (1.3), scl.e (1.3), scl_proto.h (1.2), shrinit.c
 	(1.2), tra.c (1.2):
@@ -5866,12 +5928,6 @@
 	Borland's (Stanialav Tsikin's?) solution to the problem.
 	
 	fsg
-
-2001-05-13 15:37  fsg
-
-	* interbase/this_build (1.156):
-	
-	inc_build_no
 
 2001-05-12 08:12  fsg
 
@@ -5922,16 +5978,16 @@
 
 2001-05-07 08:02  bellardo
 
+	* interbase/this_build (1.148):
+	
+	inc_build_no
+
+2001-05-07 08:02  bellardo
+
 	* interbase/remote/interface.c (1.2):
 	
 	Fix for bug 419964 (buffer overflow for remote/interface.c
 	version).
-
-2001-05-07 08:02  bellardo
-
-	* interbase/this_build (1.148):
-	
-	inc_build_no
 
 2001-05-07 00:22  nmcc
 
@@ -5953,16 +6009,16 @@
 
 2001-05-04 03:30  nmcc
 
+	* interbase/: this_build (1.145), this_build (1.144):
+	
+	inc_build_no
+
+2001-05-04 03:30  nmcc
+
 	* interbase/: Configure.sh (1.3), builds/original/buildRefDatabases
 	(1.5):
 	
 	Update for Solaris (Sparc and x86).
-
-2001-05-04 03:30  nmcc
-
-	* interbase/: this_build (1.145), this_build (1.144):
-	
-	inc_build_no
 
 2001-05-04 03:20  nmcc
 
@@ -6052,18 +6108,18 @@
 
 2001-04-27 18:30  awharrison
 
+	* interbase/this_build (1.135):
+	
+	inc_build_no
+
+2001-04-27 18:30  awharrison
+
 	* interbase/burp/: backup.e (1.7), burp.c (1.5), burp.h (1.3),
 	burp_proto.h (1.2), canonical.c (1.4), depends.mak (1.2), misc.c
 	(1.2), misc_proto.h (1.2), mvol.c (1.4), restore.e (1.5), spit.h
 	(1.2):
 	
 	remove warnings
-
-2001-04-27 18:30  awharrison
-
-	* interbase/this_build (1.135):
-	
-	inc_build_no
 
 2001-04-25 16:45  kkuznetsov
 
@@ -6100,18 +6156,18 @@
 
 2001-04-23 17:18  skywalker
 
+	* interbase/this_build (1.131):
+	
+	inc_build_no
+
+2001-04-23 17:18  skywalker
+
 	* interbase/extlib/ib_udf.c (1.2):
 	
 	Changes made by Claudio Valderrama 2001.04.17 Change IB_UDF_substr
 	function to return empty strings or shortened strings rather than
 	NULL.  Still returns a NULL if the input string was NULL.  Added a
 	IB_UDF_substrlen function.
-
-2001-04-23 17:18  skywalker
-
-	* interbase/this_build (1.131):
-	
-	inc_build_no
 
 2001-04-23 16:22  skywalker
 
@@ -6131,16 +6187,16 @@
 
 2001-04-23 15:16  skywalker
 
-	* interbase/this_build (1.129):
-	
-	inc_build_no
-
-2001-04-23 15:16  skywalker
-
 	* interbase/jrd/dyn.e (1.2):
 	
 	Checkin Claudio Valderrama's changes to fix case sensitivity
 	problems with grant and revolk commands.
+
+2001-04-23 15:16  skywalker
+
+	* interbase/this_build (1.129):
+	
+	inc_build_no
 
 2001-04-21 23:51  tamlin
 
@@ -6235,12 +6291,6 @@
 
 2001-04-13 18:48  skywalker
 
-	* interbase/this_build (1.116):
-	
-	inc_build_no
-
-2001-04-13 18:48  skywalker
-
 	* interbase/firebird/skywalker/install/misc/: README (1.2),
 	firebird.init.d.generic (1.1), firebird.init.d.mandrake (1.1),
 	firebird.xinitd (1.1):
@@ -6248,18 +6298,24 @@
 	Updated init files for redhat7.0 and mandrake7.2 Support now for
 	xinetd
 
-2001-04-13 17:33  skywalker
+2001-04-13 18:48  skywalker
 
-	* interbase/jrd/dyn_mod.e (1.2):
+	* interbase/this_build (1.116):
 	
-	Changes to fix bug report bug N 412417. problem with alter domain
-	and char(x) to varchar(x-2).
+	inc_build_no
 
 2001-04-13 17:33  skywalker
 
 	* interbase/this_build (1.115):
 	
 	inc_build_no
+
+2001-04-13 17:33  skywalker
+
+	* interbase/jrd/dyn_mod.e (1.2):
+	
+	Changes to fix bug report bug N 412417. problem with alter domain
+	and char(x) to varchar(x-2).
 
 2001-04-13 15:50  fsg
 
@@ -6283,15 +6339,15 @@
 
 2001-04-11 19:22  tamlin
 
-	* interbase/this_build (1.112):
-	
-	inc_build_no
-
-2001-04-11 19:22  tamlin
-
 	* interbase/remote/cntl.c (1.4):
 	
 	Removed redundant CloseHandle call
+
+2001-04-11 19:22  tamlin
+
+	* interbase/this_build (1.112):
+	
+	inc_build_no
 
 2001-04-11 19:13  tamlin
 
@@ -6337,15 +6393,15 @@
 
 2001-04-11 17:28  tamlin
 
-	* interbase/this_build (1.106):
-	
-	inc_build_no
-
-2001-04-11 17:28  tamlin
-
 	* interbase/gpre/int.c (1.2):
 	
 	Reduced compiler warnings from gpre generated C code.
+
+2001-04-11 17:28  tamlin
+
+	* interbase/this_build (1.106):
+	
+	inc_build_no
 
 2001-04-11 17:22  tamlin
 
@@ -6371,15 +6427,15 @@
 
 2001-04-09 18:53  bellardo
 
-	* interbase/builds/original/prefix.darwin (1.2):
-	
-	Removed references to -lcc and added path need to compile in OS X.
-
-2001-04-09 18:53  bellardo
-
 	* interbase/: this_build (1.102), this_build (1.103):
 	
 	inc_build_no
+
+2001-04-09 18:53  bellardo
+
+	* interbase/builds/original/prefix.darwin (1.2):
+	
+	Removed references to -lcc and added path need to compile in OS X.
 
 2001-04-06 01:07  bellardo
 
@@ -6558,6 +6614,12 @@
 
 2001-02-04 05:06  bellardo
 
+	* interbase/: this_build (1.73), this_build (1.74):
+	
+	inc_build_no
+
+2001-02-04 05:06  bellardo
+
 	* interbase/firebird/bellardo/darwin/: Firebird.info (1.1),
 	Info.plist (1.1), addServEnt.c (1.1), checkinstall.sh (1.1),
 	checkmakefiles.sh (1.1), inetd.conf.isc (1.1), install (1.1),
@@ -6567,12 +6629,6 @@
 	
 	Initial checkin of the my (bellardo) sandbox directory with the
 	aux. Darwin support files.
-
-2001-02-04 05:06  bellardo
-
-	* interbase/: this_build (1.73), this_build (1.74):
-	
-	inc_build_no
 
 2001-02-04 05:03  bellardo
 
@@ -6972,6 +7028,13 @@
 
 2000-12-29 21:06  skywalker
 
+	* interbase/: this_build (1.35), this_build (1.40), this_build
+	(1.39), this_build (1.38), this_build (1.37), this_build (1.36):
+	
+	inc_build_no
+
+2000-12-29 21:06  skywalker
+
 	* interbase/: builds_win32/original/build_no.ksh (1.5),
 	firebird/skywalker/install/Makefile (1.3),
 	firebird/skywalker/install/classic/CSrpmheader.txt (1.3),
@@ -6984,13 +7047,6 @@
 	number instead of the 6.0 number.  The macro IBSERVER_BASE_LEVEL
 	was also defined as 6.0 and used in jrd/inf.c to maintain feature
 	compatibility.
-
-2000-12-29 21:06  skywalker
-
-	* interbase/: this_build (1.35), this_build (1.40), this_build
-	(1.39), this_build (1.38), this_build (1.37), this_build (1.36):
-	
-	inc_build_no
 
 2000-12-29 14:05  skywalker
 
@@ -7012,17 +7068,17 @@
 
 2000-12-27 22:58  rfm
 
+	* interbase/this_build (1.32):
+	
+	inc_build_no
+
+2000-12-27 22:58  rfm
+
 	* interbase/build_docs/: ibbuild-unix-overview.txt (1.3),
 	metadata_gdb.txt (1.3), msgs-overview.txt (1.3):
 	
 	make sourceforge url the place to look for new versions, make dates
 	comprehensible by non-americans.
-
-2000-12-27 22:58  rfm
-
-	* interbase/this_build (1.32):
-	
-	inc_build_no
 
 2000-12-27 22:04  rfm
 
@@ -7298,16 +7354,16 @@
 
 2000-12-14 19:56  nmcc
 
-	* interbase/this_build (1.3):
-	
-	inc_build_no
-
-2000-12-14 19:56  nmcc
-
 	* interbase/builds_win32/original/build_no.ksh (1.4):
 	
 	Change script to work with Solaris sh - $() not supported.  Fix
 	Winxx platform strings to have text \0 at end not null value.
+
+2000-12-14 19:56  nmcc
+
+	* interbase/this_build (1.3):
+	
+	inc_build_no
 
 2000-12-09 05:45  rfm
 
