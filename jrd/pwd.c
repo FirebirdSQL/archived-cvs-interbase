@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include <string.h>
 #include "../jrd/gds.h"
@@ -130,7 +133,7 @@ void PWD_get_user_dbpath (
  *
  **************************************/
 
-#if (defined VMS || defined WINDOWS_ONLY || defined WIN_NT || defined LINUX || defined FREEBSD || defined SUPERSERVER)
+#if (defined VMS || defined WINDOWS_ONLY || defined WIN_NT || defined LINUX || defined FREEBSD || defined SUPERSERVER || defined AIX_PPC)
 gds__prefix (path_buffer, USER_INFO_NAME);
 #else
 strcpy (path_buffer, USER_INFO_NAME);
