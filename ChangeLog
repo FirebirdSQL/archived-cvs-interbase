@@ -1,3 +1,151 @@
+2001-04-29 21:05  nmcc
+
+	* interbase/Configure.sh:
+	
+	Use programs from a 'production' directory when setting up the
+	build not development ones which are possibly broken.
+
+2001-04-29 17:37  awharrison
+
+	* interbase/burp/backup.e:
+	
+	segments is unsigned.  don't check for <0
+
+2001-04-29 17:35  awharrison
+
+	* interbase/burp/burp_proto.h:
+	
+	redo proto for burp_get_message
+
+2001-04-27 18:30  awharrison
+
+	* interbase/burp/: backup.e, burp.c, burp.h, burp_proto.h,
+	canonical.c, depends.mak, misc.c, misc_proto.h, mvol.c, restore.e,
+	spit.h:
+	
+	remove warnings
+
+2001-04-25 16:45  kkuznetsov
+
+	* interbase/builds/original/prefix.solx86:
+	
+	Some flags added to events inprove
+
+2001-04-23 17:24  skywalker
+
+	* interbase/jrd/build_no.h:
+	
+	Comment as before, incremented to 0.9.5 version, but there may not
+	be an official release before we go to 1.0.0 Beta1
+
+2001-04-23 17:22  skywalker
+
+	* interbase/builds_win32/original/build_no.ksh:
+	
+	Although there is still some debate if we are going to put out a
+	formal 0.9.5 release prior to a 1.0.0 Beta release, I need a new
+	version number since Im going to at least build some binaries.
+
+2001-04-23 17:18  skywalker
+
+	* interbase/extlib/ib_udf.c:
+	
+	Changes made by Claudio Valderrama 2001.04.17 Change IB_UDF_substr
+	function to return empty strings or shortened strings rather than
+	NULL.  Still returns a NULL if the input string was NULL.  Added a
+	IB_UDF_substrlen function.
+
+2001-04-23 16:22  skywalker
+
+	* interbase/isql/extract.e:
+	
+	Fix bug of BLOB being returned by value  To be sincere, this code
+	doesn't cater for the RETURNS PARAMETER syntax but it would require
+	more surgery than I'm willing to do, since I'm sick of isql so I
+	started my own metadata extraction utility based on IBO that does
+	this trick and others.	Claudio Valderrama via MOD
+
+2001-04-23 15:16  skywalker
+
+	* interbase/jrd/dyn.e:
+	
+	Checkin Claudio Valderrama's changes to fix case sensitivity
+	problems with grant and revolk commands.
+
+2001-04-21 23:51  tamlin
+
+	* interbase/jrd/: event.c, jrd.c:
+	
+	Missing parens
+
+2001-04-21 06:27  rfm
+
+	* interbase/build_docs/ibbuild-win32.txt:
+	
+	Update to reflect feedback from Dmitry Kuzmenko and Kevin Curtis,
+	as well as a couple of other things that were out of date.
+
+2001-04-17 18:32  skywalker
+
+	* interbase/firebird/skywalker/install/classic/CSpostinstall.sh:
+	
+	Changed to make include files readable by general public
+
+2001-04-17 04:41  skywalker
+
+	* interbase/: Configure.sh, Configure_SetupEnv.sh, README,
+	setup_dirs, build_docs/README, build_docs/README.linux,
+	build_docs/README.unix, builds/original/boot.sfx.interbase,
+	builds/original/buildRefDatabases, builds/original/build_kit,
+	builds/original/prefix.linux, builds/original/sfx.interbase,
+	builds/original/sfx.pyxis,
+	firebird/skywalker/build/refreshPorting.sh:
+	
+	This contains a new build process which incorperates a boot build
+	enabling Firebird to be built without a prior version being
+	installed.  Fixed examples so thay are built as part of the build
+	process.  Integrated the "install" and "packaging" build targets
+	into the main make process.
+
+2001-04-14 04:16  skywalker
+
+	* interbase/firebird/skywalker/install/misc/firebird:
+	
+	Removed unused file
+
+2001-04-14 04:15  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSTarInstall.sh, classic/CSinstall.sh,
+	classic/CSpostinstall.sh, classic/CSrpmfiles.txt,
+	misc/CSchangeRunUser.sh, misc/CSrestoreRootRunUser.sh,
+	misc/firebird.xinetd, misc/firebird.xinitd:
+	
+	Changes to install process for classic firebird.
+
+2001-04-13 18:48  skywalker
+
+	* interbase/firebird/skywalker/install/misc/: README,
+	firebird.init.d.generic, firebird.init.d.mandrake, firebird.xinitd:
+	
+	Updated init files for redhat7.0 and mandrake7.2 Support now for
+	xinetd
+
+2001-04-13 17:33  skywalker
+
+	* interbase/jrd/dyn_mod.e:
+	
+	Changes to fix bug report bug N 412417. problem with alter domain
+	and char(x) to varchar(x-2).
+
+2001-04-13 15:50  fsg
+
+	* interbase/jrd/evl_like.c:
+	
+	Change to get it compilede under Linux
+	
+	fsg
+
 2001-04-11 19:22  tamlin
 
 	* interbase/remote/cntl.c:
