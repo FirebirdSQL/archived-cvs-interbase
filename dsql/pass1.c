@@ -63,6 +63,10 @@
  *   Remembering, later, that LLS_PUSH expects an object, not an LLS block.  Also
  *   stuck in the code for handling variables in pass1 - it apparently doesn't happen
  *   because the code returned an uninitialized pointer.
+ *
+ * 2001.11.17 Neil McCalden: Add aggregate_in_list procedure to handle cases
+ *   where select statement has aggregate as a parameter to a udf which does
+ *   not have to be in a group by clause.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -91,6 +95,7 @@ ASSERT_FILENAME				/* Define things assert() needs */
 
 static BOOLEAN	aggregate_found (REQ, NOD, NOD *);
 static BOOLEAN	aggregate_found2 (REQ, NOD, NOD *, BOOLEAN *);
+static BOOLEAN	aggregate_in_list (NOD);
 static void	assign_fld_dtype_from_dsc (FLD, DSC *);
 static NOD	compose (NOD, NOD, NOD_TYPE);
 static NOD	copy_field (NOD, CTX);
@@ -1006,6 +1011,86 @@ switch (sub->nod_type)
 	return FALSE;
     }
 }
+
+static BOOLEAN aggregate_in_list (
+    NOD		sub
+)
+{
+/**************************************
+ *
+ *	a g g r e g a t e _ i n _ l i s t
+ *
+ **************************************
+ *
+ * Functional description
+ *	Check for an aggregate expression in a
+ *	node or list/chain of nodes.
+ *
+ **************************************/
+BOOLEAN	aggregate;
+NOD	*ptr, *end;
+
+DEV_BLKCHK (sub, type_nod);
+
+switch (sub->nod_type)
+    {
+
+    /* handle the simple case of a straightforward aggregate */
+
+    case nod_agg_average:
+    case nod_agg_average2:
+    case nod_agg_total2:
+    case nod_agg_max:
+    case nod_agg_min:
+    case nod_agg_total:
+    case nod_agg_count:
+    case nod_aggregate:
+    case nod_map:
+		return TRUE;
+
+    case nod_field:
+    case nod_constant:
+		return FALSE;
+
+    /* for expressions in which an aggregate might
+       be buried, recursively check for one */
+
+    case nod_add:
+    case nod_concatenate:
+    case nod_divide:
+    case nod_multiply:
+    case nod_negate:
+    case nod_substr:
+    case nod_subtract:
+    case nod_add2:
+    case nod_divide2:
+    case nod_multiply2:
+    case nod_subtract2:
+    case nod_upcase:
+    case nod_extract:
+    case nod_list:
+		aggregate = FALSE;
+		for (ptr = sub->nod_arg, end = ptr + sub->nod_count; ptr < end; ptr++)
+	    	{
+	    	DEV_BLKCHK (*ptr, type_nod);
+	    	aggregate |= aggregate_in_list (*ptr);
+	    	}
+		return aggregate;
+
+    case nod_cast:
+    case nod_udf:
+    case nod_gen_id:
+    case nod_gen_id2:
+		if (sub->nod_count == 2)
+            	return (aggregate_in_list (sub->nod_arg[1]));
+		else 
+	    	return FALSE;
+
+    default:
+		return FALSE;
+    }
+}
+
 
 static void assign_fld_dtype_from_dsc (
     FLD		field,
@@ -1530,7 +1615,7 @@ else
 		STR udf_name1;
 		STR udf_name2;
 
-		if (!list)      /* validating select element */
+		if (!list)      /* validating select element with no group by */
 		{
 			invalid = invalid_reference (node->nod_arg [1], list);
 			return invalid;
@@ -1571,6 +1656,26 @@ else
 				}
 			}
 		}
+		
+		/*	if we have got here this udf element is not in group by 
+			but it may still be valid if it has aggregate functions 
+			as parameters in which case it points to a list to be traversed
+			if it doesn't then it is invalid
+		*/
+		
+		if (node->nod_count == 2) 
+		{		
+			if(aggregate_in_list (node->nod_arg [1]) == TRUE)
+			{
+				invalid = FALSE;
+			}
+			else
+			{
+				invalid = TRUE;
+			}
+			return invalid;			
+		}
+				
 		return TRUE;			
 	}
 	
