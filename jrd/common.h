@@ -104,6 +104,8 @@ $Id$
 #define QUADFORMAT "q"
 #define NON_MNTENT
 #define MMAP_SUPPORTED
+#define MAP_ANONYMOUS
+#define MAP_ANNON
 #define LSEEK_OFFSET_CAST (off_t)
 #define INTL
 #define SIGACTION_SUPPORTED
