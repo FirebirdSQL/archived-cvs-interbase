@@ -2158,6 +2158,8 @@ for (ptr = list->nod_arg, end = ptr + list->nod_count; ptr < end; ptr++)
 	}
 	else if (item->nod_type == nod_cast)
 		parameter->par_name = parameter->par_alias	= "CAST";
+	else if (item->nod_type == nod_upcase)
+		parameter->par_name = parameter->par_alias	= "UPPER";
 } /* for */
 
 
