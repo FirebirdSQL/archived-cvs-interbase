@@ -21,6 +21,10 @@
  * Contributor(s): ______________________________________.
  * Toni Martir: Verbose records restored as RESTORE_VERBOSE_INTERVAL,
  * also verbose restoring indexes as DEFERRED when verbose
+ *
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 /*
 $Id$
@@ -80,13 +84,13 @@ DATABASE
 #define DB_VERSION_CURRENT	DB_VERSION_DDL8  /* v4.0 is ods8 */
 #define FOREIGN_KEY             "FOREIGN KEY"
 
-#define DEFERRED_ACTIVE         3  /* RDB$INDEX_INACTIVE setting for Foreign Keys 
+#define DEFERRED_ACTIVE         3  /* RDB$INDEX_INACTIVE setting for Foreign Keys
                                     * This setting is used temporarily while
 				    * restoring a database. This was required
 				    * in order to differentiate a partial
 				    * "inactive" state of SOME indices from
 				    * "inactive" state of ALL indices (gbak -i)
-                                    * -bsriram, 11-May-1999      BUG: 10016 
+                                    * -bsriram, 11-May-1999      BUG: 10016
 				    */
 
 #define RESTORE_VERBOSE_INTERVAL	10000
@@ -195,7 +199,7 @@ static USHORT	flag_on_line = TRUE;	/* indicates whether we will bring
 #ifdef sparc
 static CONST SSHORT old_sparcs[] =
     {0, 0, 0, 2, 0, 0, 0, 0, 2, 4, 4, 4, 8, 8, 0, 0, 8, 8, 8};
-#endif 
+#endif
 
 #define GET()			(--(tdgbl->io_cnt) >= 0 ? *(tdgbl->io_ptr)++ : MVOL_read (&tdgbl->io_cnt, &tdgbl->io_ptr))
 #define GET_SKIP(n)		MVOL_skip_block (tdgbl, n)
@@ -276,7 +280,7 @@ BURP_verbose (76, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 
 COMMIT;
 ON_ERROR
-    /* Fix for bug_no 8055: 
+    /* Fix for bug_no 8055:
        don't throw away the database just because an index
        could not be made */
     while (error_code = tdgbl->status_vector[1])
@@ -334,7 +338,7 @@ if (!(tdgbl->gbl_sw_deactivate_indexes))
 	if (tdgbl->gbl_sw_verbose)
 	{
 		EXEC SQL SET TRANSACTION ISOLATION LEVEL READ COMMITTED NO_AUTO_UNDO;
-		if (gds__status [1]) 
+		if (gds__status [1])
 			EXEC SQL SET TRANSACTION;
 
 	    /* Activate first indexes that are not foreign keys */
@@ -346,13 +350,13 @@ if (!(tdgbl->gbl_sw_deactivate_indexes))
 	     	ON_ERROR
 	      		general_on_error();
 	     	END_ERROR;
-	     
+
 	     	SAVE
 	     	/* existing ON_ERROR continues past error, beck */
 	     	ON_ERROR
 	      		BURP_print (173, IDS.RDB$INDEX_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 	      		BURP_print_status (tdgbl->status);
-	      		MODIFY IDS USING 
+	      		MODIFY IDS USING
 	       			IDS.RDB$INDEX_INACTIVE = TRUE;
 	      		END_MODIFY;
 	      		ON_ERROR
@@ -370,26 +374,26 @@ if (!(tdgbl->gbl_sw_deactivate_indexes))
 	    ON_ERROR
         	general_on_error ();
     	END_ERROR;
- 	}    
- 
+ 	}
+
 
     EXEC SQL SET TRANSACTION ISOLATION LEVEL READ COMMITTED NO_AUTO_UNDO;
-    if (gds__status [1]) 
+    if (gds__status [1])
         EXEC SQL SET TRANSACTION;
 
     /* Only activate Foreign keys that have been marked for deferred
-     * activation. 
-     * -bsriram, 11-May-1999             BUG: 10016 
+     * activation.
+     * -bsriram, 11-May-1999             BUG: 10016
      */
     FOR (REQUEST_HANDLE req_handle1)
-        CNST IN RDB$RELATION_CONSTRAINTS 
+        CNST IN RDB$RELATION_CONSTRAINTS
         CROSS IDS IN RDB$INDICES WITH
         CNST.RDB$CONSTRAINT_TYPE EQ FOREIGN_KEY AND
         CNST.RDB$INDEX_NAME EQ IDS.RDB$INDEX_NAME AND
         IDS.RDB$INDEX_INACTIVE EQ DEFERRED_ACTIVE
 
 
-        MODIFY IDS USING 
+        MODIFY IDS USING
                 IDS.RDB$INDEX_INACTIVE = FALSE;
         END_MODIFY;
         ON_ERROR
@@ -401,7 +405,7 @@ if (!(tdgbl->gbl_sw_deactivate_indexes))
         ON_ERROR
             BURP_print (173, IDS.RDB$INDEX_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
             BURP_print_status (tdgbl->status);
-            MODIFY IDS USING 
+            MODIFY IDS USING
                 IDS.RDB$INDEX_INACTIVE = TRUE;
             END_MODIFY;
             ON_ERROR
@@ -428,17 +432,17 @@ if (tdgbl->global_trans)
         general_on_error ();
     /* Check to see if there is a warning */
     if (gds__status [0] == gds_arg_gds && gds__status [1] == 0 && gds__status [2] != gds_arg_end)
-	BURP_print_warning (gds__status);  
+	BURP_print_warning (gds__status);
     }
 
 EXEC SQL SET TRANSACTION ISOLATION LEVEL READ COMMITTED NO_AUTO_UNDO;
 if (gds__status [1])
     EXEC SQL SET TRANSACTION;
 /*
-** Change ownership of any procedures necessary 
+** Change ownership of any procedures necessary
 */
 
-for (procedure = tdgbl->procedures; procedure; 
+for (procedure = tdgbl->procedures; procedure;
 				    procedure = procedure->prc_next)
     if (procedure->prc_owner [0])
 	FOR (REQUEST_HANDLE req_handle4)
@@ -576,7 +580,7 @@ if (isc_attach_database (tdgbl->status_vector, 0, GDS_VAL(database_name),
 if (isc_detach_database (tdgbl->status_vector, (isc_db_handle*)GDS_REF(db_handle)))
     general_on_error();
 
-FINISH; 
+FINISH;
 ON_ERROR
     general_on_error ();
 END_ERROR;
@@ -590,7 +594,6 @@ if (!flag_on_line)
     return FINI_DB_NOT_ONLINE;
     }
 
-#ifdef READONLY_DATABASE
 /* If the database is to be restored ReadOnly, set it to read_only now! */
 if (tdgbl->gbl_sw_mode == TRUE && tdgbl->gbl_sw_mode_val == TRUE)
     {
@@ -630,7 +633,6 @@ if (tdgbl->gbl_sw_mode == TRUE && tdgbl->gbl_sw_mode_val == TRUE)
 	general_on_error();
 
     }
-#endif  /* READONLY_DATABASE */
 
 return FINI_OK;
 }
@@ -672,7 +674,7 @@ for (file = tdgbl->gbl_sw_files; file; file = file->fil_next)
         X IN RDB$FILES
 	    strcpy (X.RDB$FILE_NAME, file->fil_name);
 	    X.RDB$FILE_START = start;
-	END_STORE; 
+	END_STORE;
     ON_ERROR
         general_on_error ();
     END_ERROR;
@@ -695,7 +697,7 @@ for (file = tdgbl->gbl_sw_files; file; file = file->fil_next)
 
 if (count)
     {
-    BURP_verbose (70, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR); 
+    BURP_verbose (70, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
       /* msg 70 committing secondary files */
     COMMIT
     /* existing ON_ERROR continues past error, beck */

@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
+ *                         conditionals, as the engine now fully supports
+ *                         readonly databases.
  */
 
 
@@ -79,7 +82,7 @@
 #include <iodef.h>
 #include <types.h>
 #include <file.h>
-#define SWITCH_CHAR	"/" 
+#define SWITCH_CHAR	"/"
 #endif
 
 #ifndef VMS
@@ -175,7 +178,7 @@ static int	api_gbak (int, char **, USHORT, TEXT *, TEXT *, TEXT *, BOOLEAN, BOOL
 #define BACKUP		1
 #define RESTORE		2
 #define FDESC		3
-   
+
 #define	DB		tdgbl->db_handle
 
 #define GBAK_STDIN_DESC		(int) 0
@@ -390,11 +393,11 @@ if (sw_service && !err)
      *
      * If -USER and -PASSWORD switches are used by the user within
      * the gbak command line then we have to eliminate them from there. The
-     * password will be encrypted and added along with the user name 
+     * password will be encrypted and added along with the user name
      * within SVC_start function later on. We shall also eliminate
      * the -SERVER switch because the switch has already been processed.
     */
-       
+
     if (sw_user)
 	*sw_user = '\0';
     if (sw_password)
@@ -469,7 +472,7 @@ int DLL_EXPORT BURP_gbak (
 TEXT		*file1, **end, *string, *p, *q, c, *device, *redirect;
 /* This function runs within thread for services API, so here should not be
    *any* static variables. I did not change an existing definition
-   for AIX PowerPC because of the problem (see comments below). So 
+   for AIX PowerPC because of the problem (see comments below). So
    whoever will do a port on AIX, must reconsider a static definition */
 #ifdef AIX_PPC
 static TEXT     *file2; /* SomeHow, making this VOLATILE does'nt give the
@@ -482,7 +485,7 @@ UCHAR		*dpb;
 IN_SW_TAB	in_sw_tab;
 FIL		file, file_list, next_file;
 int		temp, result;
-#ifdef APOLLO 
+#ifdef APOLLO
 TEXT		tdfile [256];
 #endif
 SLONG		clock;
@@ -496,7 +499,7 @@ IB_FILE		*tmp_outfile;
 
 /* TMN: This variable should probably be removed, but I left it in */
 /* in case some platform should redefine the BURP SET_THREAD_DATA. */
-struct tgbl	thd_context; 
+struct tgbl	thd_context;
 
 tdgbl = (struct tgbl *) gds__alloc (sizeof(*tdgbl));
 /* NOMEM: return error, FREE: during function exit in the SETJMP */
@@ -518,7 +521,7 @@ tdgbl->output_data = output_data;
 
 /* Initialize static data. */
 for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
-    in_sw_tab->in_sw_state = FALSE; 
+    in_sw_tab->in_sw_state = FALSE;
 
 if (SETJMP (env))
     {
@@ -654,9 +657,7 @@ tdgbl->gbl_sw_transportable = TRUE;
 tdgbl->gbl_sw_ignore_limbo = FALSE;
 tdgbl->gbl_sw_blk_factor = 0;
 tdgbl->gbl_sw_no_reserve = FALSE;
-#ifdef READONLY_DATABASE
 tdgbl->gbl_sw_mode = FALSE;
-#endif  /* READONLY_DATABASE */
 tdgbl->gbl_sw_skip_count = 0;
 tdgbl->gbl_sw_bug8183 = FALSE;
 tdgbl->action = NULL;
@@ -751,7 +752,6 @@ while (argv < end)
 		BURP_error (259, *argv, 0, 0, 0, 0);/* msg 259 expected page buffers, encountered "%s" */
 	    argv++;
 	    }
-#ifdef READONLY_DATABASE
 	else if (in_sw_tab->in_sw == IN_SW_BURP_MODE)
 	    {
 	    if (argv >= end)
@@ -765,7 +765,6 @@ while (argv < end)
 		BURP_error (279,0,0,0,0,0); /* msg 279: "read_only" or "read_write" required */
 	    tdgbl->gbl_sw_mode = TRUE;
 	    }
-#endif  /* READONLY_DATABASE */
 	else if (in_sw_tab->in_sw == IN_SW_BURP_PASS)
 	    {
 	    if (argv >= end)
@@ -807,7 +806,7 @@ while (argv < end)
 	    device = *argv;
 	    if (argv >= end)  /* device may equal NULL */
 		device = NULL;
-	    else if (*device == '-') 
+	    else if (*device == '-')
 		device = NULL;
 	    else
 		++argv;
@@ -866,7 +865,7 @@ for (file = file_list; file; file = next_file)
     next_file = file->fil_next;
     file->fil_next = tdgbl->gbl_sw_files;
     tdgbl->gbl_sw_files = file;
-    } 
+    }
 
 /* pop off the obviously boring ones, plus do some checking */
 
@@ -898,13 +897,13 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 	{
     	switch (in_sw_tab->in_sw)
 	    {
-	    case (IN_SW_BURP_B): 
+	    case (IN_SW_BURP_B):
 		if (sw_replace)
 		    BURP_error (5, 0, 0, 0, 0, 0); /* msg 5 conflicting switches for backup/restore */
 		sw_replace = IN_SW_BURP_B;
 		break;
 
-	    case (IN_SW_BURP_C): 
+	    case (IN_SW_BURP_C):
 		if (sw_replace == IN_SW_BURP_B)
 		    BURP_error (5, 0, 0, 0, 0, 0); /* msg 5 conflicting switches for backup/restore */
 		if (sw_replace != IN_SW_BURP_R)
@@ -937,7 +936,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		    *dpb++ = gds__dpb_version1;
 		*dpb++ = gds__dpb_no_garbage_collect;
 		*dpb++ = 0;
-		tdgbl->dpb_length = dpb - tdgbl->dpb_string; 
+		tdgbl->dpb_length = dpb - tdgbl->dpb_string;
 		break;
 
 	    case (IN_SW_BURP_I):
@@ -950,7 +949,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		*dpb++ = gds__dpb_damaged;
 		*dpb++ = 1;
 		*dpb++ = 1;
-		tdgbl->dpb_length = dpb - tdgbl->dpb_string; 
+		tdgbl->dpb_length = dpb - tdgbl->dpb_string;
 		break;
 
 	    case (IN_SW_BURP_K):
@@ -965,11 +964,9 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		tdgbl->gbl_sw_meta = TRUE;
 		break;
 
-#ifdef READONLY_DATABASE
 	    case (IN_SW_BURP_MODE):
 		tdgbl->gbl_sw_mode = TRUE;
 		break;
-#endif  /* READONLY_DATABASE */
 
 	    case (IN_SW_BURP_N):
 		tdgbl->gbl_sw_novalidity = TRUE;
@@ -997,7 +994,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		*dpb++ = strlen (tdgbl->gbl_sw_password);
 		for (q = tdgbl->gbl_sw_password; *q;)
 		    *dpb++ = *q++;
-		tdgbl->dpb_length = dpb - tdgbl->dpb_string; 
+		tdgbl->dpb_length = dpb - tdgbl->dpb_string;
 		break;
 
 	    case (IN_SW_BURP_R):
@@ -1005,7 +1002,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		    BURP_error (5, 0, 0, 0, 0, 0);	/* msg 5 conflicting switches for backup/restore */
 		sw_replace = IN_SW_BURP_R;
 		break;
-	    
+
 	    case (IN_SW_BURP_T):
 		tdgbl->gbl_sw_transportable = TRUE;
 		break;
@@ -1025,7 +1022,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		*dpb++ = strlen (tdgbl->gbl_sw_sql_role);
 		for (q = tdgbl->gbl_sw_sql_role; *q;)
 		    *dpb++ = *q++;
-		tdgbl->dpb_length = dpb - tdgbl->dpb_string; 
+		tdgbl->dpb_length = dpb - tdgbl->dpb_string;
 		break;
 
 	    case (IN_SW_BURP_USER):
@@ -1035,7 +1032,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 		*dpb++ = strlen (tdgbl->gbl_sw_user);
 		for (q = tdgbl->gbl_sw_user; *q;)
 		    *dpb++ = *q++;
-		tdgbl->dpb_length = dpb - tdgbl->dpb_string; 
+		tdgbl->dpb_length = dpb - tdgbl->dpb_string;
 		break;
 
 	    case (IN_SW_BURP_V):
@@ -1065,15 +1062,15 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 if (!sw_replace)
     sw_replace = IN_SW_BURP_B;
 
-if (tdgbl->gbl_sw_page_size) 
+if (tdgbl->gbl_sw_page_size)
     {
     int curr_pg_size = 1024;
     if (sw_replace == IN_SW_BURP_B)
 	BURP_error (8, 0, 0, 0, 0, 0); /* msg 8 page size is allowed only on restore or create */
     temp = tdgbl->gbl_sw_page_size;
-    while (curr_pg_size <= MAX_PAGE_SIZE) 
+    while (curr_pg_size <= MAX_PAGE_SIZE)
 	{
-	if (temp <= curr_pg_size) 
+	if (temp <= curr_pg_size)
 	    {
 	    temp = curr_pg_size;
 	    break;
@@ -1092,7 +1089,7 @@ if (tdgbl->gbl_sw_page_size)
 	BURP_print (103, (void *) tdgbl->gbl_sw_page_size, (void *)temp, 0, 0, 0); /* msg 103 page size specified (%ld bytes) rounded up to %ld bytes */
 	tdgbl->gbl_sw_page_size = temp;
 	}
-    }	
+    }
 
 if (tdgbl->gbl_sw_page_buffers)
     {
@@ -1120,10 +1117,10 @@ if (sw_tape)
 if (!tdgbl->gbl_sw_blk_factor || sw_replace != IN_SW_BURP_B)
     tdgbl->gbl_sw_blk_factor = 1;
 
-if (!file2) 
+if (!file2)
     BURP_error (10, 0, 0, 0, 0, 0);	/* msg 10 requires both input and output filenames */
 
-if (!strcmp(file1, file2)) 
+if (!strcmp(file1, file2))
     BURP_error (11, 0, 0, 0, 0, 0);	/* msg 11 input and output have the same name.  Disallowed. */
 
 #ifdef mpexl
@@ -1289,14 +1286,14 @@ if (status_vector)
 	{
 	TRANSLATE_CP(s);
 	BURP_msg_partial (256, 0, 0, 0, 0, 0); /* msg 256: gbak: ERROR: */
-	burp_output ("%s\n", s); 
+	burp_output ("%s\n", s);
 	while (isc_interprete (s, &vector))
 	    {
 	    TRANSLATE_CP(s);
 	    BURP_msg_partial (256, 0, 0, 0, 0, 0); /* msg 256: gbak: ERROR: */
 	    burp_output ("    %s\n", s);
 	    }
-	} 
+	}
     }
 }
 
@@ -1328,14 +1325,14 @@ if (status_vector)
 	{
 	TRANSLATE_CP(s);
 	BURP_msg_partial (255, 0, 0, 0, 0, 0); /* msg 255: gbak: WARNING: */
-	burp_output ("%s\n", s); 
+	burp_output ("%s\n", s);
 	while (isc_interprete (s, &vector))
 	    {
 	    TRANSLATE_CP(s);
 	    BURP_msg_partial (255, 0, 0, 0, 0, 0); /* msg 255: gbak: WARNING: */
 	    burp_output ("    %s\n", s);
 	    }
-	} 
+	}
     }
 }
 
@@ -1375,7 +1372,7 @@ void BURP_msg_partial (
  **************************************
  *
  * Functional description
- *	Retrieve a message from the error file, 
+ *	Retrieve a message from the error file,
  *	format it, and print it without a newline.
  *
  **************************************/
@@ -1407,8 +1404,8 @@ TEXT	buffer [256];
 
 gds__msg_format (NULL_PTR, BURP_MSG_FAC, number, sizeof (buffer), buffer, arg1, arg2, arg3, arg4, arg5);
 TRANSLATE_CP(buffer);
-burp_output ("%s\n", buffer); 
-} 
+burp_output ("%s\n", buffer);
+}
 
 void BURP_msg_get (
     USHORT	number,
@@ -1434,7 +1431,7 @@ TEXT	buffer [128];
 gds__msg_format (NULL_PTR, BURP_MSG_FAC, number, sizeof (buffer), buffer,
 		 arg1, arg2, arg3, arg4, arg5);
 strcpy (msg, buffer);
-} 
+}
 
 void BURP_output_version (
     TEXT	*arg1,
@@ -1454,7 +1451,7 @@ void BURP_output_version (
  **************************************/
 
 burp_output (arg1, arg2);
-}   
+}
 
 void BURP_print (
     USHORT	number,
@@ -1479,7 +1476,7 @@ void BURP_print (
 
 BURP_msg_partial (169, 0, 0, 0, 0, 0); /* msg 169: gbak: */
 BURP_msg_put (number, arg1, arg2, arg3, arg4, arg5);
-}   
+}
 
 void BURP_verbose (
     USHORT	number,
@@ -1509,11 +1506,11 @@ if (tdgbl->gbl_sw_verbose)
 	BURP_print (number, arg1, arg2, arg3, arg4, arg5);
 else
     burp_output ("");
-}   
+}
 
 static void close_out_transaction (
     VOLATILE SSHORT	  action,
-    isc_tr_handle   *handle) 
+    isc_tr_handle   *handle)
 {
 /**************************************
  *
@@ -1550,7 +1547,7 @@ if (*handle != 0)
 	    }
 	}
     else
-	/* A backup shouldn't touch any data - we ensure that 
+	/* A backup shouldn't touch any data - we ensure that
 	 * by never writing data during a backup, but let's double
 	 * ensure it by doing a rollback
 	 */
@@ -1663,11 +1660,11 @@ status_vector = tdgbl->status;
 /* try to attach the database using the first file_name */
 
 if (sw_replace != IN_SW_BURP_C && sw_replace != IN_SW_BURP_R)
-    if (!(isc_attach_database (status_vector, 
+    if (!(isc_attach_database (status_vector,
 	    (SSHORT) 0,
-	    file1, 
-	    &tdgbl->db_handle, 
-	    tdgbl->dpb_length, 
+	    file1,
+	    &tdgbl->db_handle,
+	    tdgbl->dpb_length,
 	    tdgbl->dpb_string)))
 	{
 	if (sw_replace != IN_SW_BURP_B)
@@ -1676,11 +1673,11 @@ if (sw_replace != IN_SW_BURP_C && sw_replace != IN_SW_BURP_R)
 	    if (isc_detach_database (status_vector, &tdgbl->db_handle))
 		    BURP_print_status (status_vector);
 	    return QUIT;
-	    }    
+	    }
 	if (tdgbl->gbl_sw_version)
 	    {
 	    BURP_print (139, file1, 0, 0, 0, 0);/* msg 139 Version(s) for database "%s" */
-	    isc_version (&tdgbl->db_handle, BURP_output_version, "\t%s\n"); 
+	    isc_version (&tdgbl->db_handle, BURP_output_version, "\t%s\n");
 	    }
 	if (sw_verbose)
 	    BURP_print (166, file1, 0, 0, 0, 0);	/* msg 166: readied database %s for backup */
@@ -2041,11 +2038,11 @@ if (tdgbl->gbl_sw_files->fil_size_code != size_n)
     BURP_error (262, *file2, 0, 0, 0, 0); /* msg 262 size specificati on either missing or incorrect for file %s  */
 
 if ((sw_replace == IN_SW_BURP_C || sw_replace == IN_SW_BURP_R) &&
-    !isc_attach_database (status_vector, 
+    !isc_attach_database (status_vector,
 	    (SSHORT) 0,
-	    *file2, 
-	    &tdgbl->db_handle, 
-	    tdgbl->dpb_length, 
+	    *file2,
+	    &tdgbl->db_handle,
+	    tdgbl->dpb_length,
 	    tdgbl->dpb_string))
     {
     if (sw_replace == IN_SW_BURP_C)
@@ -2076,11 +2073,11 @@ if (sw_replace == IN_SW_BURP_R && status_vector[1] == isc_adm_task_denied)
     {
      /* if we got an error from attach database and we have replace switch set
       * then look for error from attach returned due to not owner, if we are
-      * not owner then return the error status back up 
+      * not owner then return the error status back up
       */
     BURP_error (274, 0, 0, 0, 0, 0);
          /* msg # 274 : Cannot restore over current database, must be sysdba
-	  * or owner of the existing database. 
+	  * or owner of the existing database.
 	  */
     }
 /* if we got here, then all is well, remove any error condition from the
@@ -2100,7 +2097,7 @@ for (fil = tdgbl->gbl_sw_files; fil; fil = fil->fil_next)
 
 return RESTORE;
 }
- 
+
 #ifdef APOLLO
 static open_tapedesc (file, sw_tape)
     TEXT		*file;
