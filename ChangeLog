@@ -1,3 +1,30 @@
+2001-10-25 23:25  awharrison
+
+	* interbase/dsql/: alld.c, dsql.c, dsql.h, dsql_proto.h, gen.c,
+	make.c, make_proto.h, node.h, parse.c, parse.y:
+	
+	
+	In alld.c, changed references to blk_pool_id to blk_pool_id_mod and
+	changed some asserts to bugchecks.  The change to blk_pool_id
+	exists passim.	In make, removed the unused and buggy MAKE_numeric.
+	 parse.c and parse.y got touched as I removed the exec_sql code
+	from them.
+
+2001-10-25 21:35  awharrison
+
+	* interbase/jrd/sdw.c:
+	
+	
+	Move the check for the existence of shadow files to the beginning
+	of SDW_rollover_to_shadow so that case can't leave the state of
+	shadowing indeterminate.
+
+2001-10-25 11:07  tamlin
+
+	* interbase/jrd/gds.c:
+	
+	Win32: Fallback to system known language for system error strings.
+
 2001-10-24 21:09  bellardo
 
 	* interbase/firebird/bellardo/unix_64io.patch:
