@@ -1,3 +1,59 @@
+2000-12-27 17:47  fsg
+
+	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h,
+	srvrmgr.c, tcp_nd.h:
+	
+	Added -nonagle switch to ibmgr and ibguard for LINUX platforms to
+	give the user a convenient way to disable the Nagle algorithm for
+	super server. If this should be necessary for other platforms check
+	interbase/utilities/tcp_nd.h
+	
+	fsg
+
+2000-12-23 11:59  fsg
+
+	* interbase/jrd/pwd.c:
+	
+	Added random seed fsg
+
+2000-12-23 03:14  skywalker
+
+	* interbase/jrd/pwd.h:
+	
+	Removed an assert from jrd/sort.c that caused debug version to stop
+	for no reason.	Some minor changes to make pwd.c thread-safe
+
+2000-12-22 17:05  fsg
+
+	* interbase/jrd/: pwd.c, pwd_proto.h, sort.c:
+	
+	Removed an assert from jrd/sort.c that caused debug version to stop
+	for no reason.	Some minor changes to make pwd.c thread-safe
+	
+	fsg
+
+2000-12-22 15:23  skywalker
+
+	* interbase/firebird/skywalker/install/: CSrpmscript, Makefile,
+	classic/CSTarInstall.sh, classic/CSinstall.sh,
+	classic/CSpostinstall.sh, classic/CSrpmfiles.txt,
+	classic/CSrpmheader.txt, misc/CSchangeRunUser.sh,
+	misc/CSrestoreRootRunUser.sh, misc/SSchangeRunUser.sh,
+	misc/SSrestoreRootRunUser.sh, misc/changeDBAPassword.sh,
+	super/SSTarInstall.sh, super/SSinstall.sh, super/SSpostinstall.sh,
+	super/SSrpmfiles.txt, super/SSrpmheader.txt:
+	
+	Changed install and package scripts for linux version of firebird. 
+	After having built the package.  make -f
+	firebird/skywalker/install/Makefile Will give a list of options for
+	install and packaging.
+	
+	In addition,XXchangeRunUser.sh XXrestoreRootRunUser.sh scripts have
+	been provided to make it easier to change the default run user. 
+	And a changeDBAPassword.sh script is provided to change both the
+	password and the value in the /etc/init.d/firebird service start
+	script.
+
 2000-12-18 19:39  fsg
 
 	* interbase/: builds/original/bind_gds_s.im,
