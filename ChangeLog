@@ -1,3 +1,17 @@
+2001-12-09 21:12  nmcc
+
+	* interbase/dsql/pass1.c:
+	
+	Further changes to allow select items with agg functions inside
+	udfs but stop invalid references to other fields within the item.
+
+2001-12-09 21:07  nmcc
+
+	* interbase/dsql/dsql.c:
+	
+	Change DSQL_pretty (debugging proc) to cope with different types of
+	nod_udf.
+
 2001-12-08 08:37  robocop
 
 	* interbase/isql/isql.e:
