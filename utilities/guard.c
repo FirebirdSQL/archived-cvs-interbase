@@ -32,6 +32,14 @@
 
 #include "../jrd/ib_stdio.h"
 #include <sys/types.h>
+#include "../utilities/tcp_nd.h"
+
+#ifdef SET_TCP_NODELAY
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#endif
+
 
 #include "../jrd/common.h"
 #include "../jrd/isc_proto.h"
@@ -59,6 +67,9 @@ int CLIB_ROUTINE main (
  **************************************/
 TEXT	**end, *p, c;
 USHORT	 option = FOREVER; /* holds FOREVER or ONETIME */
+#ifdef SET_TCP_NODELAY
+USHORT  no_nagle = FALSE;
+#endif
 TEXT	user_name[256]; /* holds the user name */
 USHORT	done = TRUE, fd_guard;
 pid_t	child_pid;
@@ -86,6 +97,11 @@ while (argv < end)
             case 'S':
                 option = IGNORE;
                 break;
+#ifdef SET_TCP_NODELAY
+            case 'N':
+                no_nagle=TRUE;
+                break;
+#endif
             default  :
 		ib_fprintf (ib_stderr, "Usage: %s [-signore | -onetime | -forever (default)]\n",
 			 prog_name);
@@ -133,6 +149,18 @@ do
 
     gds__log ("%s: guardian starting %s\n",
 			prog_name, SUPER_SERVER_BINARY); 
+#ifdef SET_TCP_NODELAY
+     if (no_nagle)
+     {
+        int value = 1;
+        setsockopt(0, IPPROTO_TCP, TCP_NODELAY, (char *)&value,sizeof(int));
+        setsockopt(1, IPPROTO_TCP, TCP_NODELAY, (char *)&value,sizeof(int));
+        setsockopt(2, IPPROTO_TCP, TCP_NODELAY, (char *)&value,sizeof(int));
+        gds__log ("%s: disabled Nagle algorithm for %s\n", prog_name, 
+			server_args [1] ? server_args [1] : SUPER_SERVER_BINARY); 
+
+     }
+#endif
     child_pid = UTIL_start_process (SUPER_SERVER_BINARY, server_args);
     if (child_pid == -1)
         {

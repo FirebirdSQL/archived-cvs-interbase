@@ -34,6 +34,8 @@
 #include "../utilities/ibmgrswi.h"
 #include "../jrd/license.h"
 #include "../utilities/srvrmgr_proto.h"
+#include "../utilities/tcp_nd.h"
+
 
 #define MAXARGS		20	/* max number of args allowed on command line */
 #define MAXSTUFF	1000	/* longest interactive command line */
@@ -159,6 +161,12 @@ else
 ibmgr_data.shutdown = FALSE;
 ibmgr_data.attached = NULL;
 ibmgr_data.reattach |= (REA_HOST | REA_USER | REA_PASSWORD);
+
+#ifdef SET_TCP_NODELAY
+  ibmgr_data.nonagle = FALSE;
+#endif
+
+
 
 /* Special case a solitary -z switch.
    Print the version and then drop into prompt mode.
@@ -330,6 +338,8 @@ int		l;
 SSHORT		err_msg_no;
 BOOLEAN		any_switches;
 
+
+
 /* Look at each argument. It's either a switch or a parameter.
    parameters must always follow a switch, but not all switches
    need parameters.
@@ -423,6 +433,9 @@ for (--argc; argc > 0; argc--)
 	    case IN_SW_IBMGR_QUIT:
 	    case IN_SW_IBMGR_HELP:
 	    case IN_SW_IBMGR_Z:
+#ifdef SET_TCP_NODELAY
+            case IN_SW_IBMGR_NONAGLE:
+#endif
 		SRVRMGR_msg_get (MSG_SWNOPAR, msg);
 		ib_fprintf (OUTFILE, "%s\n", msg); 
 		return ERR_SYNTAX;
@@ -706,7 +719,14 @@ for (--argc; argc > 0; argc--)
 		    ib_fprintf (OUTFILE, "%s %s\n", msg, GDS_VERSION); 
 		    }
 		break;
+	  
+#ifdef SET_TCP_NODELAY
+	
+	    case IN_SW_IBMGR_NONAGLE:	
+                 ibmgr_data->nonagle = TRUE;
 
+            break; 
+#endif
 	    case IN_SW_IBMGR_0:
 		SRVRMGR_msg_get (MSG_INVSW, msg);
 		ib_fprintf (OUTFILE, "%s\n", msg);  
@@ -801,7 +821,11 @@ ib_fprintf (OUTFILE, "\n\n");
 ib_fprintf (OUTFILE, "Usage:		ibmgr -command [-option [parameter]]\n\n");
 ib_fprintf (OUTFILE, "or		ibmgr<RETURN>\n");
 ib_fprintf (OUTFILE, "		IBMGR> command [-option [parameter]]\n\n");
-ib_fprintf (OUTFILE, "Commands are:	start [-once|-signore|-forever]	start server\n");
+#ifdef SET_TCP_NODELAY
+ib_fprintf (OUTFILE, "Commands are:	start [-once|-signore|-forever]	[-nonagle] start server\n");
+#else
+ib_fprintf (OUTFILE, "Commands are:	start [-once|-signore|-forever] start server\n");
+#endif
 ib_fprintf (OUTFILE, "		shut  [-now]		shutdown server\n");
 ib_fprintf (OUTFILE, "		show			show host and user\n");
 ib_fprintf (OUTFILE, "		user <user_name>	set user name\n");

@@ -30,6 +30,8 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include "../utilities/tcp_nd.h"
+
 
 #include "../jrd/common.h"
 #include "../jrd/gds.h"
@@ -446,7 +448,7 @@ static BOOLEAN start_server (
  **************************************/
 TEXT    msg [MSG_LEN];
 TEXT    path[PATHLEN];
-TEXT	*argv[3];
+TEXT	*argv[4];
 int	retry;
 pid_t	pid, ret_value;
 int	exit_status;
@@ -490,7 +492,17 @@ else if (data->suboperation == SOP_START_SIGNORE)
     argv[1] = "-s";
 else
     argv[1] = "-f";
-argv[2] = NULL;
+
+#ifdef SET_TCP_NODELAY
+if (data->nonagle)
+{
+    argv[2] = "-n"; /*tell ibguard to disable Nagle algorithm FSG 27.Dez.2000*/
+    argv[3] = NULL; 
+}
+else
+#endif
+    argv[2] = NULL;
+
 
 #ifdef DEBUG
 ib_printf("Argument list:\n\"%s\"\n\"%s\"\n", argv[0], argv[1]);
