@@ -32,6 +32,8 @@
   2001.09.09  Claudio Valderrama: put double quotes around identifiers
 	in dialect 3 only when needed. Solve mischievous declaration/invocation
 	of ISQL_copy_SQL_id that made no sense and caused pointer problems.
+  2001/10/03  Neil McCalden  pick up Firbird version from database server
+    and display it with client version when -z used.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -173,7 +175,9 @@ SSHORT		V4  = FALSE;
 SSHORT		V33 = FALSE;
 USHORT		major_ods = 0;
 USHORT		minor_ods = 0;
+SCHAR		server_version [256];
 SSHORT		Quiet;
+SSHORT		Version_info = FALSE;
 #if defined (WIN95) && !defined (GUI_TOOLS)
 BOOL		fAnsiCP;
 #endif
@@ -5102,6 +5106,7 @@ static CONST UCHAR
 	db_version_info [] = { isc_info_ods_version,
 			       isc_info_ods_minor_version,
 			       isc_info_db_sql_dialect,
+                   isc_info_firebird_version,				   
 			       isc_info_end };
     /* 
     ** Each info item requested will return 
@@ -5114,7 +5119,13 @@ static CONST UCHAR
     ** some padding in the buffer.
     */
 
-UCHAR	buffer [sizeof(db_version_info)*(1+2+4)];
+	/*UCHAR	buffer [sizeof(db_version_info)*(1+2+4)];*/
+	
+	/* Now we are also getting the Firebird server version which is a 
+	   string the above calculation does not apply.     NM 03-Oct-2001
+	*/
+	
+UCHAR	buffer [256];
 UCHAR	*p;
 TEXT	bad_dialect_buf [512];
 BOOLEAN	print_warning = FALSE;
@@ -5237,6 +5248,17 @@ while (*p != isc_info_end)
 		    }
 		}
 	    break;
+		
+	case isc_info_firebird_version:
+		strcpy(server_version,"Server: ");
+		strncat(server_version,p,length);
+		if (Version_info == TRUE) 
+			{
+			strcat(server_version,NEWLINE);
+			ISQL_printf (Out, server_version);
+			}
+		break;		
+		
 	default:
 	    {
 	    TEXT	message [100];
@@ -6591,6 +6613,7 @@ while (i < argc)
 	    Quiet = TRUE;
 	else if (c == 'Z')
 	    {
+	    Version_info = TRUE;
 	    gds__msg_format (NULL_PTR, ISQL_MSG_FAC, VERSION, MSG_LENGTH, 
 		errbuf,	GDS_VERSION, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 
