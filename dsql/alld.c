@@ -241,7 +241,8 @@ if (best_tail > SIZE_TO_BLOCKS ( BLOCK_ROUNDUP (sizeof (struct frb))))
     block = (BLK) ((UCHAR*) free + BLOCKS_TO_SIZE(l));
 
     /* Reset the length of the free block */
-    free->frb_header.blk_length = l;
+    assert(l <= MAX_USHORT);
+    free->frb_header.blk_length = (USHORT)l;
     }
 else
     {
@@ -261,8 +262,10 @@ memset (block, 0, BLOCKS_TO_SIZE (needed_blocks));
 
 /* Now set the block header (yeah, we just zero'ed it, sue me) */
 block->blk_type = type;
-block->blk_pool_id = pool->plb_pool_id;
-block->blk_length = needed_blocks;
+assert(pool->plb_pool_id <= MAX_UCHAR);
+block->blk_pool_id = (UCHAR)pool->plb_pool_id;
+assert(needed_blocks <= MAX_USHORT);
+block->blk_length = (USHORT)needed_blocks;
 
 #ifdef SUPERSERVER
 if (trace_pools)
@@ -545,12 +548,10 @@ void ALLD_print_memory_pool_info (
  *	Print the various block types allocated with in the pools
  *
  *************************************************************/
-DBB		dbb;
-STR		string;
 VEC		vector;
 PLB		myPool;
 HNK		hnk;
-int 		i, j, k, col;
+int 		i, j, col;
 
 if (!trace_pools)
     return;
@@ -568,17 +569,17 @@ ib_fprintf(fptr,"\n");
 
 if (!pools)
     {
-    ib_fprintf(fptr,"\t    No pools allocated", j);
+    ib_fprintf(fptr,"\t    No pools allocated");
     return;
     }
 vector = pools;
-for (j=0, i=0; i<vector->vec_count; i++)
+for (j=0, i=0; i<(int)vector->vec_count; i++)
     {
     myPool = (PLB) vector->vec_object [i];
     if (myPool) ++j;
     }
 ib_fprintf(fptr,"\t    There are %d pools", j);
-for (i=0; i<vector->vec_count; i++)
+for (i=0; i<(int)vector->vec_count; i++)
     {
     myPool = (PLB) vector->vec_object [i];
     if (!myPool) continue;
@@ -694,7 +695,7 @@ void ALLD_release (
  *
  **************************************/
 
-release (block, find_pool (block));
+release (block, find_pool (&block->frb_header));
 }
 
 void ALLD_rlpool (
@@ -764,9 +765,11 @@ DEV_BLKCHK (pool, type_plb);
 
 size = (size + sizeof (struct hnk) + MIN_ALLOCATION - 1) & ~((ULONG)MIN_ALLOCATION - 1);
 block = (BLK) ALLD_malloc (size);
-block->blk_length = SIZE_TO_BLOCKS (size);
+assert(SIZE_TO_BLOCKS (size) <= MAX_USHORT);
+block->blk_length = (USHORT)SIZE_TO_BLOCKS (size);
 block->blk_type = (SCHAR) type_frb;
-block->blk_pool_id = pool->plb_pool_id;
+assert(pool->plb_pool_id <= MAX_UCHAR);
+block->blk_pool_id = (UCHAR)pool->plb_pool_id;
 #ifdef SUPERSERVER
 if (trace_pools)
     {
@@ -817,7 +820,7 @@ for (pool_id = block->blk_pool_id; pool_id < pools->vec_count; pool_id += 256)
 	        return pool;
 	}
 BUGCHECK ("bad pool id");
-return ((UCHAR *) NULL);	/* Added to remove warnings */
+return (PLB)NULL;	/* Added to remove warnings */
 }
 
 static void release (
