@@ -61,7 +61,7 @@
  */
 #define USERNAME_SWITCH "-USER"
 #define PASSWORD_SWITCH "-PASSWORD"
-#ifdef SUPERSERVER
+#if defined ( SUPERSERVER ) || defined ( SUPERCLIENT )
 #define SERVICE_THD_PARAM "-svc_thd"
 #else
 #define SERVICE_THD_PARAM "-svc"
