@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 /nologo /subsystem:windows /dll /machine:I386
-# ADD LINK32 shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /machine:I386 /out:"Release/FBControl.cpl"
+# ADD LINK32 shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /machine:I386 /out:"Release/FirebirdControl.cpl"
 # SUBTRACT LINK32 /pdb:none
 
 !ELSEIF  "$(CFG)" == "FBControl - Win32 Debug"
@@ -84,7 +84,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /debug /machine:I386 /out:"c:/winnt/system32/FBControl.cpl" /pdbtype:sept /libpath:"$(INTERBASE)/lib"
-# ADD LINK32 gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /debug /machine:I386 /out:"Debug/FBControl.cpl" /pdbtype:sept /libpath:"$(INTERBASE)/lib"
+# ADD LINK32 gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /debug /machine:I386 /out:"Debug/FirebirdControl.cpl" /pdbtype:sept /libpath:"$(INTERBASE)/lib"
 
 !ELSEIF  "$(CFG)" == "FBControl - Win32 TestDebug"
 
@@ -113,7 +113,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /debug /machine:I386 /out:"c:/winnt/system32/FBControl.cpl" /pdbtype:sept /libpath:"$(INTERBASE)/lib"
-# ADD LINK32 gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /debug /machine:I386 /out:"c:/winnt/system32/FBControl.cpl" /pdbtype:sept /libpath:"$(INTERBASE)/lib"
+# ADD LINK32 gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /debug /machine:I386 /out:"c:/winnt/system32/FirebirdControl.cpl" /pdbtype:sept /libpath:"$(INTERBASE)/lib"
 
 !ENDIF 
 

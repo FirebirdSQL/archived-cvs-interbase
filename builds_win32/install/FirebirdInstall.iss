@@ -108,18 +108,8 @@ Filename: "{code:StartApp|{app}\bin\ibserver.exe}"; Description: "Start Firebird
 
 
 [Registry]
-;In retrospect this wasn't such a good idea - uninstall of Fb 1.0 after installing Fb 1.5
-;will screw up the Fb 1.5 install.
-;;These will be the future Firebird entries
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty; Components: ClientComponent
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey; Components: ClientComponent
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey; Components: ClientComponent
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}; Flags: uninsdeletevalue; Components: ClientComponent;
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: ClientComponent;
-
-;; If user has chosen to use guardian and not to install as service then we need to make sure that the guardian flag is set.
-;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Flags: uninsdeletevalue; Components: ServerComponent
-;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Flags: uninsdeletevalue; Components: ServerComponent
+; If user has chosen to use guardian and not to install as service then we need to make sure that the guardian flag is set.
+Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Flags: uninsdeletevalue; Components: ServerComponent
 
 ;If user has chosen to start as App they may well want to start automatically. That is handled by a function below.
 ;Unless we set a marker here the uninstall will leave some annoying debris.
@@ -131,7 +121,7 @@ Name: "{group}\Firebird Guardian"; Filename: {app}\bin\ibguard.exe; Parameters: 
 Name: "{group}\Firebird 1.0 Release Notes"; Filename: {app}\doc\Firebird_v1_ReleaseNotes.pdf; MinVersion: 4.0,4.0; Tasks: MenuGroupTask; IconIndex: 1; Comment: "Firebird 1.0 release notes. (Requires Acrobat Reader.)";
 Name: "{group}\Firebird 1.0 Readme"; Filename: {app}\readme.txt; MinVersion: 4.0,4.0; Tasks: MenuGroupTask;
 Name: "{group}\Uninstall Firebird"; Filename: {uninstallexe}; Comment: "Uninstall Firebird"
-Name: "{group}\Firebird Control Panel"; Filename: {sys}\rundll32.exe; Parameters: "shell32.dll,Control_RunDLL {sys}\FBControl.cpl"; Tasks: InstallCPLAppletTask;
+Name: "{group}\Firebird Control Panel"; Filename: {sys}\rundll32.exe; Parameters: "shell32.dll,Control_RunDLL {sys}\FirebirdControl.cpl"; Tasks: InstallCPLAppletTask;
 
 [Files]
 Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: ClientComponent; Flags: sharedfile;
@@ -173,12 +163,12 @@ Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: ServerComponent;
 Source: extlib\ib_util.pas; DestDir: {app}\include; Components: DevAdminComponent; Flags: ignoreversion;
 Source: firebird\install\doc_all_platforms\Firebird_v1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: DevAdminComponent; Flags: ignoreversion;
 Source: firebird\install\doc_all_platforms\Firebird_v1_*.html; DestDir: {app}\doc; Components: DevAdminComponent; Flags: ignoreversion;
-Source: utilities\fbcpl\{#BUILDTYPE}\FBControl.cpl; DestDir: {sys}; Components: ServerComponent; Flags: ignoreversion sharedfile; Tasks: InstallCPLAppletTask;
+Source: utilities\fbcpl\{#BUILDTYPE}\FirebirdControl.cpl; DestDir: {sys}; Components: ServerComponent; Flags: ignoreversion sharedfile; Tasks: InstallCPLAppletTask;
 
 [UninstallRun]
 Filename: {app}\bin\instsvc.exe; Parameters: stop; StatusMsg: "Stopping the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
 Filename: {app}\bin\instsvc.exe; Parameters: remove -g; StatusMsg: "Removing the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
-Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized;  check: RemoveThisVersion;
+Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized;  
 
 [UninstallDelete]
 Type: files; Name: {app}\*.lck
@@ -195,7 +185,7 @@ const
   sNoWinsock2 = 'Please Install Winsock 2 Update before continuing';
   sMSWinsock2Update = 'http://www.microsoft.com/windows95/downloads/contents/WUAdminTools/S_WUNetworkingTools/W95Sockets2/Default.asp';
   sWinsock2Web = 'Winsock 2 is not installed.'#13#13'Would you like to Visit the Winsock 2 Update Home Page?';
-  ProductVersion = 'PRODUCT_VER_STRING';
+  ProductVersion = '1.0.0';
 
 var
   Winsock2Failure: Boolean;
@@ -228,7 +218,7 @@ begin
     gds32StartCount := 0;
   
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\FBControl.cpl', dw) then
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\FirebirdControl.cpl', dw) then
     fbcplStartCount := dw
   else
     fbcplStartCount := 0;
@@ -258,7 +248,7 @@ end;
 procedure CheckSharedLibCountAtEnd;
 begin
   SetSharedLibCount(gds32StartCount,'gds32.dll');
-  SetSharedLibCount(fbcplStartCount,'FBControl.cpl');
+  SetSharedLibCount(fbcplStartCount,'FirebirdControl.cpl');
 end;
 
 function CheckWinsock2(): Boolean;
@@ -510,17 +500,6 @@ begin
   result := not FirebirdOneRunning;
 end;
 
-function RemoveThisVersion: boolean;
-//check if we are still the current version before removing
-var
-  VersionStr: string;
-begin
-  result := false;
-  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion','Version', VersionStr ) then
-    if (pos(ProductVersion,VersionStr)>0) then
-      result := true;
-end;
 
 begin
 end.

@@ -26,10 +26,6 @@ NULL=
 NULL=nul
 !ENDIF 
 
-CPP=cl.exe
-MTL=midl.exe
-RSC=rc.exe
-
 !IF  "$(CFG)" == "FBControl - Win32 Release"
 
 OUTDIR=.\Release
@@ -38,7 +34,7 @@ INTDIR=.\Release
 OutDir=.\Release
 # End Custom Macros
 
-ALL : "$(OUTDIR)\FBControl.cpl" "$(OUTDIR)\FBControl.pch" "$(OUTDIR)\FBControl.bsc"
+ALL : "$(OUTDIR)\FirebirdControl.cpl" "$(OUTDIR)\FBControl.pch" "$(OUTDIR)\FBControl.bsc"
 
 
 CLEAN :
@@ -58,198 +54,15 @@ CLEAN :
 	-@erase "$(INTDIR)\StdAfx.sbr"
 	-@erase "$(INTDIR)\vc60.idb"
 	-@erase "$(OUTDIR)\FBControl.bsc"
-	-@erase "$(OUTDIR)\FBControl.cpl"
-	-@erase "$(OUTDIR)\FBControl.exp"
-	-@erase "$(OUTDIR)\FBControl.lib"
+	-@erase "$(OUTDIR)\FirebirdControl.cpl"
+	-@erase "$(OUTDIR)\FirebirdControl.exp"
+	-@erase "$(OUTDIR)\FirebirdControl.lib"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
+CPP=cl.exe
 CPP_PROJ=/nologo /MT /W3 /GX /Ox /Ow /Og /Os /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_WINDLL" /D "SUPERSERVER" /FR"$(INTDIR)\\" /Fp"$(INTDIR)\FBControl.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
-RSC_PROJ=/l 0x40c /fo"$(INTDIR)\FBControl.res" /d "NDEBUG" 
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\FBControl.bsc" 
-BSC32_SBRS= \
-	"$(INTDIR)\ctrlpan.sbr" \
-	"$(INTDIR)\FBControl.sbr" \
-	"$(INTDIR)\FBDialog.sbr" \
-	"$(INTDIR)\FBPanel.sbr" \
-	"$(INTDIR)\services.sbr" \
-	"$(INTDIR)\StdAfx.sbr"
-
-"$(OUTDIR)\FBControl.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
-    $(BSC32) @<<
-  $(BSC32_FLAGS) $(BSC32_SBRS)
-<<
-
-LINK32=link.exe
-LINK32_FLAGS=shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /incremental:no /pdb:"$(OUTDIR)\FBControl.pdb" /machine:I386 /def:".\FBControl.def" /out:"$(OUTDIR)\FBControl.cpl" /implib:"$(OUTDIR)\FBControl.lib" 
-DEF_FILE= \
-	".\FBControl.def"
-LINK32_OBJS= \
-	"$(INTDIR)\ctrlpan.obj" \
-	"$(INTDIR)\FBControl.obj" \
-	"$(INTDIR)\FBDialog.obj" \
-	"$(INTDIR)\FBPanel.obj" \
-	"$(INTDIR)\services.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\FBControl.res"
-
-"$(OUTDIR)\FBControl.cpl" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ELSEIF  "$(CFG)" == "FBControl - Win32 Debug"
-
-OUTDIR=.\Debug
-INTDIR=.\Debug
-# Begin Custom Macros
-OutDir=.\Debug
-# End Custom Macros
-
-ALL : "$(OUTDIR)\FBControl.cpl" "$(OUTDIR)\FBControl.pch" "$(OUTDIR)\FBControl.bsc"
-
-
-CLEAN :
-	-@erase "$(INTDIR)\ctrlpan.obj"
-	-@erase "$(INTDIR)\ctrlpan.sbr"
-	-@erase "$(INTDIR)\FBControl.obj"
-	-@erase "$(INTDIR)\FBControl.pch"
-	-@erase "$(INTDIR)\FBControl.res"
-	-@erase "$(INTDIR)\FBControl.sbr"
-	-@erase "$(INTDIR)\FBDialog.obj"
-	-@erase "$(INTDIR)\FBDialog.sbr"
-	-@erase "$(INTDIR)\FBPanel.obj"
-	-@erase "$(INTDIR)\FBPanel.sbr"
-	-@erase "$(INTDIR)\services.obj"
-	-@erase "$(INTDIR)\services.sbr"
-	-@erase "$(INTDIR)\StdAfx.obj"
-	-@erase "$(INTDIR)\StdAfx.sbr"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(OUTDIR)\FBControl.bsc"
-	-@erase "$(OUTDIR)\FBControl.cpl"
-	-@erase "$(OUTDIR)\FBControl.exp"
-	-@erase "$(OUTDIR)\FBControl.ilk"
-	-@erase "$(OUTDIR)\FBControl.lib"
-	-@erase "$(OUTDIR)\FBControl.pdb"
-
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(INTERBASE)/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_WINDLL" /D "CPL_APPLET" /D "SUPERSERVER" /U "TRACE" /Fr"$(INTDIR)\\" /Fp"$(INTDIR)\FBControl.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
-RSC_PROJ=/l 0x809 /fo"$(INTDIR)\FBControl.res" /d "_DEBUG" 
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\FBControl.bsc" 
-BSC32_SBRS= \
-	"$(INTDIR)\ctrlpan.sbr" \
-	"$(INTDIR)\FBControl.sbr" \
-	"$(INTDIR)\FBDialog.sbr" \
-	"$(INTDIR)\FBPanel.sbr" \
-	"$(INTDIR)\services.sbr" \
-	"$(INTDIR)\StdAfx.sbr"
-
-"$(OUTDIR)\FBControl.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
-    $(BSC32) @<<
-  $(BSC32_FLAGS) $(BSC32_SBRS)
-<<
-
-LINK32=link.exe
-LINK32_FLAGS=gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /incremental:yes /pdb:"$(OUTDIR)\FBControl.pdb" /debug /machine:I386 /def:".\FBControl.def" /out:"$(OUTDIR)\FBControl.cpl" /implib:"$(OUTDIR)\FBControl.lib" /pdbtype:sept /libpath:"$(INTERBASE)/lib" 
-DEF_FILE= \
-	".\FBControl.def"
-LINK32_OBJS= \
-	"$(INTDIR)\ctrlpan.obj" \
-	"$(INTDIR)\FBControl.obj" \
-	"$(INTDIR)\FBDialog.obj" \
-	"$(INTDIR)\FBPanel.obj" \
-	"$(INTDIR)\services.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\FBControl.res"
-
-"$(OUTDIR)\FBControl.cpl" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ELSEIF  "$(CFG)" == "FBControl - Win32 TestDebug"
-
-OUTDIR=.\TestDebug
-INTDIR=.\TestDebug
-# Begin Custom Macros
-OutDir=.\TestDebug
-# End Custom Macros
-
-ALL : "c:\winnt\system32\FBControl.cpl" "$(OUTDIR)\FBControl.pch" "$(OUTDIR)\FBControl.bsc"
-
-
-CLEAN :
-	-@erase "$(INTDIR)\ctrlpan.obj"
-	-@erase "$(INTDIR)\ctrlpan.sbr"
-	-@erase "$(INTDIR)\FBControl.obj"
-	-@erase "$(INTDIR)\FBControl.pch"
-	-@erase "$(INTDIR)\FBControl.res"
-	-@erase "$(INTDIR)\FBControl.sbr"
-	-@erase "$(INTDIR)\FBDialog.obj"
-	-@erase "$(INTDIR)\FBDialog.sbr"
-	-@erase "$(INTDIR)\FBPanel.obj"
-	-@erase "$(INTDIR)\FBPanel.sbr"
-	-@erase "$(INTDIR)\services.obj"
-	-@erase "$(INTDIR)\services.sbr"
-	-@erase "$(INTDIR)\StdAfx.obj"
-	-@erase "$(INTDIR)\StdAfx.sbr"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
-	-@erase "$(OUTDIR)\FBControl.bsc"
-	-@erase "$(OUTDIR)\FBControl.exp"
-	-@erase "$(OUTDIR)\FBControl.lib"
-	-@erase "$(OUTDIR)\FBControl.pdb"
-	-@erase "c:\winnt\system32\FBControl.cpl"
-	-@erase "c:\winnt\system32\FBControl.ilk"
-
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(INTERBASE)/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_WINDLL" /D "CPL_APPLET" /D "SUPERSERVER" /U "TRACE" /Fr"$(INTDIR)\\" /Fp"$(INTDIR)\FBControl.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
-RSC_PROJ=/l 0x809 /fo"$(INTDIR)\FBControl.res" /d "_DEBUG" 
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\FBControl.bsc" 
-BSC32_SBRS= \
-	"$(INTDIR)\ctrlpan.sbr" \
-	"$(INTDIR)\FBControl.sbr" \
-	"$(INTDIR)\FBDialog.sbr" \
-	"$(INTDIR)\FBPanel.sbr" \
-	"$(INTDIR)\services.sbr" \
-	"$(INTDIR)\StdAfx.sbr"
-
-"$(OUTDIR)\FBControl.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
-    $(BSC32) @<<
-  $(BSC32_FLAGS) $(BSC32_SBRS)
-<<
-
-LINK32=link.exe
-LINK32_FLAGS=gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /incremental:yes /pdb:"$(OUTDIR)\FBControl.pdb" /debug /machine:I386 /def:".\FBControl.def" /out:"c:/winnt/system32/FBControl.cpl" /implib:"$(OUTDIR)\FBControl.lib" /pdbtype:sept /libpath:"$(INTERBASE)/lib" 
-DEF_FILE= \
-	".\FBControl.def"
-LINK32_OBJS= \
-	"$(INTDIR)\ctrlpan.obj" \
-	"$(INTDIR)\FBControl.obj" \
-	"$(INTDIR)\FBDialog.obj" \
-	"$(INTDIR)\FBPanel.obj" \
-	"$(INTDIR)\services.obj" \
-	"$(INTDIR)\StdAfx.obj" \
-	"$(INTDIR)\FBControl.res"
-
-"c:\winnt\system32\FBControl.cpl" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ENDIF 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
@@ -280,6 +93,261 @@ LINK32_OBJS= \
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
+
+MTL=midl.exe
+MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
+RSC=rc.exe
+RSC_PROJ=/l 0x40c /fo"$(INTDIR)\FBControl.res" /d "NDEBUG" 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\FBControl.bsc" 
+BSC32_SBRS= \
+	"$(INTDIR)\ctrlpan.sbr" \
+	"$(INTDIR)\FBControl.sbr" \
+	"$(INTDIR)\FBDialog.sbr" \
+	"$(INTDIR)\FBPanel.sbr" \
+	"$(INTDIR)\services.sbr" \
+	"$(INTDIR)\StdAfx.sbr"
+
+"$(OUTDIR)\FBControl.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
+LINK32=link.exe
+LINK32_FLAGS=shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /incremental:no /pdb:"$(OUTDIR)\FirebirdControl.pdb" /machine:I386 /def:".\FBControl.def" /out:"$(OUTDIR)\FirebirdControl.cpl" /implib:"$(OUTDIR)\FirebirdControl.lib" 
+DEF_FILE= \
+	".\FBControl.def"
+LINK32_OBJS= \
+	"$(INTDIR)\ctrlpan.obj" \
+	"$(INTDIR)\FBControl.obj" \
+	"$(INTDIR)\FBDialog.obj" \
+	"$(INTDIR)\FBPanel.obj" \
+	"$(INTDIR)\services.obj" \
+	"$(INTDIR)\StdAfx.obj" \
+	"$(INTDIR)\FBControl.res"
+
+"$(OUTDIR)\FirebirdControl.cpl" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    $(LINK32) @<<
+  $(LINK32_FLAGS) $(LINK32_OBJS)
+<<
+
+!ELSEIF  "$(CFG)" == "FBControl - Win32 Debug"
+
+OUTDIR=.\Debug
+INTDIR=.\Debug
+# Begin Custom Macros
+OutDir=.\Debug
+# End Custom Macros
+
+ALL : "$(OUTDIR)\FirebirdControl.cpl" "$(OUTDIR)\FBControl.pch" "$(OUTDIR)\FBControl.bsc"
+
+
+CLEAN :
+	-@erase "$(INTDIR)\ctrlpan.obj"
+	-@erase "$(INTDIR)\ctrlpan.sbr"
+	-@erase "$(INTDIR)\FBControl.obj"
+	-@erase "$(INTDIR)\FBControl.pch"
+	-@erase "$(INTDIR)\FBControl.res"
+	-@erase "$(INTDIR)\FBControl.sbr"
+	-@erase "$(INTDIR)\FBDialog.obj"
+	-@erase "$(INTDIR)\FBDialog.sbr"
+	-@erase "$(INTDIR)\FBPanel.obj"
+	-@erase "$(INTDIR)\FBPanel.sbr"
+	-@erase "$(INTDIR)\services.obj"
+	-@erase "$(INTDIR)\services.sbr"
+	-@erase "$(INTDIR)\StdAfx.obj"
+	-@erase "$(INTDIR)\StdAfx.sbr"
+	-@erase "$(INTDIR)\vc60.idb"
+	-@erase "$(INTDIR)\vc60.pdb"
+	-@erase "$(OUTDIR)\FBControl.bsc"
+	-@erase "$(OUTDIR)\FirebirdControl.cpl"
+	-@erase "$(OUTDIR)\FirebirdControl.exp"
+	-@erase "$(OUTDIR)\FirebirdControl.ilk"
+	-@erase "$(OUTDIR)\FirebirdControl.lib"
+	-@erase "$(OUTDIR)\FirebirdControl.pdb"
+
+"$(OUTDIR)" :
+    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+
+CPP=cl.exe
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(INTERBASE)/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_WINDLL" /D "CPL_APPLET" /D "SUPERSERVER" /U "TRACE" /Fr"$(INTDIR)\\" /Fp"$(INTDIR)\FBControl.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+MTL=midl.exe
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+RSC=rc.exe
+RSC_PROJ=/l 0x809 /fo"$(INTDIR)\FBControl.res" /d "_DEBUG" 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\FBControl.bsc" 
+BSC32_SBRS= \
+	"$(INTDIR)\ctrlpan.sbr" \
+	"$(INTDIR)\FBControl.sbr" \
+	"$(INTDIR)\FBDialog.sbr" \
+	"$(INTDIR)\FBPanel.sbr" \
+	"$(INTDIR)\services.sbr" \
+	"$(INTDIR)\StdAfx.sbr"
+
+"$(OUTDIR)\FBControl.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
+LINK32=link.exe
+LINK32_FLAGS=gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /incremental:yes /pdb:"$(OUTDIR)\FirebirdControl.pdb" /debug /machine:I386 /def:".\FBControl.def" /out:"$(OUTDIR)\FirebirdControl.cpl" /implib:"$(OUTDIR)\FirebirdControl.lib" /pdbtype:sept /libpath:"$(INTERBASE)/lib" 
+DEF_FILE= \
+	".\FBControl.def"
+LINK32_OBJS= \
+	"$(INTDIR)\ctrlpan.obj" \
+	"$(INTDIR)\FBControl.obj" \
+	"$(INTDIR)\FBDialog.obj" \
+	"$(INTDIR)\FBPanel.obj" \
+	"$(INTDIR)\services.obj" \
+	"$(INTDIR)\StdAfx.obj" \
+	"$(INTDIR)\FBControl.res"
+
+"$(OUTDIR)\FirebirdControl.cpl" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    $(LINK32) @<<
+  $(LINK32_FLAGS) $(LINK32_OBJS)
+<<
+
+!ELSEIF  "$(CFG)" == "FBControl - Win32 TestDebug"
+
+OUTDIR=.\TestDebug
+INTDIR=.\TestDebug
+# Begin Custom Macros
+OutDir=.\TestDebug
+# End Custom Macros
+
+ALL : "c:\winnt\system32\FirebirdControl.cpl" "$(OUTDIR)\FBControl.pch" "$(OUTDIR)\FBControl.bsc"
+
+
+CLEAN :
+	-@erase "$(INTDIR)\ctrlpan.obj"
+	-@erase "$(INTDIR)\ctrlpan.sbr"
+	-@erase "$(INTDIR)\FBControl.obj"
+	-@erase "$(INTDIR)\FBControl.pch"
+	-@erase "$(INTDIR)\FBControl.res"
+	-@erase "$(INTDIR)\FBControl.sbr"
+	-@erase "$(INTDIR)\FBDialog.obj"
+	-@erase "$(INTDIR)\FBDialog.sbr"
+	-@erase "$(INTDIR)\FBPanel.obj"
+	-@erase "$(INTDIR)\FBPanel.sbr"
+	-@erase "$(INTDIR)\services.obj"
+	-@erase "$(INTDIR)\services.sbr"
+	-@erase "$(INTDIR)\StdAfx.obj"
+	-@erase "$(INTDIR)\StdAfx.sbr"
+	-@erase "$(INTDIR)\vc60.idb"
+	-@erase "$(INTDIR)\vc60.pdb"
+	-@erase "$(OUTDIR)\FBControl.bsc"
+	-@erase "$(OUTDIR)\FirebirdControl.exp"
+	-@erase "$(OUTDIR)\FirebirdControl.lib"
+	-@erase "$(OUTDIR)\FirebirdControl.pdb"
+	-@erase "c:\winnt\system32\FirebirdControl.cpl"
+	-@erase "c:\winnt\system32\FirebirdControl.ilk"
+
+"$(OUTDIR)" :
+    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
+
+CPP=cl.exe
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /I "$(INTERBASE)/include" /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "_WINDLL" /D "CPL_APPLET" /D "SUPERSERVER" /U "TRACE" /Fr"$(INTDIR)\\" /Fp"$(INTDIR)\FBControl.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+
+.c{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.c{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cpp{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+.cxx{$(INTDIR)}.sbr::
+   $(CPP) @<<
+   $(CPP_PROJ) $< 
+<<
+
+MTL=midl.exe
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+RSC=rc.exe
+RSC_PROJ=/l 0x809 /fo"$(INTDIR)\FBControl.res" /d "_DEBUG" 
+BSC32=bscmake.exe
+BSC32_FLAGS=/nologo /o"$(OUTDIR)\FBControl.bsc" 
+BSC32_SBRS= \
+	"$(INTDIR)\ctrlpan.sbr" \
+	"$(INTDIR)\FBControl.sbr" \
+	"$(INTDIR)\FBDialog.sbr" \
+	"$(INTDIR)\FBPanel.sbr" \
+	"$(INTDIR)\services.sbr" \
+	"$(INTDIR)\StdAfx.sbr"
+
+"$(OUTDIR)\FBControl.bsc" : "$(OUTDIR)" $(BSC32_SBRS)
+    $(BSC32) @<<
+  $(BSC32_FLAGS) $(BSC32_SBRS)
+<<
+
+LINK32=link.exe
+LINK32_FLAGS=gds32_ms.lib shlwapi.lib /nologo /version:1.0 /subsystem:windows /dll /incremental:yes /pdb:"$(OUTDIR)\FirebirdControl.pdb" /debug /machine:I386 /def:".\FBControl.def" /out:"c:/winnt/system32/FirebirdControl.cpl" /implib:"$(OUTDIR)\FirebirdControl.lib" /pdbtype:sept /libpath:"$(INTERBASE)/lib" 
+DEF_FILE= \
+	".\FBControl.def"
+LINK32_OBJS= \
+	"$(INTDIR)\ctrlpan.obj" \
+	"$(INTDIR)\FBControl.obj" \
+	"$(INTDIR)\FBDialog.obj" \
+	"$(INTDIR)\FBPanel.obj" \
+	"$(INTDIR)\services.obj" \
+	"$(INTDIR)\StdAfx.obj" \
+	"$(INTDIR)\FBControl.res"
+
+"c:\winnt\system32\FirebirdControl.cpl" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
+    $(LINK32) @<<
+  $(LINK32_FLAGS) $(LINK32_OBJS)
+<<
+
+!ENDIF 
 
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
