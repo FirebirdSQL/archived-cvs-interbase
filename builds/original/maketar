@@ -132,6 +132,7 @@ if [ "$SUPERSERVER" ]; then
 	    ( cd mtar/interbase/lib; ln -s gdsmt.so.0 gds.so.0 )
 	    TARFLAGS_CREATE="cvpf"
 	    TARFLAGS_VIEW="tvf"
+	    cp interbase/install mtar/interbase/install
 	fi
 	if [ -f interbase/lib/ib_util.so ]; then
 	    cp interbase/lib/ib_util.so mtar/interbase/lib/
