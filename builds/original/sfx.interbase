@@ -718,19 +718,19 @@ superMiscFiles:	force
 	$(CP) firebird/skywalker/install/misc/firebird.init.d.* source/interbase/misc
 
 install: force
-	make -f firebird/skywalker/install/Makefile install
+	make -f firebird/install/linux/Makefile install
 
 runclassicinstall: force
-	make -f firebird/skywalker/install/Makefile runclassicinstall
+	make -f firebird/install/linux/Makefile runclassicinstall
 
 classicpackages: force
-	make -f firebird/skywalker/install/Makefile classicpackages
+	make -f firebird/install/linux/Makefile classicpackages
 
 classictarfile: force
-	make -f firebird/skywalker/install/Makefile classictarfile
+	make -f firebird/install/linux/Makefile classictarfile
 
 classicrpmfile: force
-	make -f firebird/skywalker/install/Makefile classicrpmfile
+	make -f firebird/install/linux/Makefile classicrpmfile
 
 
 runsuperinstall: force
