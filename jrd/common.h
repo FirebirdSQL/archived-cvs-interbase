@@ -250,6 +250,11 @@ $Id$
    macro, and we will supply that function where we need it. */
 #define PLATFORM_SUPPLIES_XDR_HYPER
 
+#ifdef SOLX86
+#define LSEEK_OFFSET_CAST (off_t)
+#endif
+
+
 #define ATEXIT(c)       atexit (c)
 #define SETPGRP         setpgrp ()
 #define SIGACTION_SUPPORTED
