@@ -1288,7 +1288,7 @@ else
 /* allocate buffer space for either all the runs, if they fit, or for
    as many as allow */
 
-for (run = scb->scb_runs; count; count--, run = run->run_next)
+for (run = scb->scb_runs; run && count; count--, run = run->run_next)
     {
     run->run_buffer = buffer;
     buffer += size;
