@@ -73,20 +73,24 @@ CHMOD_VAL=		666
 
 CURSES_LIB=             
 DSQL_P_OBJS=		dsql_p_objects
-FORM_OBJECTS=		form.o
-FORM_TRN_OBJECTS=	form_trn.o
+
+FORM_OBJECTS=		noform.o
+FORM_TRN_OBJECTS=
+#FORM_OBJECTS=		form.o
+#FORM_TRN_OBJECTS=	form_trn.o
 FUNCTIONS=		functions.bin
 FUNCSHR=		source/interbase/lib/gdsf.so
 GDS_LINK=		$(GDSSHR_LINK)
-GDS_PYXIS=		gds_pyxis.a
+GDS_PYXIS=
+#GDS_PYXIS=		gds_pyxis.a
 GDSLIB_BACKEND=		source/interbase/lib/gds_b.a
 GDSLIB_LINK=		-Lsource/jrd -lgds_b -lc -ldl -lcrypt
 
 GDSSHR=			source/interbase/lib/gds.so
 LINUX_GDSSHR=		$(GDSSHR)
-GDSSHR_LINK=		$(SHRLIB_DIR) -lgds -ldl -lgds_pyxis -lcrypt -lncurses
+GDSSHR_LINK=		$(SHRLIB_DIR) -lgds -ldl -lcrypt
 #PIPE_GDSSHR=		source/interbase/lib/gds.so.0
-PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) -lgds -lgds_pyxis
+PIPE_GDSSHR_LINK=	$(SHRLIB_DIR) -lgds
 HLPDIR=			source/qli/
 HOSTNAME=		`hostname | cut -d'.' -f1`
 INCLUDES=		include_so include_so_ada	
@@ -114,11 +118,19 @@ MUISQL_MU_LIB=		-L /usr/gds.$(HOSTNAME)/qa_tools/lib -lmu
 MUISQL_LINK_OPTS=	$(MUISQL_MU_LIB) $(PIPE_GDSSHR_LINK) -lm 
 PIC_FLAGS=		$(CFLAGS) -fPIC
 PIPE=			gds.a gds_pipe
-PYXIS=			pyxis
-PYXIS_MISC_OBJS=	$(PYXIS_MISC)
-PYXIS_P_MISC_OBJS=	$(PYXIS_P_MISC)
-PYXIS_OBJECTS=		pyxis_objects
-PYXIS_MISC_OBJECTS=	$(PYXDIR)cdm.o $(PYXDIR)vt100.o $(PYXDIR)sun_ftn_pyxis.o
+
+PYXIS=			
+PYXIS_MISC_OBJS=
+PYXIS_P_MISC_OBJS=
+PYXIS_OBJECTS=
+PYXIS_MISC_OBJECTS=
+
+#PYXIS=			pyxis
+#PYXIS_MISC_OBJS=	$(PYXIS_MISC)
+#PYXIS_P_MISC_OBJS=	$(PYXIS_P_MISC)
+#PYXIS_OBJECTS=		pyxis_objects
+#PYXIS_MISC_OBJECTS=	$(PYXDIR)cdm.o $(PYXDIR)vt100.o $(PYXDIR)sun_ftn_pyxis.o
+
 REG_HELP=		isc_ins_hlp.dat
 REMOTE_GDSSHR=		$(GDSSHR)
 REMOTE_GDSSHR_LINK=	$(SERVER_LINK)

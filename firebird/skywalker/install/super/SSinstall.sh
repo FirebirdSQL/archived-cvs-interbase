@@ -74,7 +74,7 @@
     fi
     ln -s libgds.so.0 /usr/lib/libgds.so
     cp -f interbase/lib/ib_util.so /usr/lib/libib_util.so 
-    cp -f interbase/lib/gds_pyxis.a /usr/lib/libgds_pyxis.a 
+#    cp -f interbase/lib/gds_pyxis.a /usr/lib/libgds_pyxis.a 
 
     cp interbase/intl/gdsintl /opt/interbase/intl/gdsintl 
     cp interbase/UDF/ib_udf /opt/interbase/UDF/ib_udf 

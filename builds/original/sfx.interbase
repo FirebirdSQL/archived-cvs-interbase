@@ -68,11 +68,11 @@ super_installer:	$(SUPER_PLATFORM_INSTALLER)
 	echo "Super Installer created"
 
 executables:	alice burp dudley gpre miscFiles $(INTL) isql locks \
-	pyxis qli remote spit utilities \
+	 qli remote spit utilities \
 	$(SHARED_AM) $(LINKABLE_LIBS)
 
 super_executables:	alice burp dudley gpre superMiscFiles $(INTL) isql locks \
-	super_targets pyxis qli remote spit utilities \
+	super_targets qli remote spit utilities \
 	$(SHARED_AM) $(LINKABLE_LIBS)
 	
 super_targets: 	s_run_codes s_alice s_burp s_dba s_security_c super_client super_server super_utils 

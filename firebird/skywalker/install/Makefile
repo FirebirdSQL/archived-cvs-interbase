@@ -13,7 +13,7 @@ InstallRoot=firebird/skywalker/install
 RedhatPackageDir=/usr/src/redhat/RPMS/i386
 RedhatPackageDir=/usr/src/RPM/RPMS/i386
 
-Version=1.0.0-0.Beta2
+Version=1.0.0-0a.Beta2
 
 
 ClassicTarFile=FirebirdCS-$(Version).tar.gz

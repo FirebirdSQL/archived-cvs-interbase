@@ -159,11 +159,11 @@ $(CODES) : source/jrd/codes.e
 # 1995-June-7 David Schnepper 
 # removed pyxis 3-Aug-00 TMC
 #executables:	alice burp dudley gpre miscFiles $(INTL) isql locks \
-	$(SUPER_SERVER) pyxis qli remote spit utilities \
+	$(SUPER_SERVER)  qli remote spit utilities \
 	$(SHARED_AM) $(LINKABLE_LIBS)
 	
 executables:    alice dudley miscFiles $(INTL) isql locks \
-	$(SUPER_SERVER) pyxis qli remote spit utilities \
+	$(SUPER_SERVER)  qli remote spit utilities \
 	$(SHARED_AM) $(LINKABLE_LIBS)
 
 super_firebird: gds.h includes fireboot super_targets dudley superMiscFiles $(INTL) isql locks qli remote spit help msgs msgs_intl dba gfix gsec security_db extlib examples completed
