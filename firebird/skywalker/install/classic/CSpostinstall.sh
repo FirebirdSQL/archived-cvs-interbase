@@ -343,6 +343,19 @@ fixFilePermissions() {
 
     cd ..
 
+
+
+    # Set a default of read all files in intl
+
+    cd intl
+
+    for i in `ls`
+      do
+         chmod a=r  $i
+    done
+
+    cd ..
+
     # Set a default of read all files in examples
 
     cd examples
@@ -403,6 +416,31 @@ fixFilePermissionsRoot() {
 
 
     cd $IBRootDir
+
+    # Set a default of read all files in includes
+
+    cd include
+
+    for i in `ls`
+      do
+         chmod a=r  $i
+    done
+
+    cd ..
+
+
+
+    # Set a default of read all files in intl
+
+    cd intl
+
+    for i in `ls`
+      do
+         chmod a=r  $i
+    done
+
+    cd ..
+
 
     # Fix lock files
     for i in isc_init1 isc_lock1 isc_event1 

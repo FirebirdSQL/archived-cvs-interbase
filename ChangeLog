@@ -1,3 +1,53 @@
+2001-05-07 08:02  bellardo
+
+	* interbase/remote/interface.c:
+	
+	Fix for bug 419964 (buffer overflow for remote/interface.c
+	version).
+
+2001-05-07 00:22  nmcc
+
+	* interbase/burp/burp.h:
+	
+	Remove stray Win32 version string.
+
+2001-05-07 00:20  nmcc
+
+	* interbase/builds/original/: sfx.jrd, sfx.msgs:
+	
+	Explicitly run temporary programs their current directory.
+
+2001-05-04 03:30  nmcc
+
+	* interbase/: Configure.sh, builds/original/buildRefDatabases:
+	
+	Update for Solaris (Sparc and x86).
+
+2001-05-04 03:20  nmcc
+
+	* interbase/builds_win32/original/build_no.ksh:
+	
+	Exclude lines containing nulls which are WinXX specific on Solaris
+	as the Sun compiler fails to process the file.
+
+2001-05-04 03:10  nmcc
+
+	* interbase/burp/restore.e:
+	
+	Remove cast which stops compiling on Solaris with Sun compiler.
+
+2001-05-01 00:39  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	don't execute any triggers twice
+
+2001-04-30 23:29  awharrison
+
+	* interbase/burp/restore.e:
+	
+	missed an error message
+
 2001-04-29 21:05  nmcc
 
 	* interbase/Configure.sh:

@@ -4659,7 +4659,8 @@ while (p < end_dpb)
 	    {
 	    char *t_data;
 	    options->dpb_working_directory = get_string_parameter (&p, scratch);
-
+            /* just to be sure initialize it (thanks to Brad Pepers)  FSG 6 May 2001*/
+            t_data=NULL;
 	    THD_getspecific_data((void**)&t_data);
 
 	    /* 
@@ -4687,8 +4688,10 @@ while (p < end_dpb)
 		*scratch += l;
 	    }
 #endif
+	    /* Only free it, if it is assigned (thanks to Brad Pepers) FSG 6 May 2001*/
+	    if (t_data)
+	      free(t_data);
 	    /* Null out the thread local data so that further references will fail */
-	    free(t_data);
 	    t_data=NULL;
 	    THD_putspecific_data((void*)t_data);
 	    }

@@ -3414,7 +3414,6 @@ struct timeval	timeout;
 
 timeout.tv_sec = SELECT_TIMEOUT;
 timeout.tv_usec = 0;
-
 for (;;)
     {
     selct->slct_count = selct->slct_width = 0;
@@ -3469,6 +3468,14 @@ for (;;)
 
     for (;;)
     	{
+        /* I moved this into the loop to avoid a 
+	   busy loop when timout is changed by select
+	   (thanks to Brad Pepers)
+	   FSG 6 may 2001 */
+	   
+        timeout.tv_sec = SELECT_TIMEOUT;
+        timeout.tv_usec = 0;
+
 #ifdef WIN_NT
     	selct->slct_count = select (FD_SETSIZE, &selct->slct_fdset,
 	    (fd_set*) NULL, (fd_set*) NULL, &timeout);
@@ -4347,7 +4354,7 @@ static int packet_receive (
  **************************************/
 int		n;
 #ifndef REQUESTER
-struct timeval	timeout, *time_ptr;
+struct timeval	savetime,timeout, *time_ptr;
 int		ph;
 fd_set		slct_fdset;
 int		slct_count;
@@ -4371,6 +4378,11 @@ if (port->port_protocol == 0)
    timeout.tv_sec = port->port_connect_timeout;
    time_ptr = &timeout;
    }
+   
+savetime = timeout;  /* on Linux systems (and possibly others too) 
+                       select will eventually change timout values
+                       so save it here for later reuse. Thanks to Brad Pepers
+		       who reported this bug  FSG 3 MAY 2001*/     
 
 ph = (int) port->port_handle;
 #endif
@@ -4416,6 +4428,9 @@ for (;;)
 	    slct_count = select ((SOCKET) port->port_handle + 1, &slct_fdset, 
 			     (fd_set*) NULL, (fd_set*) NULL, time_ptr);
 #endif
+            timeout=savetime; /* restore original timeout value FSG 3 MAY 2001*/  
+
+
 	    if (slct_count != -1 || !INTERRUPT_ERROR(ERRNO))
    	    	break;
 	    }
