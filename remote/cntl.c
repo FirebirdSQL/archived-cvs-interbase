@@ -163,7 +163,9 @@ if (report_status (SERVICE_START_PENDING, NO_ERROR, 1, 3000) &&
     report_status (SERVICE_START_PENDING, NO_ERROR, 2, 3000) &&
     !gds__thread_start ((FPTR_INT) main_handler, (void*) flag, 0, 0, NULL_PTR) &&
     report_status (SERVICE_RUNNING, NO_ERROR, 0, 0))
+{
     WaitForSingleObject (stop_event_handle, INFINITE);
+}
 
 last_error = GetLastError();
 
@@ -185,6 +187,9 @@ do
 /* loop for 10 times about 7 minutes should be enough time for the server to
  * cleanup */
 
+/* TMN 29 Jul 2000 - close the thread handle */
+CloseHandle(cleanup_thread_handle);
+
 report_status (SERVICE_STOPPED, last_error, 0, 0);
 }
 
@@ -204,12 +209,16 @@ THREAD	*thread_ptr;
 THREAD	this_thread;
 
 THD_mutex_lock (thread_mutex);
-for (thread_ptr = &threads; *thread_ptr; thread_ptr = &(*thread_ptr)->thread_next)
+for (thread_ptr = &threads;
+     *thread_ptr;
+     thread_ptr = &(*thread_ptr)->thread_next)
+{
     if (*thread_ptr == (THREAD) thread)
 	{
 	*thread_ptr = ((THREAD) thread)->thread_next;
 	break;
 	}
+}
 THD_mutex_unlock (thread_mutex);
 
 this_thread = (THREAD)thread;
