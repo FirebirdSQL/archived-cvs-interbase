@@ -1,3 +1,47 @@
+2001-05-24 16:47  tamlin
+
+	* interbase/alice/tdr.c:
+	
+	bugfix
+
+2001-05-24 06:11  bellardo
+
+	* interbase/: Configure.sh, setup_dirs,
+	builds/original/prefix.darwin, builds/original/sfx.alice,
+	builds/original/sfx.burp, builds/original/sfx.client,
+	builds/original/sfx.dudley, builds/original/sfx.gpre,
+	builds/original/sfx.interbase, builds/original/sfx.jrd,
+	builds/original/sfx.qli, builds/original/sfx.remote,
+	builds/original/sfx.utilities, builds/original/sfx.wal,
+	builds/original/unset_prot, dsql/parse.sed, gpre/c_cxx.c,
+	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h,
+	jrd/functions.c, jrd/gds.c, jrd/ibase.h, jrd/isc_file.c,
+	jrd/isc_sync.c, jrd/jio.c, jrd/jrd.h, jrd/license.h, jrd/llio.c,
+	jrd/pag.c, jrd/pwd.c, jrd/pwd.h, jrd/sort.c, jrd/svc.c, jrd/thd.c,
+	jrd/thd.h, jrd/time.h, jrd/unix.c, jrd/utl.c, jrd/why.c,
+	lock/lock.c, lock/lockv3.h, msgs/build_file.e, pyxis/cdm.c,
+	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
+	utilities/drop.c, utilities/dropv3.c, wal/walw.c:
+	
+	Changes for the Darwin Classic port.  Required a light amount of
+	code changes and a moderate amount of changes to the build system. 
+	JMB
+
+2001-05-24 02:55  bellardo
+
+	* interbase/firebird/bellardo/darwin/: FirebirdFramework.make,
+	FirebirdStartupItem/Firebird,
+	FirebirdStartupItem/StartupParameters.plist:
+	
+	New files required to support the Darwin startup item and the
+	Darwin build process.
+
+2001-05-24 02:52  bellardo
+
+	* interbase/firebird/bellardo/darwin/: install, makefile:
+	
+	Updated to reflect new Darwin install process
+
 2001-05-21 09:14  robocop
 
 	* interbase/jrd/dyn_mod.e:
@@ -900,8 +944,7 @@
 	isql/extract.e, isql/isql.e, isql/isql.h, isql/show.e,
 	jrd/license.h, pyxis/debug.c, pyxis/edit.e, pyxis/fred.e:
 	
-	Changed all $Log$ tags to $Id$ BTW this will hopefully set
-	this_build to 2 :-)
+	Changed all Log: tags to ID: tags
 
 2000-12-08 17:18  fsg
 
