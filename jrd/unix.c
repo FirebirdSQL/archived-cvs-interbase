@@ -28,8 +28,9 @@
 #define LOCAL_SHLIB_DEFS
 #endif
 
-#include "../jrd/ib_stdio.h"
 #include "../jrd/common.h"
+
+#include "../jrd/ib_stdio.h"
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -38,9 +39,9 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#if !(defined SEEK_END && defined F_OK)
+/* #if !(defined SEEK_END && defined F_OK) */
 #include <unistd.h>
-#endif
+/* #endif */
 
 #include "../jrd/jrd.h"
 #include "../jrd/pio.h"
@@ -334,7 +335,11 @@ flag = O_RDWR |
 flag = O_RDWR | O_CREAT | (overwrite ? O_TRUNC : O_EXCL) | O_BINARY;
 #endif
 
+#ifdef UNIX_USE_64BITIO_FUNCS
+if ((desc = open64 (file_name, flag, MASK)) == -1)
+#else
 if ((desc = open (file_name, flag, MASK)) == -1)
+#endif
     ERR_post (isc_io_error,
 	gds_arg_string, "open O_CREAT",
 	gds_arg_cstring, length, ERR_string (string, length),
@@ -686,7 +691,11 @@ flag = O_RDWR | O_BINARY;
 for (i = 0; i < IO_RETRY; i++)
     {
 
+#ifdef UNIX_USE_64BITIO_FUNCS
+    if ((desc = open64 (ptr, flag)) != -1)
+#else
     if ((desc = open (ptr, flag)) != -1)
+#endif
         break;
     if (!SYSCALL_INTERRUPTED(errno))
         break;
@@ -699,7 +708,11 @@ if (desc == -1)
      */
     flag &= ~O_RDWR;
     flag |= O_RDONLY;
+#ifdef UNIX_USE_64BITIO_FUNCS
+    if ((desc = open64 (ptr, flag)) == -1)
+#else
     if ((desc = open (ptr, flag)) == -1)
+#endif
 	{
 	ERR_post (isc_io_error,
 	    gds_arg_string,	"open",
@@ -777,7 +790,11 @@ if (dbb->dbb_encrypt_key)
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
+#ifdef UNIX_USE_64BITIO_FUNCS
+		if ((bytes = pread64 (file->fil_desc, spare_buffer, size, LSEEK_OFFSET_CAST offset)) == size) 
+#else
 		if ((bytes = pread (file->fil_desc, spare_buffer, size, LSEEK_OFFSET_CAST offset)) == size) 
+#endif
 #else
     	if ((bytes = read (file->fil_desc, spare_buffer, size)) == size)
 #endif
@@ -801,7 +818,11 @@ else
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
+#ifdef UNIX_USE_64BITIO_FUNCS
+		if ((bytes = pread64 (file->fil_desc, page, size, LSEEK_OFFSET_CAST offset)) == size)
+#else
 		if ((bytes = pread (file->fil_desc, page, size, LSEEK_OFFSET_CAST offset)) == size)
+#endif
 	    break;
 #else
     	if ((bytes = read (file->fil_desc, page, size)) == size)
@@ -882,7 +903,11 @@ if (dbb->dbb_encrypt_key)
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
+#ifdef UNIX_USE_64BITIO_FUNCS
+    	if ((bytes = pwrite64 (file->fil_desc, spare_buffer, size, LSEEK_OFFSET_CAST offset)) == size)
+#else
     	if ((bytes = pwrite (file->fil_desc, spare_buffer, size, LSEEK_OFFSET_CAST offset)) == size)
+#endif
 		break;
 #else
     	if ((bytes = write (file->fil_desc, spare_buffer, size)) == size)
@@ -901,7 +926,11 @@ else
     	if (!(file = seek_file (file, bdb, &offset, status_vector)))
 	    return FALSE;
 #ifdef PREAD_PWRITE
+#ifdef UNIX_USE_64BITIO_FUNCS
+    	if ((bytes = pwrite64 (file->fil_desc, page, size, LSEEK_OFFSET_CAST offset)) == size)/*-if ((bytes = pwrite (file->fil_desc, page, size, offset)) == size)*/
+#else
     	if ((bytes = pwrite (file->fil_desc, page, size, LSEEK_OFFSET_CAST offset)) == size)/*-if ((bytes = pwrite (file->fil_desc, page, size, offset)) == size)*/
+#endif
 	    break;
 #else
     	if ((bytes = write (file->fil_desc, page, size)) == size)
@@ -1021,7 +1050,12 @@ if (lseek_offset > MAX_SLONG)
 #else
 THD_MUTEX_LOCK (file->fil_mutex);
 
+#ifdef UNIX_USE_64BITIO_FUNCS
+if ((lseek64 (file->fil_desc, LSEEK_OFFSET_CAST lseek_offset, 0)) == -1)
+#else
 if ((lseek (file->fil_desc, LSEEK_OFFSET_CAST lseek_offset, 0)) == -1)
+#endif
+
     {
     THD_MUTEX_UNLOCK (file->fil_mutex);
     return (FIL) unix_error ("lseek", file, isc_io_access_err, status_vector);

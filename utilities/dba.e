@@ -2316,7 +2316,11 @@ for (fil = tddba->files; page_number > fil->fil_max_page && fil->fil_next;)
 
 page_number -= fil->fil_min_page - fil->fil_fudge;
 offset = ((UINT64)page_number) * ((UINT64)tddba->page_size);
+#ifdef UNIX_USE_64BITIO_FUNCS
+if (lseek64 (fil->fil_desc, offset, 0) == -1)
+#else
 if (lseek (fil->fil_desc, offset, 0) == -1)
+#endif
     {
 #ifdef SUPERSERVER
     CMD_UTIL_put_svc_status (tddba->dba_service_blk->svc_status,

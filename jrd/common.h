@@ -75,6 +75,11 @@
 
 /* Linux for Intel platforms*/
 #ifdef LINUX
+
+#ifdef UNIX_64_BIT_IO
+#define UNIX_USE_64BITIO_FUNCS
+#endif
+
 #define QUADFORMAT "ll"
 #define QUADCONST(n) (n##LL)
 #define MMAP_SUPPORTED
