@@ -366,7 +366,7 @@ static int sem_exclusive (
  **************************************/
 int	semid;
 
-#if !(defined SUNOS4 || defined linux || defined FREEBSD || defined NETBSD)
+#if !(defined SUNOS4 || defined linux || defined FREEBSD || defined NETBSD || defined SINIXZ)
 return semget (key, (int) count, IPC_EXCL);
 #else
 if ((semid = semget (key, (int) count, IPC_EXCL)) != -1)
