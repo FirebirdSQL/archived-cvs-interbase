@@ -1,3 +1,21 @@
+2002-06-20 12:01  dimitr
+
+	* interbase/this_build (1.843):
+	
+	inc_build_no
+
+2002-06-20 12:01  dimitr
+
+	* interbase/jrd/sdl.c (1.4):
+	
+	Fixed bug with INT64 array slices. Thanks to Artem Petkevych.
+
+2002-06-17 14:14  fsg
+
+	* interbase/this_build (1.842):
+	
+	inc_build_no
+
 2002-06-17 12:19  paul_reeves
 
 	* interbase/: Configure.sh (1.13), builds/original/prefix.hp10
