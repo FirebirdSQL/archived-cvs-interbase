@@ -135,7 +135,7 @@ buildSuperDir() {
     mkdir -p $SuperDirName
 
     cd $SuperDirName
-    if [ $BuildHostType = "SOLARIS" ]; then
+    if [ $BuildHostType = "SOLARIS" -o $BuildHostType = "SCO_EV" ]; then
       ln -s ../../$ClassicDirName/[a-z]*[!oa] .  
     else   
       ln -s ../../$ClassicDirName/[a-z]*[^oa] .  
@@ -303,7 +303,7 @@ checkVariables() {
 
      if [ "$INTERBASE" = "" -o "$INTERBASE" = "`pwd`/interbase" ]
        then
-         if [ $SYS_TYPE = 'FREEBSD' -o $SYS_TYPE = 'NETBSD' ]
+         if [ $SYS_TYPE = 'FREEBSD' -o $SYS_TYPE = 'NETBSD' -o $SYS_TYPE = 'SCO_EV' ]
            then
              INTERBASE="/usr/interbase"
              export INTERBASE
@@ -426,6 +426,10 @@ buildTargetInterbaseDirs() {
         cp $INTERBASE/bin/gbak bin
         copyIfExists $INTERBASE/bin/gds_lock_mgr bin
         cp $INTERBASE/help/help.gdb help
+        if [ $SYS_TYPE = 'SCO_EV' ]
+          then
+            refreshLink $INTERBASE/isc_lock1.`uname -n` .
+        fi
     fi
 
     cd ..

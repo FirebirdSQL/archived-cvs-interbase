@@ -35,7 +35,7 @@ export SYS_TYPE
 #
 if [ $1 = 'SUN3_4' -o $1 = 'SUN4' -o $1 = 'AP' -o $1 = 'AX' ]; then
     TR='tr "A-Z" "a-z"'
-elif [ $1 = 'HP300' -o $1 = 'HP700' -o $1 = 'HP800' -o $1 = 'HM300' -o $1 = 'LINUX' ]; then
+elif [ $1 = 'HP300' -o $1 = 'HP700' -o $1 = 'HP800' -o $1 = 'HM300' -o $1 = 'LINUX' -o $1 = 'SCO_EV' ]; then
     TR='tr "[[:upper:]]" "[[:lower:]]"'
 else
     TR='tr "[A-Z]" "[a-z]"'

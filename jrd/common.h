@@ -807,6 +807,8 @@ typedef unsigned char   BOOLEAN;
 
 #else /* ifndef SCO_EV */
 
+#define QUADFORMAT "ll"
+#define QUADCONST(n) (n##LL)
 #define XENIX           1
 #define I386            1
 #define VAX             1
