@@ -192,4 +192,5 @@ CARBONCORE_DIR_FLAG=	-F/System/Library/Frameworks/CoreServices.framework/Framewo
 #CARBONCORE_DIR_FLAG=	
 COREFOUNDATION_LINK=	-framework CoreFoundation
 
+
 #   End of file prefix.darwin:	$(VERSION)	$(PLATFORM)
