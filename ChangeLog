@@ -1,3 +1,10 @@
+2001-10-12 10:51  paulbeach
+
+	* interbase/jrd/: dyn_def.e, dls.c, dls_proto.h, ext.c, fil.h,
+	isc.c, isc.h:
+	
+	Support for EXTERNAL_FILE_DIRECTORY config parameter
+
 2001-10-11 10:59  robocop
 
 	* interbase/jrd/exe.c:
