@@ -142,7 +142,15 @@ make %FLAGS% -DCLIENT -fmakefile.lib install_svc.exe
 if errorlevel 1 goto fail
 make %FLAGS% -DCLIENT -fmakefile.lib dba.exe
 if errorlevel 1 goto fail
-cd ..
+::cd ..
+
+::Add in command-line build of Firebird Control Panel Applet
+::Note that we don't pass %FLAGS% as nmake doesn't understand -DDEV
+cd fbcpl
+if "%BUILDTYPE%"=="DEV" (nmake /f "FBControl.mak" CFG="FBControl - Win32 Debug"
+) else (nmake /f "FBControl.mak" CFG="FBControl - Win32 Release")
+if errorlevel 1 ((cd ..) & (goto fail) )
+cd ..\..
 
 cd msgs
 make %FLAGS% -DCLIENT -fmakefile.lib all
@@ -168,7 +176,7 @@ make %FLAGS% -fmakefile.lib ib_udf.dll
 if errorlevel 1 goto fail
 
 ::Add in command-line build of fbudf
-::nmake doesn't care much for the -DDEV in %FLAGS% so we do the test for it.
+::Note that we don't pass %FLAGS% as nmake doesn't understand -DDEV
 cd fbudf
 if "%BUILDTYPE%"=="DEV" (nmake /f "fbudf.mak" CFG="fbudf - Win32 Debug"
 ) else (nmake /f "fbudf.mak" CFG="fbudf - Win32 Release")

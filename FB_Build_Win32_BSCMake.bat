@@ -20,9 +20,11 @@
 :: create a browse database.
 
 @echo off
-dir /s /b *.sbr > bscmake.input
+dir /s /b *.sbr > bscmake.files
+sed /fbcpl/d bscmake.files > bscmake.input
 bscmake /n /o ib_debug\bin\ibserver.bsc @bscmake.input
 del /q bscmake.input
+del /q bscmake.files
 @echo Completed building MSVC browse database
 
 

@@ -8,7 +8,7 @@
 ;  for the specific language governing rights and limitations under the
 ;  License.
 ;
-;  The Original Code is copyright 2001-2002 IBPhoenix Inc.
+;  The Original Code is copyright 2001-2003 Paul Reeves for IBPhoenix.
 ;
 ;  The Initial Developer of the Original Code is IBPhoenix Inc.
 ;
@@ -21,8 +21,10 @@
 
 ;   Usage Notes:
 ;
-;   This script must be compiled with My InnoSetup extensions 3.0.4-beta or later
-;
+;   This script has been designed to work with My InnoSetup Extensions 3.0.6.2
+;   or later. It may work with earlier versions but this is neither guaranteed
+;   nor tested. My InnoSetup Extensions is available from
+;     http://www.wintax.nl/isx/
 ;   You may need to copy msvcrt.dll from your system32 directory
 ;   to the script directory before trying to compile.
 
@@ -34,23 +36,15 @@
 ;     existing install.
 ;
 ;
-;   Known bugs:
-;
-;   o Uninstallation is likely to remove the registration entries for the
-;     server even if the server is shared by another application. This is
-;     because the registration utility does not make any checks for a
-;     shared installation.
-;
-;     Until that is fixed the choices are:
-;     o Don't remove the registry key at all
-;     o Don't use instreg and manually specify the registry keys in the install script
-;
-;   o Inno Setup doesn't appear to provide a reliable way to detect and kill a
-;     running server application when it does an uninstall. This means that the
-;     server will remain running after the uninstall has completed. The uninstall
-;     does uninstall all other components.
 ;
 ;
+#define FirebirdURL "http://www.firebirdsql.org"
+
+#if GetEnv("BUILDTYPE") == "DEV"
+  #define BUILDTYPE "Debug"
+#else
+  #define BUILDTYPE "Release"
+#endif     
 
 
 [Setup]
@@ -60,9 +54,9 @@ AppName=Firebird Database Server 1.0
 AppID=FBDBServer1
 AppVerName=Firebird 1.0.0
 AppPublisher=Firebird Project
-AppPublisherURL=http://www.firebirdsql.org
-AppSupportURL=http://www.firebirdsql.org
-AppUpdatesURL=http://www.firebirdsql.org
+AppPublisherURL={#FirebirdURL}
+AppSupportURL={#FirebirdURL}
+AppUpdatesURL={#FirebirdURL}
 DefaultDirName={code:InstallDir|{pf}\Firebird}
 DefaultGroupName=Firebird
 AllowNoIcons=true
@@ -99,32 +93,35 @@ Name: AutoStartTask; Description: "Start &Firebird automatically everytime you b
 Name: MenuGroupTask; Description: Create a Menu &Group; Components: ServerComponent; MinVersion: 4,4;
 ;One for Ron
 ;Name: MenuGroupTask\desktopicon; Description: Create a &desktop icon; Components: ServerComponent; MinVersion: 4.0,4.0;
+Name: InstallCPLAppletTask; Description: "Install Control &Panel Applet?"; Components: ServerComponent; MinVersion: 4.0,4.0
 
 [Run]
 ;Always register Firebird
 Filename: "{app}\bin\instreg.exe"; Parameters: "install ""{app}"" "; StatusMsg: Updating the registry; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized
 
 ;If on NT/Win2k etc and 'Install and start service' requested
-Filename: "{app}\bin\instsvc.exe"; Parameters: "install ""{app}"" {code:ServiceStartFlags|""""}"; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
-Filename: "{app}\bin\instsvc.exe"; Description: "Start Firebird Service now?"; Parameters: start; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized postinstall; Tasks: UseServiceTask
+Filename: "{app}\bin\instsvc.exe"; Parameters: "install ""{app}"" {code:ServiceStartFlags|""""} "; StatusMsg: "Setting up the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
+Filename: "{app}\bin\instsvc.exe"; Description: "Start Firebird Service now?"; Parameters: start; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized postinstall; Tasks: UseServiceTask; Check: StartEngine;
 
 ;If 'start as application' requested
-Filename: "{code:StartApp|{app}\bin\ibserver.exe}"; Description: "Start Firebird now?"; Parameters: "-a"; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: ServerComponent; Flags: nowait postinstall; Tasks: UseApplicationTask
+Filename: "{code:StartApp|{app}\bin\ibserver.exe}"; Description: "Start Firebird now?"; Parameters: "-a"; StatusMsg: Starting the server; MinVersion: 0,4.0; Components: ServerComponent; Flags: nowait postinstall; Tasks: UseApplicationTask; Check: StartEngine;
 
 
 [Registry]
-;These will be the future Firebird entries
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty; Components: ClientComponent
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey; Components: ClientComponent
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey; Components: ClientComponent
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}; Components: ClientComponent
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: ClientComponent
+;In retrospect this wasn't such a good idea - uninstall of Fb 1.0 after installing Fb 1.5
+;will screw up the Fb 1.5 install.
+;;These will be the future Firebird entries
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL; Flags: uninsdeletekeyifempty; Components: ClientComponent
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\; Flags: uninsdeletekey; Components: ClientComponent
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; Flags: uninsdeletekey; Components: ClientComponent
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: RootDirectory; ValueData: {app}; Flags: uninsdeletevalue; Components: ClientComponent;
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: ServerDirectory; ValueData: {app}\bin; Components: ClientComponent;
 
-; If user has chosen to use guardian and not to install as service then we need to make sure that the guardian flag is set.
-Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Components: ServerComponent
-Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Components: ServerComponent
+;; If user has chosen to use guardian and not to install as service then we need to make sure that the guardian flag is set.
+;Root: HKLM; Subkey: SOFTWARE\Borland\InterBase\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Flags: uninsdeletevalue; Components: ServerComponent
+;Root: HKLM; Subkey: SOFTWARE\FirebirdSQL\Firebird\CurrentVersion; ValueType: string; ValueName: GuardianOptions; ValueData: {code:UseGuardian|0}; Flags: uninsdeletevalue; Components: ServerComponent
 
-;If use has chosen to start as App they may well want to start automatically. That is handled by a function below.
+;If user has chosen to start as App they may well want to start automatically. That is handled by a function below.
 ;Unless we set a marker here the uninstall will leave some annoying debris.
 Root: HKLM; Subkey: SOFTWARE\Microsoft\Windows\CurrentVersion\Run; ValueType: string; ValueName: Firebird; ValueData: ""; Flags: uninsdeletevalue; Tasks: UseApplicationTask;
 
@@ -134,52 +131,54 @@ Name: "{group}\Firebird Guardian"; Filename: {app}\bin\ibguard.exe; Parameters: 
 Name: "{group}\Firebird 1.0 Release Notes"; Filename: {app}\doc\Firebird_v1_ReleaseNotes.pdf; MinVersion: 4.0,4.0; Tasks: MenuGroupTask; IconIndex: 1; Comment: "Firebird 1.0 release notes. (Requires Acrobat Reader.)";
 Name: "{group}\Firebird 1.0 Readme"; Filename: {app}\readme.txt; MinVersion: 4.0,4.0; Tasks: MenuGroupTask;
 Name: "{group}\Uninstall Firebird"; Filename: {uninstallexe}; Comment: "Uninstall Firebird"
+Name: "{group}\Firebird Control Panel"; Filename: {sys}\rundll32.exe; Parameters: "shell32.dll,Control_RunDLL {sys}\FBControl.cpl"; Tasks: InstallCPLAppletTask;
 
 [Files]
-Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: ClientComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: builds_win32\install\readme.txt; DestDir: {app}; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\ibconfig; DestDir: {app}; Components: ServerComponent; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
-Source: interbase\isc4.gdb; DestDir: {app}; Components: ServerComponent; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall
-Source: interbase\isc4.gbk; DestDir: {app}; Components: ServerComponent; CopyMode: alwaysoverwrite
-Source: interbase\interbase.log; DestDir: {app}; Components: ServerComponent; CopyMode: dontcopy; Flags: uninsneveruninstall skipifsourcedoesntexist external
-Source: interbase\interbase.msg; DestDir: {app}; Components: ClientComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite;
-Source: interbase\bin\gdef.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite;
-Source: interbase\bin\gpre.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\gstat.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\ibguard.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\iblockpr.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\ibserver.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile;
-Source: interbase\bin\ib_util.dll; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: ClientComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\doc\*.*; DestDir: {app}\doc; Components: DevAdminComponent; CopyMode: alwaysoverwrite; Flags: skipifsourcedoesntexist external
-Source: interbase\help\*.*; DestDir: {app}\help; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\include\*.*; DestDir: {app}\include; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\intl\gdsintl.dll; DestDir: {app}\intl; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\lib\*.*; DestDir: {app}\lib; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\UDF\*.*; DestDir: {app}\UDF; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: interbase\examples\v5\*.*; DestDir: {app}\examples; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: ClientComponent; CopyMode: normal; Flags: overwritereadonly sharedfile
-Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: ClientComponent; CopyMode: onlyifdoesntexist; Flags: uninsneveruninstall sharedfile
-Source: extlib\fbudf\Release\fbudf.dll; DestDir: {app}\UDF; Components: ServerComponent; CopyMode: alwaysoverwrite; Flags: sharedfile
-Source: extlib\fbudf\fbudf.sql; DestDir: {app}\examples; Components: ServerComponent; CopyMode: alwaysoverwrite
-Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: ServerComponent; CopyMode: alwaysoverwrite
-Source: extlib\ib_util.pas; DestDir: {app}\include; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: firebird\install\doc_all_platforms\Firebird_v1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: DevAdminComponent; CopyMode: alwaysoverwrite
-Source: firebird\install\doc_all_platforms\Firebird_v1_*.html; DestDir: {app}\doc; Components: DevAdminComponent; CopyMode: alwaysoverwrite
+Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: ClientComponent; Flags: sharedfile;
+Source: builds_win32\install\readme.txt; DestDir: {app}; Components: DevAdminComponent; Flags: ignoreversion sharedfile;
+Source: interbase\ibconfig; DestDir: {app}; Components: ServerComponent;  Flags: uninsneveruninstall onlyifdoesntexist;
+Source: interbase\isc4.gdb; DestDir: {app}; Components: ServerComponent;  Flags: uninsneveruninstall onlyifdoesntexist;
+Source: interbase\isc4.gbk; DestDir: {app}; Components: ServerComponent; Flags: ignoreversion;
+Source: interbase\interbase.log; DestDir: {app}; Components: ServerComponent; Flags: uninsneveruninstall skipifsourcedoesntexist external dontcopy;
+Source: interbase\interbase.msg; DestDir: {app}; Components: ClientComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\gbak.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\bin\gdef.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\gfix.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\bin\gpre.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\gsec.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\gstat.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\ibguard.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\iblockpr.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\ibserver.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\ib_util.dll; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\instreg.exe; DestDir: {app}\bin; Components: ClientComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\instsvc.exe; DestDir: {app}\bin; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\bin\isql.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\bin\qli.exe; DestDir: {app}\bin; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\doc\*.*; DestDir: {app}\doc; Components: DevAdminComponent; Flags: ignoreversion skipifsourcedoesntexist external;
+Source: interbase\help\*.*; DestDir: {app}\help; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\include\*.*; DestDir: {app}\include; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\intl\gdsintl.dll; DestDir: {app}\intl; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\lib\*.*; DestDir: {app}\lib; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\UDF\*.*; DestDir: {app}\UDF; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: interbase\examples\v5\*.*; DestDir: {app}\examples; Components: DevAdminComponent; Flags: ignoreversion;
+Source: interbase\bin\gds32.dll; DestDir: {sys}\; Components: ClientComponent; Flags: promptifolder overwritereadonly sharedfile;
+Source: builds_win32\install\msvcrt.dll; DestDir: {sys}\; Components: ClientComponent;  Flags: uninsneveruninstall sharedfile onlyifdoesntexist;
+Source: extlib\fbudf\Release\fbudf.dll; DestDir: {app}\UDF; Components: ServerComponent; Flags: ignoreversion sharedfile;
+Source: extlib\fbudf\fbudf.sql; DestDir: {app}\examples; Components: ServerComponent; Flags: ignoreversion;
+Source: extlib\fbudf\fbudf.txt; DestDir: {app}\doc; Components: ServerComponent; Flags: ignoreversion;
+Source: extlib\ib_util.pas; DestDir: {app}\include; Components: DevAdminComponent; Flags: ignoreversion;
+Source: firebird\install\doc_all_platforms\Firebird_v1_ReleaseNotes.pdf; DestDir: {app}\doc; Components: DevAdminComponent; Flags: ignoreversion;
+Source: firebird\install\doc_all_platforms\Firebird_v1_*.html; DestDir: {app}\doc; Components: DevAdminComponent; Flags: ignoreversion;
+Source: utilities\fbcpl\{#BUILDTYPE}\FBControl.cpl; DestDir: {sys}; Components: ServerComponent; Flags: ignoreversion sharedfile; Tasks: InstallCPLAppletTask;
 
 [UninstallRun]
 Filename: {app}\bin\instsvc.exe; Parameters: stop; StatusMsg: "Stopping the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
 Filename: {app}\bin\instsvc.exe; Parameters: remove -g; StatusMsg: "Removing the service"; MinVersion: 0,4.0; Components: ServerComponent; Flags: runminimized; Tasks: UseServiceTask;
-Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized;
+Filename: {app}\bin\instreg.exe; Parameters: remove; StatusMsg: "Updating the registry"; MinVersion: 4.0,4.0; Components: ClientComponent; Flags: runminimized;  check: RemoveThisVersion;
 
 [UninstallDelete]
 Type: files; Name: {app}\*.lck
@@ -196,10 +195,72 @@ const
   sNoWinsock2 = 'Please Install Winsock 2 Update before continuing';
   sMSWinsock2Update = 'http://www.microsoft.com/windows95/downloads/contents/WUAdminTools/S_WUNetworkingTools/W95Sockets2/Default.asp';
   sWinsock2Web = 'Winsock 2 is not installed.'#13#13'Would you like to Visit the Winsock 2 Update Home Page?';
+  ProductVersion = 'PRODUCT_VER_STRING';
 
 var
   Winsock2Failure: Boolean;
+  InterBaseVer: Array of Integer;
+  //  Likely values for installed versions of InterBase are:
+  //  [6,2,0,nnn]   Firebird 1.0.0
+  //  [6,2,2,nnn]   Firebird 1.0.2
+  //  [6,0,n,n]     InterBase 6.0
+  //  [6,5,n,n]     InterBase 6.5
+  //  [7,0,n,n]     InterBase 7.0
+
+  FirebirdVer: Array of Integer;
+  //  Likely values for installed versions of Firebird are:
+  //  [6,2,0,nnn]   Firebird 1.0.0
+  //  [6,2,2,nnn]   Firebird 1.0.2
+  //  [6,2,3,nnn]   Firebird 1.0.3
+  //  [1,5,0,nnnn]  Firebird 1.5.0
+
+  gds32StartCount : Integer;
+  fbcplStartCount : Integer;
+
+procedure GetSharedLibCountAtStart;
+var
+  dw: Cardinal;
+begin
+  if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\gds32.dll', dw) then
+    gds32StartCount := dw
+  else
+    gds32StartCount := 0;
   
+  if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\FBControl.cpl', dw) then
+    fbcplStartCount := dw
+  else
+    fbcplStartCount := 0;
+  
+end;
+
+procedure SetSharedLibCount(StartCount: Cardinal; libname: String);
+// gds32 gets registered twice as a shared library.
+// This appears to be a bug in InnoSetup. It only appears to affect
+// libraries the first time they are registered, and it only seems
+// to affect stuff in the {sys} directory. To work around this we
+// check the count before install and after install.
+var
+  dw: cardinal;
+begin
+  if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\'+libname, dw) then begin
+    
+    if (( dw - StartCount ) > 1 ) then begin
+      dw := StartCount + 1 ;
+      RegWriteDWordValue(HKEY_LOCAL_MACHINE,
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\'+libname, dw);
+    end;
+  end;
+end;
+
+procedure CheckSharedLibCountAtEnd;
+begin
+  SetSharedLibCount(gds32StartCount,'gds32.dll');
+  SetSharedLibCount(fbcplStartCount,'FBControl.cpl');
+end;
+
 function CheckWinsock2(): Boolean;
 begin
   Result := True;
@@ -212,21 +273,10 @@ begin
   	Winsock2Failure := False;
 end;
 
-procedure DeInitializeSetup();
-var
-  ErrCode: Integer;
-begin
-  // Did the install fail because winsock 2 was not installed?
-  if Winsock2Failure then
-    // Ask user if they want to visit the Winsock2 update web page.
-  	if MsgBox(sWinsock2Web, mbInformation, MB_YESNO) = idYes then
-  	  // User wants to visit the web page
-      InstShellExec(sMSWinsock2Update, '', '', SW_SHOWNORMAL, ErrCode);
-end;
-
 function InitializeSetup(): Boolean;
 var
   i: Integer;
+  buildtype: String;
 begin
   result := true;
 
@@ -236,7 +286,7 @@ begin
   //Look for a running copy of InterBase, or an old version of Firebird.
   i:=0;
   i:=FindWindowByClassName('IB_Server') ;
-  if i<>0 then begin
+  if ( i<>0 ) then begin
     result := false;
     //We could be clever and try to stop the server.
     //If that fails we could try to close the app.
@@ -247,8 +297,7 @@ begin
     end;
 
   //sooner or later Firebird will have its own class name for the server
-  if i<>0 then begin
-    i:=0;
+  if (i=0) then begin
     i:=FindWindowByClassName('FB_Server') ;
     if i<>0 then begin
       result := false;
@@ -256,26 +305,101 @@ begin
              'application or stop the service before continuing.', mbError, MB_OK);
     end;
   end;
-
+  
+  //If we are not bailing out let's continue with the setup
+  if ( result=true ) then begin
+    //Check the shared library count.
+    GetSharedLibCountAtStart;
+  end;
 end;
 
+procedure DeInitializeSetup();
+var
+  ErrCode: Integer;
+begin
+  // Did the install fail because winsock 2 was not installed?
+  if Winsock2Failure then
+    // Ask user if they want to visit the Winsock2 update web page.
+    if MsgBox(sWinsock2Web, mbInformation, MB_YESNO) = idYes then
+      // User wants to visit the web page
+      InstShellExec(sMSWinsock2Update, '', '', SW_SHOWNORMAL, ErrCode);
+      
+end;
+
+procedure DecodeVersion( verstr: String; var verint: array of Integer );
+var
+  i,p: Integer; s: string;
+begin
+  verint := [0,0,0,0];
+  i := 0;
+  while ( (Length(verstr) > 0) and (i < 4) ) do
+  begin
+  	p := pos('.', verstr);
+  	if p > 0 then
+  	begin
+      if p = 1 then s:= '0' else s:= Copy( verstr, 1, p - 1 );
+  	  verint[i] := StrToInt(s);
+  	  i := i + 1;
+  	  verstr := Copy( verstr, p+1, Length(verstr));
+  	end
+  	else
+  	begin
+  	  verint[i] := StrToInt( verstr );
+  	  verstr := '';
+  	end;
+  end;
+end;
+
+function GetInstalledVersion(ADir: String): Array of Integer;
+var
+	AString: String;
+	VerInt:  Array of Integer;
+begin
+  if (ADir<>'') then begin
+    GetVersionNumbersString( ADir+'\bin\gbak.exe', Astring);
+    DecodeVersion(AString, VerInt);
+  end;
+  result := VerInt;
+end;
+
+function GetFirebirdDir: string;
+//Check if Firebird installed, get version info to global var and return root dir
+var
+	FirebirdDir: String;
+begin
+	FirebirdVer    := [0,0,0,0];
+  RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion','RootDirectory', FirebirdDir);
+  if (FirebirdDir<>'') then
+    FirebirdVer:=GetInstalledVersion(FirebirdDir);
+end;
+
+function GetInterBaseDir: string;
+//Check if InterBase installed, get version info to global var and return root dir
+var
+  InterBaseDir: String;
+begin
+	InterBaseVer   := [0,0,0,0];
+  RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\Borland\InterBase\CurrentVersion','RootDirectory', InterBaseDir);
+  if (InterBaseDir<>'') then
+    InterBaseVer:=GetInstalledVersion(InterBaseDir);
+end;
+
+//This function tries to find an existing install of Firebird 1.0
+//If it succeeds it suggests that directory for the install
+//Otherwise it suggests the default for Fb 1.0
 function InstallDir(Default: String): String;
 var
 	sRootDir: String;
 begin
 	sRootDir := '';
-  // Try to find the value of "RootDirectory" in the Firebird
-  // registry settings
-  if (RegQueryStringValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion',
-    'RootDirectory', sRootDir) = False) then
-      // If the Firebird registry settings doesn't exist try to
-      // find the Borland ones
-      RegQueryStringValue(HKEY_LOCAL_MACHINE,
+  // Try to find the value of "RootDirectory" in the registry
+  RegQueryStringValue(HKEY_LOCAL_MACHINE,
         'SOFTWARE\Borland\InterBase\CurrentVersion',
         'RootDirectory', sRootDir);
 
-  //if we still haven't found anything then try the INTERBASE env var
+  //if we haven't found anything then try the INTERBASE env var
   if (sRootDir = '') then
     sRootDir:=getenv('INTERBASE');
 
@@ -339,24 +463,64 @@ begin
     Result := AppPath+'\bin\ibserver.exe';
 end;
 
+procedure CurPageChanged(CurPage: Integer);
+begin
+  if CurPage = wpSelectTasks then
+    WizardForm.TASKSLIST.height := WizardForm.TASKSLIST.height+20;
+end;
+
 procedure CurStepChanged(CurStep: Integer);
 var
   AppStr: String;
 begin
-if CurStep=csFinished then begin
-  //If user has chosen to install an app and run it automatically set up the registry accordingly
-  //so that the server or guardian starts evertime they login.
-  if (ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes) and
-      ( ShouldProcessEntry('ServerComponent', 'UseApplicationTask')= srYes ) then begin
-    AppStr := StartApp('')+' -a';
+  if ( CurStep=csFinished ) then begin
+    //If user has chosen to install an app and run it automatically set up the registry accordingly
+    //so that the server or guardian starts evertime they login.
+    if (ShouldProcessEntry('ServerComponent', 'AutoStartTask')= srYes) and
+        ( ShouldProcessEntry('ServerComponent', 'UseApplicationTask')= srYes ) then begin
+      AppStr := StartApp('')+' -a';
 
-    RegWriteStringValue (HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 'Firebird', AppStr);
+      RegWriteStringValue (HKLM, 'SOFTWARE\Microsoft\Windows\CurrentVersion\Run', 'Firebird', AppStr);
 
+    end;
   end;
-end;
+  
+  if ( CurStep=csFinished ) then
+    //Check that the shared lib count is correct.
+    CheckSharedLibCountAtEnd;
 
 end;
 
+function FirebirdOneRunning: boolean;
+var
+  i: Integer;
+begin
+  result := false;
+  
+  //Look for a running copy of InterBase or Firebird 1.0.
+  i:=0;
+  i:=FindWindowByClassName('IB_Server') ;
+  if ( i<>0 ) then
+    result := true;
+    
+end;
+
+function StartEngine: boolean;
+begin
+  result := not FirebirdOneRunning;
+end;
+
+function RemoveThisVersion: boolean;
+//check if we are still the current version before removing
+var
+  VersionStr: string;
+begin
+  result := false;
+  if RegQueryStringValue(HKEY_LOCAL_MACHINE,
+    'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion','Version', VersionStr ) then
+    if (pos(ProductVersion,VersionStr)>0) then
+      result := true;
+end;
 
 begin
 end.

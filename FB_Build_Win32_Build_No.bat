@@ -34,11 +34,11 @@
 :: This method is also used in a few other projects (linux kernel, gcc etc).
 
 @echo off
-set BUILD_TYPE=V
+set BUILD_TYPE=T
 set MAJOR_VER=1
 set MINOR_VER=0
-set REV_NO=2
-set BUILD_SUFFIX=Firebird 1.0
+set REV_NO=3
+set BUILD_SUFFIX=Firebird 1.0.3
 
 set ISC_MAJOR_VER=6
 set ISC_MINOR_VER=2

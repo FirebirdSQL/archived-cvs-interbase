@@ -68,7 +68,7 @@ for %%V in (%IB_COMPONENTS%) do (
   (if "%%V"=="lock"      (del /q iblockpr.exe ))
   (if "%%V"=="msgs"      (del /q build_file.c change_msgs.c check_msgs.c enter_msgs.c modify_msgs.c interbase.msg *.exe indicator.* ))
   (if "%%V"=="qli"       (del /q help.c meta.c proc.c show.c qli.exe ))
-  (if "%%V"=="utilities" (del /q dba.c security.c dba.exe gsec.exe install_reg.exe install_svc.exe print_pool.exe ))
+  (if "%%V"=="utilities" (del /q dba.c security.c dba.exe gsec.exe install_reg.exe install_svc.exe print_pool.exe fbcpl\Release\*.* ))
   (if exist MS_obj\nul   (rmdir /s /q MS_obj))
   cd ..
   )
