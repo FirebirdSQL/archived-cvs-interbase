@@ -48,6 +48,8 @@
  *                         readonly databases.
  * 2001.07.22 Claudio Valderrama: minor fixes and improvements.
  * 2001.08.18 Claudio Valderrama: RECREATE PROCEDURE.
+ * 2001.10.01 Claudio Valderrama: modify_privilege() should recognize that a ROLE can
+ *   now be made an explicit grantee.
 */
 
 #include "../jrd/ib_stdio.h"
@@ -1012,11 +1014,18 @@ if (node->nod_arg [e_cnstr_condition] && node->nod_arg [e_cnstr_actions])
        the trigger actions from referencing the predefined "1" context */
 
     if (request->req_context_number)
-	reset_context_stack (request);
-    relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (OLD_CONTEXT);
-    PASS1_make_context (request, relation_node);
-    relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (NEW_CONTEXT);
-    PASS1_make_context (request, relation_node);
+		reset_context_stack (request);
+	/* CVC: check_constraint() is the only caller and it always receives FALSE
+	for the delete_trigger_required flag. Hence, I thought I could disable the OLD
+	context here to avoid "ambiguous field name" errors in pre_store and
+	pre_modify triggers. Also, what sense can I make from NEW in pre_delete?
+	However, we clash at JRD with "no current record for fetch operation". */
+	
+	relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (OLD_CONTEXT);
+	PASS1_make_context (request, relation_node);
+	
+	relation_node->nod_arg [e_rln_alias] = (NOD) MAKE_cstring (NEW_CONTEXT);
+	PASS1_make_context (request, relation_node);
 
     /* generate the condition for firing the trigger */
 
@@ -4555,8 +4564,15 @@ switch (user->nod_type)
 	put_cstring (request, gds__dyn_grant_view, name->str_data);
 	break;
 
-	default:
-		break;
+    case nod_role_name:
+	put_cstring (request, isc_dyn_grant_role, name->str_data);
+	break;
+
+    default:
+	/* CVC: Here we should complain: DYN doesn't check parameters
+	and it will write trash in rdb$user_privileges.	We probably
+	should complain in most cases when "name" is blank, too. */
+	break;
     }
 
 if (field_name)

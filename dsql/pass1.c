@@ -34,6 +34,11 @@
  * 2001.09.10 John Bellardo: fixed gen_rse to attribute skip/first nodes to the parent_rse
  *   if present instead of the child rse.  BUG #451798
  * 2001.09.26 Claudio Valderrama: ambiguous field names are rejected from now.
+ * 2001.10.01 Claudio Valderrama: check constraints are allowed to have ambiguous field
+ *   names because they use OLD and NEW as aliases of the same table. However, if the
+ *   check constraint has an embedded ambiguous SELECT statement, it won't be detected.
+ *   The code should be revisited if check constraints' before delete triggers are used
+ *   for whatever reason. Currently they are never generated.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -2349,9 +2354,21 @@ LLS	stack;
 CTX	context;
 DSQL_REL aux_relations [2] = {0, 0};
 PRC	aux_procedures [2] = {0, 0};
+NOD ddl_node;
+BOOLEAN is_check_constraint;
 
 DEV_BLKCHK (request, type_req);
 DEV_BLKCHK (input, type_nod);
+
+/* CVC: This shameful hack added to allow CHECK constraint implementation via triggers
+to be able to work. */
+if ((ddl_node = request->req_ddl_node) != 0 && ddl_node->nod_type == nod_def_constraint)
+	is_check_constraint = TRUE;
+else
+	is_check_constraint = FALSE;
+/*	&& ddl_node->nod_arg [e_co
+		if (ddl_node->nod_arg [e_cnstr_type]->nod_arg [0] == (NOD) PRE_ERASE_TRIGGER)
+*/
 
 /* handle an array element */
 
@@ -2484,7 +2501,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
  		     */
 				request->req_outer_agg_context = context->ctx_parent;
 		}
-		if (!fcount || (!stack->lls_next && node))
+		if (!fcount || (!stack->lls_next && node) || is_check_constraint)
 			return node;
 	    }
 	}

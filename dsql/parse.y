@@ -32,6 +32,7 @@
  *   in rdb$*_source fields when altering domains plus one unexpected null pointer.
  * 2001.08.12: Claudio Valderrama: adjust SUBSTRING's starting pos argument here
  *   and not in gen.c; this closes Bug #450301.
+ * 2001.10.01: Claudio Valderrama: enable explicit GRANT...to ROLE role_name.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -555,12 +556,17 @@ grantee : PROCEDURE symbol_procedure_name
 		{ $$ = make_node (nod_trig_obj, (int) 1, $2); }
 	| VIEW symbol_view_name
 		{ $$ = make_node (nod_view_obj, (int) 1, $2); }
+	| ROLE symbol_role_name
+	        { $$ = make_node (nod_role_name, (int) 1, $2); }
 	;
 
 user_grantee_list : user_grantee
 		| user_grantee_list ',' user_grantee
 			{ $$ = make_node (nod_list, (int) 2, $1, $3); }
 		;
+
+/* CVC: In the future we can deprecate the first implicit form since we'll support
+explicit grant/revoke for both USER and ROLE keywords & object types. */
 
 user_grantee	: symbol_user_name
 		{ $$ = make_node (nod_user_name, (int) 1, $1); }
