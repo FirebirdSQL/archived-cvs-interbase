@@ -19,6 +19,11 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ *
+ * 21 Nov 01 - Ann Harrison - Turn off the code in parse_sqlda that 
+ *    decides that two statements are the same based on their message
+ *    descriptions because it misleads some code in remote/interface.c
+ *    and causes problems when two statements are prepared.
  */
 /*
 $Id$
@@ -324,6 +329,12 @@ if (msg_length)
 	}
 
     same_flag = (blr_len == dasup->dasup_clauses [clause].dasup_blr_length);
+
+    /* turn off same_flag because it breaks execute & execute2 when
+	more than one statement is prepared */
+
+    same_flag = FALSE;
+
     dasup->dasup_clauses [clause].dasup_blr_length = blr_len;
 
     /* Generate the blr for the message and at the same time, determine
@@ -337,7 +348,13 @@ if (msg_length)
     if (dialect > 1)
         CH_STUFF (p, blr_version5)
     else
-        CH_STUFF (p, blr_version4)
+        if ((SCHAR) *(p) == (SCHAR) (blr_version4)) 
+	    (p)++; 
+	else
+	    {
+	    *(p)++ = (blr_version4); 
+	    same_flag = FALSE;
+	    }
     CH_STUFF (p, blr_begin);
     CH_STUFF (p, blr_message);
     CH_STUFF (p, 0);
