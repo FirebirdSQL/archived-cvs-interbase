@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Toni Martir: Added verbose backup records as BACKUP_VERBOSE_INTERVAL
  */
 /*
 $Id$
@@ -57,6 +58,9 @@ DATABASE
 /*
 #define DEBUG	1
 */
+
+/* VERBOSE INTERVAL WHEN BACKING RECORDS */
+#define BACKUP_VERBOSE_INTERVAL		20000
 
 #define STUFF(byte)		*blr++ = (SCHAR) (byte)
 #define STUFF_WORD(word)	{STUFF (word); STUFF ((word) >> 8);}
@@ -1734,6 +1738,10 @@ while (TRUE)
     if (!*eof)
 	break;
     records++;
+	/* Verbose records */
+	if ((records % BACKUP_VERBOSE_INTERVAL)==0)
+		BURP_verbose (108, (TEXT*) records, NULL, NULL, NULL, NULL);
+
     PUT (rec_data);
     PUT_NUMERIC (att_data_length, record_length);
     if (tdgbl->gbl_sw_transportable)

@@ -19,6 +19,8 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * Toni Martir: Verbose records restored as RESTORE_VERBOSE_INTERVAL,
+ * also verbose restoring indexes as DEFERRED when verbose
  */
 /*
 $Id$
@@ -87,6 +89,7 @@ DATABASE
                                     * -bsriram, 11-May-1999      BUG: 10016 
 				    */
 
+#define RESTORE_VERBOSE_INTERVAL	10000
 #define	cvtbl_len	28
 static CONST struct s_t_cvtbl {
 	SSHORT	sub_type;
@@ -286,7 +289,10 @@ ON_ERROR
                 BURP_print_status(tdgbl->status_vector);
                 FOR (REQUEST_HANDLE req_handle3)
                  IDX IN RDB$INDICES WITH IDX.RDB$INDEX_NAME EQ index_name
+                 {
+                    BURP_verbose(243,index_name,NULL_PTR,NULL_PTR,NULL_PTR,NULL_PTR);
                     MODIFY IDX USING IDX.RDB$INDEX_INACTIVE = TRUE;
+                 }
                     BURP_print(240, index_name, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
                     /* msg 240 Index \"%s\" failed to activate because: */
                     if ( error_code == gds__no_dup )
@@ -324,6 +330,49 @@ END_ERROR;
 if (!(tdgbl->gbl_sw_deactivate_indexes))
     {
 
+    /* Block added to verbose index creation by Toni Martir */
+	if (tdgbl->gbl_sw_verbose)
+	{
+		EXEC SQL SET TRANSACTION ISOLATION LEVEL READ COMMITTED NO_AUTO_UNDO;
+		if (gds__status [1]) 
+			EXEC SQL SET TRANSACTION;
+
+	    /* Activate first indexes that are not foreign keys */
+	    FOR (REQUEST_HANDLE req_handle1) IDS IN RDB$INDICES WITH
+	        IDS.RDB$INDEX_INACTIVE EQ DEFERRED_ACTIVE AND
+            IDS.RDB$FOREIGN_KEY MISSING
+	     		MODIFY IDS USING IDS.RDB$INDEX_INACTIVE=FALSE;
+	     	END_MODIFY;
+	     	ON_ERROR
+	      		general_on_error();
+	     	END_ERROR;
+	     
+	     	SAVE
+	     	/* existing ON_ERROR continues past error, beck */
+	     	ON_ERROR
+	      		BURP_print (173, IDS.RDB$INDEX_NAME, NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
+	      		BURP_print_status (tdgbl->status);
+	      		MODIFY IDS USING 
+	       			IDS.RDB$INDEX_INACTIVE = TRUE;
+	      		END_MODIFY;
+	      		ON_ERROR
+	         		general_on_error ();
+	            END_ERROR;
+	        END_ERROR;
+	        BURP_verbose(122,IDS.RDB$INDEX_NAME,NULL_PTR,NULL_PTR,NULL_PTR,NULL_PTR);
+	    END_FOR;
+	    ON_ERROR
+	        general_on_error ();
+	    END_ERROR;
+    	if (req_handle1)
+        	isc_release_request (req_status, &req_handle1);
+    	COMMIT;
+	    ON_ERROR
+        	general_on_error ();
+    	END_ERROR;
+ 	}    
+ 
+
     EXEC SQL SET TRANSACTION ISOLATION LEVEL READ COMMITTED NO_AUTO_UNDO;
     if (gds__status [1]) 
         EXEC SQL SET TRANSACTION;
@@ -359,7 +408,7 @@ if (!(tdgbl->gbl_sw_deactivate_indexes))
                 general_on_error ();
             END_ERROR;
         END_ERROR;
-
+        BURP_verbose(122,IDS.RDB$INDEX_NAME,NULL_PTR,NULL_PTR,NULL_PTR,NULL_PTR);
     END_FOR;
     ON_ERROR
         general_on_error ();
@@ -2526,6 +2575,10 @@ while (TRUE)
 	CAN_encode_decode (relation, &data, buffer, FALSE);
 	
     records++;
+    
+    if ((records % RESTORE_VERBOSE_INTERVAL)==0) 
+     BURP_verbose(107,(TEXT*) records,NULL_PTR,NULL_PTR,NULL_PTR,NULL_PTR);
+    
     for (field = relation->rel_fields; field; field = field->fld_next)
 	if ((field->fld_type == blr_blob) || (field->fld_flags & FLD_array))
 	    {
@@ -4242,8 +4295,17 @@ STORE (REQUEST_HANDLE tdgbl->handles_get_index_req_handle1)
 	    case att_index_inactive:
 		X.RDB$INDEX_INACTIVE = get_numeric();
 		/* Defer foreign key index activation */
+		/* Modified by Toni Martir, all index deferred when verbose */
+		if (tdgbl->gbl_sw_verbose)
+        {
+        	if (X.RDB$INDEX_INACTIVE == FALSE) 
+		 		X.RDB$INDEX_INACTIVE = DEFERRED_ACTIVE;
+		} 
+		else
+        { 
 		if (X.RDB$INDEX_INACTIVE == FALSE && foreign_index)
 		    X.RDB$INDEX_INACTIVE = DEFERRED_ACTIVE;
+		}
 		if (tdgbl->gbl_sw_deactivate_indexes)
 		    X.RDB$INDEX_INACTIVE = TRUE;
 		break;
