@@ -1684,6 +1684,7 @@ TRA_link_transaction (tdbb, trans);
 #ifndef SUPERSERVER_V2
 if (!(dbb->dbb_flags & DBB_read_only))
     CCH_RELEASE (tdbb, &window);
+#endif
 
 #else
 TRA_link_transaction (tdbb, trans);
