@@ -537,6 +537,7 @@
 #define gds__service_not_supported            335544814L
 #define gds__generator_name                   335544815L
 #define gds__udf_name                         335544816L
+#define gds__bad_limit_param                  335544817L
 #define gds__gfix_db_name                     335740929L
 #define gds__gfix_invalid_sw                  335740930L
 #define gds__gfix_incmp_sw                    335740932L
@@ -676,6 +677,8 @@
 #define gds__gbak_svc_name_missing            336331025L
 #define gds__gbak_not_ownr                    336331026L
 #define gds__gbak_mode_req                    336331031L
+#define gds__gbak_just_data                   336331033L
+#define gds__gbak_data_only                   336331034L
 #define gds__gsec_cant_open_db                336723983L
 #define gds__gsec_switches_error              336723984L
 #define gds__gsec_no_op_spec                  336723985L
@@ -735,7 +738,7 @@
 #define gds__gstat_open_err                   336920605L
 #define gds__gstat_read_err                   336920606L
 #define gds__gstat_sysmemex                   336920607L
-#define gds_err_max                          694
+#define gds_err_max                          697
 
 /***********************/
 /*   ISC Error Codes   */
@@ -1257,6 +1260,7 @@
 #define isc_service_not_supported            335544814L
 #define isc_generator_name                   335544815L
 #define isc_udf_name                         335544816L
+#define isc_bad_limit_param                  335544817L
 #define isc_gfix_db_name                     335740929L
 #define isc_gfix_invalid_sw                  335740930L
 #define isc_gfix_incmp_sw                    335740932L
@@ -1396,6 +1400,8 @@
 #define isc_gbak_svc_name_missing            336331025L
 #define isc_gbak_not_ownr                    336331026L
 #define isc_gbak_mode_req                    336331031L
+#define isc_gbak_just_data                   336331033L
+#define isc_gbak_data_only                   336331034L
 #define isc_gsec_cant_open_db                336723983L
 #define isc_gsec_switches_error              336723984L
 #define isc_gsec_no_op_spec                  336723985L
@@ -1455,5 +1461,5 @@
 #define isc_gstat_open_err                   336920605L
 #define isc_gstat_read_err                   336920606L
 #define isc_gstat_sysmemex                   336920607L
-#define isc_err_max                          694
+#define isc_err_max                          697
 

@@ -730,14 +730,22 @@ while (TRUE)
 	    return;
 
 	case rsb_first:
-	    impure->irsb_number =
-		MOV_get_long (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
+	    ((IRSB_FIRST)impure)->irsb_count =
+		MOV_get_int64 (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
+
+            if (((IRSB_FIRST)impure)->irsb_count < 1)
+                ERR_post (gds__bad_limit_param, 0);
+
 	    rsb = rsb->rsb_next;
 	    break;
 	
 	case rsb_skip:
-	    impure->irsb_number =
-		MOV_get_long (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
+	    ((IRSB_SKIP)impure)->irsb_count =
+		MOV_get_int64 (EVL_expr (tdbb, (NOD) rsb->rsb_arg [0]), 0);
+
+            if (((IRSB_SKIP)impure)->irsb_count < 1)
+                ERR_post (gds__bad_limit_param, 0);
+
 	    rsb = rsb->rsb_next;
 	    break;
 	
@@ -2634,22 +2642,22 @@ switch (rsb->rsb_type)
         switch(mode)
         {
             case RSE_get_forward:
-	        if (((IRSB_FIRST) impure)->irsb_number <= 0)
+	        if (((IRSB_FIRST) impure)->irsb_count <= 0)
                     return FALSE;
-	        ((IRSB_FIRST) impure)->irsb_number--;
+	        ((IRSB_FIRST) impure)->irsb_count--;
 	        if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
 	            return FALSE;
                 break;
 
             case RSE_get_current:
-	        if (((IRSB_FIRST) impure)->irsb_number <= 0)
+	        if (((IRSB_FIRST) impure)->irsb_count <= 0)
                     return FALSE;
 	        if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
 	            return FALSE;
                 break;
 
             case RSE_get_backward:
-	        ((IRSB_FIRST) impure)->irsb_number++;
+	        ((IRSB_FIRST) impure)->irsb_count++;
 	        if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
 	            return FALSE;
                 break;
@@ -2659,30 +2667,34 @@ switch (rsb->rsb_type)
     case rsb_skip:
         switch(mode)
         {
-            /* skip only supports get_forward because the irsb_number variable
-             * is only a LONG and would fail after 2 bln. records.  We can't
-             * have that.  Once it is moved up to a long long we can work out
-             * the get_backward case.
-             */
             case RSE_get_backward:
-                ERR_post (isc_wish_list, gds_arg_interpreted,
-                    "get_record: backward seeking of LIMIT clause not supported"
-                    , 0);
+                if (((IRSB_SKIP) impure)->irsb_count > 0)
+                    return FALSE;
+                if (((IRSB_SKIP) impure)->irsb_count == 0)
+                {
+                    ((IRSB_SKIP) impure)->irsb_count++;
+                    get_record (tdbb, rsb->rsb_next, NULL, mode);
+                    return FALSE;
+                }
+                ((IRSB_SKIP) impure)->irsb_count++;
+                if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
+                    return FALSE;
+                break;
 
             case RSE_get_forward:
-                while(((IRSB_SKIP) impure)->irsb_number > 1)
+                while(((IRSB_SKIP) impure)->irsb_count > 1)
                 {
-                    ((IRSB_SKIP) impure)->irsb_number--;
+                    ((IRSB_SKIP) impure)->irsb_count--;
                     if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
                         return FALSE;
                 }
-                /* ((IRSB_SKIP) impure)->irsb_number--; */
+                ((IRSB_SKIP) impure)->irsb_count--;
                 if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
                     return FALSE;
                 break;
 
             case RSE_get_current:
-                if (((IRSB_SKIP) impure)->irsb_number > 1)
+                if (((IRSB_SKIP) impure)->irsb_count >= 1)
                     return FALSE;
                 else if (!get_record (tdbb, rsb->rsb_next, NULL, mode))
                     return FALSE;

@@ -131,12 +131,13 @@ typedef struct irsb {
 typedef struct irsb_first_n {
     ULONG	irsb_flags;
     SLONG	irsb_number;
+    SINT64	irsb_count;
 } *IRSB_FIRST;
 
 typedef struct irsb_skip_n {
     ULONG	irsb_flags;
     SLONG	irsb_number;
-    SLONG	irsb_skip;
+    SINT64	irsb_count;
 } *IRSB_SKIP;
 
 typedef struct irsb_index {
