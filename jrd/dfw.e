@@ -22,6 +22,8 @@
  * 2001.6.25 Claudio Valderrama: Implement deferred check for udf usage
  * inside a procedure before dropping the uff and creating stub for future
  * processing of dependencies from dropped generators.
+ * 2001.8.12 Claudio Valderrama: find_depend_in_dfw() and other functions
+ *   should respect identifiers with embedded blanks instead of chopping them.
  */
 
 #ifdef SHLIB_DEFS
@@ -2582,7 +2584,7 @@ static BOOLEAN delete_rfr (
 DBB	dbb;
 int	rel_exists, field_count, id;
 BLK	handle;
-TEXT	f [32], *p, *q;
+TEXT	f [32];
 REL	relation;
 VEC	vector;
 
@@ -2610,10 +2612,12 @@ switch (phase)
 	    if (!find_depend_in_dfw (tdbb, VR.RDB$VIEW_NAME, obj_view,
 					0, transaction))
 		{
-		for (p = f, q = VFLD.RDB$BASE_FIELD; *q && *q != ' '; *p++ = *q++)
-		    ;
-		*p = 0;
-		field_count++;
+			TEXT *p = f, *endp = f + sizeof(f)-1, *q;
+			for (q = VFLD.RDB$BASE_FIELD; *q && p < endp; *p++ = *q++)
+				;
+			*p = 0;
+			MET_exact_name(f);
+			field_count++;
 		}
 	END_FOR;
 	CMP_release (tdbb, handle);
@@ -2774,7 +2778,7 @@ static BOOLEAN find_depend_in_dfw (
  * Functional description
  *	Check the object to see if it is being
  *	deleted as part of the deferred work.
- *	Return FALSE if it is, TRUE otherwise.
+ *	Return TRUE if it is, FALSE otherwise.
  *
  **************************************/
 DBB		dbb;
@@ -2786,9 +2790,7 @@ DFW		work;
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
 
-for (p = object_name; *p && *p != ' '; p++)
-    ;
-*p = 0;
+MET_exact_name(object_name);
 
 switch (dep_type)
     {

@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  * 2001.6.12 Claudio Valderrama: the role should be wiped out if invalid.
+ * 2001.8.12 Claudio Valderrama: Squash security bug when processing
+ *   identifiers with embedded blanks: check_procedure, check_relation and
+ *   check_string, the latter being called from many places.
  */
 
 #include <string.h>
@@ -296,9 +299,10 @@ assert (dsc_name->dsc_dtype == dtype_text);
 
 for (p = name, endp = name + sizeof(name)-1, 
      q = dsc_name->dsc_address, endq = q + dsc_name->dsc_length;
-     q < endq && p < endp && *q && *q != ' ';)
+     q < endq && p < endp && *q;)
      *p++ = *q++;
 *p = 0;
+MET_exact_name(name);
 
 dbb = tdbb->tdbb_database;
 
@@ -350,9 +354,10 @@ assert (dsc_name->dsc_dtype == dtype_text);
 
 for (p = name, endp = name + sizeof(name)-1, 
      q = dsc_name->dsc_address, endq = q + dsc_name->dsc_length;
-     q < endq && p < endp && *q && *q != ' ';)
+     q < endq && p < endp && *q;)
      *p++ = *q++;
 *p = 0;
+MET_exact_name(name);
 
 dbb = tdbb->tdbb_database;
 
@@ -661,6 +666,8 @@ if (sql_role)
     {
     if (!preODS9 && strcmp (role_name, "NONE"))
     	strcpy (role_name, sql_role);
+	 /* CVC: Role is an identifier, it may have embedded blanks. */
+	MET_exact_name(role_name);
     }
 else
 /* CVC: I don't see the need for this if().
@@ -1002,9 +1009,16 @@ if (l = *acl++)
 	    return TRUE;
     } while (--l);
 
-return (*string && *string != ' ') ? TRUE : FALSE;
+/* CVC: This was the original check made obsolete by dialect 3.
+return (*string && *string != ' ') ? TRUE : FALSE; */
+while (*string)
+{
+	if (*string++ != ' ')
+		return TRUE;
 }
-
+return FALSE;
+}
+
 static SLONG compute_access (
     TDBB	tdbb,
     SCL		s_class,
