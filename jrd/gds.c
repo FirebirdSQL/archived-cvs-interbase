@@ -152,6 +152,18 @@
 						Inprise bug 114840*/
 #endif
 
+/* The following ifdef was added to build thread safe gds shared
+   library on linux platform. It seems the gdslib works now (20020220)
+   with thread enabled applications. Anyway, more tests should be 
+   done as I don't have deep knowledge of the interbase/firebird 
+   engine and this change may imply side effect I haven't known 
+   about yet. Tomas Nejedlik (tomas@nejedlik.cz)
+*/
+#if (defined(LINUX) && defined(SUPERCLIENT))
+#define V4_THREADING
+#endif
+
+
 #ifdef SUPERSERVER
 static CONST TEXT	gdslogid[] = " (Server)";
 #else

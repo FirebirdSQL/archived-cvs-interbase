@@ -95,7 +95,7 @@ gds.sl.1 $(HP_SUPER_GDSSHR): \
 gds.so.1 $(LX_SUPER_GDSSHR): \
 		$(JRD_GDS_H) client_p_objects $(CLIENT_P_OBJECTS) 
 	-$(RM) gds.so.1
-	ld $(LD_OPTS) $(CLIENT_P_OBJECTS) $(LD_LIBS) \
+	ld $(LD_OPTS) $(CLIENT_P_OBJECTS) $(LD_LIBS_WITH_PTHREAD) \
 		-o gds.so.1
 	$(CHMOD_7) gds.so.1
 	$(MV) gds.so.1 $(LX_SUPER_GDSSHR)

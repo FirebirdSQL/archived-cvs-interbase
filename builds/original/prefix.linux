@@ -109,6 +109,7 @@ LANG_OBJECTS=		ada.o ftn.o cob.o
 LANGUAGES=		cc cxx ada microfocus_cob make16 gdl1 sun_ftn
 LD_LIBS=		-lc
 LD_LIBS_J=		-lc
+LD_LIBS_WITH_PTHREAD=	$(LD_LIBS) -lpthread
 LD_OPTS=		-shared
 LOCK_JRD_MISC=		source/jrd/thd.o
 LOCK_MANAGER=		manager
