@@ -1,3 +1,35 @@
+2001-06-30 18:22  fsg
+
+	* interbase/: msgs/msg.gbak, utilities/security.e:
+	
+	changed message nr: 264 facility: jrd to reflect the new behavior
+	on inserts
+	
+	Changed security.e to use the complete standard path to isc4.gdb if
+	all else fails.
+	
+	fsg
+
+2001-06-29 12:12  fsg
+
+	* interbase/jrd/intlnames.h:
+	
+	Fixed a typo in intlnames.h
+	
+	fsg
+
+2001-06-29 10:45  robocop
+
+	* interbase/jrd/: blb.c, dyn.h, dyn_def.e, dyn_mod.e, evl.c, exe.c:
+	
+	no message
+
+2001-06-29 10:42  robocop
+
+	* interbase/dsql/: ddl.c, dsql.c, gen.c, pass1.c:
+	
+	no message
+
 2001-06-28 18:58  fsg
 
 	* interbase/: builds/original/sfx.intl, intl/depends.mak,
