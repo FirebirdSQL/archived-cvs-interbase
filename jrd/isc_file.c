@@ -79,7 +79,7 @@ typedef struct itm {
 
 /* Unix/NFS specific stuff */
 
-#if (defined NFS || defined FREEBSD || defined NETBSD)
+#if (defined NFS || defined FREEBSD || defined NETBSD || defined SINIXZ)
 #include <pwd.h>
 #define MAXPATHLEN	1024
 #endif
@@ -98,7 +98,7 @@ typedef struct itm {
 #define MTAB			"/etc/mnttab"
 #endif
 
-#if (defined SOLARIS || defined M88K || defined UNIXWARE || defined NCR3000 || defined EPSON)
+#if (defined SOLARIS || defined M88K || defined UNIXWARE || defined NCR3000 || defined EPSON || defined SINIXZ)
 #define SV_MNTENT
 #define NON_MNTENT
 #include <sys/mnttab.h>
@@ -125,15 +125,6 @@ typedef struct itm {
 #define NON_MNTENT
 #include <sys/types.h>
 #include <sys/mount.h>
-#endif
-
-#ifdef SINIXZ
-#include <sys/mnttab.h>
-#define SV_MNTENT
-#define NON_MNTENT
-#define MTAB			"/etc/mnttab"
-#define MTAB_OPEN(path,type)	fopen (path, type)
-#define MTAB_CLOSE(stream)	fclose (stream)
 #endif
 
 #ifdef DELTA
@@ -982,7 +973,7 @@ return p - expanded_name;
 }
 #endif
 
-#if (defined NFS || defined FREEBSD || defined NETBSD)
+#if (defined NFS || defined FREEBSD || defined NETBSD || defined SINIXZ)
 int ISC_expand_filename (
     TEXT	*from_buff,
     USHORT	length,
@@ -2088,7 +2079,7 @@ return file_length;
 }
 #endif
 
-#if (defined NFS || defined FREEBSD || defined NETBSD)
+#if (defined NFS || defined FREEBSD || defined NETBSD || defined SINIXZ)
 static int expand_filename2 (
     TEXT	*from_buff,
     USHORT	length,
