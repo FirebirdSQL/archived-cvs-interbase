@@ -300,6 +300,8 @@ fixFilePermissions() {
     # make examples db's writable by group
     chmod ug=rw,o= *.gdb
 
+
+
 }
 
 
@@ -396,10 +398,13 @@ fixFilePermissionsRoot() {
     # make examples db's writable by group
     chmod a=rw *.gdb
 
+
 }
 
 #------------------------------------------------------------------------
 # InstallInitdScript
+# Everbody stores this one in a seperate location, so there is a bit of
+# running around to actually get it for each packager.
 # Update rcX.d with Firebird initd entries
 # initd script for SuSE >= 7.2 is a part of RPM package
 
@@ -407,53 +412,110 @@ InstallInitdScript() {
 
 # This is (I hope) right for RH and MDK
 
-if [ -e /etc/rc.d/init.d/functions ]; then
-    cp /opt/interbase/misc/firebird.init.d.mandrake /etc/rc.d/init.d/firebird
-    chown root:root /etc/rc.d/init.d/firebird
-    chmod a+rx /etc/rc.d/init.d/firebird
-    ln -s ../../etc/rc.d/init.d/firebird /usr/sbin/rcfirebird
+    if [ -e /etc/rc.d/init.d/functions ]
+      then
+        srcScript=firebird.init.d.mandrake
+        initScript=/etc/rc.d/init.d/firebird
 
-elif [ -d /etc/init.d ]; then
+# SuSE specific
+
+    elif [ -d /bin/fillup ]; then
+#    elif [ -d /etc/init.d ]; then
 
 # I'm not sure if this is enough to detect SuSE, but it works for now
+# (Pavel I've changed it since /etc/init.d will match quite a few It would
+# be nice of we could find a SuSE specific file we could use).
 
-      cp /opt/interbase/misc/firebird.init.d.suse /etc/init.d/firebird
-      chown root:root /etc/init.d/firebird
-      chmod a+rx /etc/init.d/firebird
-      ln -s ../../etc/init.d/firebird /usr/sbin/rcfirebird
-
-else
+        srcScript=firebird.init.d.suse
+        initScript=/etc/init.d/firebird
+        ln -s ../../etc/init.d/firebird /usr/sbin/rcfirebird
 
 # Generic...
 
-  if [ -d /etc/rc.d/init.d ]; then
-      cp /opt/interbase/misc/firebird.init.d.generic /etc/rc.d/init.d/firebird
-      chown root:root /etc/rc.d/init.d/firebird
-      chmod a+rx /etc/rc.d/init.d/firebird
-      ln -s ../../etc/rc.d/init.d/firebird /usr/sbin/rcfirebird
-  fi
+    elif [ -d /etc/rc.d/init.d ]; then
+        srcScript=firebird.init.d.generic
+        initScript=/etc/rc.d/init.d/firebird
+    fi
 
-fi
 
-if [ -x /sbin/insserv ] ; then
-    /sbin/insserv /etc/init.d/firebird
-fi
 
-if [ -x /sbin/chkconfig ] ; then
-    /sbin/chkconfig --add firebird
-fi
+    # Install the firebird init.d script
+    cp  $IBRootDir/misc/$srcScript $initScript
+    chown root:root $initScript
+    chmod ug=rx,o= $initScript  # contains password hence no world read.
 
-# SuSE rc.config fillup
 
-if [ -x /bin/fillup ] ; then
-  /bin/fillup -q -d = etc/rc.config opt/interbase/misc/rc.config.firebird
-else
-  echo "ERROR: fillup not found."
-  echo "If you're using SuSE, this should not happen. Please compare"
-  echo "/etc/rc.config and /var/adm/fillup-templates/rc.config.firebird and update by hand."
-fi
+
+    # RedHat and Mandrake specific 
+    if [ -x /sbin/chkconfig ]
+      then
+        /sbin/chkconfig --add firebird
+    fi
+
+
+    # Suse specific 
+    if [ -x /sbin/insserv ]
+      then
+        /sbin/insserv /etc/init.d/firebird
+    fi
+
+    # More SuSE rc.config fillup
+    if [ -x /bin/fillup ] 
+      then
+        /bin/fillup -q -d = etc/rc.config $IBRootDir/misc/rc.config.firebird
+    fi
 
 }
+
+#------------------------------------------------------------------------
+# InstallInitdScript
+# Update rcX.d with Firebird initd entries
+# initd script for SuSE >= 7.2 is a part of RPM package
+
+StartInetService() {
+
+    initScript=/etc/init.d/firebird
+    if [! -f $initScript ]
+      then
+        initScript=/etc/rc.d/init.d/firebird
+    fi
+
+    if [ -f $initScript ]
+      then
+        $initScript start
+    fi
+}
+
+
+#------------------------------------------------------------------------
+# UpdateHostsDotEquivFile
+# The /etc/hosts.equiv file is needed to allow local access for super server
+# from processes on the machine to port 3050 on the local machine.
+# The two host names that are needed there are 
+# localhost.localdomain and whatever hostname returns.
+
+UpdateHostsDotEquivFile() {
+
+    hostEquivFile=/etc/hosts.equiv
+
+    if [ ! -f $hostEquivFile ]
+      then
+        touch $hostEquivFile
+        chown root:root $hostEquivFile
+        chmod u=rw,go=r $hostEquivFile
+    fi
+
+    newLine="localhost.localdomain"
+    oldLine="$newLine"
+    replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
+
+    newLine="`hostname`"
+    oldLine="$newLine"
+    replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
+    
+}
+
+    
 
 
 #= Main Post ===============================================================
@@ -481,6 +543,8 @@ fi
     replaceLineInFile "$FileName" "$newLine" "$oldLine"
 
 
+    updateHostsDotEquivFile
+
     # add Firebird user
     if [ $RunUser = "firebird" ]
       then
@@ -503,13 +567,18 @@ fi
 
     # Update ownership and SUID bits for programs.
     chown -R $RunUser.$RunUser $IBRootDir
-#    fixFilePermissions
-    fixFilePermissionsRoot
-
-    cd $IBRootDir
-    # Change sysdba password
-#    changeDBAPassword
 
     # Set up Firebird for run with initd
     InstallInitdScript
+
+#    fixFilePermissions
+    fixFilePermissionsRoot
+
+
+    startInetService
+
+    cd $IBRootDir
+    # Change sysdba password
+    #changeDBAPassword
+    keepOrigDBAPassword
     

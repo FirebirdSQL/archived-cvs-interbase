@@ -459,6 +459,35 @@ fixFilePermissionsRoot() {
 }
 
 #------------------------------------------------------------------------
+# UpdateHostsDotEquivFile
+# The /etc/hosts.equiv file is needed to allow local access for super server
+# from processes on the machine to port 3050 on the local machine.
+# The two host names that are needed there are 
+# localhost.localdomain and whatever hostname returns.
+
+UpdateHostsDotEquivFile() {
+
+    hostEquivFile=/etc/hosts.equiv
+
+    if [ ! -f $hostEquivFile ]
+      then
+        touch $hostEquivFile
+        chown root:root $hostEquivFile
+        chmod u=rw,go=r $hostEquivFile
+    fi
+
+    newLine="localhost.localdomain"
+    oldLine="$newLine"
+    replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
+
+    newLine="`hostname`"
+    oldLine="$newLine"
+    replaceLineInFile "$hostEquivFile" "$newLine" "$oldLine"
+    
+}
+
+
+#------------------------------------------------------------------------
 #  resetXinitdServer
 #  Check for both inetd and xinetd, only one will actually be running.
 #  depending upon your system.
@@ -500,6 +529,7 @@ resetInetdServer() {
 
     replaceLineInFile "$FileName" "$newLine" "$oldLine"
 
+    updateHostsDotEquivFile
 
     # add Firebird user
     if [ $RunUser = "firebird" ]
@@ -535,8 +565,10 @@ resetInetdServer() {
 
 
     cd $IBRootDir
+    
     # Change sysdba password
-#    changeDBAPassword
+    #    changeDBAPassword
+    keepOrigDBAPassword
 
 
 

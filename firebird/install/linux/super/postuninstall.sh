@@ -38,26 +38,26 @@ removeLineFromFile() {
         removeLineFromFile "$FileName" "$oldLine"
 
 
-	# Remove /usr/sbin/rcfirebird symlink
+        # Remove /usr/sbin/rcfirebird symlink
 
-	rm /usr/sbin/rcfirebird
-	
-	# Remove initd script
-	
-	if [ -e /etc/init.d/firebird ]; then
-	    rm /etc/init.d/firebird
-	fi
-	
-	if [ -e /etc/rc.d/init.d/firebird ]; then
-	    rm /etc/rc.d/init.d/firebird
-	fi
-	
-	if [ -x sbin/insserv ] ; then
-	    sbin/insserv /etc/init.d/
-	fi
-
-	if [ -x sbin/chkconfig ] ; then
-	    sbin/chkconfig --del firebird
-	fi
+        rm /usr/sbin/rcfirebird
+        
+        # Remove initd script
+        
+        if [ -e /etc/init.d/firebird ]; then
+            rm /etc/init.d/firebird
+        fi
+            
+        if [ -e /etc/rc.d/init.d/firebird ]; then
+            rm /etc/rc.d/init.d/firebird
+            fi
+            
+        if [ -x sbin/insserv ] ; then
+            sbin/insserv /etc/init.d/
+        fi
+        
+        if [ -x sbin/chkconfig ] ; then
+            sbin/chkconfig --del firebird
+        fi
 
     fi

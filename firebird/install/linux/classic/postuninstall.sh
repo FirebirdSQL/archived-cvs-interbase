@@ -20,6 +20,44 @@ removeLineFromFile() {
 }
 
 
+#------------------------------------------------------------------------
+# remove the xinetd config file and restart the service
+
+removeXInetDService() {
+
+    if [ -f /etc/xinetd.d/firebird ] 
+      then
+        rm -f /etc/xinetd.d/firebird
+    fi
+
+
+    if [ -f /var/run/xinetd.pid ]
+      then
+        kill -USR2 `cat /var/run/xinetd.pid`
+    fi
+    
+}
+
+
+#------------------------------------------------------------------------
+# remove the inetd file and restart the service.
+
+removeInetDService() {
+    # Next, lose the gds_db line from /etc/inetd.conf
+
+    FileName=/etc/inetd.conf
+    oldLine=`grep "^gds_db" $FileName`
+    removeLineFromFile "$FileName" "$oldLine"
+
+    # Get inetd to reread new inetd.conf file
+    
+    if [ -f /var/run/inetd.pid ]
+      then
+        kill -HUP `cat /var/run/inetd.pid`
+    fi
+}
+
+
 #= Main PostUn ============================================================
 
 # I don't think this is needed anymore.
@@ -37,16 +75,13 @@ removeLineFromFile() {
         oldLine=`grep "^gds_db" $FileName`
         removeLineFromFile "$FileName" "$oldLine"
 
-        # Next, lose the gds_db line from /etc/inetd.conf
-
-        FileName=/etc/inetd.conf
-        oldLine=`grep "^gds_db" $FileName`
-        removeLineFromFile "$FileName" "$oldLine"
-
-        # Get inetd to reread new inetd.conf file
-
-        if [ -f /var/run/inetd.pid ]
+        
+        if [ -d /etc/xinetd.d ]
           then
-            kill -HUP `cat /var/run/inetd.pid`
+            RemoveXInetDService
+        elif [ -f /etc/inetd.d ]
+          then
+            RemoveInetDService
         fi
+
     fi

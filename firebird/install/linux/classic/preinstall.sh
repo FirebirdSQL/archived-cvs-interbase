@@ -71,15 +71,20 @@ checkIfServerRunning() {
     fi
 
 
-    checkString=`netstat -an | egrep '3050.*LISTEN'`
-
-    if [ ! -z "$checkString" ] 
-      then
-        echo "An instance of the Firebird/InterBase server seems to be running." 
-        echo "(netstat -an reports a process is already listening on port 3050)"
-        echo "Please quit all Firebird applications and then proceed." 
-        exit 1 
-    fi
+#  This one is commented out, since it usually works out ok, we have
+#  checked that no procesers are active, but inetd/xinetd is still listening
+#  the best thing would be to turn the service off, but I don't have time
+#  to do all the xinetd/inetd stuff, see the preunistall.sh script for details
+#
+#    checkString=`netstat -an | egrep '3050.*LISTEN'`
+#
+#    if [ ! -z "$checkString" ] 
+#      then
+#        echo "An instance of the Firebird/InterBase server seems to be running." 
+#        echo "(netstat -an reports a process is already listening on port 3050)"
+#        echo "Please quit all Firebird applications and then proceed." 
+#        exit 1 
+#    fi
 
 
 # Stop lock manager if it is the only thing running.
