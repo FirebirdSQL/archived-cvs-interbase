@@ -1,3 +1,25 @@
+2001-05-19 10:26  robocop
+
+	* interbase/isql/show.e:
+	
+	To be in sync with extract.e regarding BLOB params in UDFs
+
+2001-05-19 08:35  robocop
+
+	* interbase/jrd/: dyn_def.e, dyn_mod.e:
+	
+	no message
+
+2001-05-13 15:37  fsg
+
+	* interbase/jrd/: jrd.c, jrd.h, pwd.c, pwd.h, pwd_proto.h, scl.e,
+	scl_proto.h, shrinit.c, tra.c:
+	
+	Finally removed my "revolving backdoor" hack and replaced it with
+	Borland's (Stanialav Tsikin's?) solution to the problem.
+	
+	fsg
+
 2001-05-12 03:31  rfm
 
 	* interbase/: builds_win32/original/make.alice,
