@@ -2,6 +2,16 @@
 
 FB_FW='/Library/Frameworks/Firebird.framework'
 
+# Install and start sysv semaphores
+if [ -e "SysV Semaphores" ]; then
+	mkdir -p /Library/StartupItems
+	if [ ! -e "/Library/StartupItems/SysV Semaphores" ]; then
+		cp -r "SysV Semaphores" /Library/StartupItems
+		"/Library/StartupItems/SysV Semaphores/SysV Semaphores" start
+	fi
+fi
+
+
 # Setup our services entry, our user account, and our group
 #
 #
@@ -58,9 +68,13 @@ chown -R firebird.firebird $FB_FW
 
 
 # Install the startup item
-if [ -e Firebird.startup ]; then
-	mkdir -p /Library/StartupItems
-	cp -r Firebird.startup /Library/StartupItems/Firebird
+if [ -f Firebird.framework/Versions/A/Resources/.SuperServer ]; then
+	if [ -e Firebird.startup ]; then
+		mkdir -p /Library/StartupItems
+		cp -r Firebird.startup /Library/StartupItems/Firebird
+	fi
+else
+	rm -rf /Library/StartupItems/Firebird
 fi
 
 
@@ -83,7 +97,7 @@ if [ -f /etc/services ]; then
     fi
 fi
 if [ -f /etc/inetd.conf ]; then
-    if [ -f Firebird.framework/Resources/.SuperServer ]; then
+    if [ -f Firebird.framework/Versions/A/Resources/.SuperServer ]; then
 	# Remove gds_db service. We do not want gds_inet_server to be invoked
         echo "Installing Firebird SuperServer"
 	cat /etc/inetd.conf | grep -v gds_db > /etc/.interbase.temp.install.inetd.conf
@@ -115,5 +129,7 @@ fi
 
 ###
 # And last but not least, start the server
-echo Starting Firebird Database Server
-Firebird.startup/Firebird start
+if [ -f Firebird.framework/Versions/A/Resources/.SuperServer ]; then
+	#echo Starting Firebird Database Server
+	Firebird.startup/Firebird start
+fi

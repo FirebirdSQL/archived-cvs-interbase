@@ -51,6 +51,7 @@ install_package: files/addServEnt
 	mv Firebird.framework/Resources/.installer_name installer_name
 	cp files/install files/inetd.conf.isc firebird_install
 	cp -r files/FirebirdStartupItem firebird_install/Firebird.startup
+	-cp -r $(SYSV_SEM_DIR)/SysV\ Semaphores firebird_install
 	#-cp -r source/../FBConsole/build/FBConsole.app firebird_install
 	-rm Firebird.framework/Resources/English.lproj/var/bin
 	-rm Firebird.framework/Versions/Current
