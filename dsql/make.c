@@ -19,6 +19,9 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * 2001.11.21 Claudio Valderrama: Finally solved the mystery of DSQL
+ * not recognizing when a UDF returns NULL. This fixes SF bug #484399.
+ * See case nod_udf in MAKE_desc().
  */
 
 #include <ctype.h>
@@ -872,7 +875,9 @@ switch (node->nod_type)
         desc->dsc_dtype = udf->udf_dtype;
         desc->dsc_length = udf->udf_length;
 	desc->dsc_scale = udf->udf_scale;
-	desc->dsc_flags = 0;
+	 /* CVC: Setting flags to zero obviously impeded DSQL to acknowledge
+	 the fact that any UDF can return NULL simply returning a NULL pointer. */
+	desc->dsc_flags = DSC_nullable;
 	desc->dsc_ttype = udf->udf_sub_type;
 	return;
 
