@@ -67,6 +67,9 @@
  * 2001.11.17 Neil McCalden: Add aggregate_in_list procedure to handle cases
  *   where select statement has aggregate as a parameter to a udf which does
  *   not have to be in a group by clause.
+ *
+ * 2001.11.21 Claudio Valderrama: don't try to detect ambiguity in pass1_field()
+ *   if the field or output procedure parameter has been fully qualified!!!
  */
 
 #include "../jrd/ib_stdio.h"
@@ -148,9 +151,6 @@ STR	temp_collation_name = NULL;
 					 *
 					 * Bug 10061, bsriram - 19-Apr-1999
 					 */
-
-
-#define FIREBIRD_REJECT_AMBIGUITY
 
 
 
@@ -2569,8 +2569,8 @@ else
     }
 
 /* CVC: Let's strip trailing blanks or comparisons may fail in dialect 3. */
-if (name && name -> str_data)
-	pass_exact_name (name -> str_data);
+if (name && name->str_data)
+	pass_exact_name (name->str_data);
 
 DEV_BLKCHK (name, type_str);
 DEV_BLKCHK (qualifier, type_str);
@@ -2606,7 +2606,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 	for (; field; field = field->fld_next)
 	    if ( !strcmp (name->str_data, field->fld_name))
 		{
-		if (fcount && ++*fcount > 1)
+		if (!qualifier && fcount && ++*fcount > 1)
 		    {
 		    TEXT names [2][2 * 32] = {"table/view ", "table/view "};
 		    int iter;
@@ -2660,7 +2660,7 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 			gds_arg_string, DSC_dtype_tostring (field->fld_dtype),
 			0);
 		return NULL;
-		};
+		}
 	    context = (CTX) stack->lls_object;
 
 	    if (indices)
@@ -2677,7 +2677,8 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 		else if (request->req_context != stack)
 		    request->req_outer_agg_context = context->ctx_parent;
 		}
-	    if (!fcount || (!stack->lls_next && node) || is_check_constraint)
+	    if (qualifier ||
+			!fcount || (!stack->lls_next && node) || is_check_constraint)
 		return node;
 	    }
 	}
@@ -3435,8 +3436,8 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 	continue;
 
 	/* CVC: Getting rid of trailing spaces */
-	if (alias && alias -> str_data)
-		pass_exact_name (alias -> str_data);
+	if (alias && alias->str_data)
+		pass_exact_name (alias->str_data);
 
     /* check for matching alias */
 
