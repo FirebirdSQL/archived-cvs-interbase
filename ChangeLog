@@ -1,3 +1,15 @@
+2004-03-10 08:05  eku
+
+	* interbase/jrd/common.h:
+	
+	SINIX-Z: get DEBUG_GDS_ALLOC working
+
+2004-03-10 08:02  eku
+
+	* interbase/jrd/all_proto.h:
+	
+	Fixed compilation problem (DEBUG_GDS_ALLOC defined in PROD_BUILD).
+
 2004-02-12 07:19  stryqx
 
 	* interbase/jrd/val.c:
