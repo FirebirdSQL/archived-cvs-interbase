@@ -31,6 +31,7 @@
  * 2001.6.30: Claudio Valderrama: Enhanced again to provide (line, col), see node.h.
  * 2001.7.28: John Bellardo: added code to handle nod_limit and associated fields.
  * 2001.08.14 Claudio Valderrama: fixed crash with trigger and CURRENT OF <cursor> syntax.
+ * 2001.09.10 John Bellardo: fixed gen_rse to attribute skip/first nodes to the parent_rse if present instead of the child rse.  BUG #451798
  */
 
 #include "../jrd/ib_stdio.h"
@@ -3380,13 +3381,21 @@ if (node = input->nod_arg [e_sel_limit])
     {
     if (node->nod_arg [e_limit_length])
         {
-        rse->nod_arg [e_rse_first] =
-            PASS1_node (request, node->nod_arg [e_limit_length], 0);
+        if (!parent_rse)
+            rse->nod_arg [e_rse_first] =
+                PASS1_node (request, node->nod_arg [e_limit_length], 0);
+        else
+            parent_rse->nod_arg [e_rse_first] =
+                PASS1_node (request, node->nod_arg [e_limit_length], 0);
         }
     if (node->nod_arg [e_limit_skip])
         {
-        rse->nod_arg [e_rse_skip] =
-            PASS1_node (request, node->nod_arg [e_limit_skip], 0);
+        if (!parent_rse)
+            rse->nod_arg [e_rse_skip] =
+		    PASS1_node (request, node->nod_arg [e_limit_skip], 0);
+        else
+            parent_rse->nod_arg [e_rse_skip] =
+		    PASS1_node (request, node->nod_arg [e_limit_skip], 0);
         }
     }
 
