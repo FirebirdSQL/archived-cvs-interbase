@@ -361,7 +361,7 @@ if (tdgbl->ALICE_data.ua_user)
 
 if (tdgbl->ALICE_data.ua_password)
     {
-    if (!tdgbl->sw_service)
+    if (!tdgbl->sw_service_thd)
 	*d++ = gds__dpb_password;
     else
 	*d++ = gds__dpb_password_enc;

@@ -28,7 +28,7 @@
 #include "../jrd/all.h"
 
 extern struct blk	*ALL_alloc 	(struct plb *, UCHAR, ULONG, enum err_t);
-#ifdef DEBUG_GDS_ALLOC
+#ifdef DEV_BUILD
 extern void		ALL_check_memory (void);
 #endif
 #ifdef	WINDOWS_ONLY

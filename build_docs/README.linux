@@ -27,7 +27,7 @@ http://sourceforge.net/projects/firebird
 
 Or from our cvs repository, which you can get either as an anonymous user:
 
-$CVSROOT=:pserver:anonymous@cvs.sourceforge.net:/cvsroot/firebird
+$CVSROOT=:pserver:anonymous@cvs.firebird.sourceforge.net:/cvsroot/firebird
 $export CVSROOT
 $cvs logon
 password:   (just hit return)
@@ -37,7 +37,7 @@ $cvs -z3 checkout interbase
 Or if you are a member of the Firebird project you can checkout the source using SSH and
 this will allow you to commit and changes you make.
 
-$cvs -z3 -d yourusername@cvs.sourceforge.net:/cvsroot/firebird checkout interbase
+$cvs -z3 -d yourusername@cvs.firebird.sourceforge.net:/cvsroot/firebird checkout interbase
 
 
 NOTE: If you use CVS to checked out the source make a backup copy of the original

@@ -217,7 +217,7 @@ block->blk_length = units;
 return block;
 }
 
-#ifdef DEBUG_GDS_ALLOC
+#ifdef DEV_BUILD
 void ALL_check_memory (void)
 {
 /**************************************
@@ -269,7 +269,7 @@ for (pool_id = 0; pool_id < vector->vec_count; pool_id++)
 
 V4_RW_LOCK_UNLOCK (dbb->dbb_rw_locks + DBB_WLCK_pools);
 }
-#endif /* DEBUG_GDS_ALLOC */
+#endif /* DEV_BUILD */
 
 #ifdef	WINDOWS_ONLY
 BOOLEAN ALL_check_size (

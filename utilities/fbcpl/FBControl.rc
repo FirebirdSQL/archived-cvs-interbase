@@ -28,8 +28,8 @@ LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,3,13
- PRODUCTVERSION 1,0,3,13
+ FILEVERSION 1,0,3,12
+ PRODUCTVERSION 1,0,3,12
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -47,14 +47,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "IBPhoenix\0"
             VALUE "FileDescription", "FBControl CPL\0"
-            VALUE "FileVersion", "1, 0, 3, 13\0"
+            VALUE "FileVersion", "1, 0, 3, 12\0"
             VALUE "InternalName", "FBControl\0"
             VALUE "LegalCopyright", "Copyright (C) 2003\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "FBControl.DLL\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "Firebird Control Panel Applet\0"
-            VALUE "ProductVersion", "1, 0, 3, 13\0"
+            VALUE "ProductVersion", "1, 0, 3, 12\0"
             VALUE "SpecialBuild", "\0"
         END
     END

@@ -158,7 +158,7 @@ double EXPORT IB_UDF_log(
     double* a,
     double* b)
 {
-    return (log(*b)/log(*a)); 
+    return (log(*a)/log(*b)); 
 }
 
 double EXPORT IB_UDF_log10(
@@ -191,15 +191,22 @@ char* EXPORT IB_UDF_ltrim(
     char* s)
 {
     char *buf;
+    char *p;
     long length;
 
-    while (*s == ' ')       /* skip leading blanks */
-	s++;
-
-    length = strlen(s);
-    buf = (char*) ib_util_malloc (length + 1);
-    memcpy(buf, s, length); 
-    buf[length] = '\0';
+    if (length = strlen(s))
+    {
+	while (*s == ' ')       /* skip leading blanks */
+	    s++;
+	
+	length = strlen(s);
+	buf = (char*) ib_util_malloc (length + 1);
+	memcpy(buf, s, length); 
+	p = buf + length;
+	*p = '\0';
+    }
+    else
+	return NULL;
 
     return buf;
 }
@@ -234,14 +241,23 @@ char* EXPORT IB_UDF_rtrim(
     char* s)
 {
     char* p;
+    char* q;
     char* buf;
     long length;
 
-    for (p = s + strlen(s); --p >= s && *p == ' ';);
-    length =  p - s + 1;
-    buf = (char*) ib_util_malloc (length + 1);
-    memcpy (buf, s, length);
-    buf[length] = '0';
+    if (length = strlen(s))
+    {
+	p = s + length - 1;
+	while ((s != p) && (*p == ' '))
+	    p--;
+	length =  p - s + 1;
+	buf = (char*) ib_util_malloc (length + 1);
+	memcpy (buf, s, length);
+	q = buf + length;
+	*q = '\0';
+    }
+    else
+	return NULL;
 
     return buf;
 }

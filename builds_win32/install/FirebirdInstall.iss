@@ -121,8 +121,7 @@ Name: "{group}\Firebird Guardian"; Filename: {app}\bin\ibguard.exe; Parameters: 
 Name: "{group}\Firebird 1.0 Release Notes"; Filename: {app}\doc\Firebird_v1_ReleaseNotes.pdf; MinVersion: 4.0,4.0; Tasks: MenuGroupTask; IconIndex: 1; Comment: "Firebird 1.0 release notes. (Requires Acrobat Reader.)";
 Name: "{group}\Firebird 1.0 Readme"; Filename: {app}\readme.txt; MinVersion: 4.0,4.0; Tasks: MenuGroupTask;
 Name: "{group}\Uninstall Firebird"; Filename: {uninstallexe}; Comment: "Uninstall Firebird"
-Name: "{group}\Firebird Control Panel"; Filename: {sys}\rundll32.exe; Parameters: "shell32.dll,Control_RunDLL {sys}\FirebirdControl.cpl"; MinVersion: 0.0,4.0; Tasks: InstallCPLAppletTask;
-Name: "{group}\Firebird Control Panel"; Filename: {win}\rundll32.exe; Parameters: "shell32.dll,Control_RunDLL {sys}\FirebirdControl.cpl"; MinVersion: 4.0,0.0; Tasks: InstallCPLAppletTask;
+Name: "{group}\Firebird Control Panel"; Filename: {sys}\rundll32.exe; Parameters: "shell32.dll,Control_RunDLL {sys}\FirebirdControl.cpl"; Tasks: InstallCPLAppletTask;
 
 [Files]
 Source: builds_win32\install\IPLicense.txt; DestDir: {app}; Components: ClientComponent; Flags: sharedfile;
@@ -212,15 +211,14 @@ procedure GetSharedLibCountAtStart;
 var
   dw: Cardinal;
 begin
-
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs', AddBackslash(GetSystemDir) + 'gds32.dll', dw) then
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\gds32.dll', dw) then
     gds32StartCount := dw
   else
     gds32StartCount := 0;
   
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs', AddBackslash(GetSystemDir) + 'FirebirdControl.cpl', dw) then
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\FirebirdControl.cpl', dw) then
     fbcplStartCount := dw
   else
     fbcplStartCount := 0;
@@ -237,12 +235,12 @@ var
   dw: cardinal;
 begin
   if RegQueryDWordValue(HKEY_LOCAL_MACHINE,
-    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs',AddBackslash(GetSystemDir) + libname, dw) then begin
+    'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\'+libname, dw) then begin
     
     if (( dw - StartCount ) > 1 ) then begin
       dw := StartCount + 1 ;
       RegWriteDWordValue(HKEY_LOCAL_MACHINE,
-      'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs',AddBackslash(GetSystemDir) + libname, dw);
+      'SOFTWARE\Microsoft\Windows\CurrentVersion\SharedDLLs','C:\WINNT\System32\'+libname, dw);
     end;
   end;
 end;
@@ -359,14 +357,11 @@ function GetFirebirdDir: string;
 var
 	FirebirdDir: String;
 begin
-  FirebirdDir := '';
-	FirebirdVer := [0,0,0,0];
+	FirebirdVer    := [0,0,0,0];
   RegQueryStringValue(HKEY_LOCAL_MACHINE,
     'SOFTWARE\FirebirdSQL\Firebird\CurrentVersion','RootDirectory', FirebirdDir);
   if (FirebirdDir<>'') then
     FirebirdVer:=GetInstalledVersion(FirebirdDir);
-    
-  Result := FirebirdDir;
 end;
 
 function GetInterBaseDir: string;
@@ -374,13 +369,11 @@ function GetInterBaseDir: string;
 var
   InterBaseDir: String;
 begin
-  InterBaseDir := '';
-  InterBaseVer := [0,0,0,0];
+	InterBaseVer   := [0,0,0,0];
   RegQueryStringValue(HKEY_LOCAL_MACHINE,
     'SOFTWARE\Borland\InterBase\CurrentVersion','RootDirectory', InterBaseDir);
   if (InterBaseDir<>'') then
     InterBaseVer:=GetInstalledVersion(InterBaseDir);
-  Result := InterBaseDir;
 end;
 
 //This function tries to find an existing install of Firebird 1.0

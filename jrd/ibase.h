@@ -2329,8 +2329,6 @@ enum	info_db_provider
 #define isc_spb_sts_hdr_pages		0x04
 #define isc_spb_sts_idx_pages		0x08
 #define isc_spb_sts_sys_relations	0x10
-#define isc_spb_sts_record_versions	0x20
-#define isc_spb_sts_table		0x40
 
 /*************************/
 /* SQL information items */
