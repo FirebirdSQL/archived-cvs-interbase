@@ -389,15 +389,38 @@ switch (ret)
     {
     case EXTRACT:
 	/* This is a call to do extractions */
-
 	if (*Db_name)
-	    Exit_value = EXTRACT_ddl (SQL_objects, tabname);
-	break;
+        {
+	  #ifndef GUI_TOOLS
+           /* Let's use user and password if provided.
+              This should solve bug #112263 FSG 28.Jan.2001 */
+           (void) newdb (Db_name, User, Password, Numbufs, Role);
+          #endif
+        
+        
+           Exit_value = EXTRACT_ddl (SQL_objects, tabname);
+           
+	   #ifndef GUI_TOOLS
+             isc_detach_database(isc_status, &DB);
+           #endif
+	}
+        break;
 
     case EXTRACTALL:
+
 	if (*Db_name)
-	    Exit_value = EXTRACT_ddl (ALL_objects, tabname);
-	break;
+        {
+          #ifndef GUI_TOOLS
+           /* Let's use user and password if provided.
+              This should solve bug #112263 FSG 28.Jan.2001 */
+           (void) newdb (Db_name, User, Password, Numbufs, Role);
+          #endif
+          Exit_value = EXTRACT_ddl (ALL_objects, tabname);
+           #ifndef GUI_TOOLS
+	     isc_detach_database(isc_status, &DB);
+           #endif  	  
+	}
+        break;
 
     case ERR:
 	gds__msg_format (NULL_PTR, ISQL_MSG_FAC, USAGE1, sizeof (helpstring),
