@@ -168,7 +168,7 @@ buildExample4Databases() {
 
     cp $IBSrc/example4/*.sql . 
     ed empbld.sql <<e_o_f
-1,$s/employee.gdb/empbuild.gdb/g
+1,\$s/employee.gdb/empbuild.gdb/g
 w
 q
 e_o_f
@@ -192,7 +192,7 @@ buildExample5Databases() {
 
     cp $IBSrc/example5/*.sql . 
     ed empbld.sql <<e_o_f
-1,$s/employee.gdb/empbuild.gdb/g
+1,\$s/employee.gdb/empbuild.gdb/g
 w
 q
 e_o_f
