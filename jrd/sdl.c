@@ -1032,6 +1032,7 @@ switch (desc->dsc_dtype)
     case dtype_short:
     case dtype_long:
     case dtype_quad:
+    case dtype_int64:
 	desc->dsc_scale = *((SCHAR*) sdl);
 	++sdl;
 	break;
