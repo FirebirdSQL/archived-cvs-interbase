@@ -65,7 +65,11 @@ typedef struct bid {
 DATABASE
     DB = STATIC FILENAME "yachts.lnk" RUNTIME *dbb_file;
 #define DB          tdgbl->db_handle
+
+/* let these two share the same toy */
+#define gds__trans  tdgbl->tr_handle
 #define isc_trans  tdgbl->tr_handle
+
 #define isc_status  tdgbl->status
 
 /*
@@ -234,6 +238,7 @@ tdgbl->io_cnt = 0;
 tdgbl->relations = (REL) NULL;
 cumul_count_kb = tdgbl->BCK_capabilities = 0;
 
+gds__trans = NULL;
 isc_trans = NULL;
 
 BURP_verbose (130, NULL, NULL, NULL, NULL, NULL);
@@ -241,7 +246,7 @@ BURP_verbose (130, NULL, NULL, NULL, NULL, NULL);
 
 if (tdgbl->gbl_sw_ignore_limbo)
     {
-    if (isc_start_transaction (
+   if (isc_start_transaction (
             status_vector,
             GDS_REF (isc_trans),
             1,
@@ -269,7 +274,6 @@ if (!isc_trans)
     if (isc_status [1])
         EXEC SQL SET TRANSACTION NAME isc_trans;
     }
-
 
 
 
