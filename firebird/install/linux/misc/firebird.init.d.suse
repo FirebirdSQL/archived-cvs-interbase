@@ -21,7 +21,15 @@
 ### END INIT INFO
 
 # Source SuSE config
-. /etc/rc.config
+if [ -r /etc/rc.config ]
+  then
+  . /etc/rc.config
+fi
+
+if [ -r /etc/sysconfig/firebird ]
+  then
+  . /etc/sysconfig/firebird
+fi
 
 # Determine the base and follow a runlevel link name.
 base=${0##*/}

@@ -397,6 +397,11 @@ installInitdScript() {
       then
         /bin/fillup -q -d = etc/rc.config $IBRootDir/misc/rc.config.firebird
     fi
+    
+    if [ -d /etc/sysconfig ] 
+      then
+      cp $IBRootDir/misc/rc.config.firebird /etc/sysconfig/firebird
+    fi
 
 }
 
