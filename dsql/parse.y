@@ -28,6 +28,8 @@
  * 2001.07.10: Claudio Valderrama: Better (line,column) report and "--" for comments.
  * 2001.07.28: John Bellardo: Changes to support parsing LIMIT and FIRST
  * 2001.08.03: John Bellardo: Finalized syntax for LIMIT, change LIMIT to SKIP
+ * 2001.08.05: Claudio Valderrama: closed Bug #448062 and other spaces that appear
+ *   in rdb$*_source fields when altering domains plus one unexpected null pointer.
  */
 
 #if defined(DEV_BUILD) && defined(WIN32) && defined(SUPERSERVER)
@@ -89,7 +91,7 @@ ASSERT_FILENAME
 #define DEF_CACHE_BUFFERS       1000
 
 #define YYSTYPE		NOD
-#ifdef DEBUG
+#if defined(DEBUG) || defined(DEV_BUILD)
 #define YYDEBUG		1
 #endif
 
@@ -1642,19 +1644,33 @@ alter_clause	: EXCEPTION symbol_exception_name sql_string
 				     (int) e_mod_idx_count, $2); }
 		;
 
+domain_default_opt2	: DEFAULT begin_trigger default_value
+				{ $$ = $3; }
+
+domain_check_constraint2 	: CHECK begin_trigger '(' search_condition ')' end_trigger
+				  { $$ = make_node (nod_def_constraint, 
+				  (int) e_cnstr_count, MAKE_string (NULL_STRING, 0), NULL, 
+				  NULL, NULL, $4, NULL, $6, NULL, NULL); }
+                                ;
+
 alter_domain_ops	: alter_domain_op
 			| alter_domain_ops alter_domain_op
 			  { $$ = make_node (nod_list, 2, $1, $2); }
 			;
 
-alter_domain_op		: SET begin_string default_opt end_trigger
+alter_domain_op		: SET begin_trigger domain_default_opt2 end_trigger
+                          { $$ = make_node (nod_def_default, (int) e_dft_count,
+					    $3, $4); }              
+/*			SET begin_string default_opt end_trigger
                           { $$ = make_node (nod_def_default, (int) e_dft_count,
 					    $3, $4); }
-/*                        | begin_trigger default_opt end_trigger
+                        | begin_trigger default_opt end_trigger
                           { $$ = make_node (nod_def_default, (int) e_dft_count,
 					    $2, $3); }              */
-                        | ADD CONSTRAINT domain_check_constraint
+                        | ADD CONSTRAINT domain_check_constraint2
                           { $$ = $3; } 
+/*                        | ADD CONSTRAINT domain_check_constraint
+                          { $$ = $3; }                         */
                         | ADD domain_check_constraint
                           { $$ = $2; } 
 			| DROP DEFAULT
