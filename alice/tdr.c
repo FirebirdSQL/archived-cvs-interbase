@@ -212,7 +212,7 @@ if (tdgbl->ALICE_data.ua_user)
 
 if (tdgbl->ALICE_data.ua_password)
     {
-    if (!tdgbl->sw_service && !tdgbl->sw_service_thd)
+    if (!tdgbl->sw_service)
 	*d++ = gds__dpb_password;
     else
 	*d++ = gds__dpb_password_enc;
@@ -362,7 +362,7 @@ while (flag)
 		ptr += length;
 		break;
 		}
-	    if (!tdgbl->sw_service && !tdgbl->sw_service_thd)
+	    if (!tdgbl->sw_service)
 		ALICE_print (71, id, 0, 0, 0, 0); /* msg 71: Transaction %d is in limbo. */
   	    if (trans = MET_get_transaction (status_vector, handle, id))
 		{
@@ -392,7 +392,7 @@ while (flag)
 	    break;
 	
 	case gds__info_truncated:
-	    if (!tdgbl->sw_service && !tdgbl->sw_service_thd)
+	    if (!tdgbl->sw_service)
 		ALICE_print (72, 0, 0, 0, 0, 0); /* msg 72: More limbo transactions than fit.  Try again */
 
 	case gds__info_end:
@@ -400,7 +400,7 @@ while (flag)
 	    break;
 	
 	default:
-	    if (!tdgbl->sw_service && !tdgbl->sw_service_thd)
+	    if (!tdgbl->sw_service)
 		ALICE_print (73, item, 0, 0, 0, 0); /* msg 73: Unrecognized info item %d */
 	}
     }
@@ -563,7 +563,7 @@ tdgbl = GET_THREAD_DATA;
 if (!trans)
     return;
 
-if (!tdgbl->sw_service && !tdgbl->sw_service_thd)
+if (!tdgbl->sw_service)
     ALICE_print (92, 0, 0, 0, 0, 0); /* msg 92:   Multidatabase transaction: */
                       
 prepared_seen = FALSE;

@@ -562,7 +562,7 @@ if (tdgbl->gbl_sw_user)
 
 if (tdgbl->gbl_sw_password)
     {
-    if (!tdgbl->gbl_sw_service_gbak && !tdgbl->gbl_sw_service_thd)
+    if (!tdgbl->gbl_sw_service_gbak)
         *d++ = (UCHAR) gds__dpb_password;
     else
     	*d++ = (UCHAR) gds__dpb_password_enc;
@@ -616,7 +616,7 @@ if (tdgbl->gbl_sw_mode == TRUE && tdgbl->gbl_sw_mode_val == TRUE)
 
     if (tdgbl->gbl_sw_password)
 	{
-	if (!tdgbl->gbl_sw_service_gbak && !tdgbl->gbl_sw_service_thd)
+	if (!tdgbl->gbl_sw_service_gbak)
 	    *d++ = (UCHAR) gds__dpb_password;
 	else
 	    *d++ = (UCHAR) gds__dpb_password_enc;
@@ -970,7 +970,7 @@ if (tdgbl->gbl_sw_user)
     }
 if (tdgbl->gbl_sw_password)
     {
-    if (!tdgbl->gbl_sw_service_gbak && !tdgbl->gbl_sw_service_thd)
+    if (!tdgbl->gbl_sw_service_gbak)
 	*d++ = (UCHAR) isc_dpb_password;
     else
 	*d++ = (UCHAR) isc_dpb_password_enc;

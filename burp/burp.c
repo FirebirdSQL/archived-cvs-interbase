@@ -993,7 +993,7 @@ for (in_sw_tab = burp_in_sw_table; in_sw_tab->in_sw_name; in_sw_tab++)
 	    case (IN_SW_BURP_PASS):
 		if (!tdgbl->dpb_length)
 		    *dpb++ = gds__dpb_version1;
-		if (!tdgbl->gbl_sw_service_gbak && !tdgbl->gbl_sw_service_thd)
+		if (!tdgbl->gbl_sw_service_gbak)
 		    *dpb++ = gds__dpb_password;
 		else
 		    *dpb++ = gds__dpb_password_enc;
@@ -2091,7 +2091,7 @@ if (sw_replace == IN_SW_BURP_R && status_vector[1] == isc_adm_task_denied)
  * service will think that there is an error if isc_attach_database failed
  * like it should have (if creating a database).
  */
-if (tdgbl->gbl_sw_service_gbak || tdgbl->gbl_sw_service_thd)
+if (tdgbl->gbl_sw_service_gbak)
     memset (tdgbl->status, 0, ISC_STATUS_LENGTH * sizeof(STATUS));
 
 /* check the file size specification */
