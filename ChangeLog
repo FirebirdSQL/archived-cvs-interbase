@@ -1,3 +1,9 @@
+2001-07-30 00:59  awharrison
+
+	* interbase/msgs/msg.gbak:
+	
+	add two new backup messages for data only restore
+
 2001-07-29 09:34  robocop
 
 	* interbase/: dsql/parse.c, jrd/opt.c:
