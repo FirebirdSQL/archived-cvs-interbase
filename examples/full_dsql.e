@@ -16,6 +16,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 #include <stdio.h>
 
 #ifdef VMS
@@ -80,45 +83,45 @@ char	db_name[128];
  *
  **************************************/
 #ifdef VMS
-#define ALIGN(n,b)				(n)
+#define FB_ALIGN(n,b)				(n)
 #endif
 
 #ifdef sun
 #ifdef sparc
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 #endif
 
 #ifdef hpux
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #ifdef ultrix
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #ifdef sgi
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #ifdef _AIX
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #ifdef DGUX
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #if (defined __osf__ && defined __alpha)
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #ifdef mpexl
-#define ALIGN(n,b)			((n + b - 1) & ~(b - 1))
+#define FB_ALIGN(n,b)			((n + b - 1) & ~(b - 1))
 #endif
 
 #ifndef ALIGN
-#define ALIGN(n,b)			((n+1) & ~1)
+#define FB_ALIGN(n,b)			((n+1) & ~1)
 #endif
 
 #define UPPER(c) 				((c >= 'a' && c<= 'z') ? c + 'A' - 'a': c )
@@ -447,10 +450,10 @@ var++)
 	length += sizeof (short);
 	alignment = sizeof (short);
 	}
-    offset = ALIGN (offset, alignment);
+    offset = FB_ALIGN(offset, alignment);
     var->sqldata = (char*) buffer + offset;
     offset += length;
-    offset = ALIGN (offset, sizeof (short));
+    offset = FB_ALIGN(offset, sizeof (short));
     var->sqlind = (short*) ((char*) buffer + offset);
     offset += sizeof  (short);
     }
