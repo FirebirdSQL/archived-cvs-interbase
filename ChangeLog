@@ -1,3 +1,42 @@
+2001-12-08 08:37  robocop
+
+	* interbase/isql/isql.e:
+	
+	Our awesome tool isql shouldn't try to close a cursor that it
+	didn't open.  For obvious reasons, the engine complains. The case
+	happens when a procedure is executed as opposed of selecting from
+	it.
+
+2001-12-07 12:57  paul_reeves
+
+	* interbase/FB_Build_Win32_Build_No.bat:
+	
+	Removed superfluous quotes from fb_build_suffix for the Win32
+	build.
+
+2001-12-07 09:31  robocop
+
+	* interbase/jrd/dyn_mod.e:
+	
+	Fixed a misleading comment: there's no warning if the new field's
+	length is smaller than the original: we throw an error always.
+
+2001-12-07 09:30  robocop
+
+	* interbase/dsql/: ddl.c, ddl_proto.h, metd.e, metd_proto.h:
+	
+	Close the bug where a previously 2-bpc or 3-bpc charset-based field
+	needed the full specification again to change only its length.
+	Since DYN doesn't acknowledge changes in charset or collation, why
+	worry? Just have DSQL calculate the correct field length based on
+	the previous field definition's charset and the new charlen. Both
+	new charset and new collation are ignored by DYN for now.  NOTE:
+	bpc = bytes per character.  Ex: f1 char(3) character set
+	unicode_fss alter column f1 type char(5) => previously failed
+	trying to set length to 5, now sets length to 3*5=15 alter column
+	f1 type char(7) => previously worked but screwed the field's length
+	using one bpc: 7 is not multiple of 3. Now it calculates 7*3=21.
+
 2001-12-06 15:18  paul_reeves
 
 	* interbase/: FB_Build_Win32_Build_No.bat,
