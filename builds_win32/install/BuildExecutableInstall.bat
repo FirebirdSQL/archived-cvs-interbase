@@ -28,6 +28,14 @@
 ::  To use it CD to the builds_win32/install directory and then run the 
 ::  batch file.
 ::
+@if "%PRODUCT_VER_STRING%"=="" goto :ERR_NOBUILD
 sed s/1.0.0/%PRODUCT_VER_STRING%/ FirebirdInstall.iss > FirebirdInstall%PRODUCT_VER_STRING%.iss
 copy %SystemRoot%\System32\msvcrt.dll .
 start FirebirdInstall%PRODUCT_VER_STRING%.iss
+
+:ERR_NOBUILD
+@echo.
+@echo   This script must only be run after 
+@echo   a full build of the server.
+@echo.
+@goto :EOF

@@ -159,9 +159,9 @@ to install the client across a network. The following parameters may be passed:
   Instructs Setup to initially disable the Don't create any icons check box 
   on the Select Start Menu Folder wizard page. 
 
-/COMPONENTS="component name" 
+/COMPONENTS="comma separated list of component names" 
 
-  Choose from - Server, DevTools and Client
+  Choose from - ServerComponent, DevToolsComponent and ClientComponent
 
   Overrides the default components settings. Using this command line parameter 
   causes Setup to automatically select a custom type. 

@@ -188,7 +188,7 @@ VER_RES_LINK=		/link $(ROOT)\jrd\$(.path.obj)\$(VERSION_RES)
 # Microsoft C
 #VERSION_CFLAGS=	-Ob2gtp -DWIN95
 #Comment the line above and
-#uncomment the next line if building with VISUAL C++ 5.0
+#uncomment the next line if building with VISUAL C++ 5.0 or later
 VERSION_CFLAGS=		-Ob2iytp -Gs -DWIN95
 
 #Compile the server to have a 2meg stack.  This is needed for some

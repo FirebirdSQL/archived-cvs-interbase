@@ -172,6 +172,10 @@ static TEXT	*status_name;
 #ifdef DARWIN
 #define GDS_INCLUDE     "<Firebird/ibase.h>"
 #endif
+#if (defined WIN_NT && DEV_BUILD)
+#define GDS_INCLUDE	"<ibase.h>"
+#define GDSH_INCLUDE "<gds.h>"
+#endif
   
 #ifndef GDS_INCLUDE
 #define GDS_INCLUDE	"<ibase.h>"
@@ -1540,7 +1544,12 @@ if (first_flag++ != 0)
     return;
 
 ib_fprintf (out_file, "\n/**** GDS Preprocessor Definitions ****/\n");
+#if (defined WIN_NT && DEV_BUILD)
+/* PR - include gds.h in preprocessor output for Win32 when doing a dev build. */
+ib_fprintf (out_file, "#ifndef _JRD_IBASE_H_\n#include %s\n#include %s\n#endif\n", GDS_INCLUDE,GDSH_INCLUDE);
+#else
 ib_fprintf (out_file, "#ifndef _JRD_IBASE_H_\n#include %s\n#endif\n", GDS_INCLUDE);
+#endif
 
 printa (column, "static %sISC_QUAD", CONST_STR);
 printa (column + INDENT, "isc_blob_null = {0,0};\t/* initializer for blobs */");

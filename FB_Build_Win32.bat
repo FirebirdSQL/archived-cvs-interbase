@@ -203,6 +203,10 @@ call FB_Build_Win32_build_no.bat %THISBUILD%
 set IB_COMPONENTS=alice burp dsql dudley example5 extlib gpre intl ipserver isql iscguard jrd lock msgs qli remote utilities wal
 set NO_HEADER_COMPS=examples example5
 set OS_NAME=builds_win32
+:: If this is set we will run into some problems, so lets clear it here.
+:: This will not persist beyond the session, so it is probably OK to just do it
+:: and not bother to save the original value for restoration later.
+set ISC_PATH=
 
 
 ::=====================================
@@ -381,7 +385,7 @@ goto :EOF
 @echo   If DB_PATH is not correctly specified the build will fail.
 @echo:
 @echo   If a remote database server is specified the setup will fail
-@echo   because it will fail to detect t
+@echo   because it will fail to detect it
 @echo:
 @echo   You may optionally specify -DDEV to create a debug build.
 @echo:
