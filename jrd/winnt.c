@@ -29,6 +29,8 @@
  * 20-Nov-2001 Ann Harrison: Make page count work on db with forced write
  * 
  * 21-Nov-2001 Ann Harrison: Allow read sharing so gstat works 
+ *
+ * 18-Jan-2002 Paul Beach: Added Mike Nordell's forced write to non-forced write fix from FB2
  */
 
 #ifdef _MSC_VER
@@ -317,24 +319,28 @@ void PIO_force_write (
  *	Set (or clear) force write, if possible, for the database.
  *
  **************************************/
-HANDLE	desc;
 
-if (flag)
-    {
-    if (!(file->fil_flags & FIL_force_write_init))
-	{
-	/* TMN: Close the existing handle since we're now opening */
-	/* the files for exclusive access */
-	MaybeCloseFile(&file->fil_desc);
-	desc = CreateFile (file->fil_string,
-		GENERIC_READ | GENERIC_WRITE,
-		g_dwShareFlags,
-		NULL,
-		OPEN_EXISTING,
-		FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH | g_dwExtraFlags,
-		0);
 
-	if (desc == INVALID_HANDLE_VALUE)
+	const bool bOldForce = (file->fil_flags & FIL_force_write_init) != 0;
+
+	if ((flag && !bOldForce) || 
+		(!flag && bOldForce))
+		{
+		SLONG& hOld = flag ? file->fil_desc : file->fil_force_write_desc;
+        HANDLE& hNew = reinterpret_cast<HANDLE&>(flag ? file->fil_force_write_desc : file->fil_desc);
+		
+		MaybeCloseFile(&hOld);
+		hNew = CreateFile(file->fil_string,
+			GENERIC_READ | GENERIC_WRITE,
+			g_dwShareFlags,
+			NULL,
+			OPEN_EXISTING,
+			FILE_ATTRIBUTE_NORMAL |
+			g_dwExtraFlags |
+			(flag ? FILE_FLAG_WRITE_THROUGH : 0),
+			0);
+			
+	if (hNew == INVALID_HANDLE_VALUE)
 	    ERR_post (isc_io_error,
 		    gds_arg_string,
  			"CreateFile (force write)",
@@ -346,15 +352,13 @@ if (flag)
 			GetLastError(),
 			0);
 
-	/* TMN: Take note! Assumes sizeof(long) == sizeof(void*) ! */
-	file->fil_force_write_desc = (SLONG) desc;
+	if (flag) {
+	file->fil_flags |= (FIL_force_write | FIL_force_write_init);	
+	} else {
+		file->fil_flags &= ~FIL_force_write;
+		}
 	}
-    file->fil_flags |= (FIL_force_write | FIL_force_write_init);
-    }
-else
-    file->fil_flags &= ~FIL_force_write;
 }
-
 
 void PIO_header (
     DBB		dbb,
