@@ -577,7 +577,7 @@ for (ptr = trans; ptr; ptr = ptr->tdr_next)
 	SVC_putc (tdgbl->service_blk, (UCHAR) isc_spb_tra_host_site);
 	SVC_putc (tdgbl->service_blk, (UCHAR) strlen (ptr->tdr_host_site->str_data));
 	SVC_putc (tdgbl->service_blk, (UCHAR) (strlen (ptr->tdr_host_site->str_data) >> 8));
-	for (i = 0; i < (int)strlen (ptr->tdr_host_site->str_data); i++);
+	for (i = 0; i < (int)strlen (ptr->tdr_host_site->str_data); i++)
 	    SVC_putc (tdgbl->service_blk, (UCHAR) ptr->tdr_host_site->str_data[i]);
 #endif
 	}
