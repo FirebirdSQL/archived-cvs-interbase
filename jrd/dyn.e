@@ -19,15 +19,17 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
- *    20-Apr-2001 Claudio Valderrama  - Fix bug in grant/revoke by making user
+ *    2001.04.20 Claudio Valderrama: Fix bug in grant/revoke by making user
  *                                      case insensitive.
- *    24-May-2001 Claudio Valderrama - Move DYN_delete_role to dyn_del.e.
- *    05-Jun-2001 John Bellardo - Renamed the revoke static function to
+ *    2001.05.24 Claudio Valderrama: Move DYN_delete_role to dyn_del.e.
+ *    2001.06.05 John Bellardo: Renamed the revoke static function to
  *                                revoke_permission, because there is already
  *                                a revoke(2) function in *nix.
- *    20-Jun-2001 Claudio Valderrama - Enable calls to DYN_delete_generator.
- *    10-Oct-2001 Claudio Valderrama - Enable explicit GRANT...to ROLE role_name.
- *			and complain if the grantee ROLE doesn't exist.	
+ *    2001.06.20 Claudio Valderrama: Enable calls to DYN_delete_generator.
+ *    2001.10.01 Claudio Valderrama: Enable explicit GRANT...to ROLE role_name.
+ *			and complain if the grantee ROLE doesn't exist.
+ *    2001.10.06 Claudio Valderrama: Forbid "NONE" from role-related operations.
+ *				Honor explicit USER keyword in GRANTs and REVOKEs.
  *                                      
  */
 
@@ -1184,22 +1186,41 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 
 	case gds__dyn_grant_user:
 	    GET_STRING (ptr, user);
+		DYN_terminate (user, sizeof (user));
 		/* This test may become obsolete as we now allow explicit ROLE keyword. */
 	    if (DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
+		{
 	        user_type = obj_sql_role;
-	    else {
+		if (!strcmp (user, "NONE"))
+		    DYN_error_punt (FALSE, 195, user, NULL, NULL, NULL, NULL);
+		/* msg 195: keyword NONE could not be used as SQL role name. */
+		}
+	    else
+	        {
 	        user_type = obj_user;
 		for (ptr1 = user; *ptr1; ptr1++)
 		   *ptr1 = UPPER7 (*ptr1);
 		}
+	    break;		
+
+	case isc_dyn_grant_user_explicit:
+	    GET_STRING (ptr, user);
+		DYN_terminate (user, sizeof (user));
+	        user_type = obj_user;
+		for (ptr1 = user; *ptr1; ptr1++)
+		   *ptr1 = UPPER7 (*ptr1);
 	    break;
 
 	case isc_dyn_grant_role:
 	    user_type = obj_sql_role;
 	    GET_STRING (ptr, user);
+		DYN_terminate (user, sizeof (user));
 		if (!DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
 			DYN_error_punt (FALSE, 188, user, NULL, NULL, NULL, NULL);
 		/* msg 188: Role doesn't exist. */
+		if (!strcmp (user, "NONE"))
+		    DYN_error_punt (FALSE, 195, user, NULL, NULL, NULL, NULL);
+		/* msg 195: keyword NONE could not be used as SQL role name. */
 	    break;
 
 	case isc_dyn_sql_role_name:      /* role name in role_name_list */
@@ -1212,6 +1233,10 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 	        obj_type = obj_sql_role;
 	        GET_STRING (ptr, object);
 	        grant_role_stmt = TRUE;
+		DYN_terminate (object, sizeof (object));
+		if (!strcmp (object, "NONE"))
+		    DYN_error_punt (FALSE, 195, object, NULL, NULL, NULL, NULL);
+		/* msg 195: keyword NONE could not be used as SQL role name. */
                 }
 	    break;
 
@@ -1865,22 +1890,41 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
 
 	case gds__dyn_grant_user:
 	    GET_STRING (ptr, user);
+		DYN_terminate (user, sizeof (user));
 		/* This test may become obsolete as we now allow explicit ROLE keyword. */
 	    if (DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
+		{
 	        user_type = obj_sql_role;
-	    else {
+		if (!strcmp (user, "NONE"))
+		    DYN_error_punt (FALSE, 195, user, NULL, NULL, NULL, NULL);
+		/* msg 195: keyword NONE could not be used as SQL role name. */
+		}
+	    else
+	        {
 	        user_type = obj_user;
 		for (ptr1 = user; *ptr1; ptr1++)
 		   *ptr1 = UPPER7 (*ptr1);
 		}
+	    break;	
+
+	case isc_dyn_grant_user_explicit:
+	    GET_STRING (ptr, user);
+		DYN_terminate (user, sizeof (user));
+	        user_type = obj_user;
+		for (ptr1 = user; *ptr1; ptr1++)
+		   *ptr1 = UPPER7 (*ptr1);
 	    break;
 
 	case isc_dyn_grant_role:
 	    user_type = obj_sql_role;
 	    GET_STRING (ptr, user);
+		DYN_terminate (user, sizeof (user));
 		if (!DYN_is_it_sql_role (gbl, user, dummy_name, tdbb))
 			DYN_error_punt (FALSE, 188, user, NULL, NULL, NULL, NULL);
 		/* msg 188: Role doesn't exist. */
+		if (!strcmp (user, "NONE"))
+		    DYN_error_punt (FALSE, 195, user, NULL, NULL, NULL, NULL);
+		/* msg 195: keyword NONE could not be used as SQL role name. */
 	    break;
 
 	case isc_dyn_sql_role_name:       /* role name in role_name_list */
@@ -1892,6 +1936,12 @@ while ((verb = *(*ptr)++) != gds__dyn_end)
                 {
 	        obj_type = obj_sql_role;
 	        GET_STRING (ptr, object);
+		DYN_terminate (object, sizeof (object));
+/* CVC: Make this a warning in the future.
+		if (!strcmp (object, "NONE"))
+		    DYN_error_punt (FALSE, 195, object, NULL, NULL, NULL, NULL);
+*/
+		/* msg 195: keyword NONE could not be used as SQL role name. */
                 }
 	    break;
 

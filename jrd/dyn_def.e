@@ -23,6 +23,12 @@
  *                                  char length in UDF param is possible.
  *    23-May-2001 Claudio Valderrama - Forbid zero length identifiers,
  *                                   they are not ANSI SQL compliant.
+ *    2001.10.08 Claudio Valderrama: Add case isc_dyn_system_flag to
+ *	DYN_define_trigger() in order to receive values for special triggers
+ *	as defined in constants.h.
+ *    2001.10.08 Ann Harrison: Changed dyn_create_index so it doesn't consider
+ *	simple unique indexes when finding a "referred index", but only
+ * 	indexes that support unique constraints or primary keys.
  *                                      
  */
 
@@ -1932,7 +1938,7 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	found = FALSE;
 	FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	    X IN RDB$RELATION_CONSTRAINTS CROSS
-		Y IN RDB$INDICES OVER RDB$INDEX_NAME CROSS
+	    Y IN RDB$INDICES OVER RDB$INDEX_NAME CROSS
 	    Z IN RDB$INDEX_SEGMENTS OVER RDB$INDEX_NAME WITH
   	    Y.RDB$RELATION_NAME EQ referenced_relation AND
 	    Y.RDB$UNIQUE_FLAG NOT MISSING AND
@@ -3888,14 +3894,17 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 	    
 	    case gds__dyn_sql_object:
 		X.RDB$FLAGS |= TRG_sql;
+		X.RDB$FLAGS.NULL = FALSE;
 		break;
 
 	    case gds__dyn_trg_sequence:
 		X.RDB$TRIGGER_SEQUENCE = DYN_get_number (ptr);
+		X.RDB$TRIGGER_SEQUENCE.NULL = FALSE;
 		break;
 	    
 	    case gds__dyn_trg_inactive:
 		X.RDB$TRIGGER_INACTIVE = DYN_get_number (ptr);
+		X.RDB$TRIGGER_INACTIVE.NULL = FALSE;
 		break;
 	    
 	    case gds__dyn_rel_name:
@@ -3937,6 +3946,13 @@ STORE (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
 		X.RDB$DESCRIPTION.NULL = FALSE;
 		break;
 #endif
+
+	    case isc_dyn_system_flag:
+		X.RDB$SYSTEM_FLAG = DYN_get_number (ptr);
+		X.RDB$SYSTEM_FLAG.NULL = FALSE;
+		/* assert (!ignore_perm || ignore_perm 
+			&& X.RDB$SYSTEM_FLAG == frb_sysflag_referential_constraint); */
+		break;
 
 	    default:
 		--(*ptr);

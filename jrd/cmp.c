@@ -21,6 +21,8 @@
  * Contributor(s): ______________________________________.
  * 2001.07.28: John Bellardo: Added code to handle rse_skip.
  * 2001.07.17 Claudio Valderrama: Stop crash when parsing user-supplied SQL plan.
+ * 2001.10.04 Claudio Valderrama: Fix annoying & invalid server complaint about
+ *   triggers not having REFERENCES privilege over their owner table.
  */
 /*
 $Id$
@@ -139,7 +141,7 @@ static void	plan_check (CSB, RSE);
 static void	plan_set (CSB, RSE, NOD);
 static void	post_procedure_access (TDBB, CSB, PRC);
 static RSB	post_rse (TDBB, CSB, RSE);
-static void	post_trigger_access (TDBB, CSB, VEC, REL);
+static void	post_trigger_access (TDBB, CSB, REL, VEC, REL);
 static void	process_map (TDBB, CSB, NOD, FMT *);
 static BOOLEAN	stream_in_rse (USHORT, RSE);
 static SSHORT	strcmp_space (TEXT *, TEXT *);
@@ -259,7 +261,7 @@ if (validate)
 	    (TEXT*)procedure->prc_security_name->str_data : (TEXT*)NULL_PTR);
 	class = SCL_get_class (prc_sec_name);
 	SCL_check_access (class, NULL_PTR, NULL_PTR,
-	    NULL_PTR, SCL_execute, "procedure", procedure->prc_name->str_data);
+	    NULL_PTR, SCL_execute, object_procedure, procedure->prc_name->str_data);
 	}
     for (access = request->req_access; access; access = access->acc_next)
 	{
@@ -2813,7 +2815,7 @@ for (ptr = rse->rse_relation, end = ptr + rse->rse_count; ptr < end;)
 	if (relation = tail->csb_relation)
 	    CMP_post_access (tdbb, csb, relation->rel_security_name,
 			(tail->csb_view) ? tail->csb_view : view,
-			NULL_PTR, NULL_PTR, SCL_read, "table",
+			NULL_PTR, NULL_PTR, SCL_read, object_table,
 			relation->rel_name);
 	}
     else if (node->nod_type == nod_rse)
@@ -3079,10 +3081,10 @@ time the FK is defined in DDL, not when a DML is going to be executed.
 	        {
 	        CMP_post_access (tdbb, *csb, relation->rel_security_name,
 		    (tail->csb_view) ? tail->csb_view : view,
-		    NULL_PTR, NULL_PTR, SCL_sql_update, "table", relation->rel_name);
+		    NULL_PTR, NULL_PTR, SCL_sql_update, object_table, relation->rel_name);
 	        CMP_post_access (tdbb, *csb, field->fld_security_name, 
 	            (tail->csb_view) ? tail->csb_view : view,
-		    NULL_PTR, NULL_PTR, SCL_sql_update, "column", field->fld_name);
+		    NULL_PTR, NULL_PTR, SCL_sql_update, object_column, field->fld_name);
 		}
 	    }
 	else
@@ -3090,26 +3092,26 @@ time the FK is defined in DDL, not when a DML is going to be executed.
 	    {
 	    CMP_post_access (tdbb, *csb, relation->rel_security_name,
 		(tail->csb_view) ? tail->csb_view : view,
-		NULL_PTR, NULL_PTR, SCL_sql_delete, "table", relation->rel_name);
+		NULL_PTR, NULL_PTR, SCL_sql_delete, object_table, relation->rel_name);
 	    }
 	else
 	if (tail->csb_flags & csb_store)
 	    {
 	    CMP_post_access (tdbb, *csb, relation->rel_security_name,
 		(tail->csb_view) ? tail->csb_view : view,
-		NULL_PTR, NULL_PTR, SCL_sql_insert, "table", relation->rel_name);
+		NULL_PTR, NULL_PTR, SCL_sql_insert, object_table, relation->rel_name);
 	    CMP_post_access (tdbb, *csb, field->fld_security_name, 
 		(tail->csb_view) ? tail->csb_view : view,
-		NULL_PTR, NULL_PTR, SCL_sql_insert, "column", field->fld_name);
+		NULL_PTR, NULL_PTR, SCL_sql_insert, object_column, field->fld_name);
 	    }
 	else
 	    {
 	    CMP_post_access (tdbb, *csb, relation->rel_security_name,
 		(tail->csb_view) ? tail->csb_view : view,
-		NULL_PTR, NULL_PTR, SCL_read, "table", relation->rel_name);
+		NULL_PTR, NULL_PTR, SCL_read, object_table, relation->rel_name);
 	    CMP_post_access (tdbb, *csb, field->fld_security_name, 
 		(tail->csb_view) ? tail->csb_view : view,
-		NULL_PTR, NULL_PTR, SCL_read, "column", field->fld_name);
+		NULL_PTR, NULL_PTR, SCL_read, object_column, field->fld_name);
 	    }
 	    
 
@@ -3387,8 +3389,8 @@ for (;;)
     relation = (*csb)->csb_rpt [stream].csb_relation;
     view = (relation->rel_view_rse) ? relation : view;
     if (!parent) parent = tail->csb_view;
-    post_trigger_access (tdbb, *csb, relation->rel_pre_erase, view);
-    post_trigger_access (tdbb, *csb, relation->rel_post_erase, view);
+    post_trigger_access (tdbb, *csb, relation, relation->rel_pre_erase, view);
+    post_trigger_access (tdbb, *csb, relation, relation->rel_post_erase, view);
 
     /* If this is a view trigger operation, get an extra stream to play with */
 
@@ -3562,8 +3564,8 @@ for (;;)
     relation = (*csb)->csb_rpt [stream].csb_relation;
     view = (relation->rel_view_rse) ? relation : view;
     if (!parent) parent = tail->csb_view;
-    post_trigger_access (tdbb, *csb, relation->rel_pre_modify, view);
-    post_trigger_access (tdbb, *csb, relation->rel_post_modify, view);
+    post_trigger_access (tdbb, *csb, relation, relation->rel_pre_modify, view);
+    post_trigger_access (tdbb, *csb, relation, relation->rel_post_modify, view);
     trigger = (relation->rel_pre_modify) ? relation->rel_pre_modify : relation->rel_post_modify;
 
     /* Check out update.  If this is an update thru a view, verify the
@@ -4051,8 +4053,8 @@ for (;;)
     relation = (*csb)->csb_rpt [stream].csb_relation;
     view = (relation->rel_view_rse) ? relation : view;
     if (!parent) parent = tail->csb_view;
-    post_trigger_access (tdbb, *csb, relation->rel_pre_store, view);
-    post_trigger_access (tdbb, *csb, relation->rel_post_store, view);
+    post_trigger_access (tdbb, *csb, relation, relation->rel_pre_store, view);
+    post_trigger_access (tdbb, *csb, relation, relation->rel_post_store, view);
     trigger = (relation->rel_pre_store) ? relation->rel_pre_store : relation->rel_post_store;
 
     /* Check out insert.  If this is an insert thru a view, verify the
@@ -4140,7 +4142,7 @@ DEV_BLKCHK (view, type_rel);
 /* Unless this is an internal request, check access permission */
 
 CMP_post_access (tdbb, *csb, relation->rel_security_name, view,
-	NULL_PTR, NULL_PTR, priv, "table", relation->rel_name);
+	NULL_PTR, NULL_PTR, priv, object_table, relation->rel_name);
 
 /* ensure that the view is set for the input streams,
    so that access to views can be checked at the field level */
@@ -5126,7 +5128,7 @@ prc_sec_name = (procedure->prc_security_name ?
 /* This request must have EXECUTE permission on the stored procedure */
 CMP_post_access (tdbb, csb, prc_sec_name, NULL_PTR,
     NULL_PTR, NULL_PTR, SCL_execute,
-    "procedure", procedure->prc_name->str_data);
+    object_procedure, procedure->prc_name->str_data);
 
 /* This request also inherits all the access requirements that
    the procedure has */
@@ -5212,6 +5214,7 @@ return rsb;
 static void post_trigger_access (
     TDBB	tdbb,
     CSB		csb,
+	REL		owner_relation,
     VEC		triggers,
     REL		view)
 {
@@ -5237,6 +5240,11 @@ static void post_trigger_access (
  *	an "accessor" name, then something accessed by this trigger
  *	must require the access.
  *
+ *  CVC: The third parameter is the owner of the triggers vector
+ *   and was added to avoid triggers posting access checks to
+ *   their base tables, since it's nonsense and causes weird
+ *   messages about false REFERENCES right failures.
+ *
  **************************************/
 ACC	access;
 REQ	*ptr, *end;
@@ -5253,42 +5261,95 @@ if (!triggers)
 
 for (ptr = (REQ*) triggers->vec_object, end = ptr + triggers->vec_count; ptr < end; ptr++)
     if (*ptr)
-	{   
+	{ 
+	/* CVC: Definitely, I'm going to disable this check because REFERENCES should
+	be checked only at DDL time. If we discover another thing in the fluffy SQL
+	standard, we can revisit those lines.
 	read_only = TRUE;
 	for (access = (*ptr)->req_access; access; access = access->acc_next)
 	    if (access->acc_mask & ~SCL_read)
 		{
-		read_only = FALSE;
-		break;
+			read_only = FALSE;
+			break;
 		}
+	*/
 
 	/* for read-only triggers, translate a READ access into a REFERENCES;
 	   we must check for read-only to make sure people don't abuse the
 	   REFERENCES privilege */
 
   	for (access = (*ptr)->req_access; access; access = access->acc_next)
-	    {    
+		{   
+	/* CVC:	Can't make any sense of this code, hence I disabled it.
 	    if (read_only && (access->acc_mask & SCL_read))
-		{
-		access->acc_mask &= ~SCL_read;
-		access->acc_mask |= SCL_sql_references;
-		}
+			{
+			access->acc_mask &= ~SCL_read;
+			access->acc_mask |= SCL_sql_references;
+			}
+	*/
 	    if (access->acc_trg_name ||
 		access->acc_prc_name ||
 		access->acc_view)
-		/* Inherited access needs from "object" to acc_security_name */
-		CMP_post_access (tdbb, csb, access->acc_security_name,
-		    access->acc_view,
-		    access->acc_trg_name, access->acc_prc_name, 
-		    access->acc_mask,
-		    access->acc_type, access->acc_name);
+			{
+			/* If this is not a system relation, we don't post access check if:
+			- The table being checked is the owner of the trigger that's accessing it.
+			- The field being checked is owned by the same table than the trigger
+			   that's accessing the field.
+			- Since the trigger name comes in the access list, we need to validate that
+			   it's a trigger defined on our target table.
+			- Incidentally, access requests made through objects accessed by this trigger
+			   are granted automatically. We should achieve the same propagation in
+			   post_procedure_access() in the future, so the called proc/trg can use the
+			   rights of the caller even if the latter is a procedure or a trigger, with
+			   the difference that proc aren't bound to tables, so we need another place
+			   instead of post_procedure_access() to achieve such propagation.
+			*/
+			if (access->acc_trg_name && !(owner_relation->rel_flags & REL_system))
+				{
+				if (!strcmp (access->acc_type, object_table)
+					&& !strcmp (access->acc_name, owner_relation->rel_name)
+					&& MET_relation_owns_trigger (tdbb, access->acc_name, access->acc_trg_name))
+					continue;
+				if (!strcmp (access->acc_type, object_column)
+					&& MET_relation_owns_trigger (tdbb, access->acc_name, access->acc_trg_name)
+					&& (MET_lookup_field (tdbb, owner_relation, access->acc_name, access->acc_security_name) >= 0
+					|| MET_relation_default_class (tdbb, owner_relation, access->acc_security_name)))
+					continue;
+				}
+			/* Inherited access needs from "object" to acc_security_name */
+			CMP_post_access (tdbb, csb, access->acc_security_name,
+				access->acc_view,
+				access->acc_trg_name, access->acc_prc_name, 
+				access->acc_mask,
+				access->acc_type, access->acc_name);
+			}
 	    else
-		/* A direct access to an object from this trigger */
-		CMP_post_access (tdbb, csb, access->acc_security_name,
-		    (access->acc_view) ? access->acc_view : view,
-		    (*ptr)->req_trg_name, NULL_PTR, 
-		    access->acc_mask,
-		    access->acc_type, access->acc_name);
+			{
+			/* If this is not a system relation, we don't post access check if:
+			- The table being checked is the owner of the trigger that's accessing it.
+			- The field being checked is owned by the same table than the trigger
+			   that's accessing the field.
+			- Since the trigger name comes in the triggers vector of the table and each
+			   trigger can be owned by only one table for now, we know for sure that
+			   it's a trigger defined on our target table.
+			*/
+			if (!(owner_relation->rel_flags & REL_system))
+				{
+				if (!strcmp (access->acc_type, object_table)
+					&& !strcmp(access->acc_name, owner_relation->rel_name))
+					continue;
+				if (!strcmp (access->acc_type, object_column)
+					&& (MET_lookup_field (tdbb, owner_relation, access->acc_name, access->acc_security_name) >= 0
+					|| MET_relation_default_class (tdbb, owner_relation, access->acc_security_name)))
+					continue;
+				}
+				/* A direct access to an object from this trigger */
+			CMP_post_access (tdbb, csb, access->acc_security_name,
+				(access->acc_view) ? access->acc_view : view,
+				(*ptr)->req_trg_name, NULL_PTR, 
+				access->acc_mask,
+				access->acc_type, access->acc_name);
+			}
 	    }
 	}
 }

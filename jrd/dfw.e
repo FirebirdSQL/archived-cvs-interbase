@@ -1228,7 +1228,7 @@ for (request_handle handle) x in rdb$relation_fields
 	with x.rdb$security_class eq work->dfw_name
     if (relation = MET_lookup_relation (tdbb, x.rdb$relation_name))
 	{
-    	id = MET_lookup_field (tdbb, relation, x.rdb$field_name);
+    	id = MET_lookup_field (tdbb, relation, x.rdb$field_name, 0);
     	if (field = MET_get_field (relation, id))
 	    field->fld_security_class = class;
 	}
@@ -2703,7 +2703,7 @@ switch (phase)
 	   friends -- somebody may be pointing to them */
 
 	if ((relation = MET_lookup_relation_id (tdbb, work->dfw_id, FALSE)) &&
-	    (id = MET_lookup_field (tdbb, relation, work->dfw_name)) >= 0 &&
+	    (id = MET_lookup_field (tdbb, relation, work->dfw_name, 0)) >= 0 &&
 	    (vector = relation->rel_fields) &&
 	    id < vector->vec_count &&
 	    vector->vec_object [id])
@@ -3470,18 +3470,44 @@ switch (phase)
 			      the end values stored in the database don't
 			      fulfill the check constraint */
 
-/*		FOR (REQUEST_HANDLE request_fmtx) 
+/*
+This is the wrong statement.
+		FOR (REQUEST_HANDLE request_fmtx) 
 			TRG IN RDB$TRIGGERS 
 			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
 			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
 			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_'
 			    AND  TRG.RDB$TRIGGER_SOURCE MISSING)
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+This is a comprehensive albeit ugly solution.
+		FOR (REQUEST_HANDLE request_fmtx)
+		UTRIG IN RDB$TRIGGERS
+		WITH TRG.RDB$RELATION_NAME EQ work->dfw_name
+		AND NOT ANY (
+			TRG IN RDB$TRIGGERS CROSS 
+			CHK IN RDB$CHECK_CONSTRAINTS CROSS
+			RCN IN RDB$RELATION_CONSTRAINTS
+			WITH TRG.RDB$RELATION_NAME EQ work->dfw_name
+			AND TRG.RDB$TRIGGER_NAME EQ UTRIG.RDB$TRIGGER_NAME
+			AND TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
+			AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
+			AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
+				OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
+			)
+		SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 */
+/* Firebird will do:
 		FOR (REQUEST_HANDLE request_fmtx) 
 			TRG IN RDB$TRIGGERS 
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
-			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+			WITH TRG.RDB$RELATION_NAME = work->dfw_name
+			AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+*/
+
+		FOR (REQUEST_HANDLE request_fmtx) 
+			TRG IN RDB$TRIGGERS 
+			WITH TRG.RDB$RELATION_NAME = work->dfw_name
+			AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
 			AND NOT (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_')
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 
@@ -3512,18 +3538,42 @@ switch (phase)
 		    REQUEST (irq_format5) = request_fmtx;
 
 		request_fmtx = (BLK) CMP_find_request (tdbb, irq_format6, IRQ_REQUESTS);
-/*		FOR (REQUEST_HANDLE request_fmtx)
+/*
+This is the wrong statement.
+		FOR (REQUEST_HANDLE request_fmtx)
 			TRG IN RDB$TRIGGERS
 			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
 			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
 			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_' AND
 			     TRG.RDB$TRIGGER_SOURCE MISSING)
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+This is a comprehensive albeit ugly solution.
+		FOR (REQUEST_HANDLE request_fmtx)
+			TRG IN RDB$TRIGGERS CROSS 
+			CHK IN RDB$CHECK_CONSTRAINTS CROSS
+			RCN IN RDB$RELATION_CONSTRAINTS
+			WITH TRG.RDB$RELATION_NAME EQ work->dfw_name
+			AND TRG.RDB$TRIGGER_NAME EQ CHK.RDB$TRIGGER_NAME
+			AND CHK.RDB$CONSTRAINT_NAME EQ RCN.RDB$CONSTRAINT_NAME
+			AND (RCN.RDB$CONSTRAINT_TYPE EQ "CHECK"
+				OR RCN.RDB$CONSTRAINT_TYPE EQ "FOREIGN KEY")
+			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 */
+/* Firebird will do:
+		FOR (REQUEST_HANDLE request_fmtx) 
+			TRG IN RDB$TRIGGERS 
+			WITH TRG.RDB$RELATION_NAME = work->dfw_name
+			AND NOT (TRG.RDB$SYSTEM_FLAG MISSING)
+			AND (TRG.RDB$SYSTEM_FLAG EQ frb_sysflag_check_constraint
+				OR TRG.RDB$SYSTEM_FLAG EQ frb_sysflag_referential_constraint
+				OR TRG.RDB$SYSTEM_FLAG EQ frb_sysflag_view_check)
+			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
+*/
+
 		FOR (REQUEST_HANDLE request_fmtx)
 			TRG IN RDB$TRIGGERS
-			WITH TRG.RDB$RELATION_NAME = work->dfw_name AND
-			(TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
+			WITH TRG.RDB$RELATION_NAME = work->dfw_name
+			AND (TRG.RDB$SYSTEM_FLAG = 0 OR TRG.RDB$SYSTEM_FLAG MISSING)
 			AND (TRG.RDB$TRIGGER_NAME STARTING WITH 'CHECK_')
 			SORTED BY TRG.RDB$TRIGGER_SEQUENCE
 

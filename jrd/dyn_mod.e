@@ -30,6 +30,8 @@
  * be able to change char(10) to varchar(8).
  * Unfortunately, Borland chose to have DYN_modify_global_field() and add to the
  * party DYN_modify_sql_field(); therefore bug fixes should be done twice.
+ * 2001.10.08 Claudio Valderrama: put a comment with suggested code to hide
+ *    special non-system triggers from user manipulation.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -1571,6 +1573,19 @@ FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
     if (!DYN_REQUEST (drq_m_trigger))
 	DYN_REQUEST (drq_m_trigger) = request;
 
+/* CVC: I think that we'll do well by hiding our automatic triggers from this function.
+Why would a user want to fiddle with triggers that were generated automatically?
+    if (!X.RDB$SYSTEM_FLAG.NULL)
+	switch (X.RDB$SYSTEM_FLAG)
+	{
+	case frb_sysflag_check_constraint:
+	case frb_sysflag_referential_constraint:
+	case frb_sysflag_view_check:
+	   continue;
+	default:
+	    break;
+	}
+*/
     found = TRUE;
     MODIFY X
 	while ((verb = *(*ptr)++) != gds__dyn_end)

@@ -89,4 +89,8 @@ typedef struct usr {
  */
 #define SYSDBA_USER_NAME	"SYSDBA"
 
+#define object_table "TABLE"
+#define object_procedure "PROCEDURE"
+#define object_column "COLUMN"
+
 #endif /* _JRD_SCL_H_ */

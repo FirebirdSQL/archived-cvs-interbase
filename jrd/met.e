@@ -25,6 +25,11 @@
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ * 2001.10.03 Claudio Valderrama: MET_relation_owns_trigger() determines if
+ *   there's a row in rdb$triggers with the given relation's and trigger's names.
+ * 2001.10.04 Claudio Valderrama: MET_relation_default_class() determines if the
+ *   given security class name is the default security class for a relation.
+ *   Modify MET_lookup_field() so it can verify the field's security class, too.
  */
 /*
 $Id$
@@ -907,7 +912,6 @@ if (!REQUEST (irq_s_triggers))
     REQUEST (irq_s_triggers) = trigger_request;
 }
 
-
 void DLL_EXPORT MET_lookup_cnstrt_for_index (
     TDBB	tdbb,
     TEXT        *constraint_name,
@@ -1030,7 +1034,6 @@ void MET_lookup_exception (
  **************************************/
 DBB     dbb;
 BLK     request;
-SCHAR   *p;
 
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
@@ -1103,7 +1106,8 @@ return number;
 int MET_lookup_field (
     TDBB	tdbb,
     REL         relation,
-    TEXT        *name)
+    TEXT        *name,
+    TEXT	*security_name)
 {
 /**************************************
  *
@@ -1113,6 +1117,9 @@ int MET_lookup_field (
  *
  * Functional description
  *      Look up a field name.
+ *	Additinally, if security_name is a not null pointer,
+ *	it's used to include the condition that it should match
+ *	the field's security class name, too.
  *
  **************************************/
 DBB     dbb;
@@ -1138,7 +1145,16 @@ if (vector = relation->rel_fields)
 	    q = name;
 	    while (*p++ == *q)
 		if (!*q++)
+		{
+		    USHORT nl, nl2;
+		    if (!security_name)
 		    return id;
+		    nl2 = name_length (security_name);
+		    if ((*field)->fld_security_name
+			&& (nl = name_length ((*field)->fld_security_name)) == nl2
+			&& !strncmp ((*field)->fld_security_name, security_name, nl))
+			return id;
+		}
 	    }
     }
 
@@ -1157,7 +1173,17 @@ FOR (REQUEST_HANDLE request)
     X.RDB$FIELD_NAME EQ name
     if (!REQUEST (irq_l_field))
 	REQUEST (irq_l_field) = request;
-    id = X.RDB$FIELD_ID;
+    if (!security_name)
+	id = X.RDB$FIELD_ID;
+    else
+    {
+	USHORT nl, nl2;
+	nl2 = name_length (security_name);
+	if (!X.RDB$SECURITY_CLASS.NULL
+	    && (nl = name_length (X.RDB$SECURITY_CLASS)) == nl2
+	    && !strncmp (X.RDB$SECURITY_CLASS, security_name, nl))
+	    id = X.RDB$FIELD_ID;
+    }
 END_FOR;
 
 if (!REQUEST (irq_l_field))
@@ -1183,7 +1209,6 @@ BLF MET_lookup_filter (
 DBB     dbb;
 BLK     request;
 PTR     filter;
-TEXT    *p;
 MOD	module;
 LLS	stack;
 BLF	blf;
@@ -1971,7 +1996,7 @@ ALL_release (temp);
 return node;
 }
 
-NOD MET_parse_sys_trigger (
+void MET_parse_sys_trigger (
     TDBB	tdbb,
     REL         relation)
 {
@@ -2423,7 +2448,116 @@ lock->lck_ast = blocking_ast_relation;
 relation->rel_flags |= (REL_check_existence | REL_check_partners);
 return relation;
 }
-
+
+BOOLEAN MET_relation_owns_trigger (
+    TDBB	tdbb,
+    TEXT        *relation_name,
+    TEXT        *trigger_name)
+{
+/**************************************
+ *
+ *      M E T _ r e l a t i o n _ o w n s _ t r i g g e r
+ *
+ **************************************
+ *
+ * Functional description
+ *      Checks that a given trigger is defined for a
+ *      given relation, returning TRUE if there's a match.
+ *      It's almost a subset of MET_load_trigger().
+ *
+ **************************************/
+DBB     dbb;
+BLK     trigger_request;
+BOOLEAN found = FALSE;
+
+SET_TDBB (tdbb);
+dbb = tdbb->tdbb_database;
+CHECK_DBB (dbb);
+
+/* No need to load triggers for ReadOnly databases,
+   since INSERT/DELETE/UPDATE statements are not going to be allowed;
+but we do not care of this flag here. We do not load, we only check. */
+/*if (dbb->dbb_flags & DBB_read_only)
+    return;*/
+
+/* Scan RDB$TRIGGERS next */
+
+/* CVC: Notice that we'll use the request irq_s_triggers2 that was found
+to be unused at this time. */
+
+trigger_request = (BLK) CMP_find_request (tdbb, irq_s_triggers2, IRQ_REQUESTS);
+
+FOR (REQUEST_HANDLE trigger_request)
+	TRG IN RDB$TRIGGERS WITH TRG.RDB$RELATION_NAME = relation_name AND
+	    TRG.RDB$TRIGGER_NAME EQ trigger_name
+    if (!REQUEST (irq_s_triggers2))
+	REQUEST (irq_s_triggers2) = trigger_request;
+
+    found = TRUE;
+
+    /* Notice we do not care whether the trigger is valid or not. We assume
+    the caller wants to verify already validated entities.
+    if (TRG.RDB$TRIGGER_TYPE > 0 && TRG.RDB$TRIGGER_TYPE < TRIGGER_MAX)
+    */
+
+END_FOR;
+
+if (!REQUEST (irq_s_triggers2))
+    REQUEST (irq_s_triggers2) = trigger_request;
+
+return found;
+}
+
+BOOLEAN MET_relation_default_class (
+	TDBB	tdbb,
+	TEXT	*relation_name,
+	TEXT	*default_security_class_name)
+{
+/**************************************
+ *
+ *      M E T _ r e l a t i o n _ d e f a u l t _ c l a s s
+ *
+ **************************************
+ *
+ * Functional description
+ *      Checks that a given security class is the default for
+ *      a given relation, returning TRUE if there's a match.
+ *      It can be made obsolete in the future if REL struct
+ *	gets another field, although metadata loading order
+ *	would not be safe when compared with this function.
+ *
+ **************************************/
+DBB     dbb;
+BLK     request;
+BOOLEAN found = FALSE;
+
+SET_TDBB (tdbb);
+dbb = tdbb->tdbb_database;
+CHECK_DBB (dbb);
+
+request = (BLK) CMP_find_request (tdbb, irq_l_relation_defsec, IRQ_REQUESTS);
+
+FOR (REQUEST_HANDLE request)
+    REL IN RDB$RELATIONS WITH REL.RDB$RELATION_NAME EQ relation_name
+    if (!REQUEST (irq_l_relation_defsec))
+	REQUEST (irq_l_relation_defsec) = request;
+
+    if (!REL.RDB$DEFAULT_CLASS.NULL)
+    {
+	USHORT nl = name_length (REL.RDB$DEFAULT_CLASS),
+		nl2 = name_length (default_security_class_name);
+	if (nl == nl2 && !strncmp (REL.RDB$DEFAULT_CLASS, default_security_class_name, nl))
+	    found = TRUE;
+    }
+
+END_FOR;
+
+if (!REQUEST (irq_l_relation_defsec))
+    REQUEST (irq_l_relation_defsec) = request;
+
+return found;
+}
+
 void MET_release_existence (
     REL         relation)
 {
@@ -2819,6 +2953,11 @@ FOR (REQUEST_HANDLE request)
 		    }
 		strcpy (field->fld_name, p);
 		field->fld_length = strlen (field->fld_name);
+		/* CVC: Be paranoid and allow the possible trigger(s) to have a
+		not null security class to work on, even if we only take it
+		from the relation itself. */
+		if (!field->fld_security_name && !REL.RDB$DEFAULT_CLASS.NULL)
+		    field->fld_security_name = MET_save_name (tdbb, REL.RDB$DEFAULT_CLASS);
 		break;
 
 	    case RSR_view_context:
@@ -3412,7 +3551,6 @@ static BOOLEAN par_messages (
  *      a format (fmt) block.
  *
  **************************************/
-UCHAR   *end;
 FMT     format;
 DSC     *desc;
 USHORT  count, offset, align, msg_number;

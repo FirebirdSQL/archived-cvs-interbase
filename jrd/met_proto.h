@@ -51,7 +51,7 @@ extern void		MET_lookup_exception	(TDBB, SLONG,
 							TEXT *, TEXT *);
 extern SLONG		MET_lookup_exception_number (TDBB,
 							    TEXT *);
-extern int		MET_lookup_field (TDBB, struct rel *, TEXT *);
+extern int		MET_lookup_field (TDBB, struct rel *, TEXT *, TEXT *);
 extern BLF		MET_lookup_filter (TDBB, SSHORT, SSHORT);
 extern SLONG		MET_lookup_generator (TDBB, TEXT *);
 extern void		MET_lookup_generator_id (TDBB, SLONG, TEXT *);
@@ -63,11 +63,13 @@ extern struct prc	*MET_lookup_procedure_id (TDBB, SSHORT, BOOLEAN, USHORT);
 extern struct rel	*MET_lookup_relation (TDBB, SCHAR *);
 extern struct rel	*MET_lookup_relation_id (TDBB, SLONG, BOOLEAN);
 extern struct nod	*MET_parse_blob (TDBB, struct rel *, SLONG [2], struct csb **, struct req **, BOOLEAN, BOOLEAN);
-extern struct nod	*MET_parse_sys_trigger (TDBB, struct rel *);
+extern void		MET_parse_sys_trigger (TDBB, struct rel *);
 extern int		MET_post_existence (TDBB, struct rel *);
 extern void		MET_prepare (TDBB, struct tra *, USHORT, UCHAR *);
 extern struct prc	*MET_procedure (TDBB, int, USHORT);
 extern struct rel	*MET_relation (TDBB, USHORT);
+extern BOOLEAN 		MET_relation_owns_trigger (TDBB, TEXT *, TEXT *);
+extern BOOLEAN		MET_relation_default_class (TDBB, TEXT *, TEXT *);
 extern void		MET_release_existence (struct rel *);
 extern void 		MET_release_triggers (TDBB, VEC*);
 extern void		MET_remove_procedure (TDBB, int, PRC);

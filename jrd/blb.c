@@ -1432,7 +1432,7 @@ if (!relation)
     IBERROR (196); /* msg 196 relation for array not known */
 
 if (info.sdl_info_field [0])
-    n = MET_lookup_field (tdbb, relation, info.sdl_info_field);
+    n = MET_lookup_field (tdbb, relation, info.sdl_info_field, 0);
 else
     n = info.sdl_info_fid;
 

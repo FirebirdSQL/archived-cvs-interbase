@@ -416,7 +416,7 @@ such view that has field "z x". This closes Firebird Bug #227758. */
 strcpy (name, base_field);
 MET_exact_name (name);
 
-id = MET_lookup_field (tdbb, csb->csb_rpt [stream].csb_relation, name);
+id = MET_lookup_field (tdbb, csb->csb_rpt [stream].csb_relation, name, 0);
 
 if (id < 0)
     return NULL;
@@ -1215,7 +1215,7 @@ else if (_operator == blr_field)
             MET_scan_relation (tdbb, relation);
 
 	par_name (csb, name);
-	if ((id = MET_lookup_field (tdbb, relation, name)) < 0) 
+	if ((id = MET_lookup_field (tdbb, relation, name, 0)) < 0) 
 	    if ((*csb)->csb_g_flags & csb_validation)
 		{
 		id = 0;

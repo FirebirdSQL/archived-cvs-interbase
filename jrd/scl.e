@@ -250,7 +250,7 @@ else
 if (!reln_name || !*reln_name)
     return;
 
-SCL_check_access (s_class, NULL, NULL, NULL, mask, "TABLE", reln_name);
+SCL_check_access (s_class, NULL, NULL, NULL, mask, object_table, reln_name);
 
 request = NULL;
 
@@ -286,11 +286,11 @@ FOR (REQUEST_HANDLE request) ISEG IN RDB$INDEX_SEGMENTS
 	{
 	s_class = SCL_get_class (RF.RDB$SECURITY_CLASS);
         SCL_check_access (s_class, NULL, NULL, NULL, mask, 
-			  "COLUMN", RF.RDB$FIELD_NAME);
+			  object_column, RF.RDB$FIELD_NAME);
 	}
     else
         SCL_check_access (default_s_class, NULL, NULL, NULL, mask, 
-			  "COLUMN", RF.RDB$FIELD_NAME);
+			  object_column, RF.RDB$FIELD_NAME);
 
 END_FOR;
 
@@ -351,7 +351,7 @@ END_FOR;
 if (!REQUEST (irq_p_security))
     REQUEST (irq_p_security) = request;
 
-SCL_check_access (s_class, NULL, NULL, name, mask, "PROCEDURE", name);
+SCL_check_access (s_class, NULL, NULL, name, mask, object_procedure, name);
 }
 
 void SCL_check_relation (
@@ -406,7 +406,7 @@ END_FOR;
 if (!REQUEST (irq_v_security))
     REQUEST (irq_v_security) = request;
 
-SCL_check_access (s_class, NULL, NULL, NULL, mask, "TABLE", name);
+SCL_check_access (s_class, NULL, NULL, NULL, mask, object_table, name);
 }
 
 SCL SCL_get_class (
@@ -521,7 +521,7 @@ if (relation_name &&
     if (s_class = SCL_get_class (relation->rel_security_name))
 	access &= s_class->scl_flags;
     if (field_name &&
-	(id = MET_lookup_field (tdbb, relation, field_name)) >= 0 &&
+	(id = MET_lookup_field (tdbb, relation, field_name, 0)) >= 0 &&
 	(field = MET_get_field (relation, id)) &&
 	(s_class = SCL_get_class (field->fld_security_name)))
 	access &= s_class->scl_flags;
