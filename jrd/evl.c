@@ -4053,7 +4053,7 @@ this function didn't bother even to check for overflow! */
 #define FIREBIRD_AVOID_DIALECT1_OVERFLOW
 
 {
-	SINT64 i1, i2, rc;
+SINT64 i1, i2, rc;
 scale = NUMERIC_SCALE (value->vlu_desc);
 i1 = MOV_get_long (desc             , node->nod_scale - scale);
 i2 = MOV_get_long (&value->vlu_desc , scale                  );
@@ -4062,21 +4062,30 @@ value->vlu_desc.dsc_length = sizeof (SLONG);
 value->vlu_desc.dsc_scale = node->nod_scale;
 rc = i1 * i2;
 if (rc < MIN_SLONG || rc > MAX_SLONG)
-{
+	{
 #if defined(FIREBIRD_AVOID_DIALECT1_OVERFLOW)
-	value->vlu_misc.vlu_double = (double) rc;
-    value->vlu_desc.dsc_dtype = DEFAULT_DOUBLE;
-    value->vlu_desc.dsc_length = sizeof (double);
-    value->vlu_desc.dsc_scale = 0;
-    value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_double;
+	value->vlu_misc.vlu_int64 = rc;
+	value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_int64;
+	value->vlu_desc.dsc_dtype = dtype_int64;
+	value->vlu_desc.dsc_length = sizeof (SINT64);
+	value->vlu_misc.vlu_double = MOV_get_double (&value->vlu_desc);
+	/* This is the Borland solution instead of the five lines above.
+	d1 = MOV_get_double (desc); 
+        d2 = MOV_get_double (&value->vlu_desc); 
+        value->vlu_misc.vlu_double = DOUBLE_MULTIPLY (d1, d2); */
+	value->vlu_desc.dsc_dtype = DEFAULT_DOUBLE;
+	value->vlu_desc.dsc_length = sizeof (double);
+	value->vlu_desc.dsc_scale = 0;
+	value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_double;
 #else
 	ERR_post (isc_exception_integer_overflow, 0);
 #endif
-}
-else {
-    value->vlu_misc.vlu_long = (SLONG) rc; /* l1 * l2;*/
-    value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_long;
-}
+	}
+else
+	{
+	value->vlu_misc.vlu_long = (SLONG) rc; /* l1 * l2;*/
+	value->vlu_desc.dsc_address = (UCHAR*) &value->vlu_misc.vlu_long;
+	}
 }
 
 return &value->vlu_desc;
