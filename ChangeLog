@@ -1,3 +1,9 @@
+2004-02-06 09:28  eku
+
+	* interbase/jrd/all.c:
+	
+	Fixed compilation problem (DEBUG_GDS_ALLOC defined in PROD_BUILD).
+
 2003-11-25 19:43  bellardo
 
 	* interbase/builds/original/sfx.interbase:
