@@ -1,0 +1,7 @@
+Directory layout of interbase/firebird/gspeicher
+------------------------------------------------
+
+firebird/
+
+	A directory that holds the files pertinent to the Firebird
+FreeBSD port as submitted to the FreeBSD ports collection.
