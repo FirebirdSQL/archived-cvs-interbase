@@ -963,7 +963,7 @@ if (gds__trans)
     isc_rollback_transaction (isc_status, &gds__trans);
 
 if (Stmt)
-    isc_dsql_free_statement (isc_status, &Stmt, 2);
+    isc_dsql_free_statement (isc_status, &Stmt, DSQL_drop);
 
 if (DB)
     isc_detach_database (isc_status, &DB);
@@ -2075,7 +2075,7 @@ if (DB && gds__trans)
 /* If there is  current user statement, free it
    I think option 2 is the right one (DSQL_drop), but who knows */
 if (Stmt)
-    isc_dsql_free_statement (isc_status, &Stmt, 2);
+    isc_dsql_free_statement (isc_status, &Stmt, DSQL_drop);
 
 /* Detach from old database */
 if (DB)
@@ -3516,7 +3516,7 @@ while (!done)
          * option 2 does the drop
         */
         if (Stmt)
-            isc_dsql_free_statement (isc_status, &Stmt, 2);
+            isc_dsql_free_statement (isc_status, &Stmt, DSQL_drop);
         if (DB)
             isc_detach_database(isc_status, &DB);
         break;
@@ -3599,7 +3599,7 @@ while (!done)
    	     * I think option 2 is the right one (DSQL_drop), but who knows
 	     */
 	    if (Stmt)
-    	        isc_dsql_free_statement (isc_status, &Stmt, 2);     
+    	        isc_dsql_free_statement (isc_status, &Stmt, DSQL_drop);     
 	    isc_detach_database (isc_status, &DB);
 #ifdef GUI_TOOLS
 	    ib_fclose (Out);
@@ -3623,7 +3623,7 @@ while (!done)
    	     * I think option 2 is the right one (DSQL_drop), but who knows
 	     */
 	    if (Stmt)
-    	        isc_dsql_free_statement (isc_status, &Stmt, 2);     
+    	        isc_dsql_free_statement (isc_status, &Stmt, DSQL_drop);     
 	    isc_detach_database(isc_status, &DB);
 #ifdef GUI_TOOLS
 	    ib_fclose (Out);
@@ -8123,7 +8123,7 @@ else
 	if (isc_status [1])
 	    {
 	    ISQL_errmsg (isc_status);
-	    isc_dsql_free_statement (isc_status, &Stmt, 1);
+	    isc_dsql_free_statement (isc_status, &Stmt, DSQL_close);
 	    if (nullind)
 		ISQL_FREE (nullind);
 	    if (pad)
@@ -8160,7 +8160,8 @@ else
 	}
     }
 
-isc_dsql_free_statement (isc_status, &Stmt, 1);
+if (statement_type != isc_info_sql_stmt_exec_procedure)
+	isc_dsql_free_statement (isc_status, &Stmt, DSQL_close);
 
 /* Statistics printed here upon request */
 
