@@ -23,6 +23,9 @@
  * 2001.07.06 Sean Leyne - Code Cleanup, removed "#ifdef READONLY_DATABASE"
  *                         conditionals, as the engine now fully supports
  *                         readonly databases.
+ * 2001.11.20 Claudio Valderrama: fix problem with embedded blanks in
+ * generators and use symbol_length effective length calculation from put_text.
+ * This minimizes code redundancy and fixes SF Bug #483276. 
  */
 /*
 $Id$
@@ -82,7 +85,7 @@ DATABASE
 static void	compress (UCHAR *, ULONG);
 static int	copy (TEXT *, TEXT *, ULONG);
 static FLD	get_fields (REL);
-static SINT64	get_gen_id (TEXT *);
+static SINT64	get_gen_id (TEXT *, SSHORT);
 static void	get_ranges (FLD);
 static void	put_array (FLD, REL, ISC_QUAD *);
 static void	put_asciz (SCHAR, TEXT *);
@@ -97,7 +100,7 @@ static int	put_source_blob (SCHAR, SCHAR, ISC_QUAD *);
 static int	put_text (SCHAR, TEXT *, SSHORT);
 static void	put_trigger (enum trig_t, GDS__QUAD *, GDS__QUAD *, GDS_NAME);
 static void	set_capabilities (void);
-static int	symbol_length (TEXT *);
+static int	symbol_length (TEXT *, SSHORT);
 static void	write_character_sets (void);
 static void	write_check_constraints (void);
 static void	write_collations (void);
@@ -856,14 +859,15 @@ else
     END_FOR;
     ON_ERROR
         general_on_error ();
-    END_ERROR;
-    }
+	 END_ERROR;
+	 }
 
 return fields;
 }
 
 static SINT64 get_gen_id (
-    TEXT	*name)
+	 TEXT	*name,
+	 SSHORT	name_len)
 {
 /**************************************
  *
@@ -878,7 +882,7 @@ static SINT64 get_gen_id (
 UCHAR	c, *blr, blr_buffer [100];  /* enough to fit blr */
 SLONG	*gen_id_reqh, read_msg0;
 SINT64  read_msg1;
-SSHORT	blr_length, name_len;
+SSHORT	blr_length;
 STATUS	status_vector [ISC_STATUS_LENGTH];
 TGBL	tdgbl;
 
@@ -886,101 +890,100 @@ tdgbl = GET_THREAD_DATA;
 
 gen_id_reqh = NULL;
 blr = blr_buffer;
-name_len = symbol_length (name);
 
 /* If this is ODS 10 (IB version 6.0) or greater, build BLR to retrieve
-   the 64-bit value of the generator.  If not, build BLR to retrieve the
-   32-bit value, which we will cast to the expected INT64 format.
+	the 64-bit value of the generator.  If not, build BLR to retrieve the
+	32-bit value, which we will cast to the expected INT64 format.
 */
 if (tdgbl->BCK_capabilities & BCK_ods10)
-    {
-    /* build the blr with the right relation name and 64-bit results. */
-    STUFF (blr_version5);
-    STUFF (blr_begin);
+	 {
+	 /* build the blr with the right relation name and 64-bit results. */
+	 STUFF (blr_version5);
+	 STUFF (blr_begin);
 	STUFF (blr_message); STUFF (0); STUFF_WORD (1);
-	    STUFF (blr_int64); STUFF (0);
+		 STUFF (blr_int64); STUFF (0);
 	STUFF (blr_send); STUFF (0);
-	    STUFF (blr_assignment);
+		 STUFF (blr_assignment);
 		STUFF (blr_gen_id);
-		   STUFF (name_len);
-                   while(name_len--) {
-		      c = *name++;
-		      STUFF (c);
-                   }
-		   STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
-	     STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
-    STUFF (blr_end);
-    STUFF (blr_eoc);
-    }
+			STUFF (name_len);
+						 while(name_len--) {
+				c = *name++;
+				STUFF (c);
+						 }
+			STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
+		  STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
+	 STUFF (blr_end);
+	 STUFF (blr_eoc);
+	 }
 else
-    {
-    /* build the blr with the right relation name and 32-bit results */
-    STUFF (blr_version4);
-    STUFF (blr_begin);
+	 {
+	 /* build the blr with the right relation name and 32-bit results */
+	 STUFF (blr_version4);
+	 STUFF (blr_begin);
 	STUFF (blr_message); STUFF (0); STUFF_WORD (1);
-	    STUFF (blr_long); STUFF (0);
+		 STUFF (blr_long); STUFF (0);
 	STUFF (blr_send); STUFF (0);
-	    STUFF (blr_assignment);
+		 STUFF (blr_assignment);
 		STUFF (blr_gen_id);
-		   STUFF (name_len);
-                   while(name_len--) {
-		      c = *name++;
-		      STUFF (c);
-                   }
-		   STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
-	     STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
-    STUFF (blr_end);
-    STUFF (blr_eoc);
-    }
+			STUFF (name_len);
+						 while(name_len--) {
+				c = *name++;
+				STUFF (c);
+						 }
+			STUFF (blr_literal); STUFF (blr_long); STUFF (0); STUFF_WORD (0); STUFF_WORD (0);
+		  STUFF (blr_parameter); STUFF(0); STUFF_WORD (0);
+	 STUFF (blr_end);
+	 STUFF (blr_eoc);
+	 }
 
 #ifdef DEBUG
 if (debug_on)
-    isc_print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
+	 isc_print_blr (blr_buffer, NULL_PTR, NULL_PTR, 0);
 #endif
 
 blr_length = blr - blr_buffer;
 
 if (isc_compile_request (
-        status_vector,
-        GDS_REF (tdgbl->db_handle),
-        GDS_REF (gen_id_reqh),
-        blr_length,
-        GDS_VAL (blr_buffer)))
-    /* if there's no gen_id, never mind ... */
-    return 0;
+		  status_vector,
+		  GDS_REF (tdgbl->db_handle),
+		  GDS_REF (gen_id_reqh),
+		  blr_length,
+		  GDS_VAL (blr_buffer)))
+	 /* if there's no gen_id, never mind ... */
+	 return 0;
 
 if (isc_start_request (
-        status_vector,
-        GDS_REF (gen_id_reqh),
-        GDS_REF (isc_trans), /* use the same one generated by gpre */
-        0))
-    BURP_error_redirect (status_vector, 25, NULL, NULL);
-    /* msg 25 Failed in put_blr_gen_id */
+		  status_vector,
+		  GDS_REF (gen_id_reqh),
+		  GDS_REF (isc_trans), /* use the same one generated by gpre */
+		  0))
+	 BURP_error_redirect (status_vector, 25, NULL, NULL);
+	 /* msg 25 Failed in put_blr_gen_id */
 
 if (tdgbl->BCK_capabilities & BCK_ods10)
   {
-    if (isc_receive (
-		      status_vector,
-		      GDS_REF (gen_id_reqh),
-		      0,
-		      sizeof (read_msg1),
-		      GDS_REF (read_msg1),
-		      0))
-        BURP_error_redirect (status_vector, 25, NULL, NULL);
-    /* msg 25 Failed in put_blr_gen_id */
+	 if (isc_receive (
+				status_vector,
+				GDS_REF (gen_id_reqh),
+				0,
+				sizeof (read_msg1),
+				GDS_REF (read_msg1),
+				0))
+		  BURP_error_redirect (status_vector, 25, NULL, NULL);
+	 /* msg 25 Failed in put_blr_gen_id */
   }
 else
   {
-    if (isc_receive (
-		      status_vector,
-		      GDS_REF (gen_id_reqh),
-		      0,
-		      sizeof (read_msg0),
-		      GDS_REF (read_msg0),
-		      0))
-        BURP_error_redirect (status_vector, 25, NULL, NULL);
-        /* msg 25 Failed in put_blr_gen_id */
-    read_msg1 = (SINT64) read_msg0;
+	 if (isc_receive (
+				status_vector,
+				GDS_REF (gen_id_reqh),
+				0,
+				sizeof (read_msg0),
+				GDS_REF (read_msg0),
+				0))
+		  BURP_error_redirect (status_vector, 25, NULL, NULL);
+		  /* msg 25 Failed in put_blr_gen_id */
+	 read_msg1 = (SINT64) read_msg0;
   }
 
 isc_release_request ( status_vector, GDS_REF (gen_id_reqh) );
@@ -989,7 +992,7 @@ return read_msg1;
 }
 
 static void get_ranges (
-    FLD		field)
+	 FLD		field)
 {
 /**************************************
  *
@@ -1015,7 +1018,7 @@ count = 0;
 
 FOR (REQUEST_HANDLE tdgbl->handles_get_ranges_req_handle1)
     X IN RDB$FIELD_DIMENSIONS
-    WITH X.RDB$FIELD_NAME EQ field->fld_source
+	 WITH X.RDB$FIELD_NAME EQ field->fld_source
     SORTED BY X.RDB$DIMENSION
 
     if (count != X.RDB$DIMENSION)
@@ -1091,7 +1094,7 @@ if (field->fld_type == blr_short ||
     STUFF (field->fld_scale);
 
 if (field->fld_type == blr_text ||
-    field->fld_type == blr_varying)
+	 field->fld_type == blr_varying)
     STUFF_WORD (field->fld_length);
 
 if (field->fld_type == blr_varying)
@@ -1357,7 +1360,7 @@ else
 PUT (att_blob_data);
 
 while (segments > 0)
-    {
+	 {
     if (isc_get_segment (status_vector,
 	    GDS_REF (blob),
 	    GDS_REF (l),
@@ -1471,7 +1474,7 @@ if (!length)
 /* Rdb sometimes gets the length messed up */
 
 if (length < max_segment)
-    length = max_segment;
+	 length = max_segment;
 
 PUT_NUMERIC (attribute, (int)length);
 
@@ -1547,7 +1550,7 @@ STUFF_WORD (count);		/* Number of fields, counting eof */
 offset = count = 0;
 
 for (field = relation->rel_fields; field; field = field->fld_next)
-    {
+	 {
     if (field->fld_flags & FLD_computed)
 	continue;
     alignment = 4;
@@ -1623,7 +1626,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	    break;
 
 	case blr_blob:
-	    alignment = type_alignments [dtype_blob];
+		 alignment = type_alignments [dtype_blob];
 	    STUFF (blr_quad);
 	    STUFF (0);
 	    break;
@@ -1851,7 +1854,7 @@ if ((tdgbl->BCK_capabilities & BCK_idx_inactive) &&
 	    I_S.RDB$INDEX_NAME = X.RDB$INDEX_NAME AND
             RFR.RDB$RELATION_NAME = relation->rel_name
 
-            count++;
+				count++;
 
         END_FOR;
         ON_ERROR
@@ -1889,7 +1892,7 @@ if ((tdgbl->BCK_capabilities & BCK_idx_inactive) &&
         PUT_NUMERIC (att_index_type, X.RDB$INDEX_TYPE);
 
 	if (!X.RDB$EXPRESSION_SOURCE.NULL)
-	    put_source_blob (att_index_expression_source, att_index_expression_source, (ISC_QUAD *)&X.RDB$EXPRESSION_SOURCE);
+		 put_source_blob (att_index_expression_source, att_index_expression_source, (ISC_QUAD *)&X.RDB$EXPRESSION_SOURCE);
 	if (!X.RDB$EXPRESSION_BLR.NULL)
 	    put_blr_blob (att_index_expression_blr, (ISC_QUAD *)&X.RDB$EXPRESSION_BLR);
 	if (!X.RDB$FOREIGN_KEY.NULL)
@@ -1927,7 +1930,7 @@ else
 	    else
 	        count++;
         END_FOR;
-        ON_ERROR
+		  ON_ERROR
              general_on_error ();
         END_ERROR;
 
@@ -1965,7 +1968,7 @@ else
             FOR (REQUEST_HANDLE tdgbl->handles_put_index_req_handle6)
                 I IN RDB$INDICES WITH I.RDB$INDEX_NAME = X.RDB$INDEX_NAME
                 PUT_NUMERIC (att_index_type, I.RDB$INDEX_TYPE);
-            END_FOR;
+				END_FOR;
             ON_ERROR
                 general_on_error ();
             END_ERROR;
@@ -1992,9 +1995,9 @@ else
 }
 
 static int put_message (
-    SCHAR	attribute,
-    TEXT	*text,
-    ULONG	length)
+	 SCHAR	attribute,
+	 TEXT	*text,
+	 ULONG	length)
 {
 /**************************************
  *
@@ -2005,6 +2008,12 @@ static int put_message (
  * Functional description
  *	Write a variable length text string, with embedded
  *      blanks.  Same as put_text but handles embedded blanks.
+ * CVC: As v6 time, put_text handles embedded blanks, too!
+ * The only difference is that put_text's length is SSHORT, so
+ * in theory put_message can handle much longer input and it's
+ * used for exception & trigger's messages (plus update/delete
+ * rules for FKs and constraint types, where it's irrelevant
+ * which function of the two you use).
  *
  **************************************/
 TEXT	*p;
@@ -2014,19 +2023,19 @@ TGBL	tdgbl;
 tdgbl = GET_THREAD_DATA;
 
 for (p = text, l = 0; *p && l < length; p++)
-    l++;
+	 l++;
 
 l = length = MIN (l, length);
 PUT (attribute);
 PUT (l);
 if (l)
-    (void) PUT_BLOCK (text, l);
+	 (void) PUT_BLOCK (text, l);
 
 return length;
 }
 
 static void put_numeric (
-    SCHAR	attribute,
+	 SCHAR	attribute,
     SLONG	value)
 {
 /**************************************
@@ -2117,7 +2126,7 @@ for (field = fields; field = fields;)
     l = field->fld_length;
     if (field->fld_type == blr_varying)
 	l += sizeof (USHORT);
-    if (!(l & 7))
+	 if (!(l & 7))
 	{
 	field->fld_next = aligned8;
 	aligned8 = field;
@@ -2155,7 +2164,7 @@ while (field = aligned)
     aligned = field->fld_next;
     field->fld_next = relation->rel_fields;
     relation->rel_fields = field;
-    }
+	 }
 
 while (field = aligned4)
     {
@@ -2193,7 +2202,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 	PUT_TEXT (att_field_security_class, field->fld_security_class);
     if (!(field->fld_flags & FLD_position_missing))
 	PUT_NUMERIC (att_field_position, field->fld_position);
-    PUT_NUMERIC (att_field_type, field->fld_type);
+	 PUT_NUMERIC (att_field_type, field->fld_type);
     PUT_NUMERIC (att_field_length, field->fld_length);
     PUT_NUMERIC (att_field_sub_type, field->fld_sub_type);
     PUT_NUMERIC (att_field_scale, field->fld_scale);
@@ -2231,7 +2240,7 @@ for (field = relation->rel_fields; field; field = field->fld_next)
 /* Write out view relations (if a view, of course) */
 
 if (relation->rel_flags & REL_view)
-    if (tdgbl->BCK_capabilities & BCK_context_name)
+	 if (tdgbl->BCK_capabilities & BCK_context_name)
 	FOR (REQUEST_HANDLE tdgbl->handles_put_relation_req_handle1)
         X IN RDB$VIEW_RELATIONS WITH X.RDB$VIEW_NAME EQ relation->rel_name
 	    PUT (rec_view);
@@ -2345,7 +2354,7 @@ while ((item = *p++) != isc_info_end)
 if (!length)
     {
     if (isc_close_blob (status_vector,
-	    GDS_REF (blob)))
+		 GDS_REF (blob)))
 	BURP_error_redirect (status_vector, 23, NULL, NULL);
 	 /* msg 23 isc_close_blob failed */
     return FALSE;
@@ -2379,18 +2388,18 @@ while (!isc_get_segment (status_vector,
 if (isc_close_blob (status_vector,
 	GDS_REF (blob)))
     BURP_error_redirect (status_vector, 23, NULL, NULL);
-    /* msg 23 isc_close_blob failed */
+	 /* msg 23 isc_close_blob failed */
 
 if (buffer != static_buffer)
-    BURP_FREE (buffer);
+	 BURP_FREE (buffer);
 
 return TRUE;
 }
 
 static int put_text (
-    SCHAR	attribute,
-    TEXT	*text,
-    SSHORT	length)
+	 SCHAR	attribute,
+	 TEXT	*text,
+	 SSHORT	size_len)
 {
 /**************************************
  *
@@ -2403,37 +2412,25 @@ static int put_text (
  *	Truncate trailing spaces.
  *
  **************************************/
-TEXT	*p;
-SSHORT	l = 0;
+SSHORT	l;
 TGBL	tdgbl;
 
 tdgbl = GET_THREAD_DATA;
 
-/* find end of string */
-p = text;
-while (*p++ && (l < length))
-    l++;
-
-length = MIN (l, length);
-
-/* skip trailing spaces */
-for (p = text + length - 1, l = 0; *p == ' ' && l < length; p--)
-    l++;
-
-l = length = length - l;
+l = symbol_length (text, size_len);
 PUT (attribute);
 PUT (l);
 if (l)
-    (void) PUT_BLOCK (text, l);
+	 (void) PUT_BLOCK (text, l);
 
-return length;
+return l;
 }
 
 static void put_trigger (
-    enum trig_t		type,
-    GDS__QUAD		*blob_ident,
-    GDS__QUAD		*source_blob,
-    GDS_NAME		rel_name)
+	 enum trig_t		type,
+	 GDS__QUAD		*blob_ident,
+	 GDS__QUAD		*source_blob,
+	 GDS_NAME		rel_name)
 {
 /**************************************
  *
@@ -2496,15 +2493,16 @@ for (rel_field_table = (RFR_TAB) rfr_table; rel_field_table->relation; rel_field
 	tdgbl->BCK_capabilities |= rel_field_table->bit_mask;
     END_FOR;
     ON_ERROR
-        general_on_error ();
-    END_ERROR;
-    }
+		  general_on_error ();
+	 END_ERROR;
+	 }
 
 isc_release_request (isc_status, GDS_REF (req));
 }
 
 static int symbol_length (
-    TEXT	*symbol)
+	 TEXT	*symbol,
+	 SSHORT	size_len)
 {
 /**************************************
  *
@@ -2513,15 +2511,23 @@ static int symbol_length (
  **************************************
  *
  * Functional description
- *	Compute length of blank/null terminated symbol.
+ *	Compute length of null terminated symbol.
+ *      CVC: This function should acknowledge embedded blanks.
  *
  **************************************/
-TEXT	*p;
+TEXT	*p, *q;
 
-for (p = symbol; *p && *p != ' '; p++)
+--size_len;
+if (size_len < 1)
+   return 0;
+
+for (p = symbol, q = p + size_len; *p && p < q; p++)
     ;
+--p;
+while (p >= symbol && *p == ' ')
+    --p;
 
-return p - symbol;
+return p + 1 - symbol;
 }
 
 static void write_character_sets (void)
@@ -2972,7 +2978,7 @@ FOR (REQUEST_HANDLE req_handle1)
     PUT_NUMERIC (att_function_type, X.RDB$FUNCTION_TYPE);
     PUT_TEXT (att_function_query_name, X.RDB$QUERY_NAME);
     PUT (att_end);
-    copy (X.RDB$FUNCTION_NAME, func, GDS_NAME_LEN - 1);
+	 copy (X.RDB$FUNCTION_NAME, func, GDS_NAME_LEN - 1);
     write_function_args (func);
     PUT (rec_function_end);
 END_FOR;
@@ -3010,7 +3016,7 @@ tdgbl = GET_THREAD_DATA;
    for the performance benefits, especially remotely--deej */
 
 if (tdgbl->BCK_capabilities & BCK_ods10)
-    {
+	 {
     FOR (REQUEST_HANDLE tdgbl->handles_write_function_args_req_handle1)
         X IN RDB$FUNCTION_ARGUMENTS WITH
         X.RDB$FUNCTION_NAME EQ funcptr
@@ -3048,7 +3054,7 @@ else
         l = PUT_TEXT (att_functionarg_name, X.RDB$FUNCTION_NAME);
         MISC_terminate (X.RDB$FUNCTION_NAME, temp, l, sizeof (temp));
         BURP_verbose (141, temp, NULL, NULL, NULL, NULL);
-	     /* msg 141 writing argument for function %s */
+		  /* msg 141 writing argument for function %s */
         PUT_NUMERIC (att_functionarg_position, X.RDB$ARGUMENT_POSITION);
         PUT_NUMERIC (att_functionarg_mechanism, X.RDB$MECHANISM);
         PUT_NUMERIC (att_functionarg_field_type, X.RDB$FIELD_TYPE);
@@ -3098,26 +3104,29 @@ static void write_generators (void)
 SINT64          value;
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
-TGBL	tdgbl;
+TGBL	          tdgbl;
+SSHORT          l;
+TEXT            temp [32];
 
 tdgbl = GET_THREAD_DATA;
 
 FOR (REQUEST_HANDLE req_handle1)
-    X IN RDB$GENERATORS WITH X.RDB$SYSTEM_FLAG MISSING OR X.RDB$SYSTEM_FLAG NE 1
-    PUT (rec_generator);
-    PUT_TEXT (att_gen_generator, X.RDB$GENERATOR_NAME);
-    value = get_gen_id (X.RDB$GENERATOR_NAME);
-    PUT_INT64 (att_gen_value_int64, value);
-    PUT (att_end);
-    BURP_verbose (165, X.RDB$GENERATOR_NAME, (void*) value, NULL, NULL, NULL);
-    /* msg 165 writing generator %s value %ld */
+	 X IN RDB$GENERATORS WITH X.RDB$SYSTEM_FLAG MISSING OR X.RDB$SYSTEM_FLAG NE 1
+	 PUT (rec_generator);
+	 l = PUT_TEXT (att_gen_generator, X.RDB$GENERATOR_NAME);
+	 value = get_gen_id (X.RDB$GENERATOR_NAME, l);
+	 PUT_INT64 (att_gen_value_int64, value);
+	 PUT (att_end);
+	 MISC_terminate (X.RDB$GENERATOR_NAME, temp, l, sizeof (temp));
+	 BURP_verbose (165, temp, (void*) value, NULL, NULL, NULL);
+	 /* msg 165 writing generator %s value %ld */
 END_FOR;
 ON_ERROR
-    general_on_error ();
+	 general_on_error ();
 END_ERROR;
 
 if (req_handle1)
-    isc_release_request (req_status, &req_handle1);
+	 isc_release_request (req_status, &req_handle1);
 }
 
 static void write_global_fields (void)
@@ -3159,7 +3168,7 @@ if ((tdgbl->BCK_capabilities & BCK_attributes_v3) &&
 
         PUT (rec_global_field);
         l = PUT_TEXT (att_field_name, X.RDB$FIELD_NAME);
-        MISC_terminate (X.RDB$FIELD_NAME, temp, l, sizeof (temp));
+		  MISC_terminate (X.RDB$FIELD_NAME, temp, l, sizeof (temp));
         BURP_verbose (149, temp, NULL, NULL, NULL, NULL);
 	 /* msg 149  writing global field %.*s */
         if (X.RDB$QUERY_NAME [0] != ' ')
@@ -3716,10 +3725,10 @@ FOR (REQUEST_HANDLE req_handle1)
     X IN RDB$ROLES
 
     PUT (rec_sql_roles);
-    l = put_text (att_role_name, X.RDB$ROLE_NAME, 31);
-    PUT_TEXT (att_role_owner_name, X.RDB$OWNER_NAME);
-    PUT (att_end);
-    MISC_terminate (X.RDB$ROLE_NAME, temp, l, sizeof (temp));
+	 l = put_text (att_role_name, X.RDB$ROLE_NAME, 31);
+	 PUT_TEXT (att_role_owner_name, X.RDB$OWNER_NAME);
+	 PUT (att_end);
+	 MISC_terminate (X.RDB$ROLE_NAME, temp, l, sizeof (temp));
     BURP_verbose (249, temp, NULL, NULL, NULL, NULL);
 	 /* msg 249 writing SQL role: %s */
 
@@ -3766,7 +3775,7 @@ if (tdgbl->BCK_capabilities & BCK_ods8)
         X.RDB$SYSTEM_FLAG MISSING
 
         PUT (rec_trigger);
-        l = PUT_TEXT (att_trig_name, X.RDB$TRIGGER_NAME);
+		  l = PUT_TEXT (att_trig_name, X.RDB$TRIGGER_NAME);
         MISC_terminate (X.RDB$TRIGGER_NAME, temp, l, sizeof (temp));
         BURP_verbose (156, temp, NULL, NULL, NULL, NULL);
 	     /* msg 156   writing trigger %s */
@@ -3873,7 +3882,7 @@ FOR (REQUEST_HANDLE req_handle1)
     BURP_verbose (157, temp, NULL, NULL, NULL, NULL);
 	/* msg 157 writing trigger message for *s */
     PUT_NUMERIC (att_trigmsg_number, X.RDB$MESSAGE_NUMBER);
-    PUT_MESSAGE (att_trigmsg_text, X.RDB$MESSAGE);
+	 PUT_MESSAGE (att_trigmsg_text, X.RDB$MESSAGE);
     PUT (att_end);
 END_FOR;
 ON_ERROR
@@ -3943,8 +3952,6 @@ TEXT	temp [32];
 isc_req_handle  req_handle1 = NULL;
 long            req_status [20];
 TGBL	tdgbl;
-SINT64          value;
-
 
 tdgbl = GET_THREAD_DATA;
 
@@ -3982,7 +3989,7 @@ else
 	    PUT_NUMERIC (att_priv_grant_option, X.RDB$GRANT_OPTION);
 	    PUT_TEXT (att_priv_object_name, X.RDB$RELATION_NAME);
 	    if (!X.RDB$FIELD_NAME.NULL)
-	        PUT_TEXT (att_priv_field_name, X.RDB$FIELD_NAME);
+			  PUT_TEXT (att_priv_field_name, X.RDB$FIELD_NAME);
 	    PUT (att_end);
 	END_FOR;
     ON_ERROR
