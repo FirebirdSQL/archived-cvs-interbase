@@ -1,3 +1,23 @@
+2001-10-22 23:58  awharrison
+
+	* interbase/jrd/gds.c:
+	
+	
+	make gds_alloc_flag_unfreed a bit less sensitive to zero length
+	blocks.
+
+2001-10-22 23:46  awharrison
+
+	* interbase/isql/isql.e:
+	
+	
+	Fixed two problems that caused errors when a select statement has
+	no return values.  The case shouldn't come up, but the errors were
+	egrigious.  In one case the statement type was being set by the
+	number of parameters immediately after getting the statement type
+	from an info call.  In the other, a debugging routine called
+	gds_alloc_unfreed with a zero length block.
+
 2001-10-19 22:08  awharrison
 
 	* interbase/dsql/pass1.c:
