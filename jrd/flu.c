@@ -866,6 +866,9 @@ if (('.' == dirp[0]) && ('\0' == dirp[1]))
 	/* Module is in the standard UDF directory: load it. */
 	if (!(mod->mod_handle = dlopen (ib_lib_path, RTLD_LAZY)))
 	    {
+#ifdef DEV_BUILD
+		printf("%s\n",dlerror());
+#endif			
 	    gds__free (mod);
 	    return NULL;
 	    }
