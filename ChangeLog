@@ -1,3 +1,9 @@
+2001-07-08 23:31  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	make a bunch of system indexes unique
+
 2001-07-03 10:21  robocop
 
 	* interbase/: dsql/ddl.c, jrd/dyn_def.e, jrd/par.c:
