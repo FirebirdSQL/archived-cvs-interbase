@@ -1,3 +1,20 @@
+2001-12-18 01:12  awharrison
+
+	* interbase/jrd/flu.c:
+	
+	Modified Files: 	interbase/jrd/flu.c
+	
+	Made logging lookup error conditional until we distangle the
+	function lookup from other types.
+	-------------------------------------------------------------------
+	---
+
+2001-12-17 09:51  robocop
+
+	* interbase/jrd/isc_file.c:
+	
+	Close another posible registry handle leak.
+
 2001-12-17 09:50  robocop
 
 	* interbase/burp/: backup.e, restore.e:
@@ -17,11 +34,64 @@
 	
 	Change linux classic packages to point to new updated routine
 
+2001-12-15 14:41  skywalker
+
+	* interbase/firebird/install/linux/: Makefile, README,
+	classic/makeInstallImage.sh, classic/postinstall.sh,
+	classic/postuninstall.sh, classic/preinstall.sh,
+	classic/preuninstall.sh, classic/rpmfiles.txt,
+	classic/rpmheader.txt, classic/tarMainInstall.sh,
+	classic/tarinstall.sh, misc/CSchangeRunUser.sh,
+	misc/CSrestoreRootRunUser.sh, misc/README, misc/SSchangeRunUser.sh,
+	misc/SSrestoreRootRunUser.sh, misc/changeDBAPassword.sh,
+	misc/firebird.init.d.generic, misc/firebird.init.d.mandrake,
+	misc/firebird.init.d.suse, misc/firebird.xinetd, misc/ibmgr,
+	misc/isc_config, misc/rc.config.firebird:
+	
+	Added merge of install scripts.  Currently classic only works. 
+	Various changes and small fixes, including get build# from
+	this_build file.
+
+2001-12-15 12:56  paul_reeves
+
+	* interbase/jrd/unix.c:
+	
+	unix.c interbase
+
+2001-12-13 06:07  robocop
+
+	* interbase/jrd/ibase.h:
+	
+	Change a wrong declaration in paramdsc and include paramvary for
+	handling varchar from descriptors in UDFs.
+
+2001-12-11 07:13  robocop
+
+	* interbase/isql/show.e:
+	
+	Get rid of extra CRs
+
+2001-12-10 21:59  paul_reeves
+
+	* interbase/jrd/version_95.rc:
+	
+	Win32 interbase
+
 2001-12-10 21:37  paul_reeves
 
 	* interbase/FB_Build_Win32_Build_No.bat:
 	
 	Win32 interbase
+
+2001-12-10 20:35  awharrison
+
+	* interbase/jrd/dyn.e:
+	
+	
+	Modified Files: 	interbase/jrd/dyn.e
+	-------------------------------------------------------------------
+	--- Saving the wrong request handle caused a bad length message
+	error.
 
 2001-12-09 21:12  nmcc
 
@@ -37,12 +107,28 @@
 	Change DSQL_pretty (debugging proc) to cope with different types of
 	nod_udf.
 
+2001-12-08 08:37  robocop
+
+	* interbase/isql/isql.e:
+	
+	Our awesome tool isql shouldn't try to close a cursor that it
+	didn't open.  For obvious reasons, the engine complains. The case
+	happens when a procedure is executed as opposed of selecting from
+	it.
+
 2001-12-07 12:57  paul_reeves
 
 	* interbase/FB_Build_Win32_Build_No.bat:
 	
 	Removed superfluous quotes from fb_build_suffix for the Win32
 	build.
+
+2001-12-07 09:31  robocop
+
+	* interbase/jrd/dyn_mod.e:
+	
+	Fixed a misleading comment: there's no warning if the new field's
+	length is smaller than the original: we throw an error always.
 
 2001-12-07 09:30  robocop
 
@@ -63,18 +149,34 @@
 2001-12-06 15:18  paul_reeves
 
 	* interbase/: FB_Build_Win32_Build_No.bat,
-	builds_win32/original/build_no.ksh:
+	builds_win32/original/build_no.ksh, jrd/version_95.rc:
 	
 	Updated scripts that generate build_no.h to reflect impending RC2
+
+2001-12-05 02:14  nmcc
+
+	* interbase/firebird/nmcc/solaris-64bitio.patch:
+	
+	A patch to enable 64bit io on Solaris Sparc using Sun compiler. 
+	Known problems with patch as at this version: Classic:	fails to
+	restore databases > 2Gb.  Super: none but less well tested.  This
+	patch is against cvs versions as of around 1.0.0.575 RC1.
 
 2001-12-04 16:31  paul_reeves
 
 	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_Build_No.bat,
-	FB_Build_Win32_Readme.txt:
+	FB_Build_Win32_Readme.txt, jrd/version_95.rc:
 	
 	Win32 build - Turned off compile warnings by default and added
 	option to turn them on. Fixed slash conversion to work correctly.
 	Added string terminator to special build resource in version_95.rc.
+
+2001-12-04 08:25  robocop
+
+	* interbase/jrd/inf.c:
+	
+	Refresh the db's header only once when necessary to fulfill a
+	request for txn info or forced writes.
 
 2001-12-04 08:19  robocop
 
@@ -90,12 +192,32 @@
 	try to change the DSQL descriptors, same as when varchar can be
 	changed to char in the API examples.
 
+2001-12-04 01:02  awharrison
+
+	* interbase/jrd/tra.c:
+	
+	
+	 Modified Files:
+		interbase/jrd/tra.c
+	-------------------------------------------------------------------
+	--- Make read-only read-committed transactions non-blocking
+
 2001-12-04 01:00  awharrison
 
 	* interbase/dsql/pass1.c:
 	
 	
 	Check that a field exists before checking its ambiguity
+
+2001-12-03 15:17  kkuznetsov
+
+	* interbase/jrd/gds.c:
+	
+	
+	
+	Correcting message in interbase.log about "incresing file limit
+	from xx to 0" then using 64 bit i/o/ . It's differs on size of
+	rlim_t on Solaris
 
 2001-12-03 15:13  paul_reeves
 
@@ -104,6 +226,35 @@
 	Removed references to DELPHI define in the Win32 make files.
 	Delphi6 encourages the setting of a DELPHI env var which rather
 	confuses the current build process.
+
+2001-12-03 06:35  robocop
+
+	* interbase/jrd/: exe.c, req.h:
+	
+	Bread and circus for the people, the Roman emperors said.  Make
+	tool developers happy and report only virtual insertions, updates
+	and deletions on views instead of physical I/O on the underlying
+	tables... even if JRD had to be twisted.
+
+2001-12-02 12:16  paul_reeves
+
+	* interbase/jrd/inf.c:
+	
+	Fixed extraneous CR issue.
+
+2001-11-30 16:19  paul_reeves
+
+	* interbase/: isql/show.e, jrd/inf.c:
+	
+	isql show database is now a little more informative.
+
+2001-11-30 15:51  kkuznetsov
+
+	* interbase/jrd/unix.c:
+	
+	
+	Added some magic to make SOLARIS support LARGE files (only in
+	SUPER)
 
 2001-11-30 09:08  robocop
 
@@ -114,15 +265,52 @@
 	newborn fatal bugs (that would trash or crash the engine) to be
 	able to regain the glory of the updated code.
 
+2001-11-29 12:58  paul_reeves
+
+	* interbase/jrd/version_95.rc:
+	
+	version_95.rc - 'themslevs' may prefer to be known as 'themselves'.
+	Changed Special Build string to 'Post-release candidate 1'.
+
 2001-11-29 12:16  paul_reeves
 
 	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_Build_DBs.bat,
 	FB_Build_Win32_Build_No.bat, FB_Build_Win32_Readme.txt,
-	builds_win32/original/build_no.ksh:
+	builds_win32/original/build_no.ksh, jrd/license.h,
+	jrd/version_95.rc:
 	
 	Moved isc_major_ver define to build_no.h. Updated platform build_no
 	scripts and Win32 versioning. Improved Win32 build process to
 	detect changed messages database.
+
+2001-11-28 21:19  awharrison
+
+	* interbase/jrd/inf.c:
+	
+	
+	
+	Bad job of cut and paste - fixed.
+
+2001-11-28 21:10  awharrison
+
+	* interbase/jrd/inf.c:
+	
+	Added a call to PAG_header in the info items that report on
+	interesting things like the oldest, oldest_active, oldest_snapshot,
+	and next transaction;
+
+2001-11-28 18:57  paul_reeves
+
+	* interbase/isql/show.e:
+	
+	SHOW DATABASE will now tell us the status of FORCED WRITES
+
+2001-11-28 02:17  nmcc
+
+	* interbase/jrd/flu.c:
+	
+	Log errors related to opening UDF libraries in interbase.log file
+	for both production and dev builds.
 
 2001-11-27 19:50  awharrison
 
@@ -162,6 +350,32 @@
 	process, decided that the whole process was too complex and
 	simplified it in the following ways:
 
+2001-11-26 19:12  awharrison
+
+	* interbase/jrd/: common.h, jrd.c:
+	
+	
+	Firebird defaults to forced writes on WIN32.  In the past, the
+	default was set with SYNC_WRITE_DEFAULT.  The new code took a more
+	direct approach, operating on the database options during a create.
+	 This change removes that code and adds a definition of
+	SYNC_WRITE_DEFAULT to common.h in the section that handles windows
+	defines.
+
+2001-11-23 09:30  robocop
+
+	* interbase/isql/isql.e:
+	
+	Make isql 0.1% smarter when dealing with comments.
+
+2001-11-23 03:18  nmcc
+
+	* interbase/isql/isql.e:
+	
+	Stop trying to allocate 0 bytes of memory - prevents gds__alloc
+	message.  Do not output spurious lines when there is no return data
+	to output - this makes output consistent with older versions.
+
 2001-11-22 09:16  robocop
 
 	* interbase/dsql/pass1.c:
@@ -175,6 +389,14 @@
 	
 	Fixes SF bug #484399. UDFs now can return NULL to the DSQL layer.
 
+2001-11-21 23:25  awharrison
+
+	* interbase/jrd/winnt.c:
+	
+	
+	Change the open mode from exclusive to read/write allowing shared
+	read.
+
 2001-11-21 20:25  awharrison
 
 	* interbase/dsql/utld.c:
@@ -187,6 +409,80 @@
 	the server side.  Turned off the optimization as a stop-gap.  We'll
 	need to beef up the statement identification in the next release.
 
+2001-11-21 20:11  awharrison
+
+	* interbase/jrd/winnt.c:
+	
+	
+	For reasons obscure, the FIL block has two descriptors, one for
+	forced writes and one for async writes.  The code that checked the
+	number of pages used the async write descriptor without checking. 
+	It now checks.
+
+2001-11-21 19:53  awharrison
+
+	* interbase/isql/: extract.e, isql.e, show.e, show_proto.h:
+	
+	
+	ISQL did not check the returns status of info calls and crashed if
+	one failed.  Also return the Firebird version on -z.
+
+2001-11-21 19:20  pcisar
+
+	* interbase/firebird/pcisar/install/: Makefile,
+	classic/buildrpm.sh, classic/makerpmimage.sh,
+	classic/maketarimage.sh, classic/postinstall.txt,
+	classic/postuninstall.txt, classic/preinstall.txt,
+	classic/preuninstall.txt, classic/rpmfiles.txt,
+	classic/rpmheader.txt, classic/tarinstall.sh,
+	classic/tarmaininstall.sh, classic/tarpostinstall.sh,
+	classic/tarpreinstall.sh, misc/CSchangeRunUser.sh,
+	misc/CSrestoreRootRunUser.sh, misc/README, misc/SSchangeRunUser.sh,
+	misc/SSrestoreRootRunUser.sh, misc/changeDBAPassword.sh,
+	misc/firebird, misc/firebird.init.d.generic,
+	misc/firebird.init.d.mandrake, misc/firebird.init.d.suse,
+	misc/firebird.xinetd, misc/ibmgr, misc/isc_config,
+	misc/rc.config.firebird, misc/whatsnew.txt, super/buildrpm.sh,
+	super/makerpmimage.sh, super/maketarimage.sh,
+	super/postinstall.txt, super/postuninstall.txt,
+	super/preinstall.txt, super/preuninstall.txt, super/rpmfiles.txt,
+	super/rpmheader.txt, super/tarinstall.sh, super/tarmaininstall.sh,
+	super/tarpostinstall.sh, super/tarpreinstall.sh:
+	
+	A
+
+2001-11-21 04:16  robocop
+
+	* interbase/remote/srvr_w32.c:
+	
+	Honor -b in SS-Win32 for high priority.
+
+2001-11-21 04:06  robocop
+
+	* interbase/jrd/cvt.c:
+	
+	Conversion error from <value> should show the "from" descriptor,
+	not the "to" descriptor in integer_to_tex() when an overflow
+	occurs.
+
+2001-11-21 04:00  robocop
+
+	* interbase/jrd/dfw.e:
+	
+	Put a pair of parenthesis in a sub statement in the GDML code that
+	handles user triggers so the ordering by sequence numbers works
+	again and triggers are executed in the due precedence.
+
+2001-11-21 03:56  robocop
+
+	* interbase/isql/isql.e:
+	
+	If isql accepts -nowarnings as a command-line argument and SET
+	shows the state of the warnings display, it seems natural to add
+	SET WNG or SET WARNINGS to toggle that flag. No other code change
+	as been done as the logic to suppress or show warnings is already
+	in place.
+
 2001-11-21 03:50  robocop
 
 	* interbase/burp/backup.e:
@@ -194,6 +490,26 @@
 	Allow generators with embedded blanks in names to save their values
 	to the backup file.  Clean a bit the mess in the code that removes
 	trailing spaces.
+
+2001-11-21 01:16  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSrpmheader.txt:
+	
+	Updated for (possible) build 584 release
+
+2001-11-21 00:40  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSrpmheader.txt:
+	
+	Updated packaging for a (potential) 1.0.0.584 RC1 release.
+
+2001-11-20 20:15  awharrison
+
+	* interbase/jrd/common.h:
+	
+	
+	The file 64bitio.h does not exist on windows.
 
 2001-11-18 22:27  nmcc
 
@@ -226,12 +542,21 @@
 
 2001-11-18 06:16  bellardo
 
-	* interbase/Configure.sh:
+	* interbase/: Configure.sh, jrd/common.h:
 	
 	The Configure.sh script now asks about a 64 bit io build on *nix
 	platforms where 64 bit io is applicable.  Writes out the correct
 	macro definition to jrd/64bitio.h if the user wants a 64 bit io
 	build.
+
+2001-11-10 06:21  dschnepper
+
+	* interbase/jrd/intl.c:
+	
+	
+	
+	Do not add a path before looking for the supplimental international
+	object library, gdsintl.dll
 
 2001-11-07 03:49  nmcc
 
@@ -246,6 +571,20 @@
 	Convert back to a unix file (\n only) so unix builds are not broken
 	and built with wrong version number.
 
+2001-11-06 07:47  robocop
+
+	* interbase/remote/srvr_w32.c:
+	
+	Load SetProcessAffinityMask() dynamically because it doesn't exist
+	in Win9x.
+
+2001-11-06 07:45  robocop
+
+	* interbase/jrd/: dyn.h, dyn_proto.h, grant.e:
+	
+	Replace terminate() by DYN_terminate() that uses sizeof(argument)
+	as the 2nd parameter.
+
 2001-11-05 10:46  paul_reeves
 
 	* interbase/FB_Build_Win32_BSCMake.bat:
@@ -257,11 +596,27 @@
 	* interbase/: FB_Build_Win32.bat, FB_Build_Win32_BSCMake.bat,
 	FB_Build_Win32_Build_DBs.bat, FB_Build_Win32_Build_No.bat,
 	FB_Build_Win32_Clean.bat, FB_Build_Win32_Readme.txt,
-	builds_win32/original/build_no.ksh:
+	builds_win32/original/build_no.ksh, iscguard/iscguard.rc,
+	jrd/version_95.rc:
 	
 	Updated resource files for Win32 to reflect RC1. Added
 	FB_Build_Win32 batch files to simplify Win32 build process. Updated
 	build_no.ksh to RC1
+
+2001-11-04 19:10  nmcc
+
+	* interbase/jrd/dyn.e:
+	
+	Change prototype to match procedure definition to fix compile
+	problem.
+
+2001-11-03 20:50  awharrison
+
+	* interbase/jrd/: drq.h, dyn.e, grant.e:
+	
+	
+	Going at the privileges error again.  Now dyn.e picks a security
+	class name for grants on fields and checks that it is unique.
 
 2001-11-02 16:08  awharrison
 
@@ -280,6 +635,13 @@
 	
 	got the name of the generator wrong.
 
+2001-10-31 21:55  paul_reeves
+
+	* interbase/jrd/time.h:
+	
+	Due to changes in glibc sys/time.h earlier this year builds on
+	newer Linux distros were failing. Fixed.
+
 2001-10-31 18:09  awharrison
 
 	* interbase/burp/backup.e:
@@ -290,11 +652,34 @@
 
 2001-10-31 08:54  robocop
 
-	* interbase/builds_win32/original/include.mak:
+	* interbase/: builds_win32/original/include.mak, journal/misc.c,
+	journal/rebuild.e, jrd/doserr.h, remote/dllshell.c, remote/inet.c,
+	remote/makefile.mak, remote/neterr.h, remote/spxnet32.c,
+	remote/winmain.c:
 	
 	Upgrade Win32 build to MS Winsock v2.  - include <winsock> =>
 	winsock2 - WSStartup(1,1) => 2,0 - winsock.lib => ws2_32.lib -
 	winsock.dll => ws2_32.dll
+
+2001-10-31 05:50  bellardo
+
+	* interbase/jrd/common.h:
+	
+	Moved the UNIX_64_BIT_IO macro check to the correct location in the
+	header file.
+
+2001-10-31 05:44  bellardo
+
+	* interbase/jrd/sort.c:
+	
+	Included sys/types on unix platforms to get off_t, instead of
+	including ib_stdio.h.
+
+2001-10-31 02:24  nmcc
+
+	* interbase/jrd/sort.c:
+	
+	Fix missing declaration of off_t on Linux.
 
 2001-10-31 02:20  nmcc
 
@@ -321,6 +706,37 @@
 	success when it meant failure.	Also check in dsql8_prepare to fail
 	when passed an inadequate request handle.
 
+2001-10-30 17:33  bellardo
+
+	* interbase/jrd/common.h:
+	
+	Fixed [my] LSEEK_OFFSET_CAST build problem with Windows.
+
+2001-10-30 08:30  robocop
+
+	* interbase/jrd/: isc_file.c, jrd.c, why.c:
+	
+	Make database file names consistent in Win32.  Use name sanctioned
+	and returned by the system, not the name given by the user in some
+	places.  Use short names for now.
+
+2001-10-29 20:45  bellardo
+
+	* interbase/: jrd/common.h, jrd/unix.c, utilities/analyse.c,
+	utilities/dba.e, utilities/dba_full.e, utilities/rebuild.c,
+	utilities/sbc_print.c:
+	
+	Added 64 bit io code for *nix.	Requires the macro UNIX_64_BIT_IO
+	to be defined, or else you get a 32 bit version.  Since all
+	supported Darwin platforms support 64 bit it the macro is always
+	defined on Darwin.  No other platforms have the macro defined by
+	default.  unix.c now performs a runtime check on the 32 bit builds
+	to make sure they don't exceed a 2 GB file size.  Note that this
+	doesn't effect the PREAD_WRITE code.  Platforms that use
+	PREAD_WRITE are can't use the 64 bit io stuff.	Looking through the
+	platform files and common.h revealed not platforms use PREAD_WRITE.
+	 So this limitation is not a problem.
+
 2001-10-29 08:29  robocop
 
 	* interbase/dsql/alld.c:
@@ -331,9 +747,18 @@
 
 2001-10-29 01:52  nmcc
 
-	* interbase/dsql/pass1.c:
+	* interbase/: dsql/pass1.c, jrd/ibase.h:
 	
 	Convert c++ comments to c comments.
+
+2001-10-28 00:30  awharrison
+
+	* interbase/isql/isql.e:
+	
+	
+	Turns out that procedures are honorary select statements ... fixed.
+	 Also moved a statement type check before the debugging stuff that
+	uses it.
 
 2001-10-27 03:42  nmcc
 
@@ -349,6 +774,13 @@
 	Fix problem where validation of udf's in group by was affecting
 	validation of select elements using udf and aggregates.
 
+2001-10-27 00:52  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	
+	External tables pass a 0 as their version number.
+
 2001-10-27 00:17  awharrison
 
 	* interbase/dsql/alld.c:
@@ -356,6 +788,14 @@
 	
 	Remove an unwanted and very undesirable semi-colon at the end of an
 	if.
+
+2001-10-26 04:44  bellardo
+
+	* interbase/: msgs/msg.gbak, jrd/codes.h, jrd/codetext.h,
+	jrd/iberror.h, jrd/msgs.h, jrd/rdb_codes.h, jrd/sql_code.h:
+	
+	Added error message to use when a single db file exceeds 2^31 bytes
+	in a 32 bit io FB build.
 
 2001-10-25 23:25  awharrison
 
@@ -369,11 +809,32 @@
 	 parse.c and parse.y got touched as I removed the exec_sql code
 	from them.
 
+2001-10-25 21:35  awharrison
+
+	* interbase/jrd/sdw.c:
+	
+	
+	Move the check for the existence of shadow files to the beginning
+	of SDW_rollover_to_shadow so that case can't leave the state of
+	shadowing indeterminate.
+
+2001-10-25 11:07  tamlin
+
+	* interbase/jrd/gds.c:
+	
+	Win32: Fallback to system known language for system error strings.
+
 2001-10-24 21:09  bellardo
 
 	* interbase/firebird/bellardo/unix_64io.patch:
 	
 	New *nix 64 bit io patch.
+
+2001-10-24 08:28  robocop
+
+	* interbase/iscguard/: iscguard.c, iscguard_utils.c:
+	
+	Check for possible errors when querying the registry
 
 2001-10-23 23:23  awharrison
 
@@ -394,12 +855,40 @@
 	
 	Changes to get UDF's working in Darwin again.
 
+2001-10-22 23:58  awharrison
+
+	* interbase/jrd/gds.c:
+	
+	
+	make gds_alloc_flag_unfreed a bit less sensitive to zero length
+	blocks.
+
+2001-10-22 23:46  awharrison
+
+	* interbase/isql/isql.e:
+	
+	
+	Fixed two problems that caused errors when a select statement has
+	no return values.  The case shouldn't come up, but the errors were
+	egrigious.  In one case the statement type was being set by the
+	number of parameters immediately after getting the statement type
+	from an info call.  In the other, a debugging routine called
+	gds_alloc_unfreed with a zero length block.
+
 2001-10-19 22:08  awharrison
 
 	* interbase/dsql/pass1.c:
 	
 	
 	Get rid of a debugging statement.
+
+2001-10-19 22:00  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	
+	Added flag values 4 & 5 as indicating check triggers which should
+	run after other before action triggers.
 
 2001-10-19 06:10  robocop
 
@@ -437,6 +926,14 @@
 	
 	Testing new syncmail.
 
+2001-10-18 22:46  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	
+	Sorted out the order of triggers again - the new system flag
+	numbers appeared to have confused it.
+
 2001-10-18 22:45  bellardo
 
 	* interbase/builds/original/prefix.darwin:
@@ -452,11 +949,43 @@
 
 2001-10-18 02:07  bellardo
 
-	* interbase/builds/original/: prefix.darwin, sfx.lock:
+	* interbase/: builds/original/prefix.darwin,
+	builds/original/sfx.lock, gpre/gpre.c:
 	
 	Changes to get FB1 compiling and working under the newly released
 	MacOS X 10.1.  Included a change to gpre to initialize the
 	error/warning/fatal counts.
+
+2001-10-17 07:02  tamlin
+
+	* interbase/remote/srvr_w32.c:
+	
+	Win32 CPU affinity
+
+2001-10-17 07:02  tamlin
+
+	* interbase/jrd/: ibase.h, isc.c, isc.h, winnt.c:
+	
+	Win32: CPU affinity and open DB files in non-shared mode.
+
+2001-10-15 12:14  nmcc
+
+	* interbase/isql/isql.e:
+	
+	Detect failed version inquiry and clean up version string output.
+
+2001-10-13 12:21  dimitr
+
+	* interbase/firebird/dimitr/exec_sql/latest/: dsql/dsql.c,
+	dsql/dsql.c.diff, dsql/gen.c, dsql/gen.c.diff, dsql/node.h,
+	dsql/node.h.diff, dsql/parse.y, dsql/parse.y.diff, dsql/pass1.c,
+	dsql/pass1.c.diff, jrd/blp.h, jrd/blp.h.diff, jrd/blr.h,
+	jrd/blr.h.diff, jrd/blrtable.c, jrd/blrtable.c.diff, jrd/exe.c,
+	jrd/exe.c.diff, jrd/ibase.h, jrd/ibase.h.diff, jrd/nod.h,
+	jrd/nod.h.diff, jrd/par.c, jrd/par.c.diff, jrd/tra.h,
+	jrd/tra.h.diff, msgs/load.e, msgs/load.e.diff:
+	
+	EXECUTE VARCHAR implementation
 
 2001-10-13 00:21  awharrison
 
@@ -465,6 +994,29 @@
 	
 	Changed the way union contexts were passed to ddl.c to avoid
 	confusing the code that recognizes ambiguous context names
+
+2001-10-12 10:51  paulbeach
+
+	* interbase/jrd/: dyn_def.e, dls.c, dls_proto.h, ext.c, fil.h,
+	isc.c, isc.h:
+	
+	Support for EXTERNAL_FILE_DIRECTORY config parameter
+
+2001-10-11 10:59  robocop
+
+	* interbase/jrd/exe.c:
+	
+	Fixes SF Bug #436462: "Rows affected incorrect with trigger". 
+	Insertions, deletions and updates should be counted when they
+	really happen with calls to VIO from EXE.
+
+2001-10-11 08:35  fsg
+
+	* interbase/isql/isql.e:
+	
+	Changes to get isql compiled under Linux again
+	
+	fsg
 
 2001-10-11 06:43  robocop
 
@@ -493,11 +1045,140 @@
 	strlen(rdb$relation_id) from rdb$relations group by
 	strlen(rdb$relation_name); => invalid column reference.
 
+2001-10-11 06:25  robocop
+
+	* interbase/jrd/: blb.c, cmp.c, dfw.e, dyn.e, dyn_def.e, dyn_mod.e,
+	met.e, met_proto.h, par.c, scl.e, scl.h:
+	
+	Fixes SF bug #458888 and SF bug #444463 The latter also entailed
+	the creation of new system flags for triggers that are defined
+	automagically for CHECKs, FKs (cascade, set null, set default) and
+	VIEWs using WITH CHECK OPTION. We can't rely on those flags for
+	current databases, but the engine is already generating them in new
+	triggers for those cases. The engine now checks security_classes to
+	distinguish fields reliably at the time a call to CMP_post_access()
+	should be made from post_trigger_access().
+
+2001-10-11 05:19  robocop
+
+	* interbase/msgs/msg.gbak:
+	
+	Show options -r and -t in the gstat help
+
+2001-10-11 05:15  robocop
+
+	* interbase/utilities/dbaswi.h:
+	
+	Show options -r and -t in the gstat help
+
+2001-10-10 21:38  awharrison
+
+	* interbase/jrd/license.h:
+	
+	
+	Further simplify version string
+
+2001-10-10 19:37  awharrison
+
+	* interbase/jrd/license.h:
+	
+	
+	Shorten the gds_version string and take out the special characters.
+
+2001-10-10 11:25  robocop
+
+	* interbase/jrd/ibase.h:
+	
+	New value to allow DYN target always a USER with a grant without
+	ambiguity with a possible ROLE.
+
+2001-10-10 11:23  robocop
+
+	* interbase/jrd/irq.h:
+	
+	New request for default sec class name
+
+2001-10-10 11:22  robocop
+
+	* interbase/jrd/obj.h:
+	
+	Add obj_blob_filter to our db object identifiers
+
+2001-10-10 11:21  robocop
+
+	* interbase/jrd/ini.h:
+	
+	Adds obj.h to the includes to reuse its values
+
+2001-10-10 11:17  robocop
+
+	* interbase/jrd/types.h:
+	
+	Document or new FB system flag numbers for triggers
+
+2001-10-10 11:13  robocop
+
+	* interbase/jrd/intlobj.h:
+	
+	Reinstall the missing field in the interface for the extended
+	collations module
+
+2001-10-10 11:02  robocop
+
+	* interbase/jrd/constants.h:
+	
+	Defnitions of automatic triggers' new system_flag values
+
+2001-10-10 11:00  robocop
+
+	* interbase/isql/: extract.e, isql.e, isql.h, show.e, show_proto.h:
+	
+	Fixes initial Fixed Bug #112263 by FSG that caused isql to behave
+	in bad way when extracting metadata. Now the "D" and "M" txns are
+	not started, operations are marked as not Interactive and the user,
+	pw and role is not dumped to the script as it was the behavior
+	before that bug fix.  SHOW GRANTS is possible without arguments. 
+	HELP SET includes PLANONLY brief explanation.
+
+2001-10-10 10:49  robocop
+
+	* interbase/msgs/msg.gbak:
+	
+	New messages for isql about grants help shows PLANONLY
+
+2001-10-08 19:40  awharrison
+
+	* interbase/jrd/dyn_def.e:
+	
+	
+	Changed dyn_create_index so it doesn't consider simple unique
+	indexes when finding a "referred index", but only indexes that
+	support unique constraints or primary keys.  This fixes a problem
+	that people who have both a unique index and a primary key have
+	when defining foreign keys on those fields.  If the index chosen
+	happened to be the simple unique index, then the foreign key would
+	be rejected.
+
 2001-10-04 06:22  bellardo
 
 	* interbase/firebird/bellardo/darwin/install:
 	
 	Minor changes to the Darwin install script
+
+2001-10-03 15:53  nmcc
+
+	* interbase/isql/isql.e:
+	
+	When retrieving server information also get Firebird version if
+	available.  Display Firebird server version on connecting if -z
+	given on command line.
+
+2001-10-03 15:40  nmcc
+
+	* interbase/remote/server.c:
+	
+	Increase size of temporary buffer, used in info calls, which holds
+	the Firebird version string which is now longer.
 
 2001-10-02 09:36  robocop
 
@@ -505,6 +1186,28 @@
 	fbudf.sql:
 	
 	Adds licensing terms.
+
+2001-10-02 09:34  robocop
+
+	* interbase/jrd/dfw.e:
+	
+	Fixes Bug #444463 by ignoring rdb$trigger_source in the condition. 
+	A more robust solution is needed in the long-time.
+
+2001-10-02 09:32  robocop
+
+	* interbase/jrd/: dyn.e, ibase.h:
+	
+	Support for explicit ROLE keyword in grants and revokes
+
+2001-10-02 09:26  robocop
+
+	* interbase/isql/: extra_proto.h, extract.e, isql.e, show.e,
+	show_proto.h:
+	
+	Extracts rights showing grantee type: USER ROLE (in sync with the
+	engine's enhancement) GROUP Allows SHOW GRANTS; to work by listing
+	all grants in the database.
 
 2001-10-02 09:23  robocop
 
@@ -536,11 +1239,107 @@
 	Make the DSQL layer reject ambiguous field names with an error msg
 	instead of a simple warning.
 
+2001-09-26 08:18  robocop
+
+	* interbase/jrd/evl.c:
+	
+	Fixes a crash when doing substring() against unicode blobs.  (There
+	should be an error message until that functionality is built.)
+
+2001-09-26 08:13  robocop
+
+	* interbase/jrd/cvt2.c:
+	
+	Fixes a crash when comparing strings against BLOBs.
+
+2001-09-25 21:08  bellardo
+
+	* interbase/pipe/head.c:
+	
+	Added include to pull in the new platform implementation
+	enumerations.
+
+2001-09-25 20:52  bellardo
+
+	* interbase/jrd/sort.c:
+	
+	Fixed unbalanced ()'s that broke the build.
+
+2001-09-25 01:47  seanleyne
+
+	* interbase/jrd/sort.c:
+	
+	Temporary fix for large sort file bug
+
+2001-09-24 07:47  robocop
+
+	* interbase/remote/server.ico:
+	
+	Changed the icon (the traditional tower with the half lemon) to a
+	black bird over yellow background.
+
+2001-09-24 07:44  robocop
+
+	* interbase/jrd/: dfw.e, dyn_def.e, scl.e, scl_proto.h:
+	
+	REFERENCES right again.  Check really the partner PK index and not
+	own the FK index (wrong first attempt).  Cater for some null
+	pointers that appear.  Do not check if both tables have the same
+	owner (if the owner name has been loaded in metadata structures).
+
+2001-09-23 11:28  robocop
+
+	* interbase/jrd/: cmp.c, dfw.e:
+	
+	Disable REFERENCES check in RUN-TIME (compile-time).  Enable
+	REFERENCES check in DESIGN-TIME, at FK definition time.  The code
+	does for now the same check than DYN, with the difference that DFW
+	cannot be bypassed.
+
+2001-09-23 03:33  robocop
+
+	* interbase/isql/: extract.e, show.e:
+	
+	Show proper MECHANISM for parameter passing in UDFs.  Handle
+	RETURNS PARAMETER <n> syntax in DDL extraction.
+
 2001-09-23 03:12  robocop
 
 	* interbase/builds_win32/original/ibconfig:
 	
 	Change default according to the engine and add another parameter
+
+2001-09-22 18:05  awharrison
+
+	* interbase/jrd/ibase.h:
+	
+	
+	VS: Committing in .  Give all enums explicit values.
+
+2001-09-21 17:24  awharrison
+
+	* interbase/jrd/license.h:
+	
+	Add the build envirionment to the GDS_VERSION string
+
+2001-09-20 23:03  awharrison
+
+	* interbase/jrd/ext.c:
+	
+	Make READONLY_DATABASE by default again
+
+2001-09-20 18:41  awharrison
+
+	* interbase/jrd/: common.h, ibase.h, inf.c, license.h, utl.c:
+	
+	Add new types of information and update isc_version to say we're
+	firebird
+
+2001-09-20 18:39  awharrison
+
+	* interbase/jrd/ext.c:
+	
+	Allow the max possible external files on Windows ~2040 - Paul Beach
 
 2001-09-19 10:38  robocop
 
@@ -554,19 +1353,59 @@
 	
 	Avoid phantom errors in the script.
 
+2001-09-19 10:36  robocop
+
+	* interbase/jrd/fun.e:
+	
+	An UDF using an input parameter by descriptor as return parameter
+	should be able to signal that it's returning NULL.
+
 2001-09-19 10:34  robocop
 
 	* interbase/dsql/: array.e, blob.e:
 	
 	Fix for embedded blanks in names
 
+2001-09-18 20:42  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	make drop table release external files
+
+2001-09-17 14:50  skywalker
+
+	* interbase/jrd/: dfw.e, dyn_util.e, grant.e:
+	
+	Removed the EXACT_NUMERICS #define.  The code is needed for correct
+	operation, and was a way of introducing new features.  int64 is now
+	used by default and the conditional #defines have been removed.
+
 2001-09-16 14:15  skywalker
 
 	* interbase/: Configure.sh, builds/original/platform,
-	builds/original/prefix.sco_ev:
+	builds/original/prefix.sco_ev, jrd/common.h:
 	
 	Changes to make compile on SCO_EV from patch supplied by Serge
 	Levenkov <serge@aortds.msk.su>
+
+2001-09-16 14:09  skywalker
+
+	* interbase/isql/show.e:
+	
+	Fixed bug [ #460786 ] Show Procedures command fails extended local
+	array of descriptions for new types.
+
+2001-09-12 12:03  robocop
+
+	* interbase/jrd/gdsold.h:
+	
+	Updated gds_err_max to keept in sync with codes.h's isc_err_max
+
+2001-09-12 12:00  robocop
+
+	* interbase/isql/isql.e:
+	
+	Isql should use double quotes around keywords.
 
 2001-09-12 11:59  robocop
 
@@ -580,6 +1419,18 @@
 	
 	Fixed problem where incorrect datatype was being reported in the
 	SQLDA when a bind parameter was used in FIRST/SKIP.
+
+2001-09-11 11:19  robocop
+
+	* interbase/isql/: extract.e, isql.e, isql_proto.h, show.e:
+	
+	Fixes #460624 and closes req for enhancement #460630
+
+2001-09-11 10:55  robocop
+
+	* interbase/jrd/idx.h:
+	
+	Clean misleading comment about undone changes in the header.
 
 2001-09-11 10:53  robocop
 
@@ -599,6 +1450,12 @@
 	
 	Fix for BUG #451798 - FIRST/SKIP applied before aggregates.
 
+2001-09-05 07:01  robocop
+
+	* interbase/jrd/ibase.h:
+	
+	Descriptor flags made public.
+
 2001-09-05 06:59  robocop
 
 	* interbase/extlib/fbudf.cpp:
@@ -611,6 +1468,24 @@
 	
 	[no log message]
 
+2001-08-27 15:03  nmcc
+
+	* interbase/jrd/idx.h:
+	
+	This backs out the made to the index RDB$INDEX_16 on RDB$FORMATS
+	made in v1.2 as it breaks TCS test C_DSQL_RI_ALT_ADD.  The problem
+	that some system tables are updated immediately and have no
+	transaction rollback capabilities. For more details see the
+	firebird-devel mailing list :- 06-Aug-2001 subject: Domains,
+	constraints and visibility of changes 12-Aug-2001 subject: TCS
+	failure in C_DSQL_RI_ALT_ADD - possible bug
+
+2001-08-27 10:59  kkuznetsov
+
+	* interbase/firebird/kkuznetsov/install.solx86/install.ksh:
+	
+	[no log message]
+
 2001-08-24 02:42  bellardo
 
 	* interbase/: builds/original/prefix.darwin,
@@ -618,6 +1493,17 @@
 	
 	Fine tuned some permissions on the Classic install.  Removed PYXIS
 	from the Darwin build.
+
+2001-08-24 01:12  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSinstall.sh, classic/CSrpmfiles.txt,
+	classic/CSrpmheader.txt, super/SSinstall.sh, super/SSrpmfiles.txt,
+	super/SSrpmheader.txt:
+	
+	Change install to not install pyxis module and fix copy of init.d
+	file so it works for redhat6.2 systems.  Also check port 3050 when
+	trying to determine if firebird is already installed.
 
 2001-08-24 01:09  skywalker
 
@@ -628,12 +1514,31 @@
 	required ncurses module which is not installed on most systems by
 	default
 
+2001-08-22 23:09  bellardo
+
+	* interbase/: jrd/codes.h, jrd/codetext.h, jrd/iberror.h,
+	jrd/msgs.h, jrd/rdb_codes.h, jrd/rse.c, jrd/sql_code.h,
+	msgs/msg.gbak:
+	
+	Cleaned up error message for FIRST and added a new one for SKIP. 
+	Also made SKIP 1 start returning the second row of data from the
+	result set instead of the first.
+
 2001-08-22 05:51  bellardo
 
 	* interbase/firebird/bellardo/darwin/: install, makefile:
 	
 	Updated the Darwin install process to handle the sysv sempahore
 	kext.
+
+2001-08-21 18:22  skywalker
+
+	* interbase/firebird/skywalker/install/: classic/CSpreinstall.sh,
+	super/SSpostinstall.sh, super/SSpreinstall.sh,
+	super/SSpreuninstall.sh:
+	
+	Changed to check for port 3050 listen and to move init.d scripts
+	into /etc/rc.d/init.d which then also works on RedHat6.2
 
 2001-08-19 05:49  robocop
 
@@ -642,11 +1547,66 @@
 	
 	Implement RECREATE PROCEDURE and fix RECREATE TABLE
 
+2001-08-17 16:42  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSpostinstall.sh:
+	
+	Just when you thought it had finished... fix 'other' call to
+	mkpasswd to use full path, - that'll teach me to not search the
+	whole file.
+
+2001-08-17 12:17  skywalker
+
+	* interbase/firebird/skywalker/install/classic/CSrpmheader.txt:
+	
+	Fix version number in classic rpm file
+
+2001-08-17 10:12  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	super/SSTarInstall.sh, super/SSinstall.sh, super/SSpostinstall.sh,
+	super/SSrpmfiles.txt, super/SSrpmheader.txt:
+	
+	Changes to package 1.0.0 beta2 super
+
 2001-08-17 10:10  skywalker
 
 	* interbase/builds/original/: boot.sfx.interbase, sfx.interbase:
 	
 	Added make runsuperinstall as target
+
+2001-08-17 09:28  robocop
+
+	* interbase/jrd/opt.c:
+	
+	Don't crash me by joining complex views that throw several indices
+	to the party
+
+2001-08-17 09:27  robocop
+
+	* interbase/jrd/cmp.c:
+	
+	Don't crash me with user-supplied SQL plan
+
+2001-08-17 08:41  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSrpmheader.txt:
+	
+	Changes to build a super server 1.0.0Beta2 version
+
+2001-08-17 08:39  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSrpmheader.txt:
+	
+	Changes to build a 1.0.0Beta2 version
+
+2001-08-16 13:25  kkuznetsov
+
+	* interbase/jrd/common.h:
+	
+	
+	for offset cast added
 
 2001-08-15 08:59  kkuznetsov
 
@@ -660,25 +1620,72 @@
 	
 	Fixed crash with trigger and explicit cursor usage.
 
+2001-08-13 07:14  robocop
+
+	* interbase/jrd/: dfw.e, scl.e:
+	
+	Fixes a couple of anomalies and security breaches with quoted
+	identifiers and embedded blanks.
+
 2001-08-13 07:12  robocop
 
 	* interbase/dsql/: gen.c, parse.c, parse.y:
 	
 	Fixes Bug #450301
 
+2001-08-09 09:32  robocop
+
+	* interbase/jrd/: gdsold.h, ibase.h, inf.c:
+	
+	txn information for isc_database_info() API call
+
 2001-08-09 02:27  nmcc
 
-	* interbase/: alice/aliceswi.h, burp/burp.c, burp/burpswi.h:
+	* interbase/: alice/aliceswi.h, burp/burp.c, burp/burpswi.h,
+	intl/anhun.h:
 	
 	Add missing \n to end of file so Sun compiler does not loose
 	closing #endif.  Also removes cvs warning message.
 
+2001-08-09 02:21  nmcc
+
+	* interbase/jrd/: common.h, inf.c, rlck.c:
+	
+	Add missing \n to end of file so Sun compiler does not loose
+	closing #endif.  Also removes cvs warning message.
+
+2001-08-09 02:15  nmcc
+
+	* interbase/jrd/jrd.c:
+	
+	Convert C++ // style comment to C /**/ style.
+
+2001-08-09 00:22  rfm
+
+	* interbase/utilities/dba.e:
+	
+	delete escaped #else clause left over from READONLY_DATABASE
+	cleanup. This is in NETWARE db_open, so it is untested.
+
 2001-08-08 03:49  seanleyne
 
-	* interbase/burp/restore.e:
+	* interbase/: burp/restore.e, utilities/dba.e, utilities/ppg.c:
 	
 	Code Cleanup, removed #ifdef READONLY_DATABASE conditionals
 	(Attempt #2)
+
+2001-08-07 21:27  gspeicher
+
+	* interbase/firebird/gspeicher/firebird/scripts/pre-build:
+	
+	- remove this file, because we want to be able to build from
+	non-boot build
+
+2001-08-07 20:20  gspeicher
+
+	* interbase/msgs/include.e:
+	
+	- fix a few important typos
 
 2001-08-07 20:19  gspeicher
 
@@ -695,10 +1702,19 @@
 2001-08-07 19:03  skywalker
 
 	* interbase/: builds_win32/original/make.intl,
-	builds/original/sfx.intl, burp/restore.e:
+	builds/original/sfx.intl, burp/restore.e, intl/cs_latin2.h,
+	intl/cs_narrow.c, intl/lc_ascii.c, intl/lc_latin2.c,
+	intl/lc_narrow.c, intl/ld.c, intl/lt2czech.h, jrd/intlnames.h:
 	
 	Added isolatin2 changes from file submitted by: Michal Bukovjan
 	<michal.bukovjan@openone.cz>
+
+2001-08-07 07:41  rfm
+
+	* interbase/isql/isql.e:
+	
+	Fix memory corruption when a " was the last character in a
+	statement. Bug #448613
 
 2001-08-07 02:46  skywalker
 
@@ -726,6 +1742,25 @@
 	- fixed 2 typos (one superficial, one severe) - when copying
 	porting files for boot build, check that the thing we're   copying
 	out of is a directory before assuming it is
+
+2001-08-06 17:20  gspeicher
+
+	* interbase/firebird/gspeicher/firebird/files/: patch-aa, patch-ab,
+	patch-ac:
+	
+	- updating FreeBSD port; these patches are no longer needed
+
+2001-08-06 09:13  robocop
+
+	* interbase/isql/isql.e:
+	
+	Copy and Add commands
+
+2001-08-06 09:10  robocop
+
+	* interbase/jrd/: dyn_def.e, dyn_mod.e:
+	
+	Zero length identifiers again, this time blank names, too.
 
 2001-08-06 09:09  robocop
 
@@ -790,9 +1825,29 @@
 	when using a number of different SQL constructs, including CHECK
 	constraints.
 
+2001-07-31 00:24  bellardo
+
+	* interbase/msgs/msg.gbak:
+	
+	Forgot to commit the message database in my last commit.  Here it
+	is now with the new error message I added.
+
+2001-07-31 00:21  bellardo
+
+	* interbase/jrd/: codes.h, codetext.h, iberror.h, msgs.h,
+	rdb_codes.h, rse.c, rse.h, sql_code.h:
+	
+	Added an error check to FIRST/LIMIT parameter.
+
+2001-07-30 00:59  awharrison
+
+	* interbase/msgs/msg.gbak:
+	
+	add two new backup messages for data only restore
+
 2001-07-29 09:34  robocop
 
-	* interbase/dsql/parse.c:
+	* interbase/: dsql/parse.c, jrd/opt.c:
 	
 	allowing successful compilation on Win32 again
 
@@ -804,7 +1859,7 @@
 
 2001-07-29 06:45  bellardo
 
-	* interbase/dsql/: parse.c, parse.y:
+	* interbase/: dsql/parse.c, dsql/parse.y, jrd/blp.h:
 	
 	Fixed bug preventing blr_skip and blr_current_role from pretty
 	printing correctly.  Reorder token definitions in parse.y to
@@ -812,10 +1867,18 @@
 
 2001-07-29 01:26  bellardo
 
-	* interbase/dsql/: gen.c, keywords.h, node.h, parse.c, parse.y,
-	pass1.c:
+	* interbase/: dsql/gen.c, dsql/keywords.h, dsql/node.h,
+	dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/blr.h, jrd/cmp.c,
+	jrd/exe.h, jrd/gdsold.h, jrd/ibase.h, jrd/inf.h, jrd/opt.c,
+	jrd/par.c, jrd/rse.c, jrd/rse.h:
 	
 	Added limit functionality.
+
+2001-07-25 08:42  robocop
+
+	* interbase/jrd/cmp.c:
+	
+	Misleading comment fixed.
 
 2001-07-25 08:41  robocop
 
@@ -839,8 +1902,12 @@
 
 2001-07-24 09:45  robocop
 
-	* interbase/dsql/: ddl.c, keywords.h, node.h, parse.c, parse.y,
-	pass1.c:
+	* interbase/: dsql/ddl.c, dsql/keywords.h, dsql/node.h,
+	dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/codes.h,
+	jrd/codetext.h, jrd/dyn.e, jrd/dyn_del.e, jrd/evl.c, jrd/fun.e,
+	jrd/functions.c, jrd/ibase.h, jrd/iberror.h, jrd/irq.h, jrd/jrd.c,
+	jrd/msgs.h, jrd/rdb_codes.h, jrd/scl.e, jrd/sql_code.h,
+	msgs/msg.gbak, utilities/dba.e:
 	
 	no message
 
@@ -858,17 +1925,69 @@
 	
 	Removed gds_pipe from the Darwin build.
 
+2001-07-13 00:14  bellardo
+
+	* interbase/jrd/tra.c:
+	
+	Fixed missing #endif.
+
+2001-07-12 23:56  bellardo
+
+	* interbase/jrd/jrd.c:
+	
+	Removed duplicate comment termination and fix fl undefined error.
+
+2001-07-12 23:55  bellardo
+
+	* interbase/jrd/idx.h:
+	
+	Added missing end of comment.
+
+2001-07-10 23:07  awharrison
+
+	* interbase/misc/help.gbak:
+	
+	backups work better when they are marked as binary
+
+2001-07-10 22:59  awharrison
+
+	* interbase/misc/help.gbak:
+	
+	get rid of empty backup to be replaced and marked binary
+
 2001-07-10 22:20  awharrison
 
-	* interbase/alice/alice.c:
+	* interbase/: jrd/dpm.e, jrd/netware.c, jrd/unix.c, jrd/winnt.c,
+	alice/alice.c:
 	
 	straighten up a bit
+
+2001-07-10 19:38  awharrison
+
+	* interbase/jrd/jrd.c:
+	
+	forced write is the default for windows
+
+2001-07-10 18:31  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	and check constraints
+
+2001-07-10 18:18  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	allow multi-dimensional arrays again
 
 2001-07-09 22:39  awharrison
 
 	* interbase/: alice/alice.c, alice/aliceswi.h, alice/exe.c,
 	burp/backup.e, burp/burpswi.h, burp/restore.e, dsql/ddl.c,
-	dsql/dsql.c:
+	dsql/dsql.c, jrd/blb.c, jrd/cch.c, jrd/common.h, jrd/dpm.e,
+	jrd/ext.c, jrd/inf.c, jrd/ini.e, jrd/jrd.c, jrd/met.e,
+	jrd/netware.c, jrd/pag.c, jrd/rlck.c, jrd/tra.c, jrd/unix.c,
+	jrd/vio.c, jrd/winnt.c:
 	
 	ReadOnly should not be conditional
 
@@ -878,16 +1997,30 @@
 	
 	Code Cleanup, removed #ifdef READONLY_DATABASE conditionals
 
+2001-07-09 20:37  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	back off the last change just a bit
+
+2001-07-08 23:31  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	make a bunch of system indexes unique
+
 2001-07-03 10:21  robocop
 
-	* interbase/dsql/ddl.c:
+	* interbase/: dsql/ddl.c, jrd/dyn_def.e, jrd/par.c:
 	
 	Fixed Bug #229009 & Bug #227758.
 
 2001-07-02 09:56  robocop
 
-	* interbase/dsql/: ddl.c, dsql.c, keywords.h, node.h, parse.c,
-	parse.y, pass1.c:
+	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/keywords.h,
+	dsql/node.h, dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/drq.h,
+	jrd/dyn.e, jrd/dyn_del.e, jrd/dyn_dl_proto.h, jrd/gdsold.h,
+	jrd/ibase.h, jrd/msgs.h, jrd/sql_code.h, jrd/val.h, msgs/msg.gbak:
 	
 	RECREATE TABLE and DROP GENERATOR
 
@@ -903,6 +2036,32 @@
 	
 	Fix incorrect length in proc variables of type varchar
 
+2001-06-30 18:22  fsg
+
+	* interbase/: msgs/msg.gbak, utilities/security.e:
+	
+	changed message nr: 264 facility: jrd to reflect the new behavior
+	on inserts
+	
+	Changed security.e to use the complete standard path to isc4.gdb if
+	all else fails.
+	
+	fsg
+
+2001-06-29 12:12  fsg
+
+	* interbase/jrd/intlnames.h:
+	
+	Fixed a typo in intlnames.h
+	
+	fsg
+
+2001-06-29 10:45  robocop
+
+	* interbase/jrd/: blb.c, dyn.h, dyn_def.e, dyn_mod.e, evl.c, exe.c:
+	
+	no message
+
 2001-06-29 10:42  robocop
 
 	* interbase/dsql/: ddl.c, dsql.c, gen.c, pass1.c:
@@ -911,7 +2070,9 @@
 
 2001-06-28 18:58  fsg
 
-	* interbase/builds/original/sfx.intl:
+	* interbase/: builds/original/sfx.intl, intl/depends.mak,
+	intl/lc_latin1.c, intl/ld.c, jrd/dfw.e, jrd/evl.c, jrd/gdsold.h,
+	jrd/intlnames.h, jrd/shrinit.c, misc/msg.gbak:
 	
 	Cleaned up to get the stuff compiled on Linux again
 	
@@ -923,10 +2084,43 @@
 
 2001-06-26 09:54  robocop
 
-	* interbase/dsql/: ddl.c, dsql.c, dsql.h, gen.c, keywords.h,
-	make.c, metd.e, node.h, parse.c, parse.y, pass1.c:
+	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/dsql.h, dsql/gen.c,
+	dsql/keywords.h, dsql/make.c, dsql/metd.e, dsql/node.h,
+	dsql/parse.c, dsql/parse.y, dsql/pass1.c, jrd/blb.c,
+	jrd/blb_proto.h, jrd/blr.h, jrd/blrtable.c, jrd/blrtable.h,
+	jrd/cmp.c, jrd/codes.h, jrd/codetext.h, jrd/cvt.c, jrd/cvt2.c,
+	jrd/cvt2_proto.h, jrd/dfw.e, jrd/dyn_def.e, jrd/dyn_mod.e,
+	jrd/evl.c, jrd/exe.c, jrd/fun.e, jrd/ibase.h, jrd/iberror.h,
+	jrd/irq.h, jrd/isc_file.c, jrd/jrd.h, jrd/met.e, jrd/met_proto.h,
+	jrd/msgs.h, jrd/nod.h, jrd/obj.h, jrd/par.c, jrd/rdb_codes.h,
+	jrd/scl.e, jrd/shrinit.c, jrd/sql_code.h, jrd/tra.h, jrd/utl.c,
+	jrd/vio.c, misc/help.gbak, misc/msg.gbak, msgs/msg.gbak,
+	remote/window.rc:
 	
 	no message
+
+2001-06-25 18:51  bellardo
+
+	* interbase/jrd/gds.c:
+	
+	Fixed compile error in Darwin SS caused by the previous days
+	common.h changes.
+
+2001-06-25 02:39  bellardo
+
+	* interbase/jrd/common.h:
+	
+	Fixed a memory allocation bug in Darwin SS port that caused all
+	attempts to allocate memory to fail.
+
+2001-06-22 17:27  fsg
+
+	* interbase/intl/anhun.h:
+	
+	Added a new hungarian collation order that was created and tested
+	by "Sandor Szollosi" <ssani@freemail.hu>
+	
+	fsg
 
 2001-06-20 18:02  nmcc
 
@@ -934,9 +2128,51 @@
 	
 	Fix compile options for Solaris Sparc build.
 
+2001-06-20 17:58  nmcc
+
+	* interbase/jrd/flu.c:
+	
+	Output the system error message if a UDF library can not be loaded.
+
+2001-06-18 11:02  tamlin
+
+	* interbase/jrd/winnt.c:
+	
+	Allow DB file sharing again.
+
+2001-06-11 13:27  tamlin
+
+	* interbase/jrd/winnt.c:
+	
+	Fixed file sharing flags
+
+2001-06-09 06:28  bellardo
+
+	* interbase/firebird/bellardo/stress/: Makefile, main.cpp:
+	
+	A very basic little stress test program.
+
+2001-06-08 23:38  awharrison
+
+	* interbase/jrd/tra.c:
+	
+	make tip pages long
+
+2001-06-07 01:54  bellardo
+
+	* interbase/jrd/flu.c:
+	
+	Fixed a missing #include that caused Darwin port not to compile.
+
+2001-06-07 01:06  bellardo
+
+	* interbase/jrd/flu.c:
+	
+	Added loadable module support for Darwin.
+
 2001-06-06 02:41  bellardo
 
-	* interbase/builds/original/prefix.darwin:
+	* interbase/: builds/original/prefix.darwin, jrd/sort.c:
 	
 	Changes to allow production build on Darwin (CS/SS) platform.
 
@@ -953,11 +2189,30 @@
 	builds/original/sfx.interbase, builds/original/sfx.lock,
 	builds/original/sfx.utilities,
 	firebird/bellardo/darwin/FirebirdFramework.make,
-	firebird/bellardo/darwin/install:
+	firebird/bellardo/darwin/install, jrd/common.h, jrd/dyn.e,
+	jrd/isc_sync.c, lock/lock.h:
 	
 	Changes to the build system to allow Darwin classic to compile
 	given other platform constraints.  Also included changes to allow
 	Darwin SS to compile.
+
+2001-06-04 16:15  kkuznetsov
+
+	* interbase/jrd/gds.c:
+	
+	for Solaris 8
+
+2001-05-31 05:00  robocop
+
+	* interbase/firebird/robocop/: grant.gdl, trig.h:
+	
+	Changes to system triggers to allow deactivating a FK
+
+2001-05-31 05:00  robocop
+
+	* interbase/firebird/robocop/: grant.gdl, trig.h:
+	
+	Initial revision
 
 2001-05-30 05:21  bellardo
 
@@ -979,17 +2234,51 @@
 	Fixed build process bug introduced by Darwin port that prevented
 	the drop target from building correctly.
 
+2001-05-28 08:21  fsg
+
+	* interbase/jrd/: dyn_def.e, dyn_mod.e:
+	
+	Changes to get jrd/dyn_???.c compiled under Linux again.
+	
+	fsg
+
+2001-05-28 06:47  robocop
+
+	* interbase/msgs/msg.gbak:
+	
+	New msg 212: Zero length identifiers are not allowed
+
 2001-05-25 20:29  bellardo
 
 	* interbase/firebird/bellardo/nightly_build_script:
 	
 	Initial version of my very rough nightly build script.
 
+2001-05-25 19:21  bellardo
+
+	* interbase/utilities/: drop.c, dropv3.c:
+	
+	Fixed linux platform error introduced by the original darwin port.
+
 2001-05-25 10:18  robocop
 
 	* interbase/builds_win32/original/ib_udf.bind:
 	
 	New function substrlen was put at the tail.
+
+2001-05-25 10:17  robocop
+
+	* interbase/jrd/alt.c:
+	
+	User names cannot be length 32 but 31 maximum.
+
+2001-05-25 10:16  robocop
+
+	* interbase/jrd/: codes.h, codetext.h, dyn.e, dyn_def.e, dyn_del.e,
+	dyn_df_proto.h, dyn_dl_proto.h, dyn_md_proto.h, dyn_mod.e,
+	iberror.h, msg_facs.h, msgs.h, rdb_codes.h, sql_code.h:
+	
+	Zero length identifiers not allowed and other bug fixes.
 
 2001-05-24 16:47  tamlin
 
@@ -1006,7 +2295,15 @@
 	builds/original/sfx.interbase, builds/original/sfx.jrd,
 	builds/original/sfx.qli, builds/original/sfx.remote,
 	builds/original/sfx.utilities, builds/original/sfx.wal,
-	builds/original/unset_prot, dsql/parse.sed:
+	builds/original/unset_prot, dsql/parse.sed, gpre/c_cxx.c,
+	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h,
+	jrd/functions.c, jrd/gds.c, jrd/ibase.h, jrd/isc_file.c,
+	jrd/isc_sync.c, jrd/jio.c, jrd/jrd.h, jrd/license.h, jrd/llio.c,
+	jrd/pag.c, jrd/pwd.c, jrd/pwd.h, jrd/sort.c, jrd/svc.c, jrd/thd.c,
+	jrd/thd.h, jrd/time.h, jrd/unix.c, jrd/utl.c, jrd/why.c,
+	lock/lock.c, lock/lockv3.h, msgs/build_file.e, pyxis/cdm.c,
+	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
+	utilities/drop.c, utilities/dropv3.c, wal/walw.c:
 	
 	Changes for the Darwin Classic port.  Required a light amount of
 	code changes and a moderate amount of changes to the build system. 
@@ -1014,7 +2311,9 @@
 
 2001-05-24 02:55  bellardo
 
-	* interbase/firebird/bellardo/darwin/FirebirdFramework.make:
+	* interbase/firebird/bellardo/darwin/: FirebirdFramework.make,
+	FirebirdStartupItem/Firebird,
+	FirebirdStartupItem/StartupParameters.plist:
 	
 	New files required to support the Darwin startup item and the
 	Darwin build process.
@@ -1024,6 +2323,12 @@
 	* interbase/firebird/bellardo/darwin/: install, makefile:
 	
 	Updated to reflect new Darwin install process
+
+2001-05-21 09:14  robocop
+
+	* interbase/jrd/dyn_mod.e:
+	
+	Fixed bug with rdb$dimensions's rdb$field_name out of sync
 
 2001-05-21 09:12  robocop
 
@@ -1043,19 +2348,74 @@
 	
 	Add substrlen(str, start, length)
 
+2001-05-21 02:20  nmcc
+
+	* interbase/isql/isql.e:
+	
+	Add new option PLANONLY - if on and plan on isql will display query
+	plan but not execute query.  Requires changes to messages file if
+	it is to be displayed in help output.
+
 2001-05-20 20:09  nmcc
 
 	* interbase/dsql/: parse.c, parse.y, pass1.c:
 	
 	Allow a udf to be used in a 'group by' clause.
 
+2001-05-19 10:26  robocop
+
+	* interbase/isql/show.e:
+	
+	To be in sync with extract.e regarding BLOB params in UDFs
+
+2001-05-19 08:35  robocop
+
+	* interbase/jrd/: dyn_def.e, dyn_mod.e:
+	
+	no message
+
+2001-05-13 15:37  fsg
+
+	* interbase/jrd/: jrd.c, jrd.h, pwd.c, pwd.h, pwd_proto.h, scl.e,
+	scl_proto.h, shrinit.c, tra.c:
+	
+	Finally removed my "revolving backdoor" hack and replaced it with
+	Borland's (Stanialav Tsikin's?) solution to the problem.
+	
+	fsg
+
 2001-05-12 03:31  rfm
 
-	* interbase/builds_win32/original/: make.alice, make.burp,
-	make.dsql, make.intl, make.ipserver, make.jrd, make.lock,
-	make.register, make.remote, make.utilities, make.wal:
+	* interbase/: builds_win32/original/make.alice,
+	builds_win32/original/make.burp, builds_win32/original/make.dsql,
+	builds_win32/original/make.intl,
+	builds_win32/original/make.ipserver,
+	builds_win32/original/make.jrd, builds_win32/original/make.lock,
+	builds_win32/original/make.register,
+	builds_win32/original/make.remote,
+	builds_win32/original/make.utilities,
+	builds_win32/original/make.wal, jrd/winnt.c:
 	
 	use macros for echo, fix comment in jrd/winnt.c
+
+2001-05-07 09:23  fsg
+
+	* interbase/: firebird/skywalker/install/classic/CSpostinstall.sh,
+	jrd/jrd.c, remote/inet.c:
+	
+	Added Brad Pepers fixes for select calls in inet.c and his fix for
+	an uninitialized data structure in jrd.c Changed install script for
+	classic to allow include and intl files to be read by general
+	public
+	
+	fsg
+
+2001-05-07 08:02  bellardo
+
+	* interbase/remote/interface.c:
+	
+	Fix for bug 419964 (buffer overflow for remote/interface.c
+	version).
 
 2001-05-07 00:22  nmcc
 
@@ -1087,6 +2447,12 @@
 	* interbase/burp/restore.e:
 	
 	Remove cast which stops compiling on Solaris with Sun compiler.
+
+2001-05-01 00:39  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	don't execute any triggers twice
 
 2001-04-30 23:29  awharrison
 
@@ -1127,6 +2493,13 @@
 	
 	Some flags added to events inprove
 
+2001-04-23 17:24  skywalker
+
+	* interbase/jrd/build_no.h:
+	
+	Comment as before, incremented to 0.9.5 version, but there may not
+	be an official release before we go to 1.0.0 Beta1
+
 2001-04-23 17:22  skywalker
 
 	* interbase/builds_win32/original/build_no.ksh:
@@ -1144,12 +2517,41 @@
 	NULL.  Still returns a NULL if the input string was NULL.  Added a
 	IB_UDF_substrlen function.
 
+2001-04-23 16:22  skywalker
+
+	* interbase/isql/extract.e:
+	
+	Fix bug of BLOB being returned by value  To be sincere, this code
+	doesn't cater for the RETURNS PARAMETER syntax but it would require
+	more surgery than I'm willing to do, since I'm sick of isql so I
+	started my own metadata extraction utility based on IBO that does
+	this trick and others.	Claudio Valderrama via MOD
+
+2001-04-23 15:16  skywalker
+
+	* interbase/jrd/dyn.e:
+	
+	Checkin Claudio Valderrama's changes to fix case sensitivity
+	problems with grant and revolk commands.
+
+2001-04-21 23:51  tamlin
+
+	* interbase/jrd/: event.c, jrd.c:
+	
+	Missing parens
+
 2001-04-21 06:27  rfm
 
 	* interbase/build_docs/ibbuild-win32.txt:
 	
 	Update to reflect feedback from Dmitry Kuzmenko and Kevin Curtis,
 	as well as a couple of other things that were out of date.
+
+2001-04-17 18:32  skywalker
+
+	* interbase/firebird/skywalker/install/classic/CSpostinstall.sh:
+	
+	Changed to make include files readable by general public
 
 2001-04-17 04:41  skywalker
 
@@ -1158,13 +2560,97 @@
 	build_docs/README.unix, builds/original/boot.sfx.interbase,
 	builds/original/buildRefDatabases, builds/original/build_kit,
 	builds/original/prefix.linux, builds/original/sfx.interbase,
-	builds/original/sfx.pyxis:
+	builds/original/sfx.pyxis,
+	firebird/skywalker/build/refreshPorting.sh:
 	
 	This contains a new build process which incorperates a boot build
 	enabling Firebird to be built without a prior version being
 	installed.  Fixed examples so thay are built as part of the build
 	process.  Integrated the "install" and "packaging" build targets
 	into the main make process.
+
+2001-04-14 04:16  skywalker
+
+	* interbase/firebird/skywalker/install/misc/firebird:
+	
+	Removed unused file
+
+2001-04-14 04:15  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSTarInstall.sh, classic/CSinstall.sh,
+	classic/CSpostinstall.sh, classic/CSrpmfiles.txt,
+	misc/CSchangeRunUser.sh, misc/CSrestoreRootRunUser.sh,
+	misc/firebird.xinetd, misc/firebird.xinitd:
+	
+	Changes to install process for classic firebird.
+
+2001-04-13 18:48  skywalker
+
+	* interbase/firebird/skywalker/install/misc/: README,
+	firebird.init.d.generic, firebird.init.d.mandrake, firebird.xinitd:
+	
+	Updated init files for redhat7.0 and mandrake7.2 Support now for
+	xinetd
+
+2001-04-13 17:33  skywalker
+
+	* interbase/jrd/dyn_mod.e:
+	
+	Changes to fix bug report bug N 412417. problem with alter domain
+	and char(x) to varchar(x-2).
+
+2001-04-13 15:50  fsg
+
+	* interbase/jrd/evl_like.c:
+	
+	Change to get it compilede under Linux
+	
+	fsg
+
+2001-04-11 19:22  tamlin
+
+	* interbase/remote/cntl.c:
+	
+	Removed redundant CloseHandle call
+
+2001-04-11 19:13  tamlin
+
+	* interbase/jrd/: isc.c, jrn.c, scl.e:
+	
+	compiler warnings
+
+2001-04-11 17:43  tamlin
+
+	* interbase/jrd/: evl.c, evl_like.c:
+	
+	compilation guard
+
+2001-04-11 17:41  tamlin
+
+	* interbase/jrd/: dsc.c, dsc_proto.h:
+	
+	compiler warnings and const correctness
+
+2001-04-11 17:37  tamlin
+
+	* interbase/jrd/cch.c:
+	
+	compiler warnings
+
+2001-04-11 17:28  tamlin
+
+	* interbase/gpre/int.c:
+	
+	Reduced compiler warnings from gpre generated C code.
+
+2001-04-11 17:22  tamlin
+
+	* interbase/gpre/: c_cxx.c, cmd.c, cme.c, cmp.c, exp.c, gpre.c,
+	hsh.c, jrdmet.c, movg.c, msc.c, par.c, pretty.c, sqe.c, sql.c:
+	
+	Reduced compiler warnings for gpre and reduced compiler warnings
+	from gpre generated C code.
 
 2001-04-09 18:56  bellardo
 
@@ -1189,7 +2675,13 @@
 
 	* interbase/: builds_win32/original/metadata.sql, burp/backup.e,
 	burp/burp.c, burp/burp.h, burp/mvol.c, burp/restore.e,
-	dsql/pass1.c, dudley/ddl.h:
+	dsql/pass1.c, dudley/ddl.h, iscguard/cntl_guard.c,
+	iscguard/iscguard.c, iscguard/iscguard.rc, jrd/event.c, jrd/ini.e,
+	jrd/ods.h, jrd/pag.h, jrd/sdw.c, jrd/utl.c, jrd/winnt.c,
+	remote/cntl.c, remote/ibconfig.c, remote/ibconfig.rc,
+	remote/inet.c, remote/property.c, remote/property.rc,
+	utilities/dba.e, utilities/dba_full.e, utilities/sbc_print.c,
+	utilities/security.e:
 	
 	Committed Changes made in the borland tree Committed Changes made
 	by Mike Nordel re, 64 bit io for win32 and bug fixes
@@ -1200,6 +2692,35 @@
 	
 	Changes based on port to Solaris x86 by Konstantin Kuznetsov.
 
+2001-03-26 00:24  nmcc
+
+	* interbase/jrd/ib_stdio.c:
+	
+	Fixes for gcc compiling and add Solaris x86 support.
+
+2001-03-26 00:21  nmcc
+
+	* interbase/: gpre/cob.c, jrd/isc.c, jrd/isc_ipc.c, pipe/head.c:
+	
+	Changes based on port to Solaris x86 by Konstantin Kuznetsov.
+
+2001-03-23 09:14  fsg
+
+	* interbase/remote/inet.c:
+	
+	Comitted changes made by Lukas Zeller. INET_connect will now fall
+	back to 3050 if no entry in the services file is found (allowing a
+	client installation without changing the services  file)
+	
+	I added a small modification to allow the usage of a port number
+	instead of a service name in the connect string.
+	
+	Commited the changes to inet.c from the Borland tree.  These should
+	solve the start up errors on Linux (and so make the -signore switch
+	obsolete)
+	
+	fsg
+
 2001-03-18 16:42  skywalker
 
 	* interbase/burp/: backup.e, restore.e:
@@ -1207,25 +2728,66 @@
 	Comitted changes made by Toni Martir that will print a progress
 	trace when doing a backup and restore.
 
+2001-03-16 15:55  fsg
+
+	* interbase/: jrd/common.h, jrd/ibase.h, jrd/isc.c, jrd/isc.h,
+	lock/config_params, remote/inet.c, remote/inet_server.c,
+	remote/protocol.h, utilities/guard.c, utilities/ibmgr.c,
+	utilities/ibmgr.h, utilities/ibmgrswi.h, utilities/srvrmgr.c,
+	utilities/tcp_nd.h:
+	
+	Second attempt to enable TCP_NO_DELAY for superserver on linux
+	
+	fsg
+
 2001-02-04 06:35  bellardo
 
 	* interbase/builds/original/prefix.darwin:
 	
 	Added the prefix file to support Darwin / MacOS X.
 
+2001-02-04 05:08  bellardo
+
+	* interbase/wal/walw_main.c:
+	
+	Created walw_main.c to hold the main() for a walw program.  Did
+	this so the main() was not compiled into the shared library.
+
 2001-02-04 05:06  bellardo
 
 	* interbase/firebird/bellardo/darwin/: Firebird.info, Info.plist,
 	addServEnt.c, checkinstall.sh, checkmakefiles.sh, inetd.conf.isc,
-	install, installpath.c, license.html, license.txt, makefile:
+	install, installpath.c, license.html, license.txt, makefile,
+	post_delete, post_install, pre_delete, pre_install:
 	
 	Initial checkin of the my (bellardo) sandbox directory with the
 	aux. Darwin support files.
 
+2001-01-28 11:38  fsg
+
+	* interbase/isql/isql.e:
+	
+	Fixed Bug #112263 [command line isql ignores -user / -password with
+	-a or -x]
+	
+	fsg
+
+2001-01-18 17:07  fsg
+
+	* interbase/jrd/misc.h:
+	
+	Removed my changes from jrd/misc.h use of mkstemp on Linux caused
+	Bug #129121
+	
+	So we use mktemp again :-(
+	
+	fsg
+
 2001-01-18 01:47  patrickgriffin
 
-	* interbase/dsql/: ddl.c, dsql.c, dsql.h, make.c, make_proto.h,
-	parse.c, parse.y, parse_proto.h:
+	* interbase/: dsql/ddl.c, dsql/dsql.c, dsql/dsql.h, dsql/make.c,
+	dsql/make_proto.h, dsql/parse.c, dsql/parse.y, dsql/parse_proto.h,
+	jrd/ibase.h, jrd/inf.c:
 	
 	Background: When a column has a default value, or it's domain has a
 	default value, and that column is defined for a specific character
@@ -1350,6 +2912,29 @@
 	
 	...pat
 
+2001-01-17 15:23  pcisar
+
+	* interbase/intl/anczech.h:
+	
+	PXW_CSZ correction - CH character
+
+2001-01-14 16:36  gspeicher
+
+	* interbase/firebird/gspeicher/: README, firebird/Makefile,
+	firebird/distinfo, firebird/pkg-comment, firebird/pkg-descr,
+	firebird/pkg-install, firebird/pkg-message, firebird/pkg-plist,
+	firebird/files/RELNOTES, firebird/files/patch-aa,
+	firebird/files/patch-ab, firebird/files/patch-ac,
+	firebird/scripts/addservice, firebird/scripts/createuser,
+	firebird/scripts/post-install, firebird/scripts/pre-build,
+	firebird/scripts/pre-install, firebird/scripts/rmservice:
+	
+	- Here's my own little directory to hold any work that I do that
+	other	people might want to see and/or should be under revision
+	control with   the rest of Firebird in case I get hit by a bus. 
+	For now, it just   holds the files from the FreeBSD 'port' (as in,
+	the stuff that was   submitted to the FreeBSD ports tree).
+
 2001-01-12 19:18  gspeicher
 
 	* interbase/builds/original/prefix.freebsd:
@@ -1357,6 +2942,35 @@
 	- The original version of this file assumed Interbase was installed
 	  and running already.	This one doesn't, so that it works with the
 	  boot build.
+
+2001-01-08 17:07  patrickgriffin
+
+	* interbase/isql/: extra_proto.h, extract.e, isql.e, isql_proto.h,
+	show.e:
+	
+	[ Bug #127473 ] ISQL Always ignores charset NONE in metadata
+	extraction.
+	
+	This patch will change ISQL Extract and Show commands to display
+	the character set definition for all fields:
+	
+	1)  Not using the database default character set 2)  With an
+	explicit definition for collation.
+	
+	This patch also changes the ISQL COPY command (only available in
+	development builds) to list every character set definition.
+	
+	...pat
+
+2001-01-07 19:18  nmcc
+
+	* interbase/jrd/evl.c:
+	
+	Firebird Bug 127375 Grouping on derived fields processing NULL data
+	kills IB
+	
+	Test the null flag before trying to expand a value (via pointer)
+	which does not exist when it is a NULL.
 
 2001-01-07 18:24  nmcc
 
@@ -1372,6 +2986,45 @@
 	Fix problem of Solaris inetd.conf sym link broken on superserver
 	install.
 
+2001-01-06 16:36  patrickgriffin
+
+	* interbase/gpre/cob.c:
+	
+	COBOL programs randomly return a -901 request synchronization
+	error.
+	
+	Alternate title: COBOL programs lose SQLCODE values during UPDATE.
+	
+	During 'UPDATE SET ... WHERE x=.. ' ('Mass Update') error codes
+	returned by the update are not returned to the program, instead the
+	program will see a -901 request synchronization error.
+	
+	It appears that the other language modules do not have this same
+	problem.
+	
+	...pat
+
+2001-01-05 20:13  nmcc
+
+	* interbase/jrd/svc_undoc.h:
+	
+	Fix broken comment syntax.
+
+2001-01-05 05:34  skywalker
+
+	* interbase/misc/msg.gbak:
+	
+	Somehow I committed a broken version of this file in the last
+	commit for T0.9-4 Test1 release. it wasn't obvious since I was
+	using a set of reference databases that were already built.  I've
+	replaced it with the original 1.1 version.
+
+2001-01-01 16:24  skywalker
+
+	* interbase/jrd/qatest.c:
+	
+	Changed the password
+
 2000-12-30 06:10  rfm
 
 	* interbase/builds_win32/original/: build_no.ksh, make.jrd:
@@ -1381,13 +3034,23 @@
 
 2000-12-29 21:06  skywalker
 
-	* interbase/builds_win32/original/build_no.ksh:
+	* interbase/: builds_win32/original/build_no.ksh,
+	firebird/skywalker/install/Makefile,
+	firebird/skywalker/install/classic/CSrpmheader.txt,
+	firebird/skywalker/install/super/SSrpmheader.txt, jrd/build_no.h,
+	jrd/inf.c, jrd/license.h, misc/msg.gbak:
 	
 	Changes to scripts to build version "T0.9-4 Firebird Test1" This
 	also includes changes to build_no.ksh to use internally the 0.9
 	number instead of the 6.0 number.  The macro IBSERVER_BASE_LEVEL
 	was also defined as 6.0 and used in jrd/inf.c to maintain feature
 	compatibility.
+
+2000-12-29 14:05  skywalker
+
+	* interbase/jrd/: builtin.c, gds.c:
+	
+	Changing names
 
 2000-12-27 22:58  rfm
 
@@ -1403,10 +3066,67 @@
 	
 	Document cygwin execute problem, clean up.
 
+2000-12-27 17:47  fsg
+
+	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h,
+	srvrmgr.c, tcp_nd.h:
+	
+	Added -nonagle switch to ibmgr and ibguard for LINUX platforms to
+	give the user a convenient way to disable the Nagle algorithm for
+	super server. If this should be necessary for other platforms check
+	interbase/utilities/tcp_nd.h
+	
+	fsg
+
+2000-12-23 11:59  fsg
+
+	* interbase/jrd/pwd.c:
+	
+	Added random seed fsg
+
+2000-12-23 03:14  skywalker
+
+	* interbase/jrd/pwd.h:
+	
+	Removed an assert from jrd/sort.c that caused debug version to stop
+	for no reason.	Some minor changes to make pwd.c thread-safe
+
+2000-12-22 17:05  fsg
+
+	* interbase/jrd/: pwd.c, pwd_proto.h, sort.c:
+	
+	Removed an assert from jrd/sort.c that caused debug version to stop
+	for no reason.	Some minor changes to make pwd.c thread-safe
+	
+	fsg
+
+2000-12-22 15:23  skywalker
+
+	* interbase/firebird/skywalker/install/: CSrpmscript, Makefile,
+	classic/CSTarInstall.sh, classic/CSinstall.sh,
+	classic/CSpostinstall.sh, classic/CSrpmfiles.txt,
+	classic/CSrpmheader.txt, misc/CSchangeRunUser.sh,
+	misc/CSrestoreRootRunUser.sh, misc/SSchangeRunUser.sh,
+	misc/SSrestoreRootRunUser.sh, misc/changeDBAPassword.sh,
+	super/SSTarInstall.sh, super/SSinstall.sh, super/SSpostinstall.sh,
+	super/SSrpmfiles.txt, super/SSrpmheader.txt:
+	
+	Changed install and package scripts for linux version of firebird. 
+	After having built the package.  make -f
+	firebird/skywalker/install/Makefile Will give a list of options for
+	install and packaging.
+	
+	In addition,XXchangeRunUser.sh XXrestoreRootRunUser.sh scripts have
+	been provided to make it easier to change the default run user. 
+	And a changeDBAPassword.sh script is provided to change both the
+	password and the value in the /etc/init.d/firebird service start
+	script.
+
 2000-12-18 19:39  fsg
 
-	* interbase/builds/original/: bind_gds_s.im, bind_gds_s.sco,
-	sfx.jrd:
+	* interbase/: builds/original/bind_gds_s.im,
+	builds/original/bind_gds_s.sco, builds/original/sfx.jrd,
+	jrd/flu_proto.h, jrd/opt.c:
 	
 	Removed ugly security hole from jrd/builtins.c related to this I
 	removed qatest from bind_gds_s.sco, bind_gds_s.im and jrd.sfx
@@ -1414,6 +3134,24 @@
 	for no reason.
 	
 	fsg
+
+2000-12-17 17:37  skywalker
+
+	* interbase/remote/inet_server.c:
+	
+	More on adding firebird as valid server user
+
+2000-12-17 16:26  skywalker
+
+	* interbase/remote/inet_server.c:
+	
+	Added firebird as a valid user for the server process
+
+2000-12-14 21:48  nmcc
+
+	* interbase/jrd/sort.c:
+	
+	Use the Firebird stdio definitions on Solaris.
 
 2000-12-14 21:31  nmcc
 
@@ -1483,14 +3221,17 @@
 
 	* interbase/: setup_dirs, setup_dirs.ksh,
 	builds/original/prefix.linux, builds_win32/original/build_no.ksh,
-	extlib/ib_udf.sql:
+	extlib/ib_udf.sql, gpre/form.c, gpre/form_trn.c, gpre/gpre.c,
+	gpre/gpre.h, gpre/gpreswi.h, gpre/par.c, gpre/sqe.c,
+	isql/extract.e, isql/isql.e, isql/isql.h, isql/show.e,
+	jrd/license.h, pyxis/debug.c, pyxis/edit.e, pyxis/fred.e:
 	
 	Changed all Log: tags to ID: tags
 
 2000-12-08 17:18  fsg
 
 	* interbase/: setup_dirs, setup_dirs.ksh,
-	builds_win32/original/build_no.ksh:
+	builds_win32/original/build_no.ksh, jrd/build_no.h, jrd/license.h:
 	
 	Preliminary changes to get IB_BUILD_NO automatically increased on
 	commits.
@@ -1504,11 +3245,63 @@
 	'jrd/build_no.h'.  So all changes to version numbers, build types
 	etc. can now be done in 'builds_win32/original/build_no.ksh'.
 
+2000-12-04 03:30  patrickgriffin
+
+	* interbase/firebird/patrickgriffin/tcs_tests/: bug_112177_01,
+	bug_112177_02, bug_112177_03, bug_112177_04, bug_112177_05,
+	bug_112177_06, bug_112177_07, bug_112177_08, bug_112177_09,
+	bug_112177_10, bug_112177_11, bug_112177_12, bug_116579_01, readme:
+	
+	moving files from tree to ftp area.
+
 2000-12-01 12:20  fsg
 
 	* interbase/builds/original/prefix.linux:
 	
 	Added SHRLIB_EXT to  prefix.linux
+
+2000-11-30 15:27  patrickgriffin
+
+	* interbase/jrd/: dpm.e, ods.h, pag.c, pag.h:
+	
+	Bug #116733 Too Many Generators Corrupt Database.
+	
+	Change written to the spec.s attached to the bug report.
+	
+	Summary: Added	 pgc_pgp Generators Per Page and used this new
+	field when calculating page and offset for each generator.
+	
+	...pat
+
+2000-11-30 15:23  patrickgriffin
+
+	* interbase/jrd/evl.c:
+	
+	  * Modified by: Patrick J. P. Griffin
+	  * Date: 11/24/2000
+	  * Problem:   select count(0)+1 from rdb$relations where 0=1;
+	returns 0
+	  *	       In the EVL_group processing, the internal assigment
+	for
+	  *	       the literal in the computation is being done on
+	every
+	  *	       statement fetch, so if there are no statements
+	fetched
+	  *	       then the internal field never gets set.
+	  * Change:    Added an assignment process for the literal
+	  *	       before the first fetch.
+
+2000-11-29 12:11  fsg
+
+	* interbase/gpre/form_trn.c:
+	
+	Added some more PYXIS datatypes to form_trn.c
+
+2000-11-28 16:09  fsg
+
+	* interbase/pyxis/fred.e:
+	
+	Changed fred.e to go through 6.0 gpre
 
 2000-11-28 07:47  fsg
 
@@ -1517,12 +3310,234 @@
 	Changed declaration of ascii_char in ib_udf.sql to get correct
 	result as proposed by Claudio Valderrama
 
+2000-11-27 10:26  fsg
+
+	* interbase/gpre/: form.c, form_trn.c, gpre.h, par.c:
+	
+	Fixed bugs in gpre to handle PYXIS forms and allow edit.e and
+	fred.e to go through gpre without errors (and correct result).
+	
+	This is a partial fix until all PYXIS datatypes are adjusted in
+	frm_trn.c
+	
+	removed some compiler warnings too
+
+2000-11-24 18:23  fsg
+
+	* interbase/pyxis/debug.c:
+	
+	Another little fix in pyxis/debug.c that nobody ever will notice
+	:-) Will print correct names for this forms stuff now.
+
+2000-11-22 18:07  patrickgriffin
+
+	* interbase/isql/extract.e:
+	
+	In get_procedure_args change comment style from // to /*
+	
+	...pat
+
+2000-11-20 18:17  fsg
+
+	* interbase/pyxis/edit.e:
+	
+	Changes to get edit.e through gpre 6.0 Still have to find out why
+	gpre isn't processing PYXYS FORM FIELDS correctly.  Probably no one
+	ever will need this.  But who cares :-)
+
+2000-11-19 08:02  fsg
+
+	* interbase/isql/show.e:
+	
+	Change in show.e to use CHARACTER_LENGTH instead of FIELD_LENGTH in
+	SHOW PROCEDURE
+
+2000-11-18 17:49  fsg
+
+	* interbase/isql/: extract.e, isql.e, isql.h:
+	
+	Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans Fixed
+	Bug #122563 in extract.e get_procedure_args Apparently this has to
+	be done in show.e also, but that is for another day :-)
+
 2000-11-18 07:50  fsg
 
 	* interbase/build_docs/: ibbuild_linux_cvs_build.hmtl,
 	ibbuild_linux_cvs_build.html:
 	
 	finally did it :-)
+
+2000-11-17 13:53  fsg
+
+	* interbase/firebird/fsg/TCS/export/global/: INIT.csv,
+	META_SERIES.csv, NOTES.csv, SERIES.csv, SERIES_COMMENT.csv,
+	TESTS.csv:
+	
+	removed some files from private tree
+
+2000-11-16 16:54  fsg
+
+	* interbase/gpre/: gpre.c, gpre.h, gpreswi.h, sqe.c:
+	
+	Added new switch -verbose to gpre that will dump parsed lines to
+	stderr
+	
+	Fixed gpre bug in handling row names in WHERE clauses that are
+	reserved words now (DATE etc) (this caused gpre to dump core when
+	parsing tan.e)
+	
+	Fixed gpre bug in handling lower case table aliases in WHERE
+	clauses for sql dialect 2 and 3.  (cause a core dump in a test case
+	from C.R. Zamana)
+
+2000-11-10 15:43  fsg
+
+	* interbase/firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, howto.txt,
+	import_all, import_gtcs.pl:
+	
+	Changes to handle <null> values correctly
+
+2000-11-10 15:08  fsg
+
+	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h,
+	srvrmgr.c:
+	
+	Added -s switch to guardian to ignore startup errors and related
+	changes to ibmgr and svrmgr
+
+2000-11-08 12:21  skywalker
+
+	* interbase/firebird/skywalker/install/super/SSTarInstall.sh:
+	
+	[no log message]
+
+2000-11-08 10:01  fsg
+
+	* interbase/firebird/fsg/TCS/export/global/: INIT.csv,
+	META_SERIES.csv, NOTES.csv, SERIES.csv, SERIES_COMMENT.csv,
+	TESTS.csv:
+	
+	Added the original test scripts
+
+2000-11-07 17:04  fsg
+
+	* interbase/firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, gtcs.gdl,
+	howto.txt, import_all, import_gtcs.pl:
+	
+	Added some scripts to import and export test data
+
+2000-11-06 16:14  fsg
+
+	* interbase/firebird/fsg/TCS/dump_gtcs.pl:
+	
+	tried it again
+
+2000-11-06 16:04  fsg
+
+	* interbase/firebird/fsg/TCS/dump_gtcs.pl:
+	
+	perl script to dump tests from gtcs.gdb (needs IBperl)
+
+2000-11-06 03:48  patrickgriffin
+
+	* interbase/jrd/common.h:
+	
+	Eliminate the following interbase.log error message in the AIX and
+	AIX PPC builds:
+	
+	'Pipe Server read pipe error 82'
+	
+	In AIX /usr/include/errno.h:
+	
+	/* ERESTART is used to determine if the system call is restartable
+	*/ #define ERESTART	   82	   /* restart the system call */
+	
+	This same change may also apply to LINUX and the other builds that
+	define SIGACTION_SUPPORTED.
+	
+	...pat…pat
+
+2000-11-06 03:37  patrickgriffin
+
+	* interbase/firebird/patrickgriffin/tcs_tests/bug_112177_12:
+	
+	Correct header in bug_112177_12.
+	
+	...pat
+
+2000-11-06 03:25  patrickgriffin
+
+	* interbase/firebird/patrickgriffin/tcs_tests/: bug_112177_01,
+	bug_112177_02, bug_112177_03, bug_112177_04, bug_112177_05,
+	bug_112177_06, bug_112177_07, bug_112177_08, bug_112177_09,
+	bug_112177_10, bug_112177_11, bug_112177_12:
+	
+	Additional tests useful in exercising the different aspects of the
+	112177, GBAK fails with non-english defaults, change proposal.
+	
+	..pat
+
+2000-11-02 08:12  patrickgriffin
+
+	* interbase/firebird/patrickgriffin/tcs_tests/: bug_112177_01,
+	bug_112177_02, bug_112177_03, bug_112177_04, bug_116579_01:
+	
+	Test scripts, in TCS format.
+	
+	Usefull in testing for:
+	
+	bug 112177 error with non-english column defaults bug 116579
+	generators in computed by columns will return wrong results
+	
+	...pat
+
+2000-10-22 12:47  skywalker
+
+	* interbase/firebird/skywalker/install/: SSrpmscript,
+	super/SSchangePasswd.sh, super/SSpostinstall.sh:
+	
+	Small script for autoupdating SYSDBA password in
+	/etc/rc.d/init.d/firebird
+
+2000-10-22 12:32  skywalker
+
+	* interbase/firebird/skywalker/install/: CSrpmscript, Makefile,
+	SSrpmscript, classic/CSTarInstall.sh, classic/CSTarKullFiles.sh,
+	classic/CSinstall.sh, classic/CSpostinstall.sh,
+	classic/CSpostuninstall.sh, classic/CSpreinstall.sh,
+	classic/CSpreuninstall.sh, classic/CSrpmfiles.txt,
+	classic/CSrpmheader.txt, misc/README, misc/firebird,
+	super/SSTarInstall.sh, super/SSchangePasswd.sh, super/SSinstall.sh,
+	super/SSpostinstall.sh, super/SSpostuninstall.sh,
+	super/SSpreinstall.sh, super/SSpreuninstall.sh,
+	super/SSrpmfiles.txt, super/SSrpmheader.txt:
+	
+	New files related to the firebird install for linux/unix
+
+2000-10-19 12:57  patrickgriffin
+
+	* interbase/jrd/cmp.c:
+	
+	Please consider this contrived example:
+	
+	create table t0 (  a integer,  genid_field1 computed by
+	(gen_id(gen1, 1)),  genid_field2 computed by (gen_id(gen2,
+	genid_field1)),  genid_field3 computed by (gen_id(gen3,
+	genid_field2));
+	
+	While I don't consider this to be an example of real-word SQL
+	coding, it does show that the second argument of the gen_id
+	function can be something other than a simple constant.
+	
+	As jrd/cmp.c is coded now this statement will get processed
+	properly, but there is a serious problem:  The routine 'pass1' will
+	attempt to parse the internal generator ID as if it was a pointer
+	to an execution node.
+	
+	This change corrects 'pass1' processing to only pass the second
+	argument on for further processing.
+	
+	…pat
 
 2000-10-17 07:43  patrickgriffin
 
@@ -1555,6 +3570,31 @@
 	
 	…pat
 
+2000-10-16 18:09  skywalker
+
+	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h:
+	
+	Now allows the user firebird to run the server
+
+2000-10-16 16:33  tamlin
+
+	* interbase/jrd/llio.c:
+	
+	Compiler warnings removed
+
+2000-10-16 16:22  tamlin
+
+	* interbase/jrd/sdl.c:
+	
+	Compiler warnings removed
+
+2000-10-15 15:26  fsg
+
+	* interbase/jrd/: misc.h, utl.c:
+	
+	changes to get BLOB_edit to work again and to use mkstemp instead
+	of mktemp on Linux platforms
+
 2000-10-14 17:40  tsarna
 
 	* interbase/setup_dirs:
@@ -1566,6 +3606,28 @@
 	* interbase/builds/original/prefix.netbsd:
 	
 	Factor out library path flags, and fix -L
+
+2000-10-13 08:03  patrickgriffin
+
+	* interbase/jrd/entry.h:
+	
+	10/13/2000
+	
+	Correct external reference when linking to a PIPE library compiled
+	with -DPIPE_CLIENT
+	
+	…pat ...pat
+
+2000-10-13 08:02  patrickgriffin
+
+	* interbase/gpre/cob.c:
+	
+	10/13/2000
+	
+	GPRE can create incorrect COBOL programs if EXEC SQL is enclosed in
+	an IF statement terminated with '.'.
+	
+	...pat
 
 2000-10-13 08:00  patrickgriffin
 
@@ -1588,10 +3650,52 @@
 	
 	…pat ...pat
 
+2000-10-13 07:15  patrickgriffin
+
+	* interbase/jrd/cmp.c:
+	
+	Modified Files: 	interbase/jrd/cmp.c
+	
+	10/13/2000
+	
+	Fix for bug #116579; Generators in computed by columns will return
+	wrong results.
+	
+	If, in an ODS 10 or greater database, the gen_id function is
+	included as a part of a computed field and another field references
+	it or it is referenced in a select statement, the database will
+	become corrupted.  This problem was introduced with the change to
+	64 bit generator values.
+	
+	The COMPUTED BY clause is being parsed correctly, correct BLR is
+	stored in the database, and this BLR is correctly converted into
+	execution nodes by jrd/evl.c
+	
+	During jrd/cmp.c  'copy'  processing, called as a part of the pass1
+	routine, this execution node is modified replacing the correct
+	generator number with incorrect values.
+	
+	These changes fix that problem by causing the correct node-copying
+	routine to be invoked.
+	
+	…pat
+
+2000-10-13 04:18  gspeicher
+
+	* interbase/pyxis/cdm.c:
+	
+	- a couple of defines were missing the leading '#'
+
 2000-10-12 04:52  tsarna
 
 	* interbase/: setup_dirs, builds/original/prefix.netbsd,
-	builds/original/sfx.interbase:
+	builds/original/sfx.interbase, gpre/cob.c, gpre/ftn.c,
+	jrd/common.h, jrd/file_params.h, jrd/flu.c, jrd/isc_file.c,
+	jrd/isc_ipc.c, jrd/isc_sync.c, jrd/license.h, jrd/pag.c, jrd/pwd.c,
+	jrd/sort.c, jrd/svc.c, jrd/utl.c, jrd/why.c, lock/fparamv3.h,
+	lock/lock.c, lock/lockv3.h, pyxis/cdm.c, remote/inet_server.c,
+	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
+	utilities/drop.c:
 	
 	NetBSD support. Thanks to Geoffrey C. Speicher for the FreeBSD
 	port, which made this much easier.
@@ -1611,12 +3715,38 @@
 	
 	Add suggestion of just renaming echo instead of making your own.
 
+2000-10-03 05:47  rfm
+
+	* interbase/jrd/flu.c:
+	
+	fix typo
+
+2000-10-02 23:25  tmcsys
+
+	* interbase/utilities/util.c:
+	
+	AIX_PPC
+
 2000-09-30 14:03  fsg
 
-	* interbase/builds/original/: add_template, build_kit,
-	mpm_template, mpp_template, put_template, sfx.interbase:
+	* interbase/: builds/original/add_template,
+	builds/original/build_kit, builds/original/mpm_template,
+	builds/original/mpp_template, builds/original/put_template,
+	builds/original/sfx.interbase, jrd/license.h, remote/inet.c:
 	
 	Added some changes from the inprise tree
+
+2000-09-29 19:47  tmcsys
+
+	* interbase/jrd/why.c:
+	
+	fix conditional syntax
+
+2000-09-29 16:49  tmcsys
+
+	* interbase/: jrd/why.c, utilities/drop.c:
+	
+	AIX_PPC port
 
 2000-09-28 19:43  tmcsys
 
@@ -1636,6 +3766,18 @@
 	
 	C for AIX requires stmt after default switch case
 
+2000-09-28 02:05  tmcsys
+
+	* interbase/jrd/flu.c:
+	
+	AIX_PPC fix ifdef
+
+2000-09-28 01:53  tmcsys
+
+	* interbase/jrd/flu.c:
+	
+	AIX_PPC
+
 2000-09-23 05:54  rfm
 
 	* interbase/setup_build.ksh:
@@ -1649,6 +3791,12 @@
 	Added a link to super/jrd/isc.gdb and removed -lbsd from
 	prefix.linux
 
+2000-09-08 23:27  tmcsys
+
+	* interbase/jrd/pwd.c:
+	
+	security db path for AIX_PPC
+
 2000-09-07 21:50  tmcsys
 
 	* interbase/example5/build_make:
@@ -1661,6 +3809,12 @@
 	
 	fix path for prefix
 
+2000-09-07 20:24  tmcsys
+
+	* interbase/lock/lock.c:
+	
+	Avoid lock manager error for AIX_PPC
+
 2000-09-04 18:04  skywalker
 
 	* interbase/: burp/backup.e, burp/burp.c, dsql/ddl.c, dsql/gen.c,
@@ -1669,11 +3823,53 @@
 	Some suggested syntax changes to previous fixes. Add while loops
 	etc.
 
+2000-09-04 16:43  skywalker
+
+	* interbase/isql/isql.e:
+	
+	Changed #define  indent
+
 2000-09-02 09:55  tamlin
 
 	* interbase/dsql/alld.c:
 	
 	Compiler warnings and removal of an extra printf argument
+
+2000-09-02 09:53  tamlin
+
+	* interbase/: iscguard/iscguard.c, remote/property.c:
+	
+	Make it compile using free-bcc
+
+2000-08-31 11:35  tamlin
+
+	* interbase/utilities/gsec.h:
+	
+	Compiler warnings
+
+2000-08-31 11:27  tamlin
+
+	* interbase/jrd/btr.c:
+	
+	Compiler warnings
+
+2000-08-31 08:03  tamlin
+
+	* interbase/ipserver/ipserver.c:
+	
+	Compiler warnings
+
+2000-08-31 06:57  tamlin
+
+	* interbase/remote/: ibconfig.c, server.c:
+	
+	Compiler warnings
+
+2000-08-30 12:21  tamlin
+
+	* interbase/iscguard/iscguard.c:
+	
+	Handle leak removed
 
 2000-08-30 11:03  tamlin
 
@@ -1723,22 +3919,61 @@
 	
 	Compiler warnings removed
 
+2000-08-30 03:51  tamlin
+
+	* interbase/jrd/all.c:
+	
+	Compiler warnings removed
+
+2000-08-30 03:24  tamlin
+
+	* interbase/jrd/cvt.c:
+	
+	Compiler warnings removed
+
+2000-08-30 02:53  tamlin
+
+	* interbase/jrd/cmp.c:
+	
+	Compiler warnings removed
+
+2000-08-29 23:38  rfm
+
+	* interbase/jrd/cmp.c:
+	
+	Fix bug 112899 by returning = to ==
+
 2000-08-28 22:14  skywalker
 
 	* interbase/alice/all.c:
 	
 	Fixed coding bug, best_tail<< SHIFT to best_tail <<= SHIFT
 
+2000-08-26 10:17  skywalker
+
+	* interbase/jrd/ib_stdio.h:
+	
+	Changed some comments to that they were no longer nested.
+
 2000-08-26 10:06  skywalker
 
-	* interbase/: burp/backup.e, burp/burp.c, dudley/parse.c:
+	* interbase/: burp/backup.e, burp/burp.c, dudley/parse.c,
+	gpre/sqe.c, isql/isql.e, qli/meta.e:
 	
 	Fix a fair few "statement with no effect" warnings/errors.  That
 	became visible when warnings were turned on again.
 
+2000-08-26 07:04  skywalker
+
+	* interbase/jrd/sort.c:
+	
+	Changed a for loop condition from (count) to (run && count) - its,
+	a better fix.
+
 2000-08-26 06:52  skywalker
 
-	* interbase/dsql/make.c:
+	* interbase/: dsql/make.c, jrd/cmp.c, jrd/sort.c, jrd/unix.c,
+	jrd/why.c:
 	
 	Changed to remove "stmt has no effect" warnings.  Some of these
 	were errors in code of the form a == b; which should have been a
@@ -1750,11 +3985,40 @@
 	
 	Turned warnings to all
 
+2000-08-26 03:34  skywalker
+
+	* interbase/jrd/cmp.c:
+	
+	Changed a few a == b; stmts to a=b; - a pretty obvious error
+
 2000-08-23 23:21  tmcsys
 
 	* interbase/builds/original/bind_gds.aix_ppc:
 	
 	AIX ld expects bind file comments to begin with *
+
+2000-08-23 23:16  tmcsys
+
+	* interbase/jrd/flu.c:
+	
+	
+	disable ISC_lookup_entrypoint for AIX_PPC
+
+2000-08-23 23:09  tmcsys
+
+	* interbase/jrd/isc.c:
+	
+	
+	#define _UNIX95 when reading <grp.h> for AIX_PPC
+
+2000-08-23 23:01  tmcsys
+
+	* interbase/jrd/common.h:
+	
+	Add the following defines for AIX_PPC:
+	
+	#define VA_START(list,parmN)	va_start (list, parmN) #define
+	QUADFORMAT "ll" #define QUADCONST(n) (n##LL)
 
 2000-08-22 00:40  rfm
 
@@ -1769,6 +4033,21 @@
 	Copy databases using gbak, rather than CP.  Restore forms.gdb from
 	gbak rather than making a slink to metadata.gdb.  Put isc.gdb and
 	metadata.gdb in jrd, rather than refdatabases root
+
+2000-08-21 23:10  rfm
+
+	* interbase/pyxis/forms.gbk:
+	
+	Add forms.gbk so we can build pyxis (if edit.e can be preprocessed)
+	This is restored to forms.gdb by builds/original/buildRefDatabases
+
+2000-08-21 23:08  rfm
+
+	* interbase/jrd/isc.gdb:
+	
+	Remove binary database file. The correct file is now created by
+	builds/original/buildRefDatabases and links are created by
+	setup_dirs
 
 2000-08-21 23:06  rfm
 
@@ -1814,6 +4093,44 @@
 	Process include.mak with sed to set database directory, so manual
 	edits are not required.
 
+2000-08-21 20:31  tmcsys
+
+	* interbase/misc/metadata.gbak:
+	
+	add metadata.gbak
+
+2000-08-21 20:30  tmcsys
+
+	* interbase/misc/help.gbak:
+	
+	add help.gbak
+
+2000-08-21 07:17  rfm
+
+	* interbase/jrd/sort.c:
+	
+	Fix SEEK_SET for linux, and the right change for NT
+
+2000-08-21 05:28  rfm
+
+	* interbase/jrd/sort.c:
+	
+	Include stdio.h on NT, so we have SEEK_SET for both debug and
+	production builds.
+
+2000-08-20 04:02  rfm
+
+	* interbase/jrd/utl.c:
+	
+	Fix missing comma in version string table.
+
+2000-08-20 01:34  rfm
+
+	* interbase/jrd/: codes.h, codetext.h, iberror.h, msg_facs.h,
+	msgs.h, rdb_codes.h, sql_code.h:
+	
+	Remove redundant ^M characters
+
 2000-08-19 02:06  rfm
 
 	* interbase/setup_dirs:
@@ -1842,7 +4159,13 @@
 2000-08-17 01:30  gspeicher
 
 	* interbase/: setup_dirs, builds/original/buildRefDatabases,
-	builds/original/prefix.freebsd, builds/original/sfx.interbase:
+	builds/original/prefix.freebsd, builds/original/sfx.interbase,
+	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h, jrd/flu.c,
+	jrd/ids.h, jrd/isc.gdb, jrd/isc_file.c, jrd/isc_sync.c,
+	jrd/license.h, jrd/pag.c, jrd/pwd.c, jrd/sort.c, jrd/svc.c,
+	jrd/utl.c, jrd/why.c, lock/fparamv3.h, lock/lock.c, lock/lockv3.h,
+	remote/protocol.h, remote/remote_def.h, utilities/dba.e,
+	utilities/drop.c:
 	
 	- Main purpose of commit is to incorporate FreeBSD-specific changes
 	  to the tree.	As such, most modifications are patches that make  
@@ -1852,6 +4175,12 @@
 	  build and setup scripts, to ensure that the build goes smoothly
 	  for everybody regardless of platform.
 
+2000-08-16 10:53  tamlin
+
+	* interbase/iscguard/: cntl_guard.c, iscguard.c, iscguard.rc:
+	
+	Dat time format fixed. Compiler warnings.
+
 2000-08-15 23:52  rfm
 
 	* interbase/builds/original/000_readme:
@@ -1859,10 +4188,21 @@
 	Just add a note that this file is out of date and point to other
 	sources of build information.
 
-2000-08-15 20:39  tmcsys
+2000-08-15 20:41  tmcsys
 
-	* interbase/: burp/backup.e, burp/canonical.c, burp/restore.e,
-	csv/csu.c, csv/csv.c, dsql/dsql.c, dsql/gen.c, dsql/utld.c:
+	* interbase/: gpre/msc.c, lock/lock.c, pyxis/allp.c,
+	pyxis/phase3.c, qli/all.c, qli/gener.c, remote/parser.c,
+	isql/isql.e:
+	
+	change ALIGN macro to FB_ALIGN
+
+2000-08-15 20:38  tmcsys
+
+	* interbase/: jrd/align.c, jrd/blb.c, jrd/btr.c, jrd/btr.h,
+	jrd/cmp.c, jrd/common.h, jrd/exe.c, jrd/fun.e, jrd/ib_stdio.c,
+	jrd/met.e, jrd/msg.h, jrd/opt.c, jrd/par.c, jrd/rse.c, jrd/thd.h,
+	burp/backup.e, burp/canonical.c, burp/restore.e, csv/csu.c,
+	csv/csv.c, dsql/dsql.c, dsql/gen.c, dsql/utld.c:
 	
 	change ALIGN macro to FB_ALIGN
 
@@ -1890,6 +4230,13 @@
 	
 	Added a script to build the reference databases
 
+2000-08-13 00:13  rfm
+
+	* interbase/remote/server.c:
+	
+	Use *trdb->trdb_setjump in LONGJMP, since it is a *jmp_buf not just
+	a jmp_buf
+
 2000-08-13 00:01  rfm
 
 	* interbase/build_docs/: ibbuild-unix-overview.txt,
@@ -1898,6 +4245,13 @@
 	Remove my copyright notice. Minor updates to ibbuild-win32.txt to
 	reflect new downloads available from www.interbase.com and note the
 	existance of the firebird cvs.
+
+2000-08-12 22:40  rfm
+
+	* interbase/remote/caution.ico:
+	
+	Re-Commit icons after setting keyword expansion mode to -kb (no
+	linefeed translation or keyword expansion)
 
 2000-08-12 01:14  skywalker
 
@@ -1919,6 +4273,12 @@
 	Changes to make script able to redo setup and put up some
 	descriptions
 
+2000-08-11 16:35  skywalker
+
+	* interbase/jrd/yachts.gdb:
+	
+	Deleted database it is generated as part of the build
+
 2000-08-11 16:33  skywalker
 
 	* interbase/builds/original/: .version_flag, build_kit, sfx.pyxis:
@@ -1926,6 +4286,21 @@
 	Changed to build pyxis module, makefile changed to allow to compile
 	build_ket changed to set default env. variables, and .version_flag
 	deleted as it is a generated file
+
+2000-08-11 16:30  skywalker
+
+	* interbase/msgs/: msg.gbak, msg.gdb:
+	
+	Removed the gdb database and replaced it with a transportable gbak
+	version of the database
+
+2000-08-11 05:18  skywalker
+
+	* interbase/pyxis/edit.c:
+	
+	This file has been committed, and make part of the build since the
+	gpre process currently (IB6.0) doesn't parse edit.e correctly.	It
+	is expected that gpre will be fixed in the near future.
 
 2000-08-11 05:15  skywalker
 
@@ -1936,11 +4311,48 @@
 	rely on the edit.c file rather than edit.e file.  Waiting on fix to
 	gpre for it to process edit.e correctly.
 
+2000-08-10 19:11  skywalker
+
+	* interbase/jrd/ids.m:
+	
+	Changed divert() to divert(0) - saves giving a warning message
+
+2000-08-07 06:11  tamlin
+
+	* interbase/jrd/cch.c:
+	
+	Merge with Interbase's tree. Compiler warnings.
+
 2000-08-07 05:54  tamlin
 
 	* interbase/dsql/pass1.c:
 	
 	Merge with Interbase's tree
+
+2000-08-07 03:40  tamlin
+
+	* interbase/jrd/: ail.c, alt.c, jrd.c, sch.c, sdl.c:
+	
+	Compiler warnings.
+
+2000-08-07 03:37  tamlin
+
+	* interbase/iscguard/: salrt23i.ico, sgard23i.ico:
+	
+	Added missing icons
+
+2000-08-07 03:36  tamlin
+
+	* interbase/iscguard/iscguard.c:
+	
+	Some cleanup, closing previously leaked handle.
+
+2000-08-07 01:15  tamlin
+
+	* interbase/intl/: cs_big5.h, cs_gb2312.h, cs_jis_0208_1990.h,
+	cs_ksc5601.h:
+	
+	Stripped excessive bloat.
 
 2000-08-06 19:51  skywalker
 
@@ -1948,6 +4360,527 @@
 	builds/original/sfx.interbase:
 	
 	Tom Colemans changes script changes for easy linux install.
+
+2000-08-05 18:13  tamlin
+
+	* interbase/remote/cntl.c:
+	
+	Handle leak fixed
+
+2000-08-05 15:27  tamlin
+
+	* interbase/remote/remote.c:
+	
+	Compiler warnings
+
+2000-08-05 15:07  tamlin
+
+	* interbase/remote/server.c:
+	
+	Bugfix (JMP_BUFs), and some basic cleanup.
+
+2000-08-05 03:03  tamlin
+
+	* interbase/remote/: server.ico, spxnet32.c, srvr_w32.c, window.c,
+	window.rc, wnet.c, xdr.c:
+	
+	Bugfix (wrong size alloc -> mem overwrite) and compiler warnings.
+
+2000-08-05 02:59  tamlin
+
+	* interbase/utilities/: cmd_util.c, dba.e:
+	
+	Bugfix (wrong size alloc -> mem overwrite) and compiler warnings.
+
+2000-08-05 02:56  tamlin
+
+	* interbase/wal/walw.c:
+	
+	Fixed a compiler warning
+
+2000-08-03 22:52  skywalker
+
+	* interbase/: lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
+	lock/ulimit.c, misc/codetext.h, misc/codes.h, misc/gds_codes.ftn,
+	misc/gds_codes.pas, misc/iberror.h, misc/msg.gbak, misc/msg_facs.h,
+	misc/msgs.h, misc/rdb_codes.h, misc/sql_code.h, msgs/build.def,
+	msgs/build_file.e, msgs/change_msgs.e, msgs/check_msgs.e,
+	msgs/depends.mak, msgs/enter_msgs.e, msgs/include.e, msgs/load.e,
+	msgs/makefile.mak, msgs/modify_msgs.e, msgs/msg.gdb, msgs/msg.gdl,
+	pipe/allp.c, pipe/allp_proto.h, pipe/blk.h, pipe/head_proto.h,
+	pipe/foot.c, pipe/head.c, pipe/pipe.h, pyxis/attributes.h,
+	pyxis/adm.c, pyxis/all.h, pyxis/allp.c, pyxis/altp.c, pyxis/blk.c,
+	pyxis/blk.h, pyxis/cdm.c, pyxis/curses_play.c, pyxis/debug.c,
+	pyxis/everything.h, pyxis/edit.e, pyxis/enumerations.h,
+	pyxis/field_edit.h, pyxis/field_name.h, pyxis/file_name.h,
+	pyxis/form_ddl.h, pyxis/form_name.h, pyxis/fred.e, pyxis/keys.h,
+	pyxis/menu.c, pyxis/phase1.h, pyxis/phase2.c, pyxis/phase2.h,
+	pyxis/phase3.c, pyxis/pyxis.c, pyxis/pyxis.h, pyxis/save.e,
+	pyxis/scr.c, pyxis/scr.h, pyxis/size_form.h, pyxis/sun_ftn_pyxis.c,
+	pyxis/vdm.c, pyxis/vt100.c, qli/all.c, qli/all_proto.h, qli/blk.h,
+	qli/comma_proto.h, qli/command.c, qli/compi_proto.h, qli/compile.c,
+	qli/compile.h, qli/depends.mak, qli/dtr.c, qli/dtr.h, qli/err.c,
+	qli/err_proto.h, qli/eval.c, qli/eval_proto.h, qli/everything.h,
+	qli/exe.c, qli/exe.h, qli/exe_proto.h, qli/expan_proto.h,
+	qli/expand.c, qli/form.c, qli/form.h, qli/form_proto.h,
+	qli/forma_proto.h, qli/format.c, qli/format.h, qli/gener.c,
+	qli/gener_proto.h, qli/help.e, qli/help_proto.h, qli/hsh.c,
+	qli/hsh_proto.h, qli/lex.c, qli/lex_proto.h, qli/meta.e,
+	qli/meta_proto.h, qli/mov.c, qli/mov_proto.h, qli/noform.c,
+	qli/nounix.c, qli/parse.c, qli/parse.h, qli/parse_proto.h,
+	qli/picst_proto.h, qli/picstr.c, qli/proc.e, qli/proc_ddl.h,
+	qli/proc_proto.h, qli/procddl1.h, qli/procddl2.h, qli/procddl3.h,
+	qli/procddl4.h, qli/repor_proto.h, qli/report.c, qli/report.h,
+	qli/reqs.h, qli/show.e, qli/show_proto.h, qli/symbols.h,
+	qli/words.h, remote/allr.c, remote/allr_proto.h, remote/ambx.c,
+	remote/ambx_proto.h, remote/ambx_server.c, remote/blk.h,
+	remote/caution.ico, remote/chop.c, remote/chop_proto.h,
+	remote/chuser.c, remote/cntl.c, remote/cntl_proto.h,
+	remote/decne_proto.h, remote/decnet.c, remote/decnet_server.c,
+	remote/depends.mak, remote/divorce.c, remote/dllshell.c,
+	remote/dnet.c, remote/dnet_proto.h, remote/dnet_server.c,
+	remote/faux.c, remote/faux.h, remote/ibconfig.c, remote/ibconfig.h,
+	remote/ibconfig.rc, remote/ibsvrhlp.h, remote/in.h, remote/inet.c,
+	remote/inet_proto.h, remote/inet_server.c, remote/inetiodef.h,
+	remote/inter_proto.h, remote/interface.c, remote/ipc.c,
+	remote/ipc.h, remote/ipc_proto.h, remote/ipc_server.c,
+	remote/isc_tcpent.mar, remote/jibdef.mar, remote/lanentry.h,
+	remote/lanman.h, remote/makefile.mak, remote/mapper.c,
+	remote/merge.c, remote/merge_proto.h, remote/mgr.c, remote/mslan.c,
+	remote/mslan_proto.h, remote/mslansrv.c, remote/multivx.c,
+	remote/neterr.h, remote/netwcon.c, remote/nlmtst.def,
+	remote/nt_server.c, remote/ntoh.c, remote/ntoh_proto.h,
+	remote/nwserv.c, remote/parse_proto.h, remote/parser.c,
+	remote/pcbdefv4.mar, remote/pcbdefv5.mar, remote/property.c,
+	remote/property.rc, remote/property.rh, remote/propty_proto.h,
+	remote/proto_proto.h, remote/protocol.c, remote/protocol.h,
+	remote/remot_proto.h, remote/remote.c, remote/remote.def,
+	remote/remote.h, remote/remote_def.h, remote/serve_proto.h,
+	remote/server.c, remote/server.ico, remote/spxesr.c,
+	remote/spxne_proto.h, remote/spxnet.c, remote/spxnet32.c,
+	remote/spxnet32_proto.h, remote/spxwi_proto.h, remote/spxwin.c,
+	remote/spxwin.h, remote/srvr_w32.c, remote/tcptypes.h,
+	remote/types.h, remote/ucx.c, remote/wfwnp.c, remote/wfwnp.h,
+	remote/wfwnp_proto.h, remote/window.c, remote/window.h,
+	remote/window.rc, remote/window.rh, remote/window_proto.h,
+	remote/winerr.h, remote/winmain.c, remote/winvx.c, remote/wnet.c,
+	remote/wnet_proto.h, remote/xdr.c, remote/xdr.h,
+	remote/xdr_proto.h, remote/xnet.c, remote/xnet.h,
+	remote/xnet_proto.h, remote/zap.mar, utilities/analyse.c,
+	utilities/cache.c, utilities/cmd_util.c,
+	utilities/cmd_util_proto.h, utilities/dba.e, utilities/dba_full.e,
+	utilities/dbaswi.h, utilities/depends.mak, utilities/drop.c,
+	utilities/dropv3.c, utilities/drpv3_proto.h, utilities/gsec.c,
+	utilities/gsec.h, utilities/gsecswi.h, utilities/guard.c,
+	utilities/ibmgr.c, utilities/ibmgr.h, utilities/ibmgrswi.h,
+	utilities/install_nt.h, utilities/install_reg.c,
+	utilities/install_svc.c, utilities/isc.gdl, utilities/isc4.gdl,
+	utilities/isc4.sql, utilities/ppg.c, utilities/ppg_proto.h,
+	utilities/print_pool.c, utilities/rebui_proto.h,
+	utilities/rebuild.c, utilities/rebuild.gdl, utilities/rebuild.h,
+	utilities/regis_proto.h, utilities/registry.c, utilities/relay.c,
+	utilities/relay_mpexl.c, utilities/rmet.e, utilities/rmet_proto.h,
+	utilities/rstor_proto.h, utilities/rstore.e,
+	utilities/run_service.c, utilities/sbc_print.c,
+	utilities/scrty_apollo.gdl, utilities/scrty_unix.gdl,
+	utilities/scrty_vms.gdl, utilities/scrty_xl.gdl,
+	utilities/secur_proto.h, utilities/security.e,
+	utilities/servi_proto.h, utilities/services.c, utilities/srvrmgr.c,
+	utilities/srvrmgr_proto.h, utilities/util.c,
+	utilities/util_proto.h, utilities/v2_dmp.c, wal/depends.mak,
+	wal/driver.c, wal/wal.c, wal/wal.h, wal/wal_prnt.c,
+	wal/wal_proto.h, wal/walc.c, wal/walc_proto.h, wal/walf.c,
+	wal/walf_proto.h, wal/walr.c, wal/walr_proto.h, wal/walw.c,
+	wal/walw_proto.h, wal/wstat_proto.h, wal/wstatus.c:
+	
+	Initial revision
+
+2000-08-03 22:52  skywalker
+
+	* interbase/: lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
+	lock/ulimit.c, misc/codetext.h, misc/codes.h, misc/gds_codes.ftn,
+	misc/gds_codes.pas, misc/iberror.h, misc/msg.gbak, misc/msg_facs.h,
+	misc/msgs.h, misc/rdb_codes.h, misc/sql_code.h, msgs/build.def,
+	msgs/build_file.e, msgs/change_msgs.e, msgs/check_msgs.e,
+	msgs/depends.mak, msgs/enter_msgs.e, msgs/include.e, msgs/load.e,
+	msgs/makefile.mak, msgs/modify_msgs.e, msgs/msg.gdb, msgs/msg.gdl,
+	pipe/allp.c, pipe/allp_proto.h, pipe/blk.h, pipe/head_proto.h,
+	pipe/foot.c, pipe/head.c, pipe/pipe.h, pyxis/attributes.h,
+	pyxis/adm.c, pyxis/all.h, pyxis/allp.c, pyxis/altp.c, pyxis/blk.c,
+	pyxis/blk.h, pyxis/cdm.c, pyxis/curses_play.c, pyxis/debug.c,
+	pyxis/everything.h, pyxis/edit.e, pyxis/enumerations.h,
+	pyxis/field_edit.h, pyxis/field_name.h, pyxis/file_name.h,
+	pyxis/form_ddl.h, pyxis/form_name.h, pyxis/fred.e, pyxis/keys.h,
+	pyxis/menu.c, pyxis/phase1.h, pyxis/phase2.c, pyxis/phase2.h,
+	pyxis/phase3.c, pyxis/pyxis.c, pyxis/pyxis.h, pyxis/save.e,
+	pyxis/scr.c, pyxis/scr.h, pyxis/size_form.h, pyxis/sun_ftn_pyxis.c,
+	pyxis/vdm.c, pyxis/vt100.c, qli/all.c, qli/all_proto.h, qli/blk.h,
+	qli/comma_proto.h, qli/command.c, qli/compi_proto.h, qli/compile.c,
+	qli/compile.h, qli/depends.mak, qli/dtr.c, qli/dtr.h, qli/err.c,
+	qli/err_proto.h, qli/eval.c, qli/eval_proto.h, qli/everything.h,
+	qli/exe.c, qli/exe.h, qli/exe_proto.h, qli/expan_proto.h,
+	qli/expand.c, qli/form.c, qli/form.h, qli/form_proto.h,
+	qli/forma_proto.h, qli/format.c, qli/format.h, qli/gener.c,
+	qli/gener_proto.h, qli/help.e, qli/help_proto.h, qli/hsh.c,
+	qli/hsh_proto.h, qli/lex.c, qli/lex_proto.h, qli/meta.e,
+	qli/meta_proto.h, qli/mov.c, qli/mov_proto.h, qli/noform.c,
+	qli/nounix.c, qli/parse.c, qli/parse.h, qli/parse_proto.h,
+	qli/picst_proto.h, qli/picstr.c, qli/proc.e, qli/proc_ddl.h,
+	qli/proc_proto.h, qli/procddl1.h, qli/procddl2.h, qli/procddl3.h,
+	qli/procddl4.h, qli/repor_proto.h, qli/report.c, qli/report.h,
+	qli/reqs.h, qli/show.e, qli/show_proto.h, qli/symbols.h,
+	qli/words.h, remote/allr.c, remote/allr_proto.h, remote/ambx.c,
+	remote/ambx_proto.h, remote/ambx_server.c, remote/blk.h,
+	remote/caution.ico, remote/chop.c, remote/chop_proto.h,
+	remote/chuser.c, remote/cntl.c, remote/cntl_proto.h,
+	remote/decne_proto.h, remote/decnet.c, remote/decnet_server.c,
+	remote/depends.mak, remote/divorce.c, remote/dllshell.c,
+	remote/dnet.c, remote/dnet_proto.h, remote/dnet_server.c,
+	remote/faux.c, remote/faux.h, remote/ibconfig.c, remote/ibconfig.h,
+	remote/ibconfig.rc, remote/ibsvrhlp.h, remote/in.h, remote/inet.c,
+	remote/inet_proto.h, remote/inet_server.c, remote/inetiodef.h,
+	remote/inter_proto.h, remote/interface.c, remote/ipc.c,
+	remote/ipc.h, remote/ipc_proto.h, remote/ipc_server.c,
+	remote/isc_tcpent.mar, remote/jibdef.mar, remote/lanentry.h,
+	remote/lanman.h, remote/makefile.mak, remote/mapper.c,
+	remote/merge.c, remote/merge_proto.h, remote/mgr.c, remote/mslan.c,
+	remote/mslan_proto.h, remote/mslansrv.c, remote/multivx.c,
+	remote/neterr.h, remote/netwcon.c, remote/nlmtst.def,
+	remote/nt_server.c, remote/ntoh.c, remote/ntoh_proto.h,
+	remote/nwserv.c, remote/parse_proto.h, remote/parser.c,
+	remote/pcbdefv4.mar, remote/pcbdefv5.mar, remote/property.c,
+	remote/property.rc, remote/property.rh, remote/propty_proto.h,
+	remote/proto_proto.h, remote/protocol.c, remote/protocol.h,
+	remote/remot_proto.h, remote/remote.c, remote/remote.def,
+	remote/remote.h, remote/remote_def.h, remote/serve_proto.h,
+	remote/server.c, remote/server.ico, remote/spxesr.c,
+	remote/spxne_proto.h, remote/spxnet.c, remote/spxnet32.c,
+	remote/spxnet32_proto.h, remote/spxwi_proto.h, remote/spxwin.c,
+	remote/spxwin.h, remote/srvr_w32.c, remote/tcptypes.h,
+	remote/types.h, remote/ucx.c, remote/wfwnp.c, remote/wfwnp.h,
+	remote/wfwnp_proto.h, remote/window.c, remote/window.h,
+	remote/window.rc, remote/window.rh, remote/window_proto.h,
+	remote/winerr.h, remote/winmain.c, remote/winvx.c, remote/wnet.c,
+	remote/wnet_proto.h, remote/xdr.c, remote/xdr.h,
+	remote/xdr_proto.h, remote/xnet.c, remote/xnet.h,
+	remote/xnet_proto.h, remote/zap.mar, utilities/analyse.c,
+	utilities/cache.c, utilities/cmd_util.c,
+	utilities/cmd_util_proto.h, utilities/dba.e, utilities/dba_full.e,
+	utilities/dbaswi.h, utilities/depends.mak, utilities/drop.c,
+	utilities/dropv3.c, utilities/drpv3_proto.h, utilities/gsec.c,
+	utilities/gsec.h, utilities/gsecswi.h, utilities/guard.c,
+	utilities/ibmgr.c, utilities/ibmgr.h, utilities/ibmgrswi.h,
+	utilities/install_nt.h, utilities/install_reg.c,
+	utilities/install_svc.c, utilities/isc.gdl, utilities/isc4.gdl,
+	utilities/isc4.sql, utilities/ppg.c, utilities/ppg_proto.h,
+	utilities/print_pool.c, utilities/rebui_proto.h,
+	utilities/rebuild.c, utilities/rebuild.gdl, utilities/rebuild.h,
+	utilities/regis_proto.h, utilities/registry.c, utilities/relay.c,
+	utilities/relay_mpexl.c, utilities/rmet.e, utilities/rmet_proto.h,
+	utilities/rstor_proto.h, utilities/rstore.e,
+	utilities/run_service.c, utilities/sbc_print.c,
+	utilities/scrty_apollo.gdl, utilities/scrty_unix.gdl,
+	utilities/scrty_vms.gdl, utilities/scrty_xl.gdl,
+	utilities/secur_proto.h, utilities/security.e,
+	utilities/servi_proto.h, utilities/services.c, utilities/srvrmgr.c,
+	utilities/srvrmgr_proto.h, utilities/util.c,
+	utilities/util_proto.h, utilities/v2_dmp.c, wal/depends.mak,
+	wal/driver.c, wal/wal.c, wal/wal.h, wal/wal_prnt.c,
+	wal/wal_proto.h, wal/walc.c, wal/walc_proto.h, wal/walf.c,
+	wal/walf_proto.h, wal/walr.c, wal/walr_proto.h, wal/walw.c,
+	wal/walw_proto.h, wal/wstat_proto.h, wal/wstatus.c:
+	
+	Save the whale, feed the poor, and set the sources free.
+
+2000-08-03 22:49  skywalker
+
+	* interbase/: intl/intl.h, intl/intlwep.c, intl/langdrv.h,
+	intl/lc_ascii.c, intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c,
+	intl/lc_jis.c, intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
+	intl/lc_unicode.c, intl/ld.h, intl/ld2.c, intl/ld_proto.h,
+	intl/ldcommon.h, intl/mac_437.h, intl/mac_865.h, intl/mac_lat1.h,
+	intl/make.maps, intl/makefile.mak, intl/mapcompare.cpp,
+	intl/mapdump.c, intl/mapgen4.c, intl/maptest.c, intl/maptest2.cpp,
+	intl/nordan40.h, intl/polish.h, intl/slovene.h, intl/swedfin.h,
+	intl/turk.h, intl/tx437_865.h, intl/tx437_lat1.h,
+	intl/tx865_lat1.h, intl/undef.h, ipserver/alli.c,
+	ipserver/alli_proto.h, ipserver/blk.h, ipserver/ipc.h,
+	ipserver/ipcevent.c, ipserver/ipapi_proto.h,
+	ipserver/ipcli_proto.h, ipserver/ipclient.c,
+	ipserver/ipevt_proto.h, ipserver/ips.h, ipserver/ipserver.c,
+	ipserver/ipsrv_proto.h, iscguard/cntl_guard.c,
+	iscguard/cntlg_proto.h, iscguard/iscguard.c, iscguard/iscguard.h,
+	iscguard/iscguard.rc, iscguard/iscguard.rh,
+	iscguard/iscguard_utils.c, iscguard/salrt23i.ico,
+	iscguard/sgard23i.ico, isql/depends.mak, isql/extra_proto.h,
+	isql/extract.e, isql/isql.def, isql/isql.e, isql/isql.h,
+	isql/isql.rc, isql/isql_proto.h, isql/isql_res.h, isql/isql_win.c,
+	isql/isql_win.h, isql/isqlw_proto.h, isql/show.e,
+	isql/show_proto.h, journal/archive.c, journal/conso_proto.h,
+	journal/console.c, journal/depends.mak, journal/gjrn.c,
+	journal/gjrn_proto.h, journal/journal.gdl, journal/journal.h,
+	journal/journal_vms.e, journal/journal_vms.gdl, journal/misc.c,
+	journal/misc_proto.h, journal/oldr.c, journal/oldr_proto.h,
+	journal/rebui_proto.h, journal/rebuild.e, journal/serve_proto.h,
+	journal/server.e, jrd/acl.h, jrd/aif.c, jrd/aif_proto.h,
+	jrd/ail_proto.h, jrd/ail.c, jrd/align.c, jrd/align.h,
+	jrd/all_proto.h, jrd/all.c, jrd/all.h, jrd/alt.c, jrd/apollo.c,
+	jrd/ansi.h, jrd/apollo.h, jrd/arg.h, jrd/atom.h, jrd/bkm.c,
+	jrd/bkm_proto.h, jrd/blb.c, jrd/blb.h, jrd/blb_proto.h, jrd/blf.e,
+	jrd/blf.h, jrd/blf_proto.h, jrd/blk.h, jrd/blp.h, jrd/blr.h,
+	jrd/blrtable.c, jrd/blrtable.h, jrd/btr.c, jrd/btr.h,
+	jrd/btr_proto.h, jrd/build_no.h, jrd/cch.c, jrd/cch.h,
+	jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c, jrd/cmp_proto.h,
+	jrd/codes.e, jrd/codes.h, jrd/codetext.h, jrd/common.h,
+	jrd/constants.h, jrd/cvt.c, jrd/cvt2.c, jrd/cvt2_proto.h,
+	jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h, jrd/dbg_proto.h, jrd/dbt.c,
+	jrd/depends.mak, jrd/dfloat_stub.c, jrd/dflt.gdl, jrd/dflt.h,
+	jrd/dfw.e, jrd/dfw_proto.h, jrd/divor_proto.h, jrd/divorce.c,
+	jrd/dllshell.c, jrd/dls.c, jrd/dls_proto.h, jrd/dmp.c,
+	jrd/dmp_proto.h, jrd/doserr.h, jrd/dpm.e, jrd/dpm_proto.h,
+	jrd/drq.h, jrd/dsc.c, jrd/dsc.h, jrd/dsc_proto.h, jrd/dyn.e,
+	jrd/dyn.h, jrd/dyn_def.e, jrd/dyn_def.sed, jrd/dyn_del.e,
+	jrd/dyn_df_proto.h, jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h,
+	jrd/dyn_mod.e, jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e,
+	jrd/enc.c, jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
+	jrd/err_proto.h, jrd/event.c, jrd/event.h, jrd/event_proto.h,
+	jrd/everything.h, jrd/evl.c, jrd/evl_like.c, jrd/evl_proto.h,
+	jrd/exe.c, jrd/exe.h, jrd/exe_proto.h, jrd/ext.c, jrd/ext.h,
+	jrd/ext_proto.h, jrd/extvms.c, jrd/fields.h, jrd/fil.h,
+	jrd/file_params.h, jrd/filte_proto.h, jrd/filters.c, jrd/flags.h,
+	jrd/flu.c, jrd/flu.h, jrd/flu_proto.h, jrd/fun.e, jrd/fun_proto.h,
+	jrd/functions.c, jrd/gds.bas, jrd/gds.def, jrd/gds.hxx,
+	jrd/gds.pas, jrd/gds.pli, jrd/gds.vpas, jrd/gds5entry.mar,
+	jrd/gds_aix.f, jrd/gds_apollo.f, jrd/gds_h3.f, jrd/gds_hp.f,
+	jrd/gds_proto.h, jrd/gds_sun.f, jrd/gds_vms.f, jrd/gdsassert.h,
+	jrd/gdsentry.mar, jrd/gdsold.h, jrd/gdswep.c, jrd/grammar.c,
+	jrd/grammar.y, jrd/grant.e, jrd/grant.gdl, jrd/grant_proto.h,
+	jrd/ib_stdio.c, jrd/ib_stdio.h, jrd/ibase.h, jrd/iberr.c,
+	jrd/iberr.h, jrd/iberr_proto.h, jrd/iberror.h, jrd/ibinitdll.c,
+	jrd/ibsetjmp.h, jrd/ids.h, jrd/ids.m, jrd/idx.c, jrd/idx.h,
+	jrd/idx_proto.h, jrd/inf.c, jrd/inf.h, jrd/inf_proto.h, jrd/ini.e,
+	jrd/ini.h, jrd/ini_proto.h, jrd/intl.c, jrd/intl.h,
+	jrd/intl_proto.h, jrd/intlnames.h, jrd/intlobj.h, jrd/inuse.c,
+	jrd/inuse_proto.h, jrd/irq.h, jrd/isc.c, jrd/isc.gdb, jrd/isc.h,
+	jrd/isc_cray.c, jrd/isc_f_proto.h, jrd/isc_file.c,
+	jrd/isc_i_proto.h, jrd/isc_ipc.c, jrd/isc_proto.h,
+	jrd/isc_s_proto.h, jrd/isc_signal.h, jrd/isc_sync.c,
+	jrd/iscmsgs.msg, jrd/iutls.def, jrd/iutlswep.c, jrd/jio.c,
+	jrd/jlx.c, jrd/jrd.c, jrd/jrd.def, jrd/jrd.h, jrd/jrd_proto.h,
+	jrd/jrd_ver.h, jrd/jrd_ver.rc, jrd/jrdwep.c, jrd/jrn.c, jrd/jrn.h,
+	jrd/jrn_proto.h, jrd/kanji.c, jrd/kanji.h, jrd/kanji_proto.h,
+	jrd/lan.c, jrd/lck.c, jrd/lck.h, jrd/lck_dummy.c, jrd/lck_proto.h,
+	jrd/license.h, jrd/llio.c, jrd/llio.h, jrd/llio_proto.h, jrd/lls.h,
+	jrd/lnmdef.h, jrd/log.c, jrd/log.h, jrd/log_proto.h, jrd/loiter.c,
+	jrd/loiter.h, jrd/makefile.mak, jrd/map.c, jrd/map_proto.h,
+	jrd/math.c, jrd/math.h, jrd/mblr.c, jrd/mblr.h, jrd/mblr_proto.h,
+	jrd/mem.c, jrd/memtest.c, jrd/met.e, jrd/met.h, jrd/met_proto.h,
+	jrd/misc.c, jrd/misc.h, jrd/misc_proto.h, jrd/mmov.mar, jrd/mov.c,
+	jrd/mov_proto.h, jrd/mpexl.c, jrd/mpexl.h, jrd/msg.h,
+	jrd/msg_encode.h, jrd/msg_facs.h, jrd/msgs.h, jrd/names.h,
+	jrd/nav.c, jrd/nav_proto.h, jrd/netware.c, jrd/nlm_thd.h,
+	jrd/nod.h, jrd/nodebug.c, jrd/obj.h, jrd/ods.h, jrd/ods10.gdl,
+	jrd/ods72.gdl, jrd/ods80.gdl, jrd/ods80dif.gdl, jrd/ods81.gdl,
+	jrd/ods91.gdl, jrd/old.c, jrd/old.h, jrd/old_proto.h, jrd/opt.c,
+	jrd/opt_proto.h, jrd/os2.c, jrd/pag.c, jrd/pag.h, jrd/pag_proto.h,
+	jrd/par.c, jrd/par_proto.h, jrd/pcmet.e, jrd/pcmet_proto.h,
+	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
+	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
+	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
+	jrd/pwd_proto.h, jrd/quad.c, jrd/quad.h, jrd/quad_proto.h,
+	jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h, jrd/rdbcodes.h,
+	jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c, jrd/rdbint.c,
+	jrd/rec.c, jrd/rec_proto.h, jrd/relations.h, jrd/req.h, jrd/rlck.c,
+	jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h, jrd/rng_proto.h, jrd/rse.c,
+	jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c, jrd/sbm.h, jrd/sbm_proto.h,
+	jrd/sch.c, jrd/sch_proto.h, jrd/scl.e, jrd/scl.h, jrd/scl_proto.h,
+	jrd/scroll_cursors.h, jrd/sdl.c, jrd/sdl.h, jrd/sdl_proto.h,
+	jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h, jrd/seg.c, jrd/seg_proto.h,
+	jrd/shdef.h, jrd/shrfinit.c, jrd/shrinit.c, jrd/shut.c,
+	jrd/shut_proto.h, jrd/sort.c, jrd/sort.h, jrd/sort_proto.h,
+	jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h, jrd/sqz_proto.h, jrd/stats.e,
+	jrd/stored_proc.gdl, jrd/stubs.c, jrd/sun_ftn.c, jrd/svc.c,
+	jrd/svc.h, jrd/svc_proto.h, jrd/svc_undoc.h, jrd/syidef.h,
+	jrd/sym.c, jrd/sym_proto.h, jrd/termtype.h, jrd/thd.c, jrd/thd.h,
+	jrd/thd_proto.h, jrd/thin.asm, jrd/thread.mar, jrd/time.h,
+	jrd/tpc.c, jrd/tpc.h, jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h,
+	jrd/tra_proto.h, jrd/trig.h, jrd/types.h, jrd/unix.c, jrd/utl.c,
+	jrd/utl_proto.h, jrd/utls.def, jrd/utlswep.c, jrd/v2_triggers.gdl,
+	jrd/val.c, jrd/val.h, jrd/val_proto.h, jrd/version.rc,
+	jrd/version_95.rc, jrd/vio.c, jrd/vio_debug.h, jrd/vio_proto.h,
+	jrd/vms.c, jrd/vms.h, jrd/vms_command.c, jrd/vmsevent.c,
+	jrd/vmslo_proto.h, jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c,
+	jrd/why_proto.h, jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c,
+	jrd/yachts.gdb, lock/config_params, lock/depends.mak,
+	lock/driver.c, lock/fparamv3.h, lock/lock.c, lock/lock.h,
+	lock/lock_header_mmap, lock/lock_header_shmem, lock/lock_proto.h,
+	lock/lockv3.h, lock/lockv3s4.h, lock/manager.c, lock/pls.c,
+	lock/plserver.c, lock/plserver.h, lock/print.c, lock/printv3.c:
+	
+	Initial revision
+
+2000-08-03 22:49  skywalker
+
+	* interbase/: intl/intl.h, intl/intlwep.c, intl/langdrv.h,
+	intl/lc_ascii.c, intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c,
+	intl/lc_jis.c, intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
+	intl/lc_unicode.c, intl/ld.h, intl/ld2.c, intl/ld_proto.h,
+	intl/ldcommon.h, intl/mac_437.h, intl/mac_865.h, intl/mac_lat1.h,
+	intl/make.maps, intl/makefile.mak, intl/mapcompare.cpp,
+	intl/mapdump.c, intl/mapgen4.c, intl/maptest.c, intl/maptest2.cpp,
+	intl/nordan40.h, intl/polish.h, intl/slovene.h, intl/swedfin.h,
+	intl/turk.h, intl/tx437_865.h, intl/tx437_lat1.h,
+	intl/tx865_lat1.h, intl/undef.h, ipserver/alli.c,
+	ipserver/alli_proto.h, ipserver/blk.h, ipserver/ipc.h,
+	ipserver/ipcevent.c, ipserver/ipapi_proto.h,
+	ipserver/ipcli_proto.h, ipserver/ipclient.c,
+	ipserver/ipevt_proto.h, ipserver/ips.h, ipserver/ipserver.c,
+	ipserver/ipsrv_proto.h, iscguard/cntl_guard.c,
+	iscguard/cntlg_proto.h, iscguard/iscguard.c, iscguard/iscguard.h,
+	iscguard/iscguard.rc, iscguard/iscguard.rh,
+	iscguard/iscguard_utils.c, iscguard/salrt23i.ico,
+	iscguard/sgard23i.ico, isql/depends.mak, isql/extra_proto.h,
+	isql/extract.e, isql/isql.def, isql/isql.e, isql/isql.h,
+	isql/isql.rc, isql/isql_proto.h, isql/isql_res.h, isql/isql_win.c,
+	isql/isql_win.h, isql/isqlw_proto.h, isql/show.e,
+	isql/show_proto.h, journal/archive.c, journal/conso_proto.h,
+	journal/console.c, journal/depends.mak, journal/gjrn.c,
+	journal/gjrn_proto.h, journal/journal.gdl, journal/journal.h,
+	journal/journal_vms.e, journal/journal_vms.gdl, journal/misc.c,
+	journal/misc_proto.h, journal/oldr.c, journal/oldr_proto.h,
+	journal/rebui_proto.h, journal/rebuild.e, journal/serve_proto.h,
+	journal/server.e, jrd/acl.h, jrd/aif.c, jrd/aif_proto.h,
+	jrd/ail_proto.h, jrd/ail.c, jrd/align.c, jrd/align.h,
+	jrd/all_proto.h, jrd/all.c, jrd/all.h, jrd/alt.c, jrd/apollo.c,
+	jrd/ansi.h, jrd/apollo.h, jrd/arg.h, jrd/atom.h, jrd/bkm.c,
+	jrd/bkm_proto.h, jrd/blb.c, jrd/blb.h, jrd/blb_proto.h, jrd/blf.e,
+	jrd/blf.h, jrd/blf_proto.h, jrd/blk.h, jrd/blp.h, jrd/blr.h,
+	jrd/blrtable.c, jrd/blrtable.h, jrd/btr.c, jrd/btr.h,
+	jrd/btr_proto.h, jrd/build_no.h, jrd/cch.c, jrd/cch.h,
+	jrd/cch_proto.h, jrd/cdefs.h, jrd/cmp.c, jrd/cmp_proto.h,
+	jrd/codes.e, jrd/codes.h, jrd/codetext.h, jrd/common.h,
+	jrd/constants.h, jrd/cvt.c, jrd/cvt2.c, jrd/cvt2_proto.h,
+	jrd/cvt_proto.h, jrd/dbg.c, jrd/dbg.h, jrd/dbg_proto.h, jrd/dbt.c,
+	jrd/depends.mak, jrd/dfloat_stub.c, jrd/dflt.gdl, jrd/dflt.h,
+	jrd/dfw.e, jrd/dfw_proto.h, jrd/divor_proto.h, jrd/divorce.c,
+	jrd/dllshell.c, jrd/dls.c, jrd/dls_proto.h, jrd/dmp.c,
+	jrd/dmp_proto.h, jrd/doserr.h, jrd/dpm.e, jrd/dpm_proto.h,
+	jrd/drq.h, jrd/dsc.c, jrd/dsc.h, jrd/dsc_proto.h, jrd/dyn.e,
+	jrd/dyn.h, jrd/dyn_def.e, jrd/dyn_def.sed, jrd/dyn_del.e,
+	jrd/dyn_df_proto.h, jrd/dyn_dl_proto.h, jrd/dyn_md_proto.h,
+	jrd/dyn_mod.e, jrd/dyn_proto.h, jrd/dyn_ut_proto.h, jrd/dyn_util.e,
+	jrd/enc.c, jrd/enc_proto.h, jrd/entry.h, jrd/envelope.e, jrd/err.c,
+	jrd/err_proto.h, jrd/event.c, jrd/event.h, jrd/event_proto.h,
+	jrd/everything.h, jrd/evl.c, jrd/evl_like.c, jrd/evl_proto.h,
+	jrd/exe.c, jrd/exe.h, jrd/exe_proto.h, jrd/ext.c, jrd/ext.h,
+	jrd/ext_proto.h, jrd/extvms.c, jrd/fields.h, jrd/fil.h,
+	jrd/file_params.h, jrd/filte_proto.h, jrd/filters.c, jrd/flags.h,
+	jrd/flu.c, jrd/flu.h, jrd/flu_proto.h, jrd/fun.e, jrd/fun_proto.h,
+	jrd/functions.c, jrd/gds.bas, jrd/gds.def, jrd/gds.hxx,
+	jrd/gds.pas, jrd/gds.pli, jrd/gds.vpas, jrd/gds5entry.mar,
+	jrd/gds_aix.f, jrd/gds_apollo.f, jrd/gds_h3.f, jrd/gds_hp.f,
+	jrd/gds_proto.h, jrd/gds_sun.f, jrd/gds_vms.f, jrd/gdsassert.h,
+	jrd/gdsentry.mar, jrd/gdsold.h, jrd/gdswep.c, jrd/grammar.c,
+	jrd/grammar.y, jrd/grant.e, jrd/grant.gdl, jrd/grant_proto.h,
+	jrd/ib_stdio.c, jrd/ib_stdio.h, jrd/ibase.h, jrd/iberr.c,
+	jrd/iberr.h, jrd/iberr_proto.h, jrd/iberror.h, jrd/ibinitdll.c,
+	jrd/ibsetjmp.h, jrd/ids.h, jrd/ids.m, jrd/idx.c, jrd/idx.h,
+	jrd/idx_proto.h, jrd/inf.c, jrd/inf.h, jrd/inf_proto.h, jrd/ini.e,
+	jrd/ini.h, jrd/ini_proto.h, jrd/intl.c, jrd/intl.h,
+	jrd/intl_proto.h, jrd/intlnames.h, jrd/intlobj.h, jrd/inuse.c,
+	jrd/inuse_proto.h, jrd/irq.h, jrd/isc.c, jrd/isc.gdb, jrd/isc.h,
+	jrd/isc_cray.c, jrd/isc_f_proto.h, jrd/isc_file.c,
+	jrd/isc_i_proto.h, jrd/isc_ipc.c, jrd/isc_proto.h,
+	jrd/isc_s_proto.h, jrd/isc_signal.h, jrd/isc_sync.c,
+	jrd/iscmsgs.msg, jrd/iutls.def, jrd/iutlswep.c, jrd/jio.c,
+	jrd/jlx.c, jrd/jrd.c, jrd/jrd.def, jrd/jrd.h, jrd/jrd_proto.h,
+	jrd/jrd_ver.h, jrd/jrd_ver.rc, jrd/jrdwep.c, jrd/jrn.c, jrd/jrn.h,
+	jrd/jrn_proto.h, jrd/kanji.c, jrd/kanji.h, jrd/kanji_proto.h,
+	jrd/lan.c, jrd/lck.c, jrd/lck.h, jrd/lck_dummy.c, jrd/lck_proto.h,
+	jrd/license.h, jrd/llio.c, jrd/llio.h, jrd/llio_proto.h, jrd/lls.h,
+	jrd/lnmdef.h, jrd/log.c, jrd/log.h, jrd/log_proto.h, jrd/loiter.c,
+	jrd/loiter.h, jrd/makefile.mak, jrd/map.c, jrd/map_proto.h,
+	jrd/math.c, jrd/math.h, jrd/mblr.c, jrd/mblr.h, jrd/mblr_proto.h,
+	jrd/mem.c, jrd/memtest.c, jrd/met.e, jrd/met.h, jrd/met_proto.h,
+	jrd/misc.c, jrd/misc.h, jrd/misc_proto.h, jrd/mmov.mar, jrd/mov.c,
+	jrd/mov_proto.h, jrd/mpexl.c, jrd/mpexl.h, jrd/msg.h,
+	jrd/msg_encode.h, jrd/msg_facs.h, jrd/msgs.h, jrd/names.h,
+	jrd/nav.c, jrd/nav_proto.h, jrd/netware.c, jrd/nlm_thd.h,
+	jrd/nod.h, jrd/nodebug.c, jrd/obj.h, jrd/ods.h, jrd/ods10.gdl,
+	jrd/ods72.gdl, jrd/ods80.gdl, jrd/ods80dif.gdl, jrd/ods81.gdl,
+	jrd/ods91.gdl, jrd/old.c, jrd/old.h, jrd/old_proto.h, jrd/opt.c,
+	jrd/opt_proto.h, jrd/os2.c, jrd/pag.c, jrd/pag.h, jrd/pag_proto.h,
+	jrd/par.c, jrd/par_proto.h, jrd/pcmet.e, jrd/pcmet_proto.h,
+	jrd/pcsleep.c, jrd/perf.c, jrd/perf.h, jrd/perf.pas,
+	jrd/perf_proto.h, jrd/pio.h, jrd/pio_proto.h, jrd/pragma.h,
+	jrd/print.c, jrd/procs2.gdl, jrd/prv_m_bypass.h, jrd/pwd.c,
+	jrd/pwd_proto.h, jrd/quad.c, jrd/quad.h, jrd/quad_proto.h,
+	jrd/que.h, jrd/rdb.c, jrd/rdb.h, jrd/rdb_codes.h, jrd/rdbcodes.h,
+	jrd/rdbcodes.mar, jrd/rdbgentry.mar, jrd/rdbgpas.c, jrd/rdbint.c,
+	jrd/rec.c, jrd/rec_proto.h, jrd/relations.h, jrd/req.h, jrd/rlck.c,
+	jrd/rlck_proto.h, jrd/rng.c, jrd/rng.h, jrd/rng_proto.h, jrd/rse.c,
+	jrd/rse.h, jrd/rse_proto.h, jrd/sbm.c, jrd/sbm.h, jrd/sbm_proto.h,
+	jrd/sch.c, jrd/sch_proto.h, jrd/scl.e, jrd/scl.h, jrd/scl_proto.h,
+	jrd/scroll_cursors.h, jrd/sdl.c, jrd/sdl.h, jrd/sdl_proto.h,
+	jrd/sdw.c, jrd/sdw.h, jrd/sdw_proto.h, jrd/seg.c, jrd/seg_proto.h,
+	jrd/shdef.h, jrd/shrfinit.c, jrd/shrinit.c, jrd/shut.c,
+	jrd/shut_proto.h, jrd/sort.c, jrd/sort.h, jrd/sort_proto.h,
+	jrd/sql_code.h, jrd/sqz.c, jrd/sqz.h, jrd/sqz_proto.h, jrd/stats.e,
+	jrd/stored_proc.gdl, jrd/stubs.c, jrd/sun_ftn.c, jrd/svc.c,
+	jrd/svc.h, jrd/svc_proto.h, jrd/svc_undoc.h, jrd/syidef.h,
+	jrd/sym.c, jrd/sym_proto.h, jrd/termtype.h, jrd/thd.c, jrd/thd.h,
+	jrd/thd_proto.h, jrd/thin.asm, jrd/thread.mar, jrd/time.h,
+	jrd/tpc.c, jrd/tpc.h, jrd/tpc_proto.h, jrd/tra.c, jrd/tra.h,
+	jrd/tra_proto.h, jrd/trig.h, jrd/types.h, jrd/unix.c, jrd/utl.c,
+	jrd/utl_proto.h, jrd/utls.def, jrd/utlswep.c, jrd/v2_triggers.gdl,
+	jrd/val.c, jrd/val.h, jrd/val_proto.h, jrd/version.rc,
+	jrd/version_95.rc, jrd/vio.c, jrd/vio_debug.h, jrd/vio_proto.h,
+	jrd/vms.c, jrd/vms.h, jrd/vms_command.c, jrd/vmsevent.c,
+	jrd/vmslo_proto.h, jrd/vmslock.c, jrd/vmsthread.c, jrd/why.c,
+	jrd/why_proto.h, jrd/windows.c, jrd/winnt.c, jrd/winnt_dll.c,
+	jrd/yachts.gdb, lock/config_params, lock/depends.mak,
+	lock/driver.c, lock/fparamv3.h, lock/lock.c, lock/lock.h,
+	lock/lock_header_mmap, lock/lock_header_shmem, lock/lock_proto.h,
+	lock/lockv3.h, lock/lockv3s4.h, lock/manager.c, lock/pls.c,
+	lock/plserver.c, lock/plserver.h, lock/print.c, lock/printv3.c:
+	
+	Save the whale, feed the poor, and set the sources free.
+
+2000-08-03 22:46  skywalker
+
+	* interbase/intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
+	cs_jis_20208_1990.c, cs_ksc.c, cs_ksc5601.h, cs_latin1.h,
+	cs_narrow.c, cs_next.h, cs_sjis.h, cs_unicode.c, cs_utffss.c,
+	cs_w1250.h, cs_w1251.h, cs_w1252.h, cs_w1253.h, cs_w1254.h,
+	csjis2_p.h, cv_big5.c, cv_gb2312.c, cv_jis.c, cv_ksc.c,
+	cv_narrow.c, cyrr.h, czech.h, db437de0.h, db437es1.h, db437fi0.h,
+	db437fr0.h, db437it0.h, db437nl0.h, db437sv0.h, db437uk0.h,
+	db437us0.h, db850cf0.h, db850de0.h, db850es0.h, db850fr0.h,
+	db850it1.h, db850nl0.h, db850pt0.h, db850sv1.h, db850uk0.h,
+	db850us0.h, db852cz0.h, db852hdc.h, db852po0.h, db852sl0.h,
+	db857tr0.h, db860pt0.h, db863cf1.h, db865da0.h, db865no0.h,
+	db866ru0.h, depends.mak, dtest.c, dtest2.c, hun852dc.h, iceland.h,
+	intl.def:
+	
+	Initial revision
+
+2000-08-03 22:46  skywalker
+
+	* interbase/intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
+	cs_jis_20208_1990.c, cs_ksc.c, cs_ksc5601.h, cs_latin1.h,
+	cs_narrow.c, cs_next.h, cs_sjis.h, cs_unicode.c, cs_utffss.c,
+	cs_w1250.h, cs_w1251.h, cs_w1252.h, cs_w1253.h, cs_w1254.h,
+	csjis2_p.h, cv_big5.c, cv_gb2312.c, cv_jis.c, cv_ksc.c,
+	cv_narrow.c, cyrr.h, czech.h, db437de0.h, db437es1.h, db437fi0.h,
+	db437fr0.h, db437it0.h, db437nl0.h, db437sv0.h, db437uk0.h,
+	db437us0.h, db850cf0.h, db850de0.h, db850es0.h, db850fr0.h,
+	db850it1.h, db850nl0.h, db850pt0.h, db850sv1.h, db850uk0.h,
+	db850us0.h, db852cz0.h, db852hdc.h, db852po0.h, db852sl0.h,
+	db857tr0.h, db860pt0.h, db863cf1.h, db865da0.h, db865no0.h,
+	db866ru0.h, depends.mak, dtest.c, dtest2.c, hun852dc.h, iceland.h,
+	intl.def:
+	
+	Save the whale, feed the poor, and set the sources free.
 
 2000-08-03 22:42  skywalker
 
@@ -2238,7 +5171,33 @@
 	examples/udf1.c, examples/udf_link.com, examples/udf_trig.gdl,
 	examples/udftest.e, examples/users.lat1, extlib/ib_udf.c,
 	extlib/ib_udf.h, extlib/ib_udf.sql, extlib/ib_util.c,
-	extlib/ib_util.h, extlib/ib_util.pas, extlib/makefile.mak:
+	extlib/ib_util.h, extlib/ib_util.pas, extlib/makefile.mak,
+	gpre/cdbtable.h, gpre/ada.c, gpre/c_cxx.c, gpre/cmd_proto.h,
+	gpre/cmd.c, gpre/cme_proto.h, gpre/cme.c, gpre/cmp_proto.h,
+	gpre/cmp.c, gpre/depends.mak, gpre/cob.c, gpre/dyntable.c,
+	gpre/dyntable.h, gpre/exp.c, gpre/exp_proto.h, gpre/form.c,
+	gpre/form.h, gpre/form__proto.h, gpre/form_proto.h,
+	gpre/form_trn.c, gpre/ftn.c, gpre/gpre.c, gpre/gpre.h,
+	gpre/gpre_proto.h, gpre/gpreswi.h, gpre/hsh.c, gpre/hsh.h,
+	gpre/hsh_proto.h, gpre/int.c, gpre/jrdme_proto.h, gpre/jrdmet.c,
+	gpre/lang_proto.h, gpre/met.e, gpre/met_proto.h, gpre/movg.c,
+	gpre/movg_proto.h, gpre/msc.c, gpre/msc_proto.h, gpre/noform.c,
+	gpre/par.c, gpre/par_proto.h, gpre/parse.h, gpre/pas.c, gpre/pat.c,
+	gpre/pat.h, gpre/pat_proto.h, gpre/prett_proto.h, gpre/pretty.c,
+	gpre/sdltable.h, gpre/sqe.c, gpre/sqe_proto.h, gpre/sql.c,
+	gpre/sql_proto.h, gpre/words.h, intl/ancyrr.h, intl/anczech.h,
+	intl/angreek1.h, intl/anhundc.h, intl/anpolish.h, intl/ansii850.h,
+	intl/ansiintl.h, intl/ansinor4.h, intl/ansislov.h, intl/ansispan.h,
+	intl/ansiswfn.h, intl/anturk.h, intl/ascii.h, intl/ascii2.h,
+	intl/bllt1ca0.h, intl/bllt1da0.h, intl/bllt1de0.h, intl/bllt1es0.h,
+	intl/bllt1fi0.h, intl/bllt1fr0.h, intl/bllt1is0.h, intl/bllt1it0.h,
+	intl/bllt1nl0.h, intl/bllt1no0.h, intl/bllt1pt0.h, intl/bllt1sv0.h,
+	intl/bllt1uk0.h, intl/bllt1us0.h, intl/blnxtde0.h, intl/blnxtes0.h,
+	intl/blnxtfr0.h, intl/blnxtit0.h, intl/blnxtus0.h, intl/charsets.h,
+	intl/countries.h, intl/country_codes.h, intl/cs_437.h,
+	intl/cs_850.h, intl/cs_852.h, intl/cs_857.h, intl/cs_860.h,
+	intl/cs_861.h, intl/cs_863.h, intl/cs_865.h, intl/cs_big5.c,
+	intl/cs_big5.h, intl/cs_cyrl.h, intl/cs_gb2312.c:
 	
 	Initial revision
 
@@ -2531,7 +5490,33 @@
 	examples/udf1.c, examples/udf_link.com, examples/udf_trig.gdl,
 	examples/udftest.e, examples/users.lat1, extlib/ib_udf.c,
 	extlib/ib_udf.h, extlib/ib_udf.sql, extlib/ib_util.c,
-	extlib/ib_util.h, extlib/ib_util.pas, extlib/makefile.mak:
+	extlib/ib_util.h, extlib/ib_util.pas, extlib/makefile.mak,
+	gpre/cdbtable.h, gpre/ada.c, gpre/c_cxx.c, gpre/cmd_proto.h,
+	gpre/cmd.c, gpre/cme_proto.h, gpre/cme.c, gpre/cmp_proto.h,
+	gpre/cmp.c, gpre/depends.mak, gpre/cob.c, gpre/dyntable.c,
+	gpre/dyntable.h, gpre/exp.c, gpre/exp_proto.h, gpre/form.c,
+	gpre/form.h, gpre/form__proto.h, gpre/form_proto.h,
+	gpre/form_trn.c, gpre/ftn.c, gpre/gpre.c, gpre/gpre.h,
+	gpre/gpre_proto.h, gpre/gpreswi.h, gpre/hsh.c, gpre/hsh.h,
+	gpre/hsh_proto.h, gpre/int.c, gpre/jrdme_proto.h, gpre/jrdmet.c,
+	gpre/lang_proto.h, gpre/met.e, gpre/met_proto.h, gpre/movg.c,
+	gpre/movg_proto.h, gpre/msc.c, gpre/msc_proto.h, gpre/noform.c,
+	gpre/par.c, gpre/par_proto.h, gpre/parse.h, gpre/pas.c, gpre/pat.c,
+	gpre/pat.h, gpre/pat_proto.h, gpre/prett_proto.h, gpre/pretty.c,
+	gpre/sdltable.h, gpre/sqe.c, gpre/sqe_proto.h, gpre/sql.c,
+	gpre/sql_proto.h, gpre/words.h, intl/ancyrr.h, intl/anczech.h,
+	intl/angreek1.h, intl/anhundc.h, intl/anpolish.h, intl/ansii850.h,
+	intl/ansiintl.h, intl/ansinor4.h, intl/ansislov.h, intl/ansispan.h,
+	intl/ansiswfn.h, intl/anturk.h, intl/ascii.h, intl/ascii2.h,
+	intl/bllt1ca0.h, intl/bllt1da0.h, intl/bllt1de0.h, intl/bllt1es0.h,
+	intl/bllt1fi0.h, intl/bllt1fr0.h, intl/bllt1is0.h, intl/bllt1it0.h,
+	intl/bllt1nl0.h, intl/bllt1no0.h, intl/bllt1pt0.h, intl/bllt1sv0.h,
+	intl/bllt1uk0.h, intl/bllt1us0.h, intl/blnxtde0.h, intl/blnxtes0.h,
+	intl/blnxtfr0.h, intl/blnxtit0.h, intl/blnxtus0.h, intl/charsets.h,
+	intl/countries.h, intl/country_codes.h, intl/cs_437.h,
+	intl/cs_850.h, intl/cs_852.h, intl/cs_857.h, intl/cs_860.h,
+	intl/cs_861.h, intl/cs_863.h, intl/cs_865.h, intl/cs_big5.c,
+	intl/cs_big5.h, intl/cs_cyrl.h, intl/cs_gb2312.c:
 	
 	Save the whale, feed the poor, and set the sources free.
 
