@@ -907,7 +907,8 @@ gds.o:		gds.c sql_code.h blr.h msg.h fil.h msgs.h blp.h thd.h \
 
 gds.bin: gds.c  
 	$(CC) -c $(PIC_FLAGS) $(CARBONCORE_DIR_FLAG) $(VERSION_FLAG) \
-		-o $*.bin $<  
+		-o $*_temp.o $<  
+	mv $*_temp.o $*.bin
 
 grammar.c:	grammar.y
 grammar.o:	grammar.c dbg.h jlx.c
