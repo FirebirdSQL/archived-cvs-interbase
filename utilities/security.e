@@ -386,7 +386,16 @@ USHORT		path_length;
    the security database is used as a default in case we
    are unable to get the path from server
 */
+
+/* to get rid of these "isc4.gdb not found" messges add 
+   the path to USER_INFO NAME FSG june 30 2001 */
+
+#if (defined VMS || defined WINDOWS_ONLY || defined WIN_NT || defined LINUX || defined SUPERSERVER)
+gds__prefix (buffer, USER_INFO_NAME);
+#else
 strcpy (buffer, USER_INFO_NAME);
+#endif           
+
 
 if (server)
     sprintf (svc_name, "%sanonymous", server);
