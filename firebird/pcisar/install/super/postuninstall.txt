@@ -1,0 +1,10 @@
+#! /bin/sh
+
+if [ -x sbin/insserv ] ; then
+    sbin/insserv /etc/init.d/
+fi
+
+if [ -x sbin/chkconfig ] ; then
+    sbin/chkconfig --del firebird
+fi
+

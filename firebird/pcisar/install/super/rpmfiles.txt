@@ -1,0 +1,52 @@
+    %dir /opt/interbase 
+    %dir /opt/interbase/bin 
+    %dir /opt/interbase/lib 
+    %dir /opt/interbase/UDF 
+    %dir /opt/interbase/intl 
+    %dir /opt/interbase/help 
+    
+    /opt/interbase/bin/gbak 
+    /opt/interbase/bin/gdef 
+    /opt/interbase/bin/gds_lock_print 
+    /opt/interbase/bin/gds_lock_mgr 
+    /opt/interbase/bin/gfix 
+    /opt/interbase/bin/gpre 
+    /opt/interbase/bin/gsec 
+    /opt/interbase/bin/gsplit 
+    /opt/interbase/bin/gstat 
+    /opt/interbase/bin/isc4.gbak 
+    /opt/interbase/bin/isql 
+    /opt/interbase/bin/qli 
+    /opt/interbase/bin/ibmgr.bin 
+    /opt/interbase/bin/ibmgr 
+    /opt/interbase/bin/ibserver 
+    /opt/interbase/bin/ibguard 
+
+    /opt/interbase/bin/SSchangeRunUser.sh
+    /opt/interbase/bin/SSrestoreRootRunUser.sh
+    /opt/interbase/bin/changeDBAPassword.sh
+
+    /opt/interbase/doc
+    /opt/interbase/examples 
+    /opt/interbase/help/help.gbak 
+    /opt/interbase/help/help.gdb 
+    /opt/interbase/include 
+    /opt/interbase/interbase.msg 
+    /opt/interbase/isc4.gdb 
+    /opt/interbase/isc_config 
+    /opt/interbase/lib/libgds.so.0 
+    /opt/interbase/lib/libgds.so 
+    /opt/interbase/lib/libib_util.so 
+    /opt/interbase/intl/gdsintl 
+    /opt/interbase/UDF/ib_udf 
+    /opt/interbase/services.isc 
+    /opt/interbase/README
+    /opt/interbase/whatsnew.txt
+#    /opt/interbase/README.CZ
+
+    /opt/interbase/misc
+    /var/adm/fillup-templates/rc.config.firebird
+    /etc/init.d/firebird
+    /usr/sbin/rcfirebird
+    /usr/lib/libgds.so
+    /usr/lib/libib_util.so

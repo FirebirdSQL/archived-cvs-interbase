@@ -1,0 +1,49 @@
+#! /bin/sh
+
+#------------------------------------------------------------------------
+#  stop server if it is running
+
+stopServerIfRunning() {
+
+# Check is server is being actively used.
+
+    checkString=`ps -ef| egrep "(gds_inet_server|gds_pipe)" |grep -v grep`
+
+    if [ ! -z "$checkString" ]
+      then
+        echo "An instance of the Firebird/InterBase server seems to be running."
+        echo "Please quit all interbase applications and then proceed."
+        exit 1
+    fi
+
+# Stop lock manager if it is the only thing running.
+
+    for i in `ps -ef | grep "gds_lock_mgr" | grep -v "grep" | cut -d' ' -f3`
+     do
+        kill $i
+     done
+
+}
+
+#= Main PreUn ================================================================
+
+    IBRootDir=/opt/interbase
+    IBBin=$IBRootDir/bin
+
+    stopServerIfRunning
+
+    cd $IBRootDir
+    if [ -f isc4.gdb ] 
+      then 
+        cp isc4.gdb /tmp 
+        echo "Saved a copy of isc4.gdb in /tmp" 
+    fi 
+        
+    for i in isc_init1* isc_event1* isc_lock1* isc_guard* interbase.log
+      do
+        if [ -f $i ]
+          then
+            rm -f $i
+        fi
+      done
+

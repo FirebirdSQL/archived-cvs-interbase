@@ -1,0 +1,16 @@
+Summary: Firebird Database Server and Client tools. 
+Name: FirebirdSS 
+Version: 1.0.0
+Release: RC1
+Vendor: Firebird Project
+Copyright: InterBase Public Licence (IPL) 
+Group: Applications/Databases 
+Source: FirebirdSS1.0.0RC1src.tar.gz 
+URL: http://www.firebirdsql.org 
+AutoReqProv: no 
+BuildArchitectures: i386
+
+%description
+Firebird is a powerful, high-performance relational database designed to be embedded into
+applications on multiple platforms.  
+

@@ -1,0 +1,28 @@
+# This is a sample Firebird configuration file.
+# For detailed description of all parameters refer to
+# http://www.ibphoenix.com/ibp_config.html
+#
+#V4_LOCK_MEM_SIZE         98304
+#ANY_LOCK_MEM_SIZE        98304
+#V4_LOCK_SEM_COUNT        32
+#ANY_LOCK_SEM_COUNT       32
+#V4_LOCK_SIGNAL           16
+#ANY_LOCK_SIGNAL          16
+#V4_EVENT_MEM_SIZE        32768
+#ANY_EVENT_MEM_SIZE       32768
+#DATABASE_CACHE_PAGES     75
+#SERVER_PRIORITY_CLASS    1
+#SERVER_CLIENT_MAPPING    4096
+#SERVER_WORKING_SIZE_MIN  0
+#SERVER_WORKING_SIZE_MAX  0
+#V4_LOCK_GRANT_ORDER      1
+#LOCK_HASH_SLOTS          101
+#DEADLOCK_TIMEOUT         10
+#LOCK_ACQUIRE_SPINS       0
+#CONNECTION_TIMEOUT       180
+#DUMMY_PACKET_INTERVAL    60
+#TMP_DIRECTORY            20000 "/opt/interbase/tmp"
+#EXTERNAL_FUNCTION_DIRECTORY "/opt/interbase/udf"
+#TCP_REMOTE_BUFFER        8192
+#CPU_AFFINITY             1
+#TCP_NO_NAGLE             0
