@@ -112,6 +112,10 @@
 #include "../jrd/old_proto.h"
 #endif
 
+#ifdef GARBAGE_THREAD
+#include "vio_proto.h"
+#endif
+
 #ifdef SERVER_SHUTDOWN
 typedef struct dbf {
     struct dbf	*dbf_next;
@@ -129,7 +133,13 @@ static void ExtractDriveLetter(TEXT*, ULONG*);
 
 #ifdef SUPERSERVER
 #define V4_THREADING
-#endif
+
+/*TMN: fwd. decl. SHOULD BE IN A HEADER FILE*/
+void gds_print_delta_counters(IB_FILE* );
+void ALL_print_memory_pool_info(IB_FILE* fptr, DBB databases);
+void ALLD_print_memory_pool_info(IB_FILE* fptr);
+
+#endif /* SUPERSERVER */
 
 #ifdef NETWARE_386
 #include "../jrd/nlm_thd.h"
@@ -151,10 +161,12 @@ static void ExtractDriveLetter(TEXT*, ULONG*);
 #define V4_MUTEX_LOCK(mutx)	{THREAD_EXIT; THD_MUTEX_LOCK (mutx); THREAD_ENTER;}
 #define V4_MUTEX_UNLOCK(mutx)	THD_MUTEX_UNLOCK (mutx)
 #define V4_MUTEX_DESTROY(mutx)	THD_MUTEX_DESTROY (mutx)
+#ifndef SUPERSERVER
 #define V4_JRD_MUTEX_LOCK(mutx)	{THREAD_EXIT; THD_JRD_MUTEX_LOCK (mutx); THREAD_ENTER;}
 #define V4_JRD_MUTEX_UNLOCK(mutx) THD_JRD_MUTEX_UNLOCK (mutx)
-#endif
-#endif
+#endif	/* SUPERSERVER */
+#endif	/* V4_THREADING */
+#endif	/* !NETWARE_386 */
 
 #ifdef SUPERSERVER
 
@@ -185,6 +197,7 @@ static  REC_MUTX_T  databases_rec_mutex;
 #ifdef  WIN_NT
 /* these should stop a most annoying warning */
 #undef TEXT
+
 #include <windows.h>
 #undef TEXT
 #define TEXT    SCHAR
@@ -624,8 +637,12 @@ tdbb->tdbb_inhibit = 0;
 tdbb->tdbb_flags = NULL;
 
 attachment->att_charset = options.dpb_interp;
-if (options.dpb_lc_messages)
-    attachment->att_lc_messages = copy_string (options.dpb_lc_messages, strlen (options.dpb_lc_messages)); 
+
+if (options.dpb_lc_messages) {
+    attachment->att_lc_messages =
+        copy_string (options.dpb_lc_messages,
+                     (USHORT)strlen (options.dpb_lc_messages)); 
+}
 
 if (options.dpb_no_garbage)
     attachment->att_flags |= ATT_no_cleanup;
@@ -639,8 +656,11 @@ if (options.dpb_gstat_attach)
 if (options.dpb_gfix_attach)
     attachment->att_flags |= ATT_gfix_attachment;
 
-if (options.dpb_working_directory)
-    attachment->att_working_directory = copy_string (options.dpb_working_directory, strlen(options.dpb_working_directory));
+if (options.dpb_working_directory) {
+    attachment->att_working_directory =
+        copy_string (options.dpb_working_directory,
+                     (USHORT)strlen(options.dpb_working_directory));
+}
 
 /* If we're a not a secondary attachment, initialize some stuff */
 
@@ -946,13 +966,13 @@ if (options.dpb_journal)
 	    ISC_expand_filename (options.dpb_wal_backup_dir, 0, archive_name);
 
 	make_jrn_data (data, &d_len, expanded_filename, length_expanded, 
-	    archive_name, strlen (archive_name));
+	    archive_name, (USHORT)strlen (archive_name));
 
 	ISC_expand_filename (options.dpb_journal, 0, journal_name);
 
 #ifndef WINDOWS_ONLY
-	AIL_enable (journal_name, strlen (journal_name),
-		    data, d_len, strlen (archive_name));
+	AIL_enable (journal_name, (USHORT)strlen (journal_name),
+		    data, d_len, (SSHORT)strlen (archive_name));
 #endif
 	}
     else 
@@ -1654,7 +1674,9 @@ tdbb->tdbb_inhibit = 0;
 tdbb->tdbb_flags = NULL;
 
 if (options.dpb_working_directory)
-    attachment->att_working_directory = copy_string (options.dpb_working_directory, strlen(options.dpb_working_directory));
+    attachment->att_working_directory =
+        copy_string (options.dpb_working_directory,
+                     (USHORT)strlen(options.dpb_working_directory));
 
 if (options.dpb_gbak_attach)
     attachment->att_flags |= ATT_gbak_attachment;
@@ -1679,7 +1701,7 @@ switch (options.dpb_sql_dialect)
 
 attachment->att_charset = options.dpb_interp;
 if (options.dpb_lc_messages)
-    attachment->att_lc_messages = copy_string (options.dpb_lc_messages, strlen (options.dpb_lc_messages)); 
+    attachment->att_lc_messages = copy_string (options.dpb_lc_messages, (USHORT)strlen (options.dpb_lc_messages)); 
 
 if (!options.dpb_page_size)
     options.dpb_page_size = DEFAULT_PAGE_SIZE;
@@ -2023,7 +2045,7 @@ attachment->att_flags |= ATT_cancel_disable;
 #endif
 
 #ifdef GOVERNOR
-attachment_flags = attachment->att_flags;
+attachment_flags = (USHORT)attachment->att_flags;
 #endif
 
 purge_attachment (tdbb, user_status, attachment, FALSE);
@@ -3692,7 +3714,7 @@ if (block = dbb->dbb_free_btbs)
 else
     block = (BTB) ALLOCP (type_btb);
 
-block->btb_thread_id = SCH_current_thread();
+block->btb_thread_id = (SLONG)SCH_current_thread();
 block->btb_next = *que;
 *que = block;
 attachment = tdbb->tdbb_attachment;
@@ -4246,7 +4268,10 @@ static STATUS check_database (
 DBB	dbb;
 STATUS	*ptr;
 TEXT    *string;
+
+#ifndef SUPERSERVER
 ATT	attach;
+#endif	/* SUPERSERVER */
 
 SET_TDBB (tdbb);
 
@@ -4685,15 +4710,15 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_page_size:
-	    options->dpb_page_size = get_parameter (&p);
+	    options->dpb_page_size = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_debug:
-	    options->dpb_debug = get_parameter (&p);
+	    options->dpb_debug = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_sweep:
-	    options->dpb_sweep = get_parameter (&p);
+	    options->dpb_sweep = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_sweep_interval:
@@ -4701,13 +4726,13 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_verify:
-	    options->dpb_verify = get_parameter (&p);
+	    options->dpb_verify = (USHORT)get_parameter (&p);
 	    if (options->dpb_verify & gds__dpb_ignore)
 		dbb->dbb_flags |= DBB_damaged;
 	    break;
 
 	case gds__dpb_trace:
-	    options->dpb_trace = get_parameter (&p);
+	    options->dpb_trace = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_damaged:
@@ -4724,15 +4749,15 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_drop_walfile:
-	    options->dpb_wal_action = get_parameter (&p);
+	    options->dpb_wal_action = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_old_dump_id:
-	    options->dpb_old_dump_id = get_parameter (&p);
+	    options->dpb_old_dump_id = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_online_dump:
-	    options->dpb_online_dump = get_parameter (&p);
+	    options->dpb_online_dump = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_old_file_size:
@@ -4740,7 +4765,7 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_old_num_files:
-	    options->dpb_old_num_files = get_parameter (&p);
+	    options->dpb_old_num_files = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_old_start_page:
@@ -4752,7 +4777,7 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_old_start_file:
-	    options->dpb_old_start_file = get_parameter (&p);
+	    options->dpb_old_start_file = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_old_file:
@@ -4768,11 +4793,11 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_wal_numbufs:
-	    options->dpb_wal_num_bufs = get_parameter (&p);
+	    options->dpb_wal_num_bufs = (SSHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_wal_bufsize:
-	    options->dpb_wal_bufsize = get_parameter (&p);
+	    options->dpb_wal_bufsize = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_wal_grp_cmt_wait:
@@ -4780,7 +4805,7 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_dbkey_scope:
-	    options->dpb_dbkey_scope = get_parameter (&p);
+	    options->dpb_dbkey_scope = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_sys_user_name:
@@ -4842,7 +4867,7 @@ while (p < end_dpb)
 
 	case gds__dpb_force_write:
 	    options->dpb_set_force_write = TRUE;
-	    options->dpb_force_write = get_parameter (&p);
+	    options->dpb_force_write = (SSHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_begin_log:
@@ -4857,11 +4882,11 @@ while (p < end_dpb)
 
 	case gds__dpb_no_reserve:
 	    options->dpb_set_no_reserve = TRUE;
-	    options->dpb_no_reserve = get_parameter (&p);
+	    options->dpb_no_reserve = (UCHAR)get_parameter (&p);
 	    break;
 
 	case gds__dpb_interp:
-	    options->dpb_interp = get_parameter (&p);
+	    options->dpb_interp = (SSHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_lc_messages:
@@ -4873,11 +4898,11 @@ while (p < end_dpb)
 	    break;
 
 	case gds__dpb_shutdown:
-	    options->dpb_shutdown = get_parameter (&p);
+	    options->dpb_shutdown = (USHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_shutdown_delay:
-	    options->dpb_shutdown_delay = get_parameter (&p);
+	    options->dpb_shutdown_delay = (SSHORT)get_parameter (&p);
 	    break;
 
 	case gds__dpb_online:
@@ -4893,11 +4918,11 @@ while (p < end_dpb)
 	    break;
 
 	case isc_dpb_overwrite:
-	    options->dpb_overwrite = get_parameter (&p);
+	    options->dpb_overwrite = (BOOLEAN)get_parameter (&p);
 	    break;
 
 	case isc_dpb_sec_attach:
-	    options->dpb_sec_attach = get_parameter (&p);
+	    options->dpb_sec_attach = (BOOLEAN)get_parameter (&p);
 	    options->dpb_buffers = 50;
 	    dbb->dbb_flags |= DBB_security_db;
 	    break;
@@ -4933,20 +4958,20 @@ while (p < end_dpb)
 	    break;
 
         case isc_dpb_sql_dialect:
-	    options->dpb_sql_dialect = get_parameter (&p);
+	    options->dpb_sql_dialect = (USHORT)get_parameter (&p);
 	    if (options->dpb_sql_dialect < 0 || 
 		options->dpb_sql_dialect > SQL_DIALECT_V6)
 		invalid_client_SQL_dialect = TRUE;
 	    break;
 
         case isc_dpb_set_db_sql_dialect:
-	    options->dpb_set_db_sql_dialect = get_parameter (&p);
+	    options->dpb_set_db_sql_dialect = (USHORT)get_parameter (&p);
 	    break;
 	    
 #ifdef READONLY_DATABASE
 	case isc_dpb_set_db_readonly:
 	    options->dpb_set_db_readonly = TRUE;
-	    options->dpb_db_readonly = get_parameter (&p);
+	    options->dpb_db_readonly = (SSHORT)get_parameter (&p);
 	    break;
 #endif
 
@@ -5074,6 +5099,8 @@ switch( controlAction)
     case CTRL_BREAK_EVENT:
 	return FALSE;		/* let it go */
     }
+/* So, what are we to return here?! */
+return FALSE;		/* let it go */
 }
 #endif
 
@@ -5235,7 +5262,7 @@ t = data;
 if (len = b_length)
     {
     *t++ = gds__dpb_wal_backup_dir;
-    *t++ = b_length;
+    *t++ = (UCHAR)b_length;
     q = backup_dir;
     do *t++ = *q++; while (--len);
     }
@@ -5243,7 +5270,7 @@ if (len = b_length)
 if (len = db_len)
     {
     *t++ = JRNW_DB_NAME;
-    *t++ = db_len;
+    *t++ = (UCHAR)db_len;
     q = db_name;
     do *t++ = *q++; while (--len);
     }
@@ -5841,7 +5868,7 @@ if (dbf)
 	    total = 0;
 	    for (dbfp = dbf; dbfp; dbfp = dbfp->dbf_next)
 		{
-		*lbufp++ = dbfp->dbf_length;
+		*lbufp++ = (TEXT)dbfp->dbf_length;
 		*lbufp++ = dbfp->dbf_length >> 8;
 		MOVE_FAST(dbfp->dbf_data, lbufp, dbfp->dbf_length);
 		lbufp += dbfp->dbf_length;
@@ -5849,7 +5876,7 @@ if (dbf)
 		}
 	    assert (total == num_dbs);
 	    lbufp = lbuf;
-	    *lbufp++ = total;
+	    *lbufp++ = (TEXT)total;
 	    *lbufp++ = total >> 8;
 	    }
 	}

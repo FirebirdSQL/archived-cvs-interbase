@@ -781,7 +781,9 @@ static void cleanup (
  *
  **************************************/
 
+#ifdef SUPERCLIENT
 THREAD	temp_thread;
+#endif
 
 if (init_flag == FALSE)
     return;

@@ -152,7 +152,7 @@ PIO_flush (dbb->dbb_file);
 if (dbb->dbb_shadow)
     PIO_flush (dbb->dbb_shadow->sdw_file);
 
-AIL_upd_cntrl_pt (walname, strlen (walname), seq, off, p_off);
+AIL_upd_cntrl_pt (walname, (USHORT)strlen (walname), seq, off, p_off);
 
 window.win_page = LOG_PAGE;
 window.win_flags = 0;
@@ -195,9 +195,6 @@ TDBB	tdbb;
 DBB	dbb;
 LTJC	commit_rec;
 SLONG	seqno, offset;
-SSHORT	start_chkpt;
-SLONG	seq, p_off, off;
-TEXT	walname [MAX_PATH_LENGTH];
 
 tdbb = GET_THREAD_DATA;
 dbb =  tdbb->tdbb_database;
@@ -394,7 +391,6 @@ void AIL_drop_log_force (void)
  *
  **************************************/
 TDBB	tdbb;
-DBB	dbb;
 WIN	window;
 LIP	logp;
 
@@ -829,19 +825,22 @@ p = logp->log_data;
 /* Set control point 1 file name */
 
 *p++ = LOG_ctrl_file1;
-*p++ = len = CTRL_FILE_LEN;
+*p++ = CTRL_FILE_LEN;
+len = CTRL_FILE_LEN;
 do *p++ = 0; while (--len);
 
 /* Set control point 2 file name */
 
 *p++ = LOG_ctrl_file2;
-*p++ = len = CTRL_FILE_LEN;
+*p++ = CTRL_FILE_LEN;
+len = CTRL_FILE_LEN;
 do *p++ = 0; while (--len);
 
 /* Set current log file */
 
 *p++ = LOG_logfile;
-*p++ = len = CTRL_FILE_LEN;
+*p++ = CTRL_FILE_LEN;
+len = CTRL_FILE_LEN;
 do *p++ = 0; while (--len);
 
 *p = LOG_end;
@@ -1524,7 +1523,7 @@ for (i = 0; i < MAX_LOG_FILES; i++)
 
 /* Save and restore attachment flags when reading log information */
 
-save_flag = tdbb->tdbb_attachment->att_flags;
+save_flag = (USHORT)tdbb->tdbb_attachment->att_flags;
 tdbb->tdbb_attachment->att_flags &= ~ATT_no_cleanup;
 
 MET_get_walinfo (tdbb, log_files, &number, &log_ovflow);
@@ -1556,8 +1555,8 @@ wal_p_offset = logp->log_cp_1.cp_p_offset;
 
 if (WAL_init (tdbb->tdbb_status_vector, &dbb->dbb_wal, dbname, 
 		dbb->dbb_page_size, walname, wal_p_offset,
-		first_time, logp->log_file.cp_seqno,
-		wpb_len, wpb) != SUCCESS)
+		(SSHORT)first_time, logp->log_file.cp_seqno,
+		(SSHORT)wpb_len, wpb) != SUCCESS)
     {
     /* If there is a failure, release the page */
     if (first_time)
@@ -1580,8 +1579,8 @@ if (first_time)
 	CCH_RELEASE (tdbb, window);
 	ERR_punt();
 	}
-    AIL_upd_cntrl_pt (walname, strlen (walname), seqno, offset, p_offset);
-    AIL_upd_cntrl_pt (walname, strlen (walname), seqno, offset, p_offset);
+    AIL_upd_cntrl_pt (walname, (USHORT)strlen (walname), seqno, offset, p_offset);
+    AIL_upd_cntrl_pt (walname, (USHORT)strlen (walname), seqno, offset, p_offset);
     }
 
 /* Journal the header page to get the next tid on disk */

@@ -457,7 +457,7 @@ STATUS API_ROUTINE isc_database_cleanup (
 {
 
 return gds__database_cleanup (GDS_VAL(status_vector),
-	db_handle,
+	(struct hndl**)db_handle,
 	routine,
 	(SLONG) arg);
 }
@@ -998,7 +998,7 @@ int API_ROUTINE isc_blob_display (
 if (status_vector)
     status_vector[1] = 0;
 
-return blob__display (blob_id, database, transaction, field_name, name_length);
+return blob__display ((SLONG*)blob_id, database, transaction, field_name, name_length);
 }
 
 int API_ROUTINE isc_blob_dump (
@@ -1024,7 +1024,7 @@ int API_ROUTINE isc_blob_dump (
 if (status_vector)
     status_vector[1] = 0;
 
-return blob__dump (blob_id, database, transaction, file_name, name_length);
+return blob__dump ((SLONG*)blob_id, database, transaction, file_name, name_length);
 }
 
 int API_ROUTINE isc_blob_edit (
@@ -1050,7 +1050,7 @@ int API_ROUTINE isc_blob_edit (
 if (status_vector)
     status_vector[1] = 0;
 
-return blob__edit (blob_id, database, transaction, field_name, name_length);
+return blob__edit ((SLONG*)blob_id, database, transaction, field_name, name_length);
 }
 
 int API_ROUTINE isc_add_user (
@@ -1250,7 +1250,7 @@ int API_ROUTINE isc_blob_load (
 if (status_vector)
     status_vector[1] = 0;
 
-return blob__load (blob_id, database, transaction, file_name, name_length);
+return blob__load ((SLONG*)blob_id, database, transaction, file_name, name_length);
 }
 
 int API_ROUTINE isc_delete_user (

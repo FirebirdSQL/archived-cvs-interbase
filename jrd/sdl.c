@@ -630,7 +630,7 @@ IPTR	*next;
 ADS	array_desc;
 DSC	element_desc;
 struct ads_repeat	*range, *range_end;
-DSC     *a_desc, *slice_desc;
+DSC     *slice_desc;
 
 array_desc = arg->sdl_arg_desc;
 range_end = array_desc->ads_rpt + array_desc->ads_dimensions;
