@@ -109,7 +109,7 @@ if (!delete_constraint_records (gbl, constraint, rel_name))
     DYN_error_punt (FALSE, 130, constraint, NULL, NULL, NULL, NULL);
     /* msg 130: "CONSTRAINT %s does not exist." */
 }
-
+
 void DYN_delete_dimensions (
     GBL		gbl,
     UCHAR	**ptr,
@@ -144,7 +144,7 @@ while (*(*ptr)++ != gds__dyn_end)
     DYN_execute (gbl, ptr, NULL_PTR, f, NULL_PTR, NULL_PTR, NULL_PTR);
     }
 }
-
+
 void DYN_delete_exception (
     GBL		gbl,
     UCHAR	**ptr)
@@ -203,7 +203,7 @@ if (!found)
     DYN_error_punt (FALSE, 144, NULL, NULL, NULL, NULL, NULL);
     /* msg 144: "Exception not found" */
 }
-
+
 void DYN_delete_filter (
     GBL		gbl,
     UCHAR	**ptr)
@@ -264,7 +264,7 @@ if (!found)
 if (*(*ptr)++ != gds__dyn_end)
     DYN_unsupported_verb();
 }
-
+
 void DYN_delete_function (
     GBL		gbl,
     UCHAR	**ptr)
@@ -343,7 +343,68 @@ if (!found)
 if (*(*ptr)++ != gds__dyn_end)
     DYN_unsupported_verb();
 }
-
+
+void DYN_delete_generator (
+    GBL		gbl,
+    UCHAR	**ptr)
+/**************************************
+ *
+ *	D Y N _ d e l e t e _ g e n e r a t o r
+ *
+ **************************************
+ *
+ * Functional description
+ *	Execute a dynamic ddl statement that
+ *	deletes a generator from rdb$generator but the
+ *  space allocated in the page won't be released.
+ *
+ **************************************/
+{
+TDBB	tdbb;
+DBB	dbb;
+BLK	request;
+USHORT	found;
+TEXT	t [32];
+JMP_BUF	env, *old_env;
+
+tdbb = GET_THREAD_DATA;
+dbb = tdbb->tdbb_database;
+
+GET_STRING (ptr, t);
+
+request = (BLK) CMP_find_request (tdbb, drq_e_gens, DYN_REQUESTS);
+
+old_env = (JMP_BUF*) tdbb->tdbb_setjmp;
+tdbb->tdbb_setjmp = (UCHAR*) env;
+
+if (SETJMP (env))
+    {
+    DYN_rundown_request (old_env, request, -1);
+    DYN_error_punt (TRUE, 213, NULL, NULL, NULL, NULL, NULL);
+    /* msg 213: "ERASE GENERATOR failed" */
+    }
+
+found = FALSE;
+FOR (REQUEST_HANDLE request TRANSACTION_HANDLE gbl->gbl_transaction)
+	X IN RDB$GENERATORS
+	WITH X.RDB$GENERATOR_NAME EQ t
+    if (!DYN_REQUEST (drq_e_gens))
+	DYN_REQUEST (drq_e_gens) = request;
+
+    found = TRUE;
+    ERASE X;
+END_FOR;
+if (!DYN_REQUEST (drq_e_gens))
+    DYN_REQUEST (drq_e_gens) = request;
+
+tdbb->tdbb_setjmp = (UCHAR*) old_env;
+
+if (!found)
+    DYN_error_punt (FALSE, 214, NULL, NULL, NULL, NULL, NULL);
+    /* msg 214: "Generator not found" */
+}
+
+
 void DYN_delete_global_field (
     GBL		gbl,
     UCHAR	**ptr)

@@ -596,6 +596,10 @@ switch (verb = *(*ptr)++)
 		DYN_delete_dimensions (gbl, ptr, relation_name, field_name);
 		break;
 
+		case gds__dyn_delete_generator:
+		DYN_delete_generator (gbl, ptr);
+		break;
+
     	    default:
 		DYN_unsupported_verb();
 		break;

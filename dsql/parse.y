@@ -268,6 +268,7 @@ static SSHORT	log_defined, cache_defined;
 %token RAW_PARTITIONS
 %token READ
 %token REAL
+%token RECREATE
 %token REFERENCES
 %token RESERVING
 %token RETAIN
@@ -403,6 +404,7 @@ statement	: alter
 		| grant
 		| insert
 		| invoke_procedure
+		| recreate
 		| revoke
 		| rollback
 		| select
@@ -577,7 +579,7 @@ role_grantee   : symbol_user_name
     | USER symbol_user_name
         { $$ = make_node (nod_user_name, (int) 1, $2); }
         ;
-
+
 /* DECLARE operations */
 
 declare		: DECLARE declare_clause
@@ -589,7 +591,7 @@ declare_clause  : FILTER filter_decl_clause
 		| EXTERNAL FUNCTION udf_decl_clause
 			{ $$ = $3; }
 		;
-
+
 udf_decl_clause : symbol_UDF_name arg_desc_list1 RETURNS return_value1
 			ENTRY_POINT sql_string MODULE_NAME sql_string
 		    	{ $$ = make_node (nod_def_udf, (int) e_udf_count, 
@@ -649,7 +651,7 @@ filter_decl_clause : symbol_filter_name INPUT_TYPE blob_subtype OUTPUT_TYPE blob
 		    	{ $$ = make_node (nod_def_filter, (int) e_filter_count, 
 						$1, $3, $5, $7, $9); }
 		;
-
+
 /* CREATE metadata operations */
 
 create	 	: CREATE create_clause
@@ -674,13 +676,29 @@ create_clause	: EXCEPTION symbol_exception_name sql_string
 			{ $$ = $2; }
 		| DATABASE db_clause
 			{ $$ = $2; }
-		| DOMAIN   domain_clause
+		| DOMAIN domain_clause
 			{ $$ = $2; }             
 		| SHADOW shadow_clause
 			{ $$ = $2; }             
 		| ROLE role_clause
 			{ $$ = $2; }
 		;
+
+recreate 	: RECREATE recreate_clause
+			{ $$ = $2; }
+		;
+
+recreate_clause	: /* PROCEDURE rprocedure_clause
+			{ $$ = $2; } */
+		| TABLE rtable_clause
+			{ $$ = $2; }
+/*		| VIEW rview_clause
+			{ $$ = $2; }
+		| DOMAIN rdomain_clause
+			{ $$ = $2; }             
+*/
+                ;
+
 
 /* CREATE INDEX */
 
@@ -696,7 +714,7 @@ index_definition : column_list
 		| computed_by '(' begin_trigger value end_trigger ')'
 			{ $$ = make_node (nod_def_computed, 2, $4, $5); }
 		;
-
+
 /* CREATE SHADOW */
 shadow_clause	: pos_short_integer manual_auto conditional sql_string
 			first_file_length sec_shadow_files
@@ -748,6 +766,12 @@ domain_clause	: column_def_name
                                           $1, $5, $6, make_list ($7), $8); }
                 ;
 
+/*
+rdomain_clause	: DOMAIN alter_column_name alter_domain_ops
+                        { $$ = make_node (nod_mod_domain, (int) e_alt_count,
+                                          $2, make_list ($3)); }
+*/
+
 as_opt		: AS
                   { $$ = NULL; }
                 | 
@@ -787,14 +811,14 @@ domain_check_constraint 	: begin_trigger CHECK '(' search_condition ')' end_trig
 				  (int) e_cnstr_count, MAKE_string (NULL_STRING, 0), NULL, 
 				  NULL, NULL, $4, NULL, $6, NULL, NULL); }
                                 ;
-
+
 /* CREATE GENERATOR */
 
 generator_clause : symbol_generator_name
 			{ $$ = make_node (nod_def_generator, 
 						(int) e_gen_count, $1); }
 		 ;
-
+
 /* CREATE ROLE */
 
 role_clause : symbol_role_name
@@ -989,11 +1013,16 @@ page_noise	:
 		| PAGE
 		| PAGES
 		;
-
+
 /* CREATE TABLE */
 
 table_clause	: simple_table_name external_file '(' table_elements ')'
 			{ $$ = make_node (nod_def_relation, 
+				(int) e_drl_count, $1, make_list ($4), $2); }
+		;
+
+rtable_clause	: simple_table_name external_file '(' table_elements ')'
+			{ $$ = make_node (nod_redef_relation, 
 				(int) e_drl_count, $1, make_list ($4), $2); }
 		;
 
@@ -1212,6 +1241,11 @@ procedure_clause	: symbol_procedure_name input_parameters
 						  (int) e_prc_count, 
 					          $1, $2, $3, $6, $7, $8, NULL); } 
 		;        
+
+/*
+rprocedure_clause	: alter_procedure_clause
+			;
+*/
 
 alter_procedure_clause	: symbol_procedure_name input_parameters
 		     	  output_parameters
@@ -1440,6 +1474,14 @@ view_clause	: symbol_view_name column_parens_opt AS begin_string union_view
 			{ $$ = make_node (nod_def_view, (int) e_view_count, 
 					  $1, $2, $5, $6, $7); }   
 		;        
+
+/*
+rview_clause	: symbol_view_name column_parens_opt AS begin_string union_view 
+                                                            check_opt end_string
+			{ $$ = make_node (nod_redef_view, (int) e_view_count, 
+					  $1, $2, $5, $6, $7); }   
+		;        
+*/
 
 union_view      : union_view_expr
 			{ $$ = make_node (nod_select, (int) 2, $1, NULL); }
@@ -1781,12 +1823,11 @@ drop_clause	: EXCEPTION symbol_exception_name
 			{ $$ = make_node (nod_del_shadow, (int) 1, $2); }
 		| ROLE symbol_role_name
 			{ $$ = make_node (nod_del_role, (int) 1, $2); }
-/* CVC: Prepare for the future.
 		| GENERATOR symbol_generator_name
-			{ $$ = make_node (nod_del_generator, (int) 1, $2); }*/
+			{ $$ = make_node (nod_del_generator, (int) 1, $2); }
 		;
 
-
+
 /* these are the allowable datatypes */
 
 data_type	: non_array_type

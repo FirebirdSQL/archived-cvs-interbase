@@ -3358,19 +3358,21 @@ const gds__dyn_foreign_key_none            = 210;
 /* Last $dyn value assigned */
 /****************************/
 
-#ifndef	__cplusplus	  		/* c definitions */
+/* CVC: This is not the last value! Please read ibase.h
+where the saga continues.
+
+#ifndef	__cplusplus	  		c definitions
 
 #define gds__dyn_last_dyn_value            210
 
-#else					/* c++ definitions */
+#else					c++ definitions
 
-const char gds_dyn_last_dyn_value         = 210;
+const char gds_dyn_last_dyn_value          = 210;
 
 #endif
+*/
 
 
-
-
 /******************************************/
 /* Array slice description language (SDL) */
 /******************************************/

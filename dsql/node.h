@@ -337,7 +337,8 @@ typedef ENUM nod_t {
    /* CVC: SQL requires that DROP VIEW and DROP table are independent. */
     nod_del_view,
     nod_current_role, /* nod_role_name is already taken but only for DDL. */
-    nod_breakleave
+    nod_breakleave,
+    nod_redef_relation /* allows silent creation/overwriting of a relation. */
 
 } NOD_TYPE;
 

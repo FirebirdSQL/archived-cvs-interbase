@@ -286,7 +286,7 @@ static CONST SSHORT FAR_VARIABLE gds__sql_code [] = {
 -204 /* 261 dsql_procedure_err               */,
 -518 /* 262 dsql_request_err                 */,
 -804 /* 263 dsql_sqlda_err                   */,
--804 /* 264 dsql_var_count_err               */,
+16384 /* 264 dsql_var_count_err               */,
 -826 /* 265 dsql_stmt_handle                 */,
 -804 /* 266 dsql_function_err                */,
 -206 /* 267 dsql_blob_err                    */,

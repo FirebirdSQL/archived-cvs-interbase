@@ -286,7 +286,7 @@
 "Procedure unknown",		/*261, dsql_procedure_err              */
 "Request unknown",		/*262, dsql_request_err                */
 "SQLDA missing or incorrect version, or incorrect number/type of variables",		/*263, dsql_sqlda_err                  */
-"Count of columns does not equal count of values",		/*264, dsql_var_count_err              */
+"Count of read-write columns does not equal count of values",		/*264, dsql_var_count_err              */
 "Invalid statement handle",		/*265, dsql_stmt_handle                */
 "Function unknown",		/*266, dsql_function_err               */
 "Column is not a BLOB",		/*267, dsql_blob_err                   */

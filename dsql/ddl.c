@@ -74,7 +74,7 @@ static void	define_computed (REQ, NOD, FLD, NOD);
 static void	define_constraint_trigger (REQ, NOD);
 static void	define_database (REQ);
 static void	define_del_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
-static void     define_del_default_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
+static void define_del_default_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_dimensions (REQ, FLD);
 static void	define_domain (REQ);
 static void	define_exception (REQ, NOD_TYPE);
@@ -95,7 +95,7 @@ static void	define_update_action (REQ, NOD *, NOD *);
 static void	define_upd_cascade_trg (REQ, NOD, NOD, NOD, TEXT *, TEXT *);
 static void	define_view (REQ);
 static void	define_view_trigger (REQ, NOD, NOD, NOD);
-static void delete_relation_view (REQ, NOD);
+static void delete_relation_view (REQ, NOD, BOOLEAN);
 static void	end_blr (REQ);
 static void	foreign_key (REQ, NOD);
 static void	generate_dyn (REQ, NOD);
@@ -246,26 +246,28 @@ THREAD_ENTER;
 if ((request->req_ddl_node->nod_type == nod_mod_relation) ||
     (request->req_ddl_node->nod_type == nod_del_relation) ||
 	/* CVC: Handle nod_del_view here or we will keep obsolete metadata. */
-	(request->req_ddl_node->nod_type == nod_del_view))
-    {
-    if (request->req_ddl_node->nod_type == nod_mod_relation)
+	(request->req_ddl_node->nod_type == nod_del_view) ||
+	(request->req_ddl_node->nod_type == nod_redef_relation))
+{
+    if (request->req_ddl_node->nod_type == nod_mod_relation ||
+		request->req_ddl_node->nod_type == nod_redef_relation)
 	{
-	relation_node = request->req_ddl_node->nod_arg [e_alt_name];
-	string = (STR) relation_node->nod_arg [e_rln_name];
+		relation_node = request->req_ddl_node->nod_arg [e_alt_name];
+		string = (STR) relation_node->nod_arg [e_rln_name];
 	}
     else
-	string = (STR) request->req_ddl_node->nod_arg [e_alt_name];
+		string = (STR) request->req_ddl_node->nod_arg [e_alt_name];
     METD_drop_relation (request, string); 
-    }
+}
 
 /* for delete & modify, get rid of the cached procedure metadata */
 
 if ((request->req_ddl_node->nod_type == nod_mod_procedure) ||
     (request->req_ddl_node->nod_type == nod_del_procedure))
-    {
+{
     string = (STR) request->req_ddl_node->nod_arg [e_prc_name];
     METD_drop_procedure (request, string); 
-    }
+}
 
 if (s)
     LONGJMP (tdsql->tsql_setjmp, (int) tdsql->tsql_status [1]);
@@ -2271,7 +2273,7 @@ else if (node->nod_type == nod_foreign)
 else if (node->nod_type == nod_def_constraint)
     check_constraint (request, node, FALSE /* No delete trigger */);
 }
-
+
 static void define_relation (
     REQ		request)
 {
@@ -2325,7 +2327,7 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position = 0;
 
 STUFF (gds__dyn_end);
 }
-
+
 static void define_role (
     REQ		request)
 {
@@ -3507,7 +3509,8 @@ reset_context_stack (request);
 
 static void delete_relation_view (
 	REQ		request,
-	NOD		node)
+	NOD		node,
+	BOOLEAN		silent_deletion)
 {
 /**************************************
  *
@@ -3521,31 +3524,46 @@ static void delete_relation_view (
  *  CVC: Created this function to not clutter generate_dyn().
  *
  **************************************/
-	STR string = (STR) node->nod_arg [0];
-	DSQL_REL relation = METD_get_relation (request, string);
+	STR string = 0;
+	DSQL_REL relation = 0;
 
-	if (node->nod_type == nod_del_relation)
+	if (node->nod_type == nod_redef_relation)
 	{
-		if (!relation || (relation->rel_flags & REL_view))
+		NOD relation_node = node->nod_arg [e_alt_name];
+		assert (relation_node);
+		string = (STR) relation_node->nod_arg [e_rln_name];
+	}
+    else
+		string = (STR) node->nod_arg [e_alt_name];
+
+	assert (string);
+
+	relation = METD_get_relation (request, string);
+
+	if (node->nod_type == nod_del_relation || node->nod_type == nod_redef_relation)
+	{
+		if (!relation && !silent_deletion || relation && (relation->rel_flags & REL_view))
 			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
-            /* gds_arg_gds, gds__dsql_command_err, 
-            gds_arg_gds, gds__dsql_table_not_found, */
+			/* gds_arg_gds, gds__dsql_command_err, 
+			gds_arg_gds, gds__dsql_table_not_found, */
 			gds_arg_gds, 336068783L,
 			gds_arg_string, string->str_data,
-            gds_arg_end);
+			gds_arg_end);
 	}
 	else /* node->nod_type == nod_del_view */
 	{
 		if (!relation || !(relation->rel_flags & REL_view))
 			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -607, 
-            /* gds_arg_gds, gds__dsql_command_err, 
-            gds_arg_gds, gds__dsql_view_not_found, */
+			/* gds_arg_gds, gds__dsql_command_err, 
+			gds_arg_gds, gds__dsql_view_not_found, */
 			gds_arg_gds, 336068783L,
 			gds_arg_string, string->str_data,
-            gds_arg_end);
+			gds_arg_end);
 	}
+	
+	if (relation)
+		put_cstring (request, gds__dyn_delete_rel, string->str_data);
 
-	put_cstring (request, gds__dyn_delete_rel, string->str_data);
 	STUFF (gds__dyn_end);
 }
 
@@ -3669,6 +3687,13 @@ request->req_ddl_node = node;
 	case nod_def_relation:
 		define_relation (request);
 		break;
+
+	case nod_redef_relation:
+		STUFF (gds__dyn_begin);
+		delete_relation_view (request, node, TRUE); /* silent. */
+		define_relation (request);
+		STUFF (gds__dyn_end);
+		break;
 		
 	case nod_def_view:
 		define_view (request);
@@ -3713,7 +3738,7 @@ request->req_ddl_node = node;
 	/* CVC: Handling drop table and drop view properly. */
 	case nod_del_relation:
 	case nod_del_view:
-		delete_relation_view (request, node);
+		delete_relation_view (request, node, FALSE); /* no silent. */
 		break;
 		
 	case nod_del_procedure:
@@ -3753,9 +3778,8 @@ request->req_ddl_node = node;
 		
 	case nod_del_generator:
 		string = (STR) node->nod_arg [0];
-		/**********FIX -- nothing like delete_generator exists as yet
-		put_cstring (request, gds__dyn_def_generator, string->str_data);
-		STUFF (gds__dyn_end); */
+		put_cstring (request, gds__dyn_delete_generator, string->str_data);
+		STUFF (gds__dyn_end);
 		break; 
 		
 	case nod_del_filter:

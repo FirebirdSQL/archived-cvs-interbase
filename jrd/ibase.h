@@ -195,7 +195,32 @@ typedef struct bstream {
 #define getb(p)	(--(p)->bstr_cnt >= 0 ? *(p)->bstr_ptr++ & 0377: BLOB_get (p))
 #define putb(x,p) (((x) == '\n' || (!(--(p)->bstr_cnt))) ? BLOB_put ((x),p) : ((int) (*(p)->bstr_ptr++ = (unsigned) (x))))
 #define putbx(x,p) ((!(--(p)->bstr_cnt)) ? BLOB_put ((x),p) : ((int) (*(p)->bstr_ptr++ = (unsigned) (x))))
-
+
+
+/********************************************************************/
+/* CVC: Public blob interface definition held in val.h.             */
+/* For some unknown reason, it was only documented in langRef       */
+/* and being the structure passed by the engine to UDFs it never    */
+/* made its way into this public definitions file.                  */
+/* Being its original name "blob", I renamed it blobcallback here.  */
+/********************************************************************/
+
+#if !defined(_JRD_VAL_H_) && !defined(REQUESTER)
+
+/* Blob passing structure */
+
+typedef struct blobcallback {
+    short	(ISC_FAR *blob_get_segment)();
+    int	ISC_FAR	*blob_handle;
+    ISC_LONG	blob_number_segments;
+    ISC_LONG	blob_max_segment;
+    ISC_LONG	blob_total_length;
+    void	(ISC_FAR *blob_put_segment)();
+    ISC_LONG	(ISC_FAR *blob_seek)();
+} ISC_FAR *BLOBCALLBACK;
+
+#endif
+
 /***************************/
 /* Dynamic SQL definitions */
 /***************************/
@@ -2553,12 +2578,26 @@ BSTREAM   ISC_FAR * ISC_EXPORT Bopen2();
 #define isc_dyn_sql_role_name             212
 #define isc_dyn_grant_admin_options       213
 #define isc_dyn_del_sql_role              214
+/* 215 & 216 are used some lines above. */
+
+/**********************************************/
+/* Generators again                           */
+/**********************************************/
+
+#ifndef __cplusplus                     /* c definitions */
+#define gds__dyn_delete_generator          217
+#else                                   /* c++ definitions */
+const char gds__dyn_delete_generator       = 217;
+#endif
+
 
 /****************************/
 /* Last $dyn value assigned */
 /****************************/
 
-#define isc_dyn_last_dyn_value            216
+#define isc_dyn_last_dyn_value            217
+
+
 
 /******************************************/
 /* Array slice description language (SDL) */

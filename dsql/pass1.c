@@ -828,6 +828,7 @@ base = request->req_context;
 switch (input->nod_type)
     {      
     case nod_def_relation:
+    case nod_redef_relation:
     case nod_def_index:
     case nod_def_view:
     case nod_def_constraint:
@@ -835,8 +836,8 @@ switch (input->nod_type)
     case nod_mod_relation:
     case nod_mod_exception:
     case nod_del_relation:
-	/* CVC: Deleting view is a new case. */
-	case nod_del_view:
+    /* CVC: Deleting view is a new case. */
+    case nod_del_view:
     case nod_del_index:
     case nod_del_exception:
     case nod_grant:
