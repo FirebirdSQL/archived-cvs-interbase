@@ -2798,9 +2798,10 @@ for (stack = request->req_context; stack; stack = stack->lls_next)
 /* CVC: We can't return blindly if this is a check constraint, because there's
 the possibility of an invalid field that wasn't found. The multiple places that
 call this function pass1_field() don't expect a NULL pointer, hence will crash.
+Don't check ambiguity if we don't have a field.
 */
 
-if (!is_check_constraint && !qualifier)
+if (!is_check_constraint && !qualifier && field)
     node = ambiguity_check (node, request, field, relations, procedures);
 else
 	{
