@@ -1,3 +1,21 @@
+2001-09-12 12:03  robocop
+
+	* interbase/jrd/gdsold.h:
+	
+	Updated gds_err_max to keept in sync with codes.h's isc_err_max
+
+2001-09-12 12:00  robocop
+
+	* interbase/isql/isql.e:
+	
+	Isql should use double quotes around keywords.
+
+2001-09-12 11:59  robocop
+
+	* interbase/dsql/: keywords.h, parse.c, parse.y:
+	
+	Changes to allow integration with isql
+
 2001-09-11 20:41  bellardo
 
 	* interbase/dsql/pass1.c:
