@@ -140,6 +140,10 @@
 #define MICROFOCUS
 #endif
 
+#ifdef FREEBSD
+#define MICROFOCUS
+#endif
+
 #ifdef MICROFOCUS
 #define OMITTED 		"BY VALUE 0"
 #define BY_VALUE		"BY VALUE "

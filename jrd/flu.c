@@ -68,6 +68,42 @@ static int	condition_handler (int *, int *, int *);
 #include <libgen.h>
 #define IB_UDF_DIR              "UDF/"
 #endif
+
+#if defined FREEBSD
+#include <dlfcn.h>
+#define DYNAMIC_SHARED_LIBRARIES
+#include <unistd.h>
+#define IB_UDF_DIR              "UDF/"
+/*
+ * Define our own dirname(), because we don't have a syscall for it.
+ * !! WARNING !! WARNING !! WARNING !!
+ * I'm hoping that the use of static result is OK here, and justify
+ * its use by noting that A) we're not using threads, and B) callers
+ * don't seem to hang onto the result for very long.  Since none of
+ * its callers ever have to clean up anyway, I'm assuming that real
+ * syscall versions do it the same way, except that they probably offer
+ * thread-safeness as well.
+ */
+const char *dirname(const char *fname) {
+    static char result[512];
+    int i=0;
+    int last=0;
+
+    if (strlen(fname) == 0) return ".";
+    strcpy(result,fname);
+    while (*fname) {
+        i++;
+        if (*fname == '/') last = i;
+        fname++;
+    }
+    if (last == 0) {
+        last = 1;
+        result[0] = '.';
+    }
+    result[last] = '\0';
+    return result;
+}
+#endif
 
 /* DG specific stuff */
 
@@ -218,7 +254,7 @@ for (mod = &FLU_modules; *mod; mod = &(*mod)->mod_next)
 shl_unload (module->mod_handle);
 #endif
 
-#if defined(SOLARIS) || defined(LINUX)
+#if defined(SOLARIS) || defined(LINUX) || defined(FREEBSD)
 dlclose (module->mod_handle);
 #endif
 #ifdef WIN_NT

@@ -39,7 +39,7 @@
 #include "../jrd/common.h"
 #include "../lock/fparamv3.h"
 
-#ifdef linux
+#if (defined linux || defined FREEBSD)
 #define SEMUN
 #endif
 

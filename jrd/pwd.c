@@ -130,7 +130,7 @@ void PWD_get_user_dbpath (
  *
  **************************************/
 
-#if (defined VMS || defined WINDOWS_ONLY || defined WIN_NT || defined LINUX || defined SUPERSERVER)
+#if (defined VMS || defined WINDOWS_ONLY || defined WIN_NT || defined LINUX || defined FREEBSD || defined SUPERSERVER)
 gds__prefix (path_buffer, USER_INFO_NAME);
 #else
 strcpy (path_buffer, USER_INFO_NAME);

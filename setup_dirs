@@ -27,7 +27,7 @@
 
 Answer=""
 
-function AskQuestion() {
+AskQuestion() {
     Test=$1
     DefaultAns=$2
     echo -n "${1}"
@@ -39,7 +39,7 @@ function AskQuestion() {
 #------------------------------------------------------------------------
 # Prompt for yes or no answer - returns non-zero for no
 
-function AskYNQuestion() {
+AskYNQuestion() {
     while echo -n "${*} (y/n): "
     do
         read answer rest
@@ -148,8 +148,12 @@ checkVariables() {
 
      if [ "$INTERBASE" = "" ]
        then
-         export INTERBASE="/opt/interbase"
-
+         if [ $SYS_TYPE = 'FREEBSD' ]
+           then
+             export INTERBASE="/usr/interbase"
+           else
+             export INTERBASE="/opt/interbase"
+	 fi
      fi
 
      if [ "$ISC_PASSWORD" = "" ]
@@ -198,6 +202,7 @@ then
         echo '                  {IMP   | MU      | SCO  }'
         echo '                  {SGI   | SOLARIS | SUN4 }'
         echo '                  {UNIXWARE | AIX_PPC | LINUX }'
+        echo '                  {FREEBSD}'
         exit 1
 fi
 
@@ -257,7 +262,7 @@ if [ $1 = 'SCO' ]; then
 fi
 
 
-if [ $SYS_TYPE = 'LINUX' ]
+if [ $SYS_TYPE = 'LINUX' -o $SYS_TYPE = 'FREEBSD' ]
 then
         if [ -d interbase ] 
           then
@@ -277,6 +282,7 @@ then
         mkdir interbase
         cd interbase
         cp $INTERBASE/interbase.msg .
+        cp $INTERBASE/isc4.gdb .
         copyIfExists $INTERBASE/ib_license.dat .
         mkdir bin
         cp $INTERBASE/bin/gpre bin

@@ -303,7 +303,7 @@ extern		main_gsec();
 */
 
 static CONST struct serv	services [] = {
-#ifndef LINUX
+#ifndef LINUX && !defined FREEBSD
 #ifndef NETWARE386
 #ifdef WIN_NT
     isc_action_max, "print_cache",      "-svc",             "bin/ibcachpr",          NULL,             0,
@@ -514,7 +514,7 @@ for (serv = services; serv->serv_name; serv++)
 	break;
 
 if (!serv->serv_name)
-#if (defined LINUX && !defined SUPERSERVER)
+#if ((defined LINUX || defined FREEBSD) && !defined SUPERSERVER)
     ERR_post (isc_service_att_err, isc_arg_gds, isc_service_not_supported, 0);
 #else
     ERR_post (isc_service_att_err, isc_arg_gds, isc_svcnotdef, isc_arg_string,

@@ -296,6 +296,7 @@ static CONST TEXT
 	"InterBase/DG_X86",		/* 58 */
 	"InterBase/SCO_SV Intel",	/* 59 */ /* 5.5 SCO Port */ 
         "InterBase/linux Intel"         /* 60 */
+        "InterBase/FreeBSD/i386"         /* 61 */
 	};
 
 
@@ -2272,6 +2273,9 @@ TEXT	buffer [3];
 #endif
 #endif
 IB_FILE	*file;
+#if defined FREEBSD
+int  fd;
+#endif
 
 if (!(q = field_name))
     q = "gds_edit";
@@ -2296,6 +2300,13 @@ for (p = buffer; *q && p < buffer + sizeof (buffer) - 1; q++)
 sprintf (file_name, "%sXXXXXX", buffer);
 #endif
 
+#if defined FREEBSD
+fd = mkstemp(file_name);
+if (!(file = fdopen(fd, "w+"))) {
+    close(fd);
+    return FALSE;
+}
+#else
 MKTEMP (file_name, "XXXXXXX");
 if (!(file = ib_fopen (file_name, FOPEN_WRITE_TYPE)))
     return FALSE;
@@ -2303,6 +2314,7 @@ ib_fclose (file);
 
 if (!(file = ib_fopen (file_name, FOPEN_WRITE_TYPE_TEXT)))
     return FALSE;
+#endif
 
 if (!dump (blob_id, database, transaction, file))
     {

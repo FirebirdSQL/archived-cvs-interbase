@@ -219,6 +219,10 @@
 #define IB_PLATFORM     "LI-B"         /* Linux on Intel */
 #endif
 
+#ifdef FREEBSD
+#define IB_PLATFORM     "FB-B"         /* FreeBSD/i386 */
+#endif
+
 #ifndef GDS_VERSION
 #define GDS_VERSION	IB_PLATFORM IB_MAJOR_VER "." IB_MINOR_VER "." IB_REV_NO "." IB_BUILD_NO
 #endif

@@ -66,7 +66,7 @@ checkVariables() {
 
 Answer=""
 
-function AskQuestion() {
+AskQuestion() {
     Test=$1
     DefaultAns=$2
     echo -n "${1}"
@@ -79,7 +79,7 @@ function AskQuestion() {
 #--------------------------------------------------------------------
 # Build the databases needed for a standard interbase build
 
-function buildStdDatabases() {
+buildStdDatabases() {
     echo "- building std databases"
 
     cp $INTERBASE/isc4.gdb isc.gdb
@@ -99,7 +99,7 @@ function buildStdDatabases() {
 #--------------------------------------------------------------------
 # Build the standard examples
 
-function buildExampleDatabases() {
+buildExampleDatabases() {
    echo "- building examples"
     (cd examples; $IBBin/gdef $IBSrc/examples/atlas.gdl)
     (cd examples; $IBBin/gdef $IBSrc/examples/emp.gdl)
@@ -120,7 +120,7 @@ function buildExampleDatabases() {
 #--------------------------------------------------------------------
 # Build the standard (4) examples
 
-function buildExample4Databases() {
+buildExample4Databases() {
    echo "- building examples4"
 # Create examples4 db
 
@@ -145,7 +145,7 @@ e_o_f
 #--------------------------------------------------------------------
 # Build the standard (5) examples
 
-function buildExample5Databases() {
+buildExample5Databases() {
 # Create examples5 db
 
     cd example5
@@ -167,7 +167,7 @@ e_o_f
 
 #------------------------------------------------------------------------
 
-function createRefDir() {
+createRefDir() {
     if [ -d $IBRefDir ] 
       then
          echo "** Warning ** - The reference directory $IBRefDir already exists"

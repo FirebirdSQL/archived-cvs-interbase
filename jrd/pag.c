@@ -95,6 +95,7 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
        18               Windows 16 bit
        19             LINUX on Intel series
        20             LINUX on sparc systems
+	   21             FreeBSD/i386
        
 */
 
@@ -224,6 +225,10 @@ static BOOLEAN	find_type (SLONG, WIN *, PAG *, USHORT, USHORT, UCHAR **, UCHAR *
 #ifdef sparc
 #define CLASS           20
 #endif
+#endif
+
+#ifdef FREEBSD
+#define CLASS           21
 #endif
 
 

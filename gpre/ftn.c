@@ -254,6 +254,25 @@ static ADL      array_decl_list;
 #define COMMA           ","
 #endif
 
+#ifdef FREEBSD
+#define INCLUDE_ISC_FTN  "       INCLUDE  '/usr/interbase/include/gds.f\' \n\n"
+#define INCLUDE_FTN_FILE "include/gds.f"
+#define DOUBLE_DCL      "DOUBLE PRECISION"
+#define I2CONST_1       ""
+#define I2CONST_2       ""
+#define I2_1            ""
+#define I2_2            ""
+#define VAL_1           ""
+#define VAL_2           ""
+#define REF_1           ""
+#define REF_2           ""
+#define I4CONST_1       ""
+#define I4CONST_2       ""
+#define COMMENT         "*     "
+#define INLINE_COMMENT  "\n*                "
+#define COMMA           ","
+#endif
+
 #ifdef sgi
 #define INCLUDE_ISC_FTN  "       INCLUDE  '%s\' \n\n"
 #define INCLUDE_FTN_FILE "include/gds.f"

@@ -130,6 +130,11 @@
 #include <sys/ipc.h>
 #endif
 
+#ifdef FREEBSD
+#include <sys/types.h>
+#include <sys/ipc.h>
+#endif
+
 #ifdef CSV
 #define CSI_DEFAULT_SIZE	262144
 #define CSI_EXTEND_SIZE		32768

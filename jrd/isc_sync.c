@@ -178,6 +178,10 @@ typedef int		pid_t;
 #endif
 #endif
 
+#ifdef FREEBSD
+#define SEMUN
+#endif
+
 #ifdef LINUX
 /*
  * NOTE: this definition is copied from linux/sem.h: if we do ...
@@ -222,7 +226,7 @@ union semun {
 #endif
 
 #if !(defined M88K || defined hpux || defined DECOSF || defined SOLARIS || \
-      defined DG_X86 || defined linux )
+      defined DG_X86 || defined linux || defined FREEBSD)
 extern SLONG		ftok();
 #endif
 #endif
@@ -333,6 +337,10 @@ static void	make_object_name (TEXT *, TEXT *, TEXT *);
 #define SV_INTERRUPT    0
 #endif
 
+#ifdef FREEBSD
+#define sigset      signal
+#endif
+
 #ifdef SHLIB_DEFS
 #define sprintf		(*_libgds_sprintf)
 #define strlen		(*_libgds_strlen)

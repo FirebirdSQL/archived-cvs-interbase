@@ -23,6 +23,9 @@
 
 #include <errno.h>
 #include <string.h>
+#if defined FREEBSD
+#include <unistd.h>
+#endif
 #include "../jrd/common.h"
 #include "../jrd/jrd.h"
 #include "../jrd/sort.h"
@@ -1030,7 +1033,7 @@ while (length)
 #endif
     for (i = 0; i < IO_RETRY; i++)
 	{
-	if (lseek (sfb->sfb_file, seek, 0) == -1)
+    if (lseek (sfb->sfb_file, seek, SEEK_SET) == -1)
 	    {
 	    THREAD_ENTER;
 	    SORT_error (status_vector, sfb, "lseek", isc_io_read_err, errno);
@@ -1353,7 +1356,7 @@ while (length)
 #endif
     for (i = 0; i < IO_RETRY; i++)
 	{
-	if (lseek (sfb->sfb_file, seek, 0) == -1)
+    if (lseek (sfb->sfb_file, seek, SEEK_SET) == -1)
 	    {
 	    THREAD_ENTER;
 	    SORT_error (status_vector, sfb, "lseek", isc_io_write_err, errno);
@@ -3186,6 +3189,9 @@ static void write_trace (
  *
  **************************************/
 UCHAR   file_name [32], data [41], *p;
+#if defined FREEBSD
+int  fd;
+#endif
 
 if (!trace_file)
     {
@@ -3194,8 +3200,13 @@ if (!trace_file)
 #else
     strcpy (file_name, "/interbase/sort_trace_XXXXXX");
 #endif
+#if defined FREEBSD
+    fd = mkstemp (file_name);
+    trace_file = fdopen(fd, "w");
+#else
     mktemp (file_name);
     trace_file = ib_fopen (file_name, "w");
+#endif
     }
 
 if (!trace_file)
