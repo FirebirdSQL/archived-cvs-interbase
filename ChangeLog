@@ -1,3 +1,22 @@
+2001-10-23 23:23  awharrison
+
+	* interbase/dsql/pass1.c:
+	
+	
+	Fixed the union view problem I introduced without breaking the
+	context checking that Claudio did.  Also added some code to handle
+	a nod_variable - was just returning an uninitialized variable. 
+	also changed <struct> -> <element> to <struct>-><element>.  I like
+	spaces more than most but not there.
+
+2001-10-23 07:57  bellardo
+
+	* interbase/: builds/original/prefix.darwin,
+	builds/original/sfx.extlib, builds/original/sfx.interbase,
+	firebird/bellardo/darwin/FirebirdFramework.make:
+	
+	Changes to get UDF's working in Darwin again.
+
 2001-10-22 23:58  awharrison
 
 	* interbase/jrd/gds.c:
