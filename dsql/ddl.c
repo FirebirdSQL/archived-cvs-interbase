@@ -20,6 +20,9 @@
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
  */
+/*
+$Id$
+*/
 
 #include "../jrd/ib_stdio.h"
 #include <string.h>
@@ -1037,7 +1040,8 @@ if (elements)
 	    start = (SLONG) (element->nod_arg [0]) + 1;
 	    break;
 
-        default:
+	default:
+		break;
 	}
     }
 
@@ -1138,7 +1142,8 @@ if (elements)
 	    put_cstring (request, gds__dyn_fld_character_set_name, name->str_data);
 	    break;
 
-        default:
+	default:
+		break;
 	}
     }
 
@@ -2258,7 +2263,8 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count, position = 0;
 	   define_rel_constraint (request, element);
 	   break;
 
-        default:
+	default:
+		break;
 	}
     }
 
@@ -3695,7 +3701,8 @@ switch (node->nod_type)
 	set_statistics (request);
 	break;
 
-    default:
+	default:
+		break;
     }
 }
 
@@ -3997,7 +4004,8 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 		drop_cache = TRUE;
 		break;
 
-        default:
+	default:
+		break;
 	}
     }
 
@@ -4100,7 +4108,8 @@ for (ptr = elements->nod_arg, end = ptr + elements->nod_count;
 	case nod_drop_cache:
 	    break;
 
-        default:
+	default:
+		break;
 	}
     }
 
@@ -4214,7 +4223,8 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
            STUFF (gds__dyn_del_default);
 	   break;
 
-        default:
+	default:
+		break;
 	}
     }
 
@@ -4325,7 +4335,8 @@ switch (user->nod_type)
 	put_cstring (request, gds__dyn_grant_view, name->str_data);
 	break;
 
-    default:
+	default:
+		break;
     }
 
 if (field_name)
@@ -4397,7 +4408,8 @@ switch (privs->nod_type)
 	p = privileges;
 	break;
 
-    default:
+	default:
+		break;
     }
 
 if (*p)
@@ -4537,7 +4549,8 @@ for (ptr = ops->nod_arg, end = ptr + ops->nod_count; ptr < end; ptr++)
 	   define_rel_constraint (request, element);
 	   break;
 
-        default:
+	default:
+		break;
 	}
     }
 

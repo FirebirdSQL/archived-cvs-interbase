@@ -412,7 +412,8 @@ switch (node->nod_type)
 		operator = blr_total;
 		break;
 
-            default:
+		default:
+			break;
 	    }
 
 	STUFF (operator);
