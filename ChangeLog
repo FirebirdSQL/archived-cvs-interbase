@@ -1,3 +1,26 @@
+2001-07-09 22:39  awharrison
+
+	* interbase/: alice/alice.c, alice/aliceswi.h, alice/exe.c,
+	burp/backup.e, burp/burpswi.h, burp/restore.e, dsql/ddl.c,
+	dsql/dsql.c, jrd/blb.c, jrd/cch.c, jrd/common.h, jrd/dpm.e,
+	jrd/ext.c, jrd/inf.c, jrd/ini.e, jrd/jrd.c, jrd/met.e,
+	jrd/netware.c, jrd/pag.c, jrd/rlck.c, jrd/tra.c, jrd/unix.c,
+	jrd/vio.c, jrd/winnt.c:
+	
+	ReadOnly should not be conditional
+
+2001-07-09 21:12  awharrison
+
+	* interbase/burp/: backup.e, burp.c, restore.e:
+	
+	Code Cleanup, removed #ifdef READONLY_DATABASE conditionals
+
+2001-07-09 20:37  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	back off the last change just a bit
+
 2001-07-08 23:31  awharrison
 
 	* interbase/jrd/idx.h:
