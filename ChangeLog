@@ -1,3 +1,63 @@
+2001-10-18 23:30  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Yet Another Test.
+
+2001-10-18 23:24  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Testing syncmail some more.
+
+2001-10-18 23:20  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	[no log message]
+
+2001-10-18 23:05  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Take 3
+
+2001-10-18 23:03  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Testing new syncmail.
+
+2001-10-18 22:46  awharrison
+
+	* interbase/jrd/dfw.e:
+	
+	
+	Sorted out the order of triggers again - the new system flag
+	numbers appeared to have confused it.
+
+2001-10-18 22:45  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Testing out the updated syncmail script.
+
+2001-10-18 22:07  bellardo
+
+	* interbase/builds/original/prefix.darwin:
+	
+	Opps, one more change needed to get FB1 compiling on MacOS X 10.1
+	again.
+
+2001-10-18 02:07  bellardo
+
+	* interbase/: builds/original/prefix.darwin,
+	builds/original/sfx.lock, gpre/gpre.c:
+	
+	Changes to get FB1 compiling and working under the newly released
+	MacOS X 10.1.  Included a change to gpre to initialize the
+	error/warning/fatal counts.
+
 2001-10-17 07:02  tamlin
 
 	* interbase/remote/srvr_w32.c:
