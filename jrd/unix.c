@@ -29,6 +29,7 @@
 #endif
 
 #include "../jrd/ib_stdio.h"
+#include "../jrd/common.h"
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/types.h>
@@ -37,7 +38,6 @@
 #include <sys/stat.h>
 #include <string.h>
 
-#include "../jrd/common.h"
 #if !(defined SEEK_END && defined F_OK)
 #include <unistd.h>
 #endif
@@ -126,7 +126,7 @@
 extern int	errno;
 
 static void	close_marker_file (TEXT *);
-static FIL	seek_file (FIL, BDB, SLONG *, STATUS *);
+static FIL	seek_file (FIL, BDB, UINT64 *, STATUS *);
 static FIL	setup_file (DBB, TEXT *, USHORT, int);
 static BOOLEAN	unix_error (TEXT *, FIL, STATUS, STATUS *);
 
@@ -450,7 +450,7 @@ void PIO_header (
  **************************************/
 FIL	file;
 SSHORT  i;
-SLONG   bytes;
+UINT64   bytes;
 
 file = dbb->dbb_file;
 
@@ -732,7 +732,7 @@ int PIO_read (
  **************************************/
 DBB	dbb;
 SSHORT	i;
-SLONG	bytes, size, offset;
+UINT64	bytes, size, offset;
 
 ISC_inhibit();
 
@@ -833,7 +833,7 @@ int PIO_write (
  **************************************/
 DBB	dbb;
 SSHORT	i;
-SLONG	bytes, size, offset;
+UINT64	bytes, size, offset;
 
 ISC_inhibit();
 
@@ -945,7 +945,7 @@ ib_fclose (fp);
 static FIL seek_file (
     FIL		file,
     BDB		bdb,
-    SLONG	*offset,
+    UINT64	*offset,
     STATUS	*status_vector)
 {
 /**************************************
@@ -982,7 +982,7 @@ if (file->fil_desc == -1)
 page -= file->fil_min_page - file->fil_fudge;
 
 #ifdef PREAD_PWRITE
-*offset = (SLONG) (page * dbb->dbb_page_size);
+*offset = LSEEK_OFFSET_CAST (page * dbb->dbb_page_size);
 #else
 lseek_offset = page;
 lseek_offset *= dbb->dbb_page_size;
