@@ -1,3 +1,27 @@
+2001-03-23 09:14  fsg
+
+	* interbase/remote/inet.c:
+	
+	Comitted changes made by Lukas Zeller. INET_connect will now fall
+	back to 3050 if no entry in the services file is found (allowing a
+	client installation without changing the services  file)
+	
+	I added a small modification to allow the usage of a port number
+	instead of a service name in the connect string.
+	
+	Commited the changes to inet.c from the Borland tree.  These should
+	solve the start up errors on Linux (and so make the -signore switch
+	obsolete)
+	
+	fsg
+
+2001-03-18 16:42  skywalker
+
+	* interbase/burp/: backup.e, restore.e:
+	
+	Comitted changes made by Toni Martir that will print a progress
+	trace when doing a backup and restore.
+
 2001-03-16 15:55  fsg
 
 	* interbase/: jrd/common.h, jrd/ibase.h, jrd/isc.c, jrd/isc.h,
