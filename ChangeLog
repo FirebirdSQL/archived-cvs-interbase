@@ -1,3 +1,83 @@
+2004-10-26 09:48  paulbeach
+
+	* interbase/jrd/gds.c:
+	
+	Minor amendment
+
+2004-10-26 09:20  robocop
+
+	* interbase/: jrd/cvt.c, jrd/sort.c,
+	firebird/bellardo/nightly_build_script,
+	builds/original/prefix.hp10, builds/original/prefix.hp11:
+	
+	Misc.
+
+2004-10-25 16:29  paulbeach
+
+	* interbase/: jrd/common.h, jrd/cvt.c, jrd/evl.c, jrd/gds.c,
+	lock/printv3.c:
+	
+	Hopefully the final commits to complete the HPUX 1.03 Port
+
+2004-10-24 12:16  robocop
+
+	* interbase/build_docs/: README.linux,
+	ibbuild_linux_cvs_build.html:
+	
+	Update references to the FB CVS
+
+2004-10-22 12:35  paulbeach
+
+	* interbase/dsql/dsql.c:
+	
+	Correct change to dsql.c for HPUX compiler as per Claudio's
+	suggestion.
+
+2004-10-21 14:40  paulbeach
+
+	* interbase/example5/intlbld.e:
+	
+	Firebird HPUX 10 & 11 Port, Upgrade examples to SQL Dialect 3
+
+2004-10-21 14:31  paulbeach
+
+	* interbase/jrd/: cmp.c, common.h, cvt.c, evl.c, flu.c, flu.h,
+	gds.c, isc_file.c, isc_sync.c, jrd.h, license.h, sort.c, thd.h:
+	
+	Firebird HPUX 10 & 11 Port
+
+2004-10-21 14:18  paulbeach
+
+	* interbase/: gpre/cob.c, gpre/gpre.h, lock/lock.c, lock/lock.h,
+	lock/lockv3.h, lock/printv3.c:
+	
+	Firebird HPUX 10 & 11 Port
+
+2004-10-21 14:14  paulbeach
+
+	* interbase/example5/: empbld.sql, empbuild.e, empddl.sql,
+	intlbld.sql, intlddl.sql:
+	
+	Firebird HPUX 10 & 11 Port, Upgrade examples to SQL Dialect 3
+
+2004-10-21 14:11  paulbeach
+
+	* interbase/dsql/dsql.c:
+	
+	Firebird HPUX 10 & 11 Port
+
+2004-10-21 14:08  paulbeach
+
+	* interbase/builds/original/: prefix.hp10, sfx.remote, prefix.hp11:
+	
+	Firebird HPUX 10 & 11 Port
+
+2004-10-21 14:00  paulbeach
+
+	* interbase/builds/original/bind_gds.hp:
+	
+	Firebird HPUX 10 & 11 Port
+
 2004-03-10 08:05  eku
 
 	* interbase/jrd/common.h:
