@@ -577,9 +577,11 @@ while (items < end_items && *items != gds__info_end)
 		    continue;
 		if (user = att->att_user)
 		    {
+                    char *user_name = user->usr_user_name ? 
+                    	user->usr_user_name : "(SQL Server)";
 		    p = buffer;
-		    *p++ = l = strlen (user->usr_user_name);
-		    for (q = user->usr_user_name; l; l--)
+		    *p++ = l = strlen (user_name);
+		    for (q = user_name; l; l--)
 			*p++ = *q++;
 		    length = p - buffer;
 		    if (!(info = INF_put_item (item, length, buffer, info, end)))
