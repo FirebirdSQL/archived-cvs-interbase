@@ -32,6 +32,8 @@
  * but that is for another day :-)
  * 2001.09.09 Claudio Valderrama: procedure's parameter names may need 
  *   double quotes if they are in dialect 3 and have special characters.
+ * 2001.09.21 Claudio Valderrama: Show correct mechanism for UDF parameters
+ *   and support the RETURNS PARAMETER <n> syntax.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -77,6 +79,7 @@ static void     get_procedure_args (SCHAR *);
 
 #define MAX_INTSUBTYPES	2
 #define MAXSUBTYPES	8
+#define MAX_UDFPARAM_TYPES 4
 #define BLANK		'\040'
 #define DBL_QUOTE	'\042'
 #define SINGLE_QUOTE	'\''
@@ -89,6 +92,7 @@ extern SQLTYPES	Column_types [];
 extern SCHAR	*Integral_subtypes [];
 extern SCHAR	*Sub_types [];
 extern SCHAR	*Trigger_types [];
+extern SCHAR	*UDF_param_types[];
 
 static SCHAR	*Procterm = "^";	/* TXNN: script use only */
 
@@ -2438,8 +2442,8 @@ static void list_functions (void)
  *               RETURNS INTEGER BY VALUE
  *               ENTRY_POINT entrypoint MODULE_NAME module;
  **************************************/
-SSHORT 	first = TRUE, firstarg = TRUE;
-SSHORT  i;
+BOOLEAN	first = TRUE, firstarg = TRUE, printarg = TRUE;
+SSHORT  i, ptype;
 SCHAR	*return_buffer;
 SCHAR	*type_buffer;
 SCHAR	*buffer;
@@ -2611,19 +2615,36 @@ FOR FUN IN RDB$FUNCTIONS
 // so I started my own metadata extraction utility based on IBO that does this
 // trick and others. 
 // Claudio Valderrama (by way of) MOD 23-Apr-2001
+
+CVC: Finally enhanced the UDF metadata extraction.
 */
 
+		ptype = (SSHORT) abs (FNA.RDB$MECHANISM);
+		if (ptype > MAX_UDFPARAM_TYPES + 1 || ptype < 0)
+			ptype = MAX_UDFPARAM_TYPES + 1;
+
+		printarg = TRUE;
         if (FUN.RDB$RETURN_ARGUMENT == FNA.RDB$ARGUMENT_POSITION)
-            sprintf (return_buffer, "RETURNS %s %s %s", type_buffer, 
-                (((SSHORT) abs (FNA.RDB$MECHANISM) == FUN_reference || FNA.RDB$FIELD_TYPE == BLOB) ? "" : "BY VALUE"), 
-                (FNA.RDB$MECHANISM < 0 ? "FREE_IT" : ""));
-        else
-            {
+		{
+			if (FUN.RDB$RETURN_ARGUMENT)
+				sprintf (return_buffer, "RETURNS PARAMETER %d",
+					FUN.RDB$RETURN_ARGUMENT);
+			else
+			{
+				sprintf (return_buffer, "RETURNS %s%s %s", type_buffer,
+					UDF_param_types[ptype],
+					(FNA.RDB$MECHANISM < 0 ? "FREE_IT" : ""));
+				printarg = FALSE;
+			}
+		}
+        if (printarg)
+		{
             /* First arg needs no comma */
-            sprintf (Print_buffer, "%s%s", (firstarg ? "" : ", "), type_buffer);
+            sprintf (Print_buffer, "%s%s%s", (firstarg ? "" : ", "), type_buffer,
+				UDF_param_types[ptype]);
             ISQL_printf (Out, Print_buffer);
             firstarg = FALSE;
-            }
+		}
 
     END_FOR
 	ON_ERROR

@@ -26,7 +26,7 @@
  * 19-May-2001 Claudio Valderrama.
  * Change to be in sync with extract.e: BLOB is not returned
  * by value but by descriptor.
- *
+ * 2001.09.21 Claudio Valderrama: Show correct mechanism for UDF parameters.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -160,6 +160,22 @@ CONST SCHAR	*Trigger_types[] = {
 	"BEFORE DELETE",			/* NTX: keyword */
 	"AFTER DELETE"				/* NTX: keyword */
 };
+
+/* CVC: Notice that
+BY REFERENCE is the default for scalars and can't be specified explicitly;
+BY ISC_DESCRIPTOR is the default for BLOBs and can't be used explicitly;
+BY SCALAR_ARRAY_DESCRIPTOR should be supported in DSQL in the future, since
+the server has already the capability to deliver arrays to UDFs. */
+#define MAX_UDFPARAM_TYPES 4
+CONST SCHAR	*UDF_param_types[] = {
+	" BY VALUE",			/* NTX: keyword */
+	"",						/* BY REFERENCE */
+	" BY DESCRIPTOR",		/* NTX: keyword in FB */
+	"",						/* BY ISC_DESCRIPTOR => BLOB */
+	" BY SCALAR ARRAY DESCRIPTOR"	/* Should be NTX: keyword */
+	" ERROR-type-unknown"
+};
+
 
 #define priv_UNKNOWN	1
 #define priv_SELECT	2
@@ -2631,7 +2647,7 @@ static int show_functions (
  **************************************/
 SSHORT	first = TRUE;
 SSHORT	odd = 1;
-SSHORT	i;
+SSHORT	i, ptype;
 
 /* Show all functions */
 if (!*object) 
@@ -2682,18 +2698,23 @@ FOR FUN IN RDB$FUNCTIONS CROSS
 			  NEWLINE);
 		 ISQL_printf (Out, Print_buffer);
 		 }
+
+	ptype = (SSHORT) abs (FNA.RDB$MECHANISM);
+		if (ptype > MAX_UDFPARAM_TYPES + 1 || ptype < 0)
+			ptype = MAX_UDFPARAM_TYPES + 1;
+
 	first = FALSE;
 	if (FUN.RDB$RETURN_ARGUMENT == FNA.RDB$ARGUMENT_POSITION)
-		 {
-		 sprintf (Print_buffer, "Returns %s %s ",
-			  ((SSHORT) abs(FNA.RDB$MECHANISM) == FUN_reference ? "BY REFERENCE "
-					: (FNA.RDB$FIELD_TYPE == BLOB ? "BY DESCRIPTOR " : "BY VALUE ")),
-					(FNA.RDB$MECHANISM < 0 ? "FREE_IT " : ""));
+	   {
+	    sprintf (Print_buffer, "Returns %s%s ",
+			UDF_param_types[ptype],
+			(FNA.RDB$MECHANISM < 0 ? "FREE_IT " : ""));
 	    ISQL_printf (Out, Print_buffer);
 	    }
 	else
 	    {
-	    sprintf (Print_buffer, "Argument %d: ", FNA.RDB$ARGUMENT_POSITION);
+	    sprintf (Print_buffer, "Argument %d:%s ", FNA.RDB$ARGUMENT_POSITION,
+			UDF_param_types[ptype]);
 	    ISQL_printf (Out, Print_buffer);
 	    }
 	for (i = 0; Column_types [i].type; i++)
