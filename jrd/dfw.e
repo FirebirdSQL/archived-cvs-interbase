@@ -298,11 +298,11 @@ else if (field_type == dtype_sql_date)
 else if (field_type == dtype_sql_time)
     return idx_sql_time;
 
-#ifdef EXACT_NUMERICS
+
 /* idx_numeric2 used for 64-bit Integer support */
 if (field_type == dtype_int64)
     return idx_numeric2;
-#endif
+
 
 return idx_numeric;
 }

@@ -317,13 +317,8 @@ dbb = tdbb->tdbb_database;
 
 if (!*default_class)                           
     {      
-#ifndef EXACT_NUMERICS
-    sprintf (default_class, "%s%ld\0", DEFAULT_CLASS, 
-	DPM_gen_id (tdbb, MET_lookup_generator (tdbb, DEFAULT_CLASS), 0, (SLONG) 1));
-#else
     sprintf (default_class, "%s%" QUADFORMAT "d\0", DEFAULT_CLASS, 
 	DPM_gen_id (tdbb, MET_lookup_generator (tdbb, DEFAULT_CLASS), 0, (SINT64) 1));
-#endif
     
     request = (BLK) CMP_find_request (tdbb, irq_grant7, IRQ_REQUESTS);
 

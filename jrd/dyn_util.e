@@ -70,11 +70,7 @@ static CONST SCHAR
         blr_version5,
         blr_begin, 
           blr_message, 0, 1,0, 
-#ifndef EXACT_NUMERICS
-    	    blr_long, 0, 
-#else
     	    blr_int64, 0, 
-#endif
           blr_begin, 
             blr_send, 0, 
               blr_begin, 
@@ -135,11 +131,7 @@ SINT64 DYN_UTIL_gen_unique_id (
  **************************************/
 DBB	dbb;
 BLK	handle;
-#ifndef EXACT_NUMERICS
-SLONG	value;
-#else
 SINT64	value;
-#endif
 
 SET_TDBB (tdbb);
 dbb = tdbb->tdbb_database;
