@@ -3449,7 +3449,11 @@ if ((SQL_dialect == 0) || (SQL_dialect > 1))
 	new_local_statement = (TEXT*) ISQL_ALLOC ((SLONG) (arglength + 1));
 
 	if (!new_local_statement)
+	    {
+    	    ISQL_FREE (local_statement);
+    	    ISQL_FREE (usr);
 	    return (FAIL);
+	    }
 
 	}
 
@@ -3471,6 +3475,10 @@ if ((SQL_dialect == 0) || (SQL_dialect > 1))
 			    "create database statement", 
 			    NULL_PTR, NULL_PTR, NULL_PTR, NULL_PTR);
 	    STDERROUT (errbuf, 1);
+	    ISQL_FREE (local_statement);
+	    ISQL_FREE (usr);
+	    if (new_local_statement)
+	    	ISQL_FREE (new_local_statement);
 	    return(FAIL);
 	}
 	copy_str (&temp_str, &temp_local_stmt_str, &done,
@@ -3523,7 +3531,10 @@ if ((SQL_dialect == 0) || (SQL_dialect > 1))
 	}
 
     if (new_local_statement)
+	{
+	ISQL_FREE (local_statement);
 	local_statement = new_local_statement;
+	}
     }
 
     /* execute the create statement 
