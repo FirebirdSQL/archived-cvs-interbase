@@ -1417,9 +1417,6 @@ fil->fil_max_page = 0L;
 
 if ((fil->fil_desc = FEsopen (expanded_filename, O_RDONLY | O_BINARY, SH_DENYNO, 0, 0,
                           PrimaryDataStream)) == -1)
-#else
-if ((fil->fil_desc = FEsopen (expanded_filename, O_RDWR | O_BINARY, SH_DENYNO, 0, 0,
-                          PrimaryDataStream)) == -1)
     {
 #ifdef SUPERSERVER
     CMD_UTIL_put_svc_status(tddba->dba_service_blk->svc_status,
