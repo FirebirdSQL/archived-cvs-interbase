@@ -175,9 +175,13 @@ if [ -f /etc/services ]; then
 fi
 if [ -f /etc/inetd.conf ]; then
     if [ "$SUPERSERVER" = "SUPERSERVER" ]; then
-	# Remove gds_db service. We do not want gds_inet_server to be invoked
-	cat /etc/inetd.conf | grep -v gds_db > inetd.conf
-	mv inetd.conf /etc/inetd.conf
+		# Remove gds_db service. We do not want gds_inet_server to be invoked
+		cat /etc/inetd.conf | grep -v gds_db > inetd.conf
+		if [ -f /etc/inet/inetd.conf ]; then 
+			mv inetd.conf /etc/inet/inetd.conf
+		else	
+			mv inetd.conf /etc/inetd.conf
+		fi
     else
 	grep -s gds_db /etc/inetd.conf  > /dev/null 2>&1
 	if test $? != 0 ; then
