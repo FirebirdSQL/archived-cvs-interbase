@@ -409,7 +409,7 @@ switch (node->nod_type)
 		len = *(SLONG *) for_node->nod_desc.dsc_address;
 		/* For now, our substring() doesn't handle MBCS blobs,
 		neither at the DSQL layer nor at the JRD layer. */
-		if (len <= (ULONG) MAX_COLUMN_SIZE - sizeof (USHORT) || len >= 0)
+		if (len <= (ULONG) MAX_COLUMN_SIZE - sizeof (USHORT) && len >= 0)
 			desc->dsc_length = sizeof (USHORT) + len;
 		else
 			ERRD_post (gds__sqlerr, gds_arg_number, (SLONG) -204,
