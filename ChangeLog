@@ -1,20 +1,42 @@
+2000-11-19 08:02  fsg
+
+	* interbase/isql/show.e:
+	
+	Change in show.e to use CHARACTER_LENGTH instead of FIELD_LENGTH in
+	SHOW PROCEDURE
+
+2000-11-18 17:49  fsg
+
+	* interbase/isql/: extract.e, isql.e, isql.h:
+	
+	Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans Fixed
+	Bug #122563 in extract.e get_procedure_args Apparently this has to
+	be done in show.e also, but that is for another day :-)
+
+2000-11-18 15:14  fsg
+
+	* interbase/ChangeLog:
+	
+	added  ChangeLog
+
 2000-11-18 07:50  fsg
 
-	* build_docs/: ibbuild_linux_cvs_build.hmtl,
+	* interbase/build_docs/: ibbuild_linux_cvs_build.hmtl,
 	ibbuild_linux_cvs_build.html:
 	
 	finally did it :-)
 
 2000-11-17 13:53  fsg
 
-	* firebird/fsg/TCS/export/global/: INIT.csv, META_SERIES.csv,
-	NOTES.csv, SERIES.csv, SERIES_COMMENT.csv, TESTS.csv:
+	* interbase/firebird/fsg/TCS/export/global/: INIT.csv,
+	META_SERIES.csv, NOTES.csv, SERIES.csv, SERIES_COMMENT.csv,
+	TESTS.csv:
 	
 	removed some files from private tree
 
 2000-11-16 16:54  fsg
 
-	* gpre/: gpre.c, gpre.h, gpreswi.h, sqe.c:
+	* interbase/gpre/: gpre.c, gpre.h, gpreswi.h, sqe.c:
 	
 	Added new switch -verbose to gpre that will dump parsed lines to
 	stderr
@@ -29,53 +51,55 @@
 
 2000-11-10 15:43  fsg
 
-	* firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, howto.txt,
+	* interbase/firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, howto.txt,
 	import_all, import_gtcs.pl:
 	
 	Changes to handle <null> values correctly
 
 2000-11-10 15:08  fsg
 
-	* utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h, srvrmgr.c:
+	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h, ibmgrswi.h,
+	srvrmgr.c:
 	
 	Added -s switch to guardian to ignore startup errors and related
 	changes to ibmgr and svrmgr
 
 2000-11-08 12:21  skywalker
 
-	* firebird/skywalker/install/super/SSTarInstall.sh:
+	* interbase/firebird/skywalker/install/super/SSTarInstall.sh:
 	
 	[no log message]
 
 2000-11-08 10:01  fsg
 
-	* firebird/fsg/TCS/export/global/: INIT.csv, META_SERIES.csv,
-	NOTES.csv, SERIES.csv, SERIES_COMMENT.csv, TESTS.csv:
+	* interbase/firebird/fsg/TCS/export/global/: INIT.csv,
+	META_SERIES.csv, NOTES.csv, SERIES.csv, SERIES_COMMENT.csv,
+	TESTS.csv:
 	
 	Added the original test scripts
 
 2000-11-07 17:04  fsg
 
-	* firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, gtcs.gdl, howto.txt,
-	import_all, import_gtcs.pl:
+	* interbase/firebird/fsg/TCS/: dump_gtcs.pl, fix_it.sql, gtcs.gdl,
+	howto.txt, import_all, import_gtcs.pl:
 	
 	Added some scripts to import and export test data
 
 2000-11-06 16:14  fsg
 
-	* firebird/fsg/TCS/dump_gtcs.pl:
+	* interbase/firebird/fsg/TCS/dump_gtcs.pl:
 	
 	tried it again
 
 2000-11-06 16:04  fsg
 
-	* firebird/fsg/TCS/dump_gtcs.pl:
+	* interbase/firebird/fsg/TCS/dump_gtcs.pl:
 	
 	perl script to dump tests from gtcs.gdb (needs IBperl)
 
 2000-11-06 03:48  patrickgriffin
 
-	* jrd/common.h:
+	* interbase/jrd/common.h:
 	
 	Eliminate the following interbase.log error message in the AIX and
 	AIX PPC builds:
@@ -94,7 +118,7 @@
 
 2000-11-06 03:37  patrickgriffin
 
-	* firebird/patrickgriffin/tcs_tests/bug_112177_12:
+	* interbase/firebird/patrickgriffin/tcs_tests/bug_112177_12:
 	
 	Correct header in bug_112177_12.
 	
@@ -102,10 +126,10 @@
 
 2000-11-06 03:25  patrickgriffin
 
-	* firebird/patrickgriffin/tcs_tests/: bug_112177_01, bug_112177_02,
-	bug_112177_03, bug_112177_04, bug_112177_05, bug_112177_06,
-	bug_112177_07, bug_112177_08, bug_112177_09, bug_112177_10,
-	bug_112177_11, bug_112177_12:
+	* interbase/firebird/patrickgriffin/tcs_tests/: bug_112177_01,
+	bug_112177_02, bug_112177_03, bug_112177_04, bug_112177_05,
+	bug_112177_06, bug_112177_07, bug_112177_08, bug_112177_09,
+	bug_112177_10, bug_112177_11, bug_112177_12:
 	
 	Additional tests useful in exercising the different aspects of the
 	112177, GBAK fails with non-english defaults, change proposal.
@@ -114,8 +138,8 @@
 
 2000-11-02 08:12  patrickgriffin
 
-	* firebird/patrickgriffin/tcs_tests/: bug_112177_01, bug_112177_02,
-	bug_112177_03, bug_112177_04, bug_116579_01:
+	* interbase/firebird/patrickgriffin/tcs_tests/: bug_112177_01,
+	bug_112177_02, bug_112177_03, bug_112177_04, bug_116579_01:
 	
 	Test scripts, in TCS format.
 	
@@ -128,7 +152,7 @@
 
 2000-10-22 12:47  skywalker
 
-	* firebird/skywalker/install/: SSrpmscript,
+	* interbase/firebird/skywalker/install/: SSrpmscript,
 	super/SSchangePasswd.sh, super/SSpostinstall.sh:
 	
 	Small script for autoupdating SYSDBA password in
@@ -136,8 +160,8 @@
 
 2000-10-22 12:32  skywalker
 
-	* firebird/skywalker/install/: CSrpmscript, Makefile, SSrpmscript,
-	classic/CSTarInstall.sh, classic/CSTarKullFiles.sh,
+	* interbase/firebird/skywalker/install/: CSrpmscript, Makefile,
+	SSrpmscript, classic/CSTarInstall.sh, classic/CSTarKullFiles.sh,
 	classic/CSinstall.sh, classic/CSpostinstall.sh,
 	classic/CSpostuninstall.sh, classic/CSpreinstall.sh,
 	classic/CSpreuninstall.sh, classic/CSrpmfiles.txt,
@@ -151,7 +175,7 @@
 
 2000-10-19 12:57  patrickgriffin
 
-	* jrd/cmp.c:
+	* interbase/jrd/cmp.c:
 	
 	Please consider this contrived example:
 	
@@ -176,7 +200,7 @@
 
 2000-10-17 07:43  patrickgriffin
 
-	* dsql/gen.c:
+	* interbase/dsql/gen.c:
 	
 	The build in functions AVG(x) and SUM(x) when used on integer
 	fields can produce result columns with no title.
@@ -207,44 +231,44 @@
 
 2000-10-16 18:09  skywalker
 
-	* utilities/: guard.c, ibmgr.c, ibmgr.h:
+	* interbase/utilities/: guard.c, ibmgr.c, ibmgr.h:
 	
 	Now allows the user firebird to run the server
 
 2000-10-16 16:33  tamlin
 
-	* jrd/llio.c:
+	* interbase/jrd/llio.c:
 	
 	Compiler warnings removed
 
 2000-10-16 16:22  tamlin
 
-	* jrd/sdl.c:
+	* interbase/jrd/sdl.c:
 	
 	Compiler warnings removed
 
 2000-10-15 15:26  fsg
 
-	* jrd/: misc.h, utl.c:
+	* interbase/jrd/: misc.h, utl.c:
 	
 	changes to get BLOB_edit to work again and to use mkstemp instead
 	of mktemp on Linux platforms
 
 2000-10-14 17:40  tsarna
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	SYS_TYPE should be set before we use it in checkVariables
 
 2000-10-14 17:39  tsarna
 
-	* builds/original/prefix.netbsd:
+	* interbase/builds/original/prefix.netbsd:
 	
 	Factor out library path flags, and fix -L
 
 2000-10-13 08:03  patrickgriffin
 
-	* jrd/entry.h:
+	* interbase/jrd/entry.h:
 	
 	10/13/2000
 	
@@ -255,7 +279,7 @@
 
 2000-10-13 08:02  patrickgriffin
 
-	* gpre/cob.c:
+	* interbase/gpre/cob.c:
 	
 	10/13/2000
 	
@@ -266,7 +290,7 @@
 
 2000-10-13 08:00  patrickgriffin
 
-	* dsql/dsql.c:
+	* interbase/dsql/dsql.c:
 	
 	10/13/2000 Fix for bug #113708.
 	
@@ -287,7 +311,7 @@
 
 2000-10-13 07:15  patrickgriffin
 
-	* jrd/cmp.c:
+	* interbase/jrd/cmp.c:
 	
 	Modified Files: 	interbase/jrd/cmp.c
 	
@@ -317,13 +341,13 @@
 
 2000-10-13 04:18  gspeicher
 
-	* pyxis/cdm.c:
+	* interbase/pyxis/cdm.c:
 	
 	- a couple of defines were missing the leading '#'
 
 2000-10-12 04:52  tsarna
 
-	* setup_dirs, builds/original/prefix.netbsd,
+	* interbase/: setup_dirs, builds/original/prefix.netbsd,
 	builds/original/sfx.interbase, gpre/cob.c, gpre/ftn.c,
 	jrd/common.h, jrd/file_params.h, jrd/flu.c, jrd/gds.c,
 	jrd/isc_file.c, jrd/isc_ipc.c, jrd/isc_sync.c, jrd/license.h,
@@ -337,7 +361,7 @@
 
 2000-10-08 17:36  gspeicher
 
-	* builds/original/prefix.freebsd:
+	* interbase/builds/original/prefix.freebsd:
 	
 	- Use -O instead of -O3 for production build (-O3 is asking for
 	trouble) - Link against libdescrypt instead of libcrypt.  This
@@ -346,76 +370,76 @@
 
 2000-10-03 23:48  rfm
 
-	* build_docs/ibbuild-win32.txt:
+	* interbase/build_docs/ibbuild-win32.txt:
 	
 	Add suggestion of just renaming echo instead of making your own.
 
 2000-10-03 05:47  rfm
 
-	* jrd/flu.c:
+	* interbase/jrd/flu.c:
 	
 	fix typo
 
 2000-10-02 23:25  tmcsys
 
-	* utilities/util.c:
+	* interbase/utilities/util.c:
 	
 	AIX_PPC
 
 2000-09-30 14:03  fsg
 
-	* builds/original/add_template, builds/original/build_kit,
-	builds/original/mpm_template, builds/original/mpp_template,
-	builds/original/put_template, builds/original/sfx.interbase,
-	jrd/license.h, remote/inet.c:
+	* interbase/: builds/original/add_template,
+	builds/original/build_kit, builds/original/mpm_template,
+	builds/original/mpp_template, builds/original/put_template,
+	builds/original/sfx.interbase, jrd/license.h, remote/inet.c:
 	
 	Added some changes from the inprise tree
 
 2000-09-29 19:47  tmcsys
 
-	* jrd/why.c:
+	* interbase/jrd/why.c:
 	
 	fix conditional syntax
 
 2000-09-29 16:49  tmcsys
 
-	* jrd/why.c, utilities/drop.c:
+	* interbase/: jrd/why.c, utilities/drop.c:
 	
 	AIX_PPC port
 
 2000-09-28 19:43  tmcsys
 
-	* builds/original/bind_gds.aix_ppc:
+	* interbase/builds/original/bind_gds.aix_ppc:
 	
 	update export list
 
 2000-09-28 18:21  tmcsys
 
-	* builds/original/bind_gdsintl.aix_ppc:
+	* interbase/builds/original/bind_gdsintl.aix_ppc:
 	
 	AIX intl shared library
 
 2000-09-28 17:06  tmcsys
 
-	* dsql/: ddl.c, gen.c:
+	* interbase/dsql/: ddl.c, gen.c:
 	
 	C for AIX requires stmt after default switch case
 
 2000-09-28 02:05  tmcsys
 
-	* jrd/flu.c:
+	* interbase/jrd/flu.c:
 	
 	AIX_PPC fix ifdef
 
 2000-09-28 01:53  tmcsys
 
-	* jrd/flu.c:
+	* interbase/jrd/flu.c:
 	
 	AIX_PPC
 
 2000-09-23 06:39  rfm
 
-	* jrd/gds.c:
+	* interbase/jrd/gds.c:
 	
 	define V4_THREADING for all superserver platfroms, as recommended
 	by Charlie Caro. See my message '[Firebird-devel] Re: IB Super
@@ -424,44 +448,44 @@
 
 2000-09-23 05:54  rfm
 
-	* setup_build.ksh:
+	* interbase/setup_build.ksh:
 	
 	exit if no argument is given.
 
 2000-09-15 09:19  fsg
 
-	* setup_dirs, builds/original/prefix.linux:
+	* interbase/: setup_dirs, builds/original/prefix.linux:
 	
 	Added a link to super/jrd/isc.gdb and removed -lbsd from
 	prefix.linux
 
 2000-09-08 23:27  tmcsys
 
-	* jrd/: pwd.c, pwd.h:
+	* interbase/jrd/: pwd.c, pwd.h:
 	
 	security db path for AIX_PPC
 
 2000-09-07 21:50  tmcsys
 
-	* example5/build_make:
+	* interbase/example5/build_make:
 	
 	oops! - it was fine the way it was
 
 2000-09-07 20:58  tmcsys
 
-	* example5/build_make:
+	* interbase/example5/build_make:
 	
 	fix path for prefix
 
 2000-09-07 20:24  tmcsys
 
-	* lock/lock.c:
+	* interbase/lock/lock.c:
 	
 	Avoid lock manager error for AIX_PPC
 
 2000-09-04 18:04  skywalker
 
-	* burp/backup.e, burp/burp.c, dsql/ddl.c, dsql/gen.c,
+	* interbase/: burp/backup.e, burp/burp.c, dsql/ddl.c, dsql/gen.c,
 	dudley/parse.c:
 	
 	Some suggested syntax changes to previous fixes. Add while loops
@@ -469,154 +493,155 @@
 
 2000-09-04 16:43  skywalker
 
-	* isql/isql.e:
+	* interbase/isql/isql.e:
 	
 	Changed #define  indent
 
 2000-09-02 09:55  tamlin
 
-	* dsql/alld.c:
+	* interbase/dsql/alld.c:
 	
 	Compiler warnings and removal of an extra printf argument
 
 2000-09-02 09:53  tamlin
 
-	* iscguard/iscguard.c, remote/property.c:
+	* interbase/: iscguard/iscguard.c, remote/property.c:
 	
 	Make it compile using free-bcc
 
 2000-08-31 11:35  tamlin
 
-	* utilities/gsec.h:
+	* interbase/utilities/gsec.h:
 	
 	Compiler warnings
 
 2000-08-31 11:27  tamlin
 
-	* jrd/btr.c:
+	* interbase/jrd/btr.c:
 	
 	Compiler warnings
 
 2000-08-31 08:03  tamlin
 
-	* ipserver/ipserver.c:
+	* interbase/ipserver/ipserver.c:
 	
 	Compiler warnings
 
 2000-08-31 06:57  tamlin
 
-	* remote/: ibconfig.c, server.c:
+	* interbase/remote/: ibconfig.c, server.c:
 	
 	Compiler warnings
 
 2000-08-30 12:21  tamlin
 
-	* iscguard/iscguard.c:
+	* interbase/iscguard/iscguard.c:
 	
 	Handle leak removed
 
 2000-08-30 11:03  tamlin
 
-	* alice/alice.c:
+	* interbase/alice/alice.c:
 	
 	Compiler warnings removed
 
 2000-08-30 06:55  tamlin
 
-	* dsql/ddl.c:
+	* interbase/dsql/ddl.c:
 	
 	Compiler warnings removed
 
 2000-08-30 06:21  tamlin
 
-	* burp/spit.c:
+	* interbase/burp/spit.c:
 	
 	Compiler warnings removed
 
 2000-08-30 05:58  tamlin
 
-	* burp/mvol.c:
+	* interbase/burp/mvol.c:
 	
 	Compiler warnings removed
 
 2000-08-30 05:45  tamlin
 
-	* burp/canonical.c:
+	* interbase/burp/canonical.c:
 	
 	Compiler warnings removed
 
 2000-08-30 05:01  tamlin
 
-	* alice/tdr.c:
+	* interbase/alice/tdr.c:
 	
 	Compiler warnings removed
 
 2000-08-30 04:44  tamlin
 
-	* alice/exe.c:
+	* interbase/alice/exe.c:
 	
 	Compiler warnings removed
 
 2000-08-30 04:33  tamlin
 
-	* alice/all.c:
+	* interbase/alice/all.c:
 	
 	Compiler warnings removed
 
 2000-08-30 03:51  tamlin
 
-	* jrd/all.c:
+	* interbase/jrd/all.c:
 	
 	Compiler warnings removed
 
 2000-08-30 03:24  tamlin
 
-	* jrd/cvt.c:
+	* interbase/jrd/cvt.c:
 	
 	Compiler warnings removed
 
 2000-08-30 02:53  tamlin
 
-	* jrd/cmp.c:
+	* interbase/jrd/cmp.c:
 	
 	Compiler warnings removed
 
 2000-08-29 23:38  rfm
 
-	* jrd/cmp.c:
+	* interbase/jrd/cmp.c:
 	
 	Fix bug 112899 by returning = to ==
 
 2000-08-28 22:14  skywalker
 
-	* alice/all.c:
+	* interbase/alice/all.c:
 	
 	Fixed coding bug, best_tail<< SHIFT to best_tail <<= SHIFT
 
 2000-08-26 10:17  skywalker
 
-	* jrd/ib_stdio.h:
+	* interbase/jrd/ib_stdio.h:
 	
 	Changed some comments to that they were no longer nested.
 
 2000-08-26 10:06  skywalker
 
-	* burp/backup.e, burp/burp.c, dudley/parse.c, gpre/sqe.c,
-	isql/isql.e, qli/meta.e:
+	* interbase/: burp/backup.e, burp/burp.c, dudley/parse.c,
+	gpre/sqe.c, isql/isql.e, qli/meta.e:
 	
 	Fix a fair few "statement with no effect" warnings/errors.  That
 	became visible when warnings were turned on again.
 
 2000-08-26 07:04  skywalker
 
-	* jrd/sort.c:
+	* interbase/jrd/sort.c:
 	
 	Changed a for loop condition from (count) to (run && count) - its,
 	a better fix.
 
 2000-08-26 06:52  skywalker
 
-	* dsql/make.c, jrd/cmp.c, jrd/sort.c, jrd/unix.c, jrd/why.c:
+	* interbase/: dsql/make.c, jrd/cmp.c, jrd/sort.c, jrd/unix.c,
+	jrd/why.c:
 	
 	Changed to remove "stmt has no effect" warnings.  Some of these
 	were errors in code of the form a == b; which should have been a
@@ -624,39 +649,39 @@
 
 2000-08-26 03:44  skywalker
 
-	* builds/original/prefix.linux:
+	* interbase/builds/original/prefix.linux:
 	
 	Turned warnings to all
 
 2000-08-26 03:34  skywalker
 
-	* jrd/cmp.c:
+	* interbase/jrd/cmp.c:
 	
 	Changed a few a == b; stmts to a=b; - a pretty obvious error
 
 2000-08-23 23:21  tmcsys
 
-	* builds/original/bind_gds.aix_ppc:
+	* interbase/builds/original/bind_gds.aix_ppc:
 	
 	AIX ld expects bind file comments to begin with *
 
 2000-08-23 23:16  tmcsys
 
-	* jrd/flu.c:
+	* interbase/jrd/flu.c:
 	
 	
 	disable ISC_lookup_entrypoint for AIX_PPC
 
 2000-08-23 23:09  tmcsys
 
-	* jrd/isc.c:
+	* interbase/jrd/isc.c:
 	
 	
 	#define _UNIX95 when reading <grp.h> for AIX_PPC
 
 2000-08-23 23:01  tmcsys
 
-	* jrd/common.h:
+	* interbase/jrd/common.h:
 	
 	Add the following defines for AIX_PPC:
 	
@@ -665,13 +690,13 @@
 
 2000-08-22 00:40  rfm
 
-	* build_docs/ibbuild-win32.txt:
+	* interbase/build_docs/ibbuild-win32.txt:
 	
 	Make it match the improved firebird process.
 
 2000-08-21 23:12  rfm
 
-	* builds/original/buildRefDatabases:
+	* interbase/builds/original/buildRefDatabases:
 	
 	Copy databases using gbak, rather than CP.  Restore forms.gdb from
 	gbak rather than making a slink to metadata.gdb.  Put isc.gdb and
@@ -679,14 +704,14 @@
 
 2000-08-21 23:10  rfm
 
-	* pyxis/forms.gbk:
+	* interbase/pyxis/forms.gbk:
 	
 	Add forms.gbk so we can build pyxis (if edit.e can be preprocessed)
 	This is restored to forms.gdb by builds/original/buildRefDatabases
 
 2000-08-21 23:08  rfm
 
-	* jrd/isc.gdb:
+	* interbase/jrd/isc.gdb:
 	
 	Remove binary database file. The correct file is now created by
 	builds/original/buildRefDatabases and links are created by
@@ -694,20 +719,20 @@
 
 2000-08-21 23:06  rfm
 
-	* builds_win32/original/metadata.sql:
+	* interbase/builds_win32/original/metadata.sql:
 	
 	Create in current directory, rather than parent.
 
 2000-08-21 23:06  rfm
 
-	* builds_win32/original/include.mak:
+	* interbase/builds_win32/original/include.mak:
 	
 	use $(DB_DIR) token instead of hard-coded database names. This is
 	replaced by setup_build.ksh
 
 2000-08-21 23:04  rfm
 
-	* setup_dirs.ksh:
+	* interbase/setup_dirs.ksh:
 	
 	Accept DB_PATH argument, and pass it on to setup_build.ksh Don't do
 	anything for 'register' Create interbase tree for the final
@@ -715,7 +740,7 @@
 
 2000-08-21 23:02  rfm
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	Do not create metadata.gdb (it is now created by
 	builds/original/buildRefDatabases) create the 'intl' install target
@@ -728,7 +753,7 @@
 
 2000-08-21 22:57  rfm
 
-	* setup_build.ksh:
+	* interbase/setup_build.ksh:
 	
 	Accept database directory as an argument.  Don't try to setup
 	non-existant register component.  Adjust metadata.gdb creation
@@ -738,70 +763,70 @@
 
 2000-08-21 20:31  tmcsys
 
-	* misc/metadata.gbak:
+	* interbase/misc/metadata.gbak:
 	
 	add metadata.gbak
 
 2000-08-21 20:30  tmcsys
 
-	* misc/help.gbak:
+	* interbase/misc/help.gbak:
 	
 	add help.gbak
 
 2000-08-21 07:17  rfm
 
-	* jrd/sort.c:
+	* interbase/jrd/sort.c:
 	
 	Fix SEEK_SET for linux, and the right change for NT
 
 2000-08-21 05:28  rfm
 
-	* jrd/sort.c:
+	* interbase/jrd/sort.c:
 	
 	Include stdio.h on NT, so we have SEEK_SET for both debug and
 	production builds.
 
 2000-08-20 04:02  rfm
 
-	* jrd/utl.c:
+	* interbase/jrd/utl.c:
 	
 	Fix missing comma in version string table.
 
 2000-08-20 01:34  rfm
 
-	* jrd/: codes.h, codetext.h, iberror.h, msg_facs.h, msgs.h,
-	rdb_codes.h, sql_code.h:
+	* interbase/jrd/: codes.h, codetext.h, iberror.h, msg_facs.h,
+	msgs.h, rdb_codes.h, sql_code.h:
 	
 	Remove redundant ^M characters
 
 2000-08-19 02:06  rfm
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	Fix accidental commenting out of stuff in previous checkin
 
 2000-08-19 02:02  rfm
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	Change use of $3 to $MasterSourceDir
 
 2000-08-18 06:28  skywalker
 
-	* build_docs/ibbuild_linux_cvs_build.hmtl:
+	* interbase/build_docs/ibbuild_linux_cvs_build.hmtl:
 	
 	Instructions for building linux/unix version of firebird from the
 	CVS tree.
 
 2000-08-17 17:19  tmcsys
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	change links to help.db
 
 2000-08-17 01:30  gspeicher
 
-	* setup_dirs, builds/original/buildRefDatabases,
+	* interbase/: setup_dirs, builds/original/buildRefDatabases,
 	builds/original/prefix.freebsd, builds/original/sfx.interbase,
 	gpre/cob.c, gpre/ftn.c, jrd/common.h, jrd/file_params.h, jrd/flu.c,
 	jrd/gds.c, jrd/ids.h, jrd/isc.gdb, jrd/isc_file.c, jrd/isc_sync.c,
@@ -820,29 +845,30 @@
 
 2000-08-16 10:53  tamlin
 
-	* iscguard/: cntl_guard.c, iscguard.c, iscguard.rc:
+	* interbase/iscguard/: cntl_guard.c, iscguard.c, iscguard.rc:
 	
 	Dat time format fixed. Compiler warnings.
 
 2000-08-15 23:52  rfm
 
-	* builds/original/000_readme:
+	* interbase/builds/original/000_readme:
 	
 	Just add a note that this file is out of date and point to other
 	sources of build information.
 
 2000-08-15 20:41  tmcsys
 
-	* gpre/msc.c, lock/lock.c, pyxis/allp.c, pyxis/phase3.c, qli/all.c,
-	qli/gener.c, remote/parser.c, isql/isql.e:
+	* interbase/: gpre/msc.c, lock/lock.c, pyxis/allp.c,
+	pyxis/phase3.c, qli/all.c, qli/gener.c, remote/parser.c,
+	isql/isql.e:
 	
 	change ALIGN macro to FB_ALIGN
 
 2000-08-15 20:38  tmcsys
 
-	* jrd/align.c, jrd/blb.c, jrd/btr.c, jrd/btr.h, jrd/cmp.c,
-	jrd/common.h, jrd/exe.c, jrd/fun.e, jrd/ib_stdio.c, jrd/met.e,
-	jrd/msg.h, jrd/opt.c, jrd/par.c, jrd/rse.c, jrd/thd.h,
+	* interbase/: jrd/align.c, jrd/blb.c, jrd/btr.c, jrd/btr.h,
+	jrd/cmp.c, jrd/common.h, jrd/exe.c, jrd/fun.e, jrd/ib_stdio.c,
+	jrd/met.e, jrd/msg.h, jrd/opt.c, jrd/par.c, jrd/rse.c, jrd/thd.h,
 	burp/backup.e, burp/canonical.c, burp/restore.e, csv/csu.c,
 	csv/csv.c, dsql/dsql.c, dsql/gen.c, dsql/utld.c:
 	
@@ -850,39 +876,39 @@
 
 2000-08-15 18:43  tmcsys
 
-	* example5/: align.h, apifull.c, dynfull.e:
+	* interbase/example5/: align.h, apifull.c, dynfull.e:
 	
 	change ALIGN macro to FB_ALIGN
 
 2000-08-15 18:36  tmcsys
 
-	* example4/: align.h, apifull.c, dynfull.e:
+	* interbase/example4/: align.h, apifull.c, dynfull.e:
 	
 	change ALIGN macro to FB_ALIGN
 
 2000-08-15 18:25  tmcsys
 
-	* examples/: full_dsql.e, gdump.e:
+	* interbase/examples/: full_dsql.e, gdump.e:
 	
 	change ALIGN macro to FB_ALIGN
 
 2000-08-14 16:44  skywalker
 
-	* builds/original/buildRefDatabases:
+	* interbase/builds/original/buildRefDatabases:
 	
 	Added a script to build the reference databases
 
 2000-08-13 00:13  rfm
 
-	* remote/server.c:
+	* interbase/remote/server.c:
 	
 	Use *trdb->trdb_setjump in LONGJMP, since it is a *jmp_buf not just
 	a jmp_buf
 
 2000-08-13 00:01  rfm
 
-	* build_docs/: ibbuild-unix-overview.txt, ibbuild-win32.txt,
-	metadata_gdb.txt, msgs-overview.txt:
+	* interbase/build_docs/: ibbuild-unix-overview.txt,
+	ibbuild-win32.txt, metadata_gdb.txt, msgs-overview.txt:
 	
 	Remove my copyright notice. Minor updates to ibbuild-win32.txt to
 	reflect new downloads available from www.interbase.com and note the
@@ -890,40 +916,40 @@
 
 2000-08-12 22:40  rfm
 
-	* remote/caution.ico:
+	* interbase/remote/caution.ico:
 	
 	Re-Commit icons after setting keyword expansion mode to -kb (no
 	linefeed translation or keyword expansion)
 
 2000-08-12 01:14  skywalker
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	Added toms fixes, to refresh two more database links.
 
 2000-08-11 17:46  skywalker
 
-	* builds/original/sfx.interbase:
+	* interbase/builds/original/sfx.interbase:
 	
 	Added some of the changes back in, currently removed build of
 	examples and build of codes in jrd.
 
 2000-08-11 16:41  skywalker
 
-	* setup_dirs:
+	* interbase/setup_dirs:
 	
 	Changes to make script able to redo setup and put up some
 	descriptions
 
 2000-08-11 16:35  skywalker
 
-	* jrd/yachts.gdb:
+	* interbase/jrd/yachts.gdb:
 	
 	Deleted database it is generated as part of the build
 
 2000-08-11 16:33  skywalker
 
-	* builds/original/: .version_flag, build_kit, sfx.pyxis:
+	* interbase/builds/original/: .version_flag, build_kit, sfx.pyxis:
 	
 	Changed to build pyxis module, makefile changed to allow to compile
 	build_ket changed to set default env. variables, and .version_flag
@@ -931,14 +957,14 @@
 
 2000-08-11 16:30  skywalker
 
-	* msgs/: msg.gbak, msg.gdb:
+	* interbase/msgs/: msg.gbak, msg.gdb:
 	
 	Removed the gdb database and replaced it with a transportable gbak
 	version of the database
 
 2000-08-11 05:18  skywalker
 
-	* pyxis/edit.c:
+	* interbase/pyxis/edit.c:
 	
 	This file has been committed, and make part of the build since the
 	gpre process currently (IB6.0) doesn't parse edit.e correctly.	It
@@ -946,7 +972,8 @@
 
 2000-08-11 05:15  skywalker
 
-	* builds/original/: prefix.linux, sfx.interbase, sfx.pyxis:
+	* interbase/builds/original/: prefix.linux, sfx.interbase,
+	sfx.pyxis:
 	
 	Placed the pyxis modules back into the build and modified pyxis to
 	rely on the edit.c file rather than edit.e file.  Waiting on fix to
@@ -954,100 +981,101 @@
 
 2000-08-10 19:11  skywalker
 
-	* jrd/ids.m:
+	* interbase/jrd/ids.m:
 	
 	Changed divert() to divert(0) - saves giving a warning message
 
 2000-08-07 06:11  tamlin
 
-	* jrd/cch.c:
+	* interbase/jrd/cch.c:
 	
 	Merge with Interbase's tree. Compiler warnings.
 
 2000-08-07 05:54  tamlin
 
-	* dsql/pass1.c:
+	* interbase/dsql/pass1.c:
 	
 	Merge with Interbase's tree
 
 2000-08-07 03:40  tamlin
 
-	* jrd/: ail.c, alt.c, jrd.c, sch.c, sdl.c:
+	* interbase/jrd/: ail.c, alt.c, jrd.c, sch.c, sdl.c:
 	
 	Compiler warnings.
 
 2000-08-07 03:37  tamlin
 
-	* iscguard/: salrt23i.ico, sgard23i.ico:
+	* interbase/iscguard/: salrt23i.ico, sgard23i.ico:
 	
 	Added missing icons
 
 2000-08-07 03:36  tamlin
 
-	* iscguard/iscguard.c:
+	* interbase/iscguard/iscguard.c:
 	
 	Some cleanup, closing previously leaked handle.
 
 2000-08-07 01:15  tamlin
 
-	* intl/: cs_big5.h, cs_gb2312.h, cs_jis_0208_1990.h, cs_ksc5601.h:
+	* interbase/intl/: cs_big5.h, cs_gb2312.h, cs_jis_0208_1990.h,
+	cs_ksc5601.h:
 	
 	Stripped excessive bloat.
 
 2000-08-06 19:51  skywalker
 
-	* setup_dirs, builds/original/prefix.linux,
+	* interbase/: setup_dirs, builds/original/prefix.linux,
 	builds/original/sfx.interbase:
 	
 	Tom Colemans changes script changes for easy linux install.
 
 2000-08-05 18:26  tamlin
 
-	* jrd/gds.c:
+	* interbase/jrd/gds.c:
 	
 	Win32 path search *real* "Program Files" before falling back to
 	hardcoded.
 
 2000-08-05 18:13  tamlin
 
-	* remote/cntl.c:
+	* interbase/remote/cntl.c:
 	
 	Handle leak fixed
 
 2000-08-05 15:27  tamlin
 
-	* remote/remote.c:
+	* interbase/remote/remote.c:
 	
 	Compiler warnings
 
 2000-08-05 15:07  tamlin
 
-	* remote/server.c:
+	* interbase/remote/server.c:
 	
 	Bugfix (JMP_BUFs), and some basic cleanup.
 
 2000-08-05 03:03  tamlin
 
-	* remote/: server.ico, spxnet32.c, srvr_w32.c, window.c, window.rc,
-	wnet.c, xdr.c:
+	* interbase/remote/: server.ico, spxnet32.c, srvr_w32.c, window.c,
+	window.rc, wnet.c, xdr.c:
 	
 	Bugfix (wrong size alloc -> mem overwrite) and compiler warnings.
 
 2000-08-05 02:59  tamlin
 
-	* utilities/: cmd_util.c, dba.e:
+	* interbase/utilities/: cmd_util.c, dba.e:
 	
 	Bugfix (wrong size alloc -> mem overwrite) and compiler warnings.
 
 2000-08-05 02:56  tamlin
 
-	* wal/walw.c:
+	* interbase/wal/walw.c:
 	
 	Fixed a compiler warning
 
 2000-08-03 22:52  skywalker
 
-	* lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
+	* interbase/: lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
 	lock/ulimit.c, misc/codetext.h, misc/codes.h, misc/gds_codes.ftn,
 	misc/gds_codes.pas, misc/iberror.h, misc/msg.gbak, misc/msg_facs.h,
 	misc/msgs.h, misc/rdb_codes.h, misc/sql_code.h, msgs/build.def,
@@ -1144,7 +1172,7 @@
 
 2000-08-03 22:52  skywalker
 
-	* lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
+	* interbase/: lock/printv3s4.c, lock/prtv3_proto.h, lock/reset.c,
 	lock/ulimit.c, misc/codetext.h, misc/codes.h, misc/gds_codes.ftn,
 	misc/gds_codes.pas, misc/iberror.h, misc/msg.gbak, misc/msg_facs.h,
 	misc/msgs.h, misc/rdb_codes.h, misc/sql_code.h, msgs/build.def,
@@ -1241,9 +1269,9 @@
 
 2000-08-03 22:49  skywalker
 
-	* intl/intl.h, intl/intlwep.c, intl/langdrv.h, intl/lc_ascii.c,
-	intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c, intl/lc_jis.c,
-	intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
+	* interbase/: intl/intl.h, intl/intlwep.c, intl/langdrv.h,
+	intl/lc_ascii.c, intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c,
+	intl/lc_jis.c, intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
 	intl/lc_unicode.c, intl/ld.h, intl/ld2.c, intl/ld_proto.h,
 	intl/ldcommon.h, intl/mac_437.h, intl/mac_865.h, intl/mac_lat1.h,
 	intl/make.maps, intl/makefile.mak, intl/mapcompare.cpp,
@@ -1370,9 +1398,9 @@
 
 2000-08-03 22:49  skywalker
 
-	* intl/intl.h, intl/intlwep.c, intl/langdrv.h, intl/lc_ascii.c,
-	intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c, intl/lc_jis.c,
-	intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
+	* interbase/: intl/intl.h, intl/intlwep.c, intl/langdrv.h,
+	intl/lc_ascii.c, intl/lc_big5.c, intl/lc_dos.c, intl/lc_gb2312.c,
+	intl/lc_jis.c, intl/lc_ksc.c, intl/lc_latin1.c, intl/lc_narrow.c,
 	intl/lc_unicode.c, intl/ld.h, intl/ld2.c, intl/ld_proto.h,
 	intl/ldcommon.h, intl/mac_437.h, intl/mac_865.h, intl/mac_lat1.h,
 	intl/make.maps, intl/makefile.mak, intl/mapcompare.cpp,
@@ -1499,7 +1527,7 @@
 
 2000-08-03 22:46  skywalker
 
-	* intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
+	* interbase/intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
 	cs_jis_20208_1990.c, cs_ksc.c, cs_ksc5601.h, cs_latin1.h,
 	cs_narrow.c, cs_next.h, cs_sjis.h, cs_unicode.c, cs_utffss.c,
 	cs_w1250.h, cs_w1251.h, cs_w1252.h, cs_w1253.h, cs_w1254.h,
@@ -1517,7 +1545,7 @@
 
 2000-08-03 22:46  skywalker
 
-	* intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
+	* interbase/intl/: cs_gb2312.h, cs_jis.c, ld.c, cs_jis_0208_1990.h,
 	cs_jis_20208_1990.c, cs_ksc.c, cs_ksc5601.h, cs_latin1.h,
 	cs_narrow.c, cs_next.h, cs_sjis.h, cs_unicode.c, cs_utffss.c,
 	cs_w1250.h, cs_w1251.h, cs_w1252.h, cs_w1253.h, cs_w1254.h,
@@ -1535,8 +1563,8 @@
 
 2000-08-03 22:42  skywalker
 
-	* setup_build, setup_build.ksh, setup_dirs, setup_dirs.ksh,
-	alice/alice.c, alice/alice.h, alice/alice_proto.h,
+	* interbase/: setup_build, setup_build.ksh, setup_dirs,
+	setup_dirs.ksh, alice/alice.c, alice/alice.h, alice/alice_proto.h,
 	alice/aliceswi.h, alice/all.c, alice/all.h, alice/all_proto.h,
 	alice/alloc.h, alice/blk.h, alice/depends.mak, alice/exe.c,
 	alice/exe_proto.h, alice/info.h, alice/lls.h, alice/met.e,
@@ -1854,8 +1882,8 @@
 
 2000-08-03 22:42  skywalker
 
-	* setup_build, setup_build.ksh, setup_dirs, setup_dirs.ksh,
-	alice/alice.c, alice/alice.h, alice/alice_proto.h,
+	* interbase/: setup_build, setup_build.ksh, setup_dirs,
+	setup_dirs.ksh, alice/alice.c, alice/alice.h, alice/alice_proto.h,
 	alice/aliceswi.h, alice/all.c, alice/all.h, alice/all_proto.h,
 	alice/alloc.h, alice/blk.h, alice/depends.mak, alice/exe.c,
 	alice/exe_proto.h, alice/info.h, alice/lls.h, alice/met.e,
