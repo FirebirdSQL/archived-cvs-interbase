@@ -75,6 +75,16 @@ AskQuestion() {
 }
 
 
+#--------------------------------------------------------------------
+# Copy a database safely, using gbak
+copyDatabase() {
+	From=$1
+	To=$2
+	TmpGbk=`echo $To | sed -e 's/\.gdb$//'`".gbk"
+	$IBBin/gbak -b $From $TmpGbk
+	$IBBin/gbak -r $TmpGbk $To
+	rm $TmpGbk
+}
 
 #--------------------------------------------------------------------
 # Build the databases needed for a standard interbase build
@@ -82,12 +92,13 @@ AskQuestion() {
 buildStdDatabases() {
     echo "- building std databases"
 
-    cp $INTERBASE/isc4.gdb isc.gdb
-    (cd qli; cp $INTERBASE/help/help.gdb help.gdb)
+	copyDatabase $INTERBASE/isc4.gdb jrd/isc.gdb
+
+	copyDatabase $INTERBASE/help/help.gdb qli/help.gdb
 
     (cd jrd; $IBBin/isql -i $IBSrc/builds_win32/original/metadata.sql)
 
-    (cd pyxis; ln -s  ../metadata.gdb forms.gdb)
+    (cd pyxis; $IBBin/gbak -r $IBSrc/pyxis/forms.gbk forms.gdb)
 
     (cd msgs; $IBBin/gbak -R $IBSrc/msgs/msg.gbak msg.gdb)
 
