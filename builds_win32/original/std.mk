@@ -107,13 +107,9 @@ LEFLAGS=/Tde/c
 DESTSTRING=Windows(WIN)
 
 !if $d(WIN32)
-!if $d(DELPHI)
-.path.obj=dp_obj\client
-!else
 .path.obj=bc_obj\client
-!endif
 !else
-.path.obj=bcc\win
+  .path.obj=bcc\win
 !endif
 
 MODEL=l
@@ -211,11 +207,6 @@ DLL_LFLAGS=$(LDB) $(DLL_LFLAGS) /L$(LIBPATH) $(Lx)
 
 APP_CFLAGS=-w-par -R -r- -d -n$(.path.obj) -I$(INCLUDEPATH) -DPC_PLATFORM;REQUESTER $(APP_OSFLAGS) $(CDB) $(Cx) $(LCFLAGS)
 APP_LFLAGS=$(LDB) $(APP_LFLAGS) /L$(LIBPATH) $(Lx)
-!endif
-
-!if $d(DELPHI)
-DLL_CFLAGS = -u- $(DLL_CFLAGS) -DDELPHI_OBJ 
-APP_CFLAGS = -u- $(APP_CFLAGS) -DDELPHI_OBJ 
 !endif
 
 

@@ -74,13 +74,8 @@ ROOT = ..
 COMPILER=BC
 RSP_CONTINUE=+
 !else
-!if $d(DELPHI)
-COMPILER=DP
-RSP_CONTINUE=
-!else
 COMPILER=MS
 RSP_CONTINUE=
-!endif
 !endif
 
 #
