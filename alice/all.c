@@ -119,7 +119,7 @@ while (TRUE)
    after taking out our block, chop out out block.  If not, allocate
    the entire free block as our block (a little extra won't hurt). */
 
-best_tail << SHIFT;
+best_tail <<= SHIFT;
 free = *best;
 
 if (best_tail > sizeof (struct frb))
