@@ -18,15 +18,22 @@ o Installation from a batch file
 Before Installation
 -------------------
 
-  IMPORTANT!
+  IMPORTANT - FOR FIREBIRD 1.5 USERS
+  
+  If you are running Firebird 1.5 with default settings 
+  this install will not complete successfully. It is recommended
+  that you uninstall Firebird 1.5 before continuing.
+
+
+  IMPORTANT - FOR FIREBIRD 1.0 or INTERBASE USERS
 
   This installation package will try to detect if an existing
-  version of Firebird or InterBase is installed and/or running.
+  version of Firebird 1.0 or InterBase n.n is installed and/or 
+  running.
 
   You must either STOP the current server and/or remove the 
   currently installed version before continuing.
-
-
+  
   Stopping the Server
 
   o If it is running as a service stop it via 'Control Panel | Services'.
@@ -36,17 +43,26 @@ Before Installation
 
   Removing an existing server
   
-  It is recommended that you uninstall a previous version of Firebird 
-  or InterBase, but it is not a requirement. See the Uninstallation 
-  section below for more details of the Firebird uninstallation routine.
+  It is recommended that you uninstall existing versions of Firebird 
+  or InterBase. See the Uninstallation  section below for more details 
+  of the Firebird uninstallation routine.
 
 
+Installing on a system with Firebird 1.5
+----------------------------------------
+
+In theory Firebird 1.5 is designed to co-exist with Firebird 1.0. 
+However the default install of Firebird 1.5 does not allow this. 
+You need to specifically set your system up for this dual operation. 
+If you haven't done so it is recommended that you uninstall 
+Firebird 1.5 first. 
+
+  
 Installing on a system with InterBase
 -------------------------------------
 
   Firebird 1.0 cannot be run at the same time as InterBase (any version). 
-  You must uninstall InterBase before installing Firebird. This may change 
-  with future releases. 
+  You must uninstall InterBase before installing Firebird.
 
   It is recommended that you do NOT install Firebird over an existing 
   InterBase install. Install it to a new directory and use gbak to backup
