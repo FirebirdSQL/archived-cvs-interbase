@@ -23,6 +23,7 @@
  *   made some indexes unique.  The indexes on ID fields can not
  *   be unique because they are created after the definitions are
  *   stored.  
+ */
 
 #ifndef _JRD_IDX_H_
 #define _JRD_IDX_H_
