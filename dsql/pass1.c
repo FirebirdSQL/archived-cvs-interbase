@@ -80,6 +80,9 @@
  *
  * 2001.11.29 Claudio Valderrama: make the nice new ambiguity checking code do the
  *   right thing instead of crashing the engine and restore fix from 2001.11.21.
+ *
+ * 2001.12.21 Claudio Valderrama: Fix SF Bug #494832 - pass1_variable() should work
+ *   with def_proc, mod_proc, redef_proc, def_trig and mod_trig node types.
  */
 
 #include "../jrd/ib_stdio.h"
@@ -631,8 +634,9 @@ switch (input->nod_type)
         node->nod_flags = input->nod_flags;
 	cursor = node->nod_arg [e_flp_cursor] = input->nod_arg [e_flp_cursor];
 	if (cursor && (procedure = request->req_ddl_node) &&
-		    ((procedure->nod_type == nod_def_procedure) ||
-		     (procedure->nod_type == nod_mod_procedure) ||
+		    (procedure->nod_type == nod_def_procedure ||
+		     procedure->nod_type == nod_mod_procedure ||
+		     procedure->nod_type == nod_redef_procedure ||
 			 procedure->nod_type == nod_def_trigger ||
 			 procedure->nod_type == nod_mod_trigger))
 	    {
@@ -665,8 +669,9 @@ switch (input->nod_type)
 
 	if (cursor &&
 	    procedure &&
-	    ((procedure->nod_type == nod_def_procedure) ||
-	     (procedure->nod_type == nod_mod_procedure) ||
+	    (procedure->nod_type == nod_def_procedure ||
+	     procedure->nod_type == nod_mod_procedure ||
+	     procedure->nod_type == nod_redef_procedure ||
 		 procedure->nod_type == nod_def_trigger ||
 		 procedure->nod_type == nod_mod_trigger))
 	    procedure->nod_arg [e_prc_cursors] = cursor->nod_arg [e_cur_next];
@@ -4363,11 +4368,13 @@ DEV_BLKCHK (var_name, type_str);
 if ((procedure_node = request->req_ddl_node) &&
     (procedure_node->nod_type == nod_def_procedure ||
      procedure_node->nod_type == nod_mod_procedure ||
+     procedure_node->nod_type == nod_redef_procedure ||
      procedure_node->nod_type == nod_def_trigger ||
      procedure_node->nod_type == nod_mod_trigger))
     {
     if (procedure_node->nod_type == nod_def_procedure ||
-	procedure_node->nod_type == nod_mod_procedure)
+	procedure_node->nod_type == nod_mod_procedure ||
+	procedure_node->nod_type == nod_redef_procedure)
 	{
 	/* Try to resolve variable name against input, output
 	   and local variables */
