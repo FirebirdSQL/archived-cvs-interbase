@@ -81,6 +81,11 @@
  * trying to track the origin of this code.
  */
 
+/* Firebird changes:-
+ * Small fixes to get gcc to compile module on Solaris sparc - Neil McCalden
+ * Add support for Solaris x86  - Neil McCalden
+ */
+ 
 /*
 $Id$
 */
@@ -181,7 +186,7 @@ static struct glue {
 	struct	glue *next;
 	int	niobs;
 	IB_FILE	*iobs;
-} ib__sglue;
+} ;
 
 /* The following 2 defines are taken from stdio/floatio.h in BSD */
 
@@ -206,7 +211,7 @@ static IB_FILE  *ib__sfp      (void);
 static void      ib__sinit    (void);
 static void      ib__smakebuf (IB_FILE *);
 static char     *ib__dtoa     (double, int, int, int *, int *, char **);
-
+int ib__sflush(register IB_FILE *fp);
 
 /*
  * I/O descriptors for ib__sfvwrite().
@@ -604,6 +609,7 @@ IB_FILE ib__sF[3] = {
 	std(IB__SWR, IB_STDOUT_FILENO),		/* stdout */
 	std(IB__SWR|IB__SNBF, IB_STDERR_FILENO)	/* stderr */
 };
+	
 struct glue ib__sglue = { &uglue, 3, ib__sF };
 
 static struct glue *	moreglue (int);
@@ -4208,7 +4214,12 @@ extern void *MALLOC(size_t);
 #endif
 
 #ifdef SOLARIS
+#ifdef sparc
 #define IEEE_BIG_ENDIAN
+#else
+#define IEEE_LITTLE_ENDIAN
+#undef VAX
+#endif
 #define IEEE_ARITHMETIC
 #endif
 
