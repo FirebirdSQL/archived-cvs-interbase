@@ -21,7 +21,7 @@
  * Contributor(s): ______________________________________.
  */
 /*
-$Id$
+  $Log$
 */
 
 #include "../jrd/ib_stdio.h"

@@ -19,6 +19,7 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
  */
 
 #include "../jrd/ib_stdio.h"
@@ -78,7 +79,13 @@ extern SCHAR	*Sub_types [];
 extern SCHAR	*Trigger_types [];
 
 static SCHAR	*Procterm = "^";	/* TXNN: script use only */
-static TEXT	Print_buffer[512];
+
+/* Maybe 512 would be really enough as Print_buffer size, but
+   as we have PRINT_BUFFER_LENGTH in isql.h, we should use it 
+   FSG 17.Nov.2000
+*/
+
+static TEXT	Print_buffer[PRINT_BUFFER_LENGTH];
 static TEXT	SQL_identifier[BUFFER_LENGTH128];
 static TEXT	SQL_identifier2[BUFFER_LENGTH128];
 
@@ -125,7 +132,7 @@ if (SQL_dialect != db_SQL_dialect)
     ISQL_printf (Out, Print_buffer);
 
     sprintf (Print_buffer, 
-    "/*=     Command Line -sqldialect %d is over writted by    ==*/%s", 
+    "/*=     Command Line -sqldialect %d is overwritten by    ==*/%s", 
 						       SQL_dialect, NEWLINE);
     ISQL_printf (Out, Print_buffer);
 
@@ -410,6 +417,7 @@ FOR REL IN RDB$RELATIONS CROSS
 		ISQL_printf (Out, Print_buffer);
                 break;
                 }
+
 
 	if ((FLD.RDB$FIELD_TYPE == FCHAR) || (FLD.RDB$FIELD_TYPE == VARCHAR))
 	    if (FLD.RDB$CHARACTER_LENGTH.NULL)
@@ -726,26 +734,45 @@ static void get_procedure_args (
  *	extract file
  *
  **************************************/
-SSHORT	first_time, i, header = TRUE;
+SSHORT	ptype,first_time, i, header = TRUE;
 TEXT	msg [MSG_LENGTH];
 SCHAR   char_sets [86];
 
 /* query to retrieve the parameters. */
+{
+  
+
+/* placed the two identical code blocks into one
+   for loop as suggested by Ann H. and Claudio C.
+   FSG 18.Nov.2000
+*/
+  
+    /*  Parameter types 0 = input  */
+    /*  Parameter types 1 = return */
+
+    for (ptype = 0; ptype < 2; ptype++)
     {
     first_time = TRUE;
-    /*  Parameter types 0 = input first */
+  
     FOR PRM IN RDB$PROCEDURE_PARAMETERS CROSS
 	FLD IN RDB$FIELDS WITH
 	PRM.RDB$PROCEDURE_NAME = proc_name AND
 	PRM.RDB$FIELD_SOURCE EQ FLD.RDB$FIELD_NAME AND 
-	PRM.RDB$PARAMETER_TYPE = 0
+	PRM.RDB$PARAMETER_TYPE = ptype
 	SORTED BY PRM.RDB$PARAMETER_NUMBER
 
 	if (first_time)
 	    {
 	    first_time = FALSE;
-	    ISQL_printf (Out, "(");
-	    }
+            if (ptype==0)
+               { // this is the input part
+               ISQL_printf (Out, "(");
+	       }
+            else
+               { // we are in the output part
+               ISQL_printf (Out, "RETURNS (");
+               }
+            }
 	else
 	    {
 	    sprintf (Print_buffer, ",%s", NEWLINE);
@@ -824,13 +851,24 @@ SCHAR   char_sets [86];
 		ISQL_printf (Out, Print_buffer);
                 break;
                 }
-	if (((FLD.RDB$FIELD_TYPE == FCHAR) || 
-	    (FLD.RDB$FIELD_TYPE == VARCHAR)) &&
-           !FLD.RDB$CHARACTER_LENGTH.NULL)
-	    {
-	    sprintf (Print_buffer, "(%d)", FLD.RDB$FIELD_LENGTH);
-	    ISQL_printf (Out, Print_buffer);
-	    }
+
+/* Changed this to return RDB$CHARACTER_LENGTH if available
+   Fix for Bug #122563 
+   FSG 18.Nov.2000
+*/ 
+	if ((FLD.RDB$FIELD_TYPE == FCHAR) || (FLD.RDB$FIELD_TYPE == VARCHAR))
+	    if (FLD.RDB$CHARACTER_LENGTH.NULL)
+		{
+		sprintf (Print_buffer, "(%d)", FLD.RDB$FIELD_LENGTH);
+		ISQL_printf (Out, Print_buffer);
+		}
+	    else
+		{
+		sprintf (Print_buffer, "(%d)", FLD.RDB$CHARACTER_LENGTH);
+		ISQL_printf (Out, Print_buffer);
+		}
+
+
 
 	/* Show international character sets and collations */
 	if (!FLD.RDB$COLLATION_ID.NULL || !FLD.RDB$CHARACTER_SET_ID.NULL)
@@ -863,140 +901,11 @@ SCHAR   char_sets [86];
 	sprintf (Print_buffer, ")%s", NEWLINE);
 	ISQL_printf (Out, Print_buffer);
 	}
-    first_time = TRUE;
 
-    /*  Parameter types 1 = return last */
-    FOR PRM IN RDB$PROCEDURE_PARAMETERS CROSS
-	FLD IN RDB$FIELDS WITH
-	PRM.RDB$PROCEDURE_NAME  = proc_name AND
-	PRM.RDB$FIELD_SOURCE EQ FLD.RDB$FIELD_NAME AND 
-	PRM.RDB$PARAMETER_TYPE = 1
-	SORTED BY PRM.RDB$PARAMETER_NUMBER
-
-	if (first_time)
-	    {
-	    first_time = FALSE;
-	    ISQL_printf (Out, "RETURNS (");
-	    }
-	else
-	    {
-	    sprintf (Print_buffer, ",%s", NEWLINE);
-	    ISQL_printf (Out, Print_buffer);
-	    }
-
-	ISQL_blankterm (PRM.RDB$PARAMETER_NAME);
-	sprintf (Print_buffer, "%s ", PRM.RDB$PARAMETER_NAME);
-	ISQL_printf (Out, Print_buffer);
-
-	/* Get column type name to print */
-	for (i = 0; Column_types [i].type; i++)
-            if (FLD.RDB$FIELD_TYPE == Column_types [i].type)
-                {
-		BOOLEAN precision_known = FALSE;
-
-		if (major_ods >= ODS_VERSION10)
-		    {
-		    /* Handle Integral subtypes NUMERIC and DECIMAL */
-		    if ((FLD.RDB$FIELD_TYPE == SMALLINT) ||
-			(FLD.RDB$FIELD_TYPE == INTEGER) ||
-		        (FLD.RDB$FIELD_TYPE == blr_int64))
-		      {
-			/* We are ODS >= 10 and could be any Dialect */
-			FOR FLD1 IN RDB$FIELDS WITH
-			    FLD1.RDB$FIELD_NAME EQ FLD.RDB$FIELD_NAME
-
-			  if (!FLD1.RDB$FIELD_PRECISION.NULL)
-			    {
-		    /* We are Dialect >=3 since FIELD_PRECISION is non-NULL */
-			    if (FLD1.RDB$FIELD_SUB_TYPE > 0 &&
-				FLD1.RDB$FIELD_SUB_TYPE <= MAX_INTSUBTYPES)
-				{
-				sprintf (Print_buffer, "%s(%d, %d)",
-				   Integral_subtypes [FLD1.RDB$FIELD_SUB_TYPE],
-				   FLD1.RDB$FIELD_PRECISION,
-				   -FLD1.RDB$FIELD_SCALE);
-				precision_known = TRUE;
-				}
-			    }
-			END_FOR
-			  ON_ERROR
-			      ISQL_errmsg (isc_status);
-			      return;
-			  END_ERROR;
-		      }	/* if field_type */
-		    } /* if major_ods */
-
-		if (precision_known == FALSE)
-                    {
-		    /* Take a stab at numerics and decimals */
-		    if ((FLD.RDB$FIELD_TYPE == SMALLINT) && 
-			(FLD.RDB$FIELD_SCALE < 0))
-			{
-			sprintf (Print_buffer, "NUMERIC(4, %d)", 
-				-FLD.RDB$FIELD_SCALE);
-			}
-		    else if ((FLD.RDB$FIELD_TYPE == INTEGER) && 
-			    (FLD.RDB$FIELD_SCALE < 0))
-			{
-			sprintf (Print_buffer, "NUMERIC(9, %d)", 
-				-FLD.RDB$FIELD_SCALE);
-			}
-		    else if ((FLD.RDB$FIELD_TYPE == DOUBLE_PRECISION) &&
-			(FLD.RDB$FIELD_SCALE < 0))
-			{
-			sprintf (Print_buffer, "NUMERIC(15, %d)", 
-				-FLD.RDB$FIELD_SCALE);
-			}
-		    else
-			{
-			sprintf (Print_buffer, "%s", 
-				Column_types [i].type_name);
-			}
-                    }
-		ISQL_printf (Out, Print_buffer);
-                break;
-                }
-
-	if (((FLD.RDB$FIELD_TYPE == FCHAR) || 
-	    (FLD.RDB$FIELD_TYPE == VARCHAR)) && !FLD.RDB$CHARACTER_LENGTH.NULL)
-	    {
-	    sprintf (Print_buffer, "(%d)", FLD.RDB$FIELD_LENGTH);
-	    ISQL_printf (Out, Print_buffer);
-	    }
-
-	/* Show international character sets and collations */
-	if (!FLD.RDB$COLLATION_ID.NULL || !FLD.RDB$CHARACTER_SET_ID.NULL)
-            {
-            char_sets [0] = 0;
-            if (FLD.RDB$COLLATION_ID.NULL)
-                FLD.RDB$COLLATION_ID = 0;
-
-            if (FLD.RDB$CHARACTER_SET_ID.NULL)
-                FLD.RDB$CHARACTER_SET_ID = 0;
-
-            ISQL_get_character_sets (FLD.RDB$CHARACTER_SET_ID,
-                FLD.RDB$COLLATION_ID, FALSE, char_sets);
-            if (char_sets [0])
-                ISQL_printf (Out, char_sets);
-            }	
-    END_FOR
-	ON_ERROR
-	    if (!V33)
-		{
-		ISQL_errmsg (gds__status);
-		return;
-		}
-	END_ERROR;
-    if (!first_time)
-	{
-	sprintf (Print_buffer, ")%s", NEWLINE);
-	ISQL_printf (Out, Print_buffer);
-	}
+    }/* end for ptype */
     sprintf (Print_buffer, "AS %s", NEWLINE);
     ISQL_printf (Out, Print_buffer);
-
-
-    }
+  }
 }
 
 

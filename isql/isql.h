@@ -19,6 +19,13 @@
  *
  * All Rights Reserved.
  * Contributor(s): ______________________________________.
+ * $Log$
+ * Revision 1.2  2000/11/18 16:49:24  fsg
+ * Increased PRINT_BUFFER_LENGTH to 2048 to show larger plans
+ * Fixed Bug #122563 in extract.e get_procedure_args
+ * Apparently this has to be done in show.e also,
+ * but that is for another day :-)
+ *
  */
 
 #ifndef _ISQL_ISQL_H_
@@ -29,7 +36,11 @@
 
 /* Define lengths used in isql.e */
 
-#define PRINT_BUFFER_LENGTH	1024
+/* Increased this to allow display of somewhat lengthy plans
+   hope this will last a year or so :-)
+   FSG 17.Nov.2000 
+*/
+#define PRINT_BUFFER_LENGTH	2048
 #define MAXTERM_LENGTH  	32      /* SQL termination character */
 #define USER_LENGTH 		128
 #define PASSWORD_LENGTH 	128
