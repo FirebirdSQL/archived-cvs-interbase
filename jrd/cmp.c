@@ -3258,6 +3258,9 @@ switch (node->nod_type)
 	break;
 
     case nod_gen_id:
+    case nod_gen_id2:
+        node->nod_arg [e_gen_value] =
+                pass1 (tdbb, csb, node->nod_arg [e_gen_value], view, view_stream, validate_expr);
 	return node;
 
     case nod_rec_version:
