@@ -46,10 +46,10 @@
 # This method is also used in a few other projects (linux kernel, gcc etc).
 
 BUILD_TYPE=T
-MAJOR_VER=0
-MINOR_VER=9
-REV_NO=5
-BUILD_SUFFIX="Firebird Beta1"
+MAJOR_VER=1
+MINOR_VER=0
+REV_NO=0
+BUILD_SUFFIX="Firebird Beta2"
 
 if [ ! -f this_build ]
 then
