@@ -1,3 +1,17 @@
+2001-11-23 09:30  robocop
+
+	* interbase/isql/isql.e:
+	
+	Make isql 0.1% smarter when dealing with comments.
+
+2001-11-23 03:18  nmcc
+
+	* interbase/isql/isql.e:
+	
+	Stop trying to allocate 0 bytes of memory - prevents gds__alloc
+	message.  Do not output spurious lines when there is no return data
+	to output - this makes output consistent with older versions.
+
 2001-11-22 09:16  robocop
 
 	* interbase/dsql/pass1.c:
