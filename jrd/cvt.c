@@ -41,6 +41,7 @@
 #include "../jrd/err_proto.h"
 #include "../jrd/gds_proto.h"
 #include "../jrd/intl_proto.h"
+#include "../jrd/thd_proto.h"
 
 #if !(defined REQUESTER && defined SUPERCLIENT)
 #include "../jrd/intlobj.h"
@@ -284,8 +285,8 @@ void CVT_double_to_date (
  *
  **************************************/
 
-fixed [0] = real;
-fixed [1] = (real - fixed [0]) * 24. * 60. * 60. * ISC_TIME_SECONDS_PRECISION;
+fixed [0] = (SLONG)real;
+fixed [1] = (SLONG)((real - fixed [0]) * 24. * 60. * 60. * ISC_TIME_SECONDS_PRECISION);
 }
 
 double PASCAL_ROUTINE CVT_get_double (
@@ -355,8 +356,9 @@ switch (desc->dsc_dtype)
 	SSHORT  fraction, sign, exp, length, past_sign, digit_seen;
 	SCHAR   *p, *end;
 
-	length = CVT_make_string (desc, ttype_ascii, &p, buffer, sizeof (buffer), err);
-	digit_seen = past_sign = scale = fraction = sign = value = exp = 0;
+	length = CVT_make_string (desc, ttype_ascii, &p, (VARY*)buffer, sizeof (buffer), err);
+	value = 0.0;
+	digit_seen = past_sign = scale = fraction = sign = exp = 0;
 	for (end = p + length; p < end; p++)
 	    if (*p == COMMA)
 		continue;
@@ -556,7 +558,7 @@ switch (desc->dsc_dtype)
 	    fraction = 0;
 	    do {
 		if (scale == 1)
-		    fraction = val64 % 10;
+		    fraction = (SLONG)(val64 % 10);
 		val64 /= 10;
 	    } while (--scale);
 	    if (fraction > 4)
@@ -633,7 +635,7 @@ switch (desc->dsc_dtype)
     case dtype_varying:
     case dtype_cstring:
     case dtype_text:
-	length = CVT_make_string (desc, ttype_ascii, &p, buffer, sizeof (buffer), err);
+	length = CVT_make_string (desc, ttype_ascii, &p, (VARY*)buffer, sizeof (buffer), err);
 	scale -= decompose (p, length, dtype_long, &value, err);
 	break;
 
@@ -725,7 +727,8 @@ desc.dsc_ttype   = ttype_ascii;
 desc.dsc_length  = length;
 desc.dsc_address = string;
 
-digit_seen = local_scale = fraction = sign = value = 0;
+value = 0;
+digit_seen = local_scale = fraction = sign = 0;
 
 for (p = string, end = p + length; p < end; p++)
     {
@@ -825,7 +828,9 @@ SQUAD CVT_get_quad (
  *
  **************************************/
 SQUAD   value;
-SLONG   high, fraction;
+#ifdef NATIVE_QUAD
+SLONG   fraction;
+#endif
 double  d;
 USHORT  length;
 UCHAR   *p;
@@ -900,7 +905,7 @@ switch (desc->dsc_dtype)
     case dtype_varying:
     case dtype_cstring:
     case dtype_text:
-	length = CVT_make_string (desc, ttype_ascii, &p, buffer, sizeof (buffer), err);
+	length = CVT_make_string (desc, ttype_ascii, &p, (VARY*)buffer, sizeof (buffer), err);
 	scale -= decompose (p, length, dtype_quad, &value.high, err);
 	break;
 
@@ -978,60 +983,60 @@ SINT64 CVT_get_int64 (
  *      of given scale.
  *
  **************************************/
-SINT64   value;
-SLONG   fraction;
-double  d;
-USHORT  length;
-UCHAR   *p;
-TEXT    buffer [50];    /* long enough to represent largest SINT64 in ASCII */
+    SINT64  value;
+    SLONG   fraction;
+    double  d;
+    USHORT  length;
+    UCHAR   *p;
+    TEXT    buffer [50];    /* long enough to represent largest SINT64 in ASCII */
 
-/* adjust exact numeric values to same scaling */
+    /* adjust exact numeric values to same scaling */
 
-if (DTYPE_IS_EXACT(desc->dsc_dtype))
-    scale -= desc->dsc_scale;
+    if (DTYPE_IS_EXACT(desc->dsc_dtype))
+        scale -= desc->dsc_scale;
 
-p = desc->dsc_address;
+    p = desc->dsc_address;
 
-switch (desc->dsc_dtype)
+    switch (desc->dsc_dtype)
     {
     case dtype_short:
         value = *((SSHORT*) p);
-	break;
+        break;
 
     case dtype_long:
         value = *((SLONG*) p);
-	break;
+        break;
 
     case dtype_int64:
-	value = *((SINT64*) p);
-	break;
+        value = *((SINT64*) p);
+        break;
 
     case dtype_quad:
-	value = ((SINT64) ((SLONG*) &value) [HIGH_WORD]) << 32 +
-	        (((ULONG*) &value) [LOW_WORD]);
-	break;
+        value = (((SINT64) ((SLONG*) p) [HIGH_WORD]) << 32) +
+                (((ULONG*) p) [LOW_WORD]);
+        break;
 
     case dtype_real:
     case dtype_double:
 #ifdef VMS
     case dtype_d_float:
 #endif
-	if (desc->dsc_dtype == dtype_real)
-	    d = *((float*) p);
-	else if (desc->dsc_dtype == DEFAULT_DOUBLE)
-	    d = *((double*) p);
+        if (desc->dsc_dtype == dtype_real)
+            d = *((float*) p);
+        else if (desc->dsc_dtype == DEFAULT_DOUBLE)
+            d = *((double*) p);
 #ifdef VMS
-	else
-	    d = CNVT_TO_DFLT ((double*) p);
+        else
+            d = CNVT_TO_DFLT ((double*) p);
 #endif
-	if (scale > 0)
-	    do d /= 10.; while (--scale);
-	else if (scale < 0)
-	    do d *= 10.; while (++scale);
-	if (d > 0)
-	    d += 0.5;
-	else
-	    d -= 0.5;
+        if (scale > 0)
+            do d /= 10.; while (--scale);
+        else if (scale < 0)
+            do d *= 10.; while (++scale);
+        if (d > 0)
+            d += 0.5;
+        else
+            d -= 0.5;
 
 	/* make sure the cast will succeed - different machines 
 	   do different things if the value is larger than a quad
@@ -1052,7 +1057,7 @@ switch (desc->dsc_dtype)
     case dtype_varying:
     case dtype_cstring:
     case dtype_text:
-	length = CVT_make_string (desc, ttype_ascii, &p, buffer, sizeof (buffer), err);
+	length = CVT_make_string (desc, ttype_ascii, &p, (VARY*)buffer, sizeof (buffer), err);
 	scale -= decompose (p, length, dtype_int64, (SLONG *) &value, err);
 	break;
 
@@ -1080,7 +1085,7 @@ if (scale > 0)
 	fraction = 0;
 	do {
 	    if (scale == 1)
-		fraction = value % 10;
+		fraction = (SLONG)(value % 10);
 	    value /= 10;
 	   } while (--scale);
 	if (fraction > 4)
@@ -1156,7 +1161,7 @@ if (desc->dsc_dtype <= dtype_any_text)
     if (desc->dsc_dtype == dtype_text)
 	return desc->dsc_length;
     if (desc->dsc_dtype == dtype_cstring)
-	return MIN (strlen ((char *)desc->dsc_address), desc->dsc_length - 1);
+	return MIN ((USHORT)strlen ((char *)desc->dsc_address), desc->dsc_length - 1);
     if (desc->dsc_dtype == dtype_varying)
 	{
 	varying = (VARY*) desc->dsc_address;
@@ -1295,7 +1300,7 @@ if (desc->dsc_dtype <= dtype_any_text && INTL_TTYPE (desc) == to_interp)
     if (desc->dsc_dtype == dtype_text)
 	return from_len;
     if (desc->dsc_dtype == dtype_cstring)
-	return MIN (strlen ((char *)desc->dsc_address), from_len - 1);
+	return MIN ((USHORT)strlen ((char *)desc->dsc_address), from_len - 1);
     if (desc->dsc_dtype == dtype_varying)
 	{
 	varying = (VARY*) desc->dsc_address;
@@ -1616,7 +1621,9 @@ switch (to->dsc_dtype)
 		    case dtype_text:
 			length = MIN (length, to->dsc_length);
 			l -= length;
-			fill = to->dsc_length - length;
+			/* TMN: Here we should really have the following assert */
+			/* assert((to->dsc_length - length) <= MAX_SSHORT); */
+			fill = (SSHORT)(to->dsc_length - length);
 
 			CVT_COPY_BUFF (q,p,length);
 			if (fill > 0)
@@ -1648,9 +1655,11 @@ switch (to->dsc_dtype)
 			break;
 
 		    case dtype_varying:
-			length = MIN (length, to->dsc_length - sizeof (USHORT));
+			length = MIN (length, (SLONG)(to->dsc_length - sizeof (USHORT)));
 			l -= length;
-			((VARY*) p)->vary_length = length;
+			/* TMN: Here we should really have the following assert */
+			/* assert(length <= MAX_USHORT); */
+			((VARY*) p)->vary_length = (USHORT)length;
 			p = ((VARY*) p)->vary_string;
 			CVT_COPY_BUFF (q,p,length);
 			break;
@@ -1724,7 +1733,9 @@ switch (to->dsc_dtype)
 
     case dtype_short:
 	l = CVT_get_long (from, (SSHORT) to->dsc_scale, err);
-	*(SSHORT*) p = l;
+	/* TMN: Here we should really have the following assert */
+	/* assert(l <= MAX_SSHORT); */
+	*(SSHORT*) p = (SSHORT)l;
 	if (*(SSHORT*) p != l)
 	    (*err) (gds__arith_except, 0);
 	return;
@@ -1754,7 +1765,7 @@ switch (to->dsc_dtype)
 	d_value = CVT_get_double (from, err);
 	if (ABSOLUT(d_value) > FLOAT_MAX)
 	    (*err) (gds__arith_except, 0);
-	*(float*) p = d_value;
+	*(float*) p = (float)d_value;
 	}
 	return;
 
@@ -1801,7 +1812,7 @@ else if (desc->dsc_dtype == dtype_array)
     p = "ARRAY";
 else
     {
-    length = CVT_make_string (desc, ttype_ascii, &string, s, sizeof (s), err);
+    length = CVT_make_string (desc, ttype_ascii, &string, (VARY*)s, sizeof (s), err);
 #if (defined REQUESTER || defined SUPERCLIENT)
     p = error_string (string, length);
 #else
@@ -1978,7 +1989,8 @@ errd.dsc_ttype   = ttype_ascii;
 errd.dsc_length  = length;
 errd.dsc_address = string;
 
-digit_seen = scale = fraction = sign = value = 0;
+value = 0;
+digit_seen = scale = fraction = sign = 0;
 lower_limit = (dtype == dtype_long) ? MIN_SLONG : MIN_SINT64;
 upper_limit = (dtype == dtype_long) ? MAX_SLONG : MAX_SINT64;
 
@@ -2072,7 +2084,7 @@ if (p < end)
     }
 
 if (dtype == dtype_long)
-    *return_value = value;
+    *return_value = (SLONG)value;
 else
     *((SINT64*) return_value) = value;
 
@@ -2236,7 +2248,8 @@ static void integer_to_text (
  **************************************/
 DSC     intermediate;
 UCHAR   temp [32], *p, *q;
-SSHORT  l, scale, neg, pad, decimal, length;
+SSHORT  l, neg, pad, decimal, length;
+SCHAR   scale;
 SINT64  n;
 UINT64  u;
 
@@ -2281,7 +2294,7 @@ else
 p = temp;
 
 do {
-    *p++ = u % 10 + '0';
+    *p++ = (UCHAR)(u % 10) + '0';
     u /= 10;
 } while (u);
 
@@ -2304,7 +2317,7 @@ length = l + neg + decimal + pad;
 
 if ((to->dsc_dtype == dtype_text    && length > to->dsc_length) ||
     (to->dsc_dtype == dtype_cstring && length >= to->dsc_length) ||
-    (to->dsc_dtype == dtype_varying && length > to->dsc_length - sizeof (USHORT)))
+    (to->dsc_dtype == dtype_varying && length > (SSHORT)(to->dsc_length - sizeof (USHORT))))
     conversion_error (to, err);
 
 q = (to->dsc_dtype == dtype_varying) ? to->dsc_address + sizeof (USHORT) : to->dsc_address;
@@ -2430,7 +2443,7 @@ SLONG           clock;
 struct tm       times, times2;
 TEXT            buffer [100];   /* arbitrarily large */
 
-length = CVT_make_string (desc, ttype_ascii, &string, buffer, sizeof (buffer), err);
+length = CVT_make_string(desc, ttype_ascii, &string, (VARY*)buffer, sizeof (buffer), err);
 p = string;
 
 end = p + length;
