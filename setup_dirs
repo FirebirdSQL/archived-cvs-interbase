@@ -214,9 +214,10 @@ export BuildHostType=$1
 export BuildBuildType=$2
 export MasterSourceDir=$3
 
+SYS_TYPE=$1
+
 checkVariables
 
-SYS_TYPE=$1
 if [ "$1" = 'SUN4' -o "$1" = 'SUN3_4' -o "$1" = 'SUN386I' ]; then
     SYS_TYPE=SUNOS4
 fi
