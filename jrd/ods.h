@@ -21,6 +21,15 @@
  * Contributor(s): ______________________________________.
  */
 
+/*
+ * Modified by: Patrick J. P. Griffin
+ * Date: 11/29/2000
+ * Problem:   Bug 116733 Too many generators corrupt database.
+ *            DPM_gen_id was not calculating page and offset correctly.
+ * Change:    Add typedef struct gpg to properly document the layout
+ *            of the generator page.
+ */
+
 #ifndef _JRD_ODS_H_
 #define _JRD_ODS_H_
 
@@ -366,6 +375,19 @@ typedef struct tip {
     SLONG	tip_next;		/* Next transaction inventory page */
     UCHAR	tip_transactions [1];
 } *TIP;
+
+/* Generator Page */
+
+typedef struct gpg {
+    struct pag	gpg_header;
+    SLONG	gpg_sequence;	/* Sequence number */
+    SLONG	gpg_waste1;	/* overhead carried for backward compatibility */
+    USHORT	gpg_waste2;	/* overhead carried for backward compatibility */
+    USHORT      gpg_waste3;	/* overhead carried for backward compatibility */
+    USHORT      gpg_waste4;	/* overhead carried for backward compatibility */
+    USHORT      gpg_waste5;	/* overhead carried for backward compatibility */
+    SINT64	gpg_values [1];	/* Generator vector */
+} *GPG;
 
 /* Record header */
 

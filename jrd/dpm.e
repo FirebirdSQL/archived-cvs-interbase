@@ -21,6 +21,14 @@
  * Contributor(s): ______________________________________.
  */
 
+/*
+ * Modified by: Patrick J. P. Griffin
+ * Date: 11/29/2000
+ * Problem:   Bug 116733 Too many generators corrupt database.
+ *            DPM_gen_id was not calculating page and offset correctly.
+ * Change:    Corrected routine to use new variables from PAG_init.
+ */
+
 #include "../jrd/ib_stdio.h"
 #include "../jrd/ibsetjmp.h"
 #include <string.h>
@@ -1093,7 +1101,7 @@ SINT64 DPM_gen_id (
  *      The resulting value is the result of the function.
  **************************************/
 DBB	dbb;
-PPG	page;
+GPG	page;
 WIN	window;
 VCL	vector;
 USHORT	sequence, offset;
@@ -1111,23 +1119,32 @@ if (debug_flag > DEBUG_TRACE_ALL)
 	    generator, val);
 #endif
 
-sequence = generator / dbb->dbb_pcontrol->pgc_ppp;
-offset = generator % dbb->dbb_pcontrol->pgc_ppp;
+sequence = generator / dbb->dbb_pcontrol->pgc_gpg;
+offset = generator % dbb->dbb_pcontrol->pgc_gpg;
 
 if (!(vector = dbb->dbb_gen_id_pages) ||
-    sequence >= vector->vcl_count)
+    (sequence >= vector->vcl_count) ||
+     !(vector->vcl_long [sequence]))
     {
     DPM_scan_pages (tdbb);
     if (!(vector = dbb->dbb_gen_id_pages) ||
-	sequence >= vector->vcl_count)
+	(sequence >= vector->vcl_count) ||
+	!(vector->vcl_long [sequence]))
 	{
-	page = (PPG) DPM_allocate (tdbb, &window);
-	page->ppg_header.pag_type = pag_ids;
-	page->ppg_sequence = sequence;
+	page = (GPG) DPM_allocate (tdbb, &window);
+	page->gpg_header.pag_type = pag_ids;
+	page->gpg_sequence = sequence;
 	CCH_must_write (&window);
 	CCH_RELEASE (tdbb, &window);
 	DPM_pages (tdbb, 0, pag_ids, (ULONG) sequence, window.win_page);
-	vector = (VCL) ALL_vector (dbb->dbb_permanent, &dbb->dbb_gen_id_pages, sequence + 1);
+	if (!(vector = dbb->dbb_gen_id_pages))
+	    {
+	    vector = dbb->dbb_gen_id_pages = (VCL) ALLOCPV (type_vcl, sequence + 1);
+	    vector->vcl_count = sequence + 1;
+	    }
+	else
+	    if (sequence >= vector->vcl_count)
+		vector = (VCL) ALL_extend(&dbb->dbb_gen_id_pages, sequence + 1);
 	vector->vcl_long [sequence] = window.win_page;
 	}
     }
@@ -1136,11 +1153,11 @@ window.win_page = vector->vcl_long [sequence];
 window.win_flags = 0;
 #ifdef READONLY_DATABASE
 if (dbb->dbb_flags & DBB_read_only)
-    page = (PPG) CCH_FETCH (tdbb, &window, LCK_read, pag_ids);
+    page = (GPG) CCH_FETCH (tdbb, &window, LCK_read, pag_ids);
 else
-    page = (PPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
+    page = (GPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
 #else
-page = (PPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
+page = (GPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
 #endif  /* READONLY_DATABASE */
 
 /*  If we are in ODS >= 10, then we have a pointer to an int64 value in the
@@ -1151,9 +1168,9 @@ page = (PPG) CCH_FETCH (tdbb, &window, LCK_write, pag_ids);
  *  (and uncommented 2000-05-05, also by ChrisJ, when minds changed.)
  */
 if ( dbb->dbb_ods_version >= ODS_VERSION10)
-    ptr = ((SINT64 *)(page->ppg_page)) + offset;
+    ptr = ((SINT64 *)(page->gpg_values)) + offset;
 else
-    lptr = ((SLONG *)(page->ppg_page)) + offset;
+    lptr = ((SLONG *)(((PPG) page)->ppg_page)) + offset;
 
 if (val || initialize)
     {

@@ -21,6 +21,15 @@
  * Contributor(s): ______________________________________.
  */
 
+/*
+ * Modified by: Patrick J. P. Griffin
+ * Date: 11/29/2000
+ * Problem:   Bug 116733 Too many generators corrupt database.
+ *            DPM_gen_id was not calculating page and offset correctly.
+ * Change:    Caculate pgc_gpg, number of generators per page,
+ *            for use in DPM_gen_id.
+ */
+
 #include "../jrd/ib_stdio.h"
 #include <string.h>
 
@@ -1191,6 +1200,14 @@ control->pgc_bytes = dbb->dbb_page_size - OFFSETA (PIP, pip_bits);
 control->pgc_ppp = control->pgc_bytes * 8;
 control->pgc_tpt = (dbb->dbb_page_size - OFFSETA (TIP, tip_transactions)) * 4;
 control->pgc_pip = 1;
+/* dbb_ods_version can be 0 when a new database is being created */
+if ((dbb->dbb_ods_version == 0) || (dbb->dbb_ods_version >= ODS_VERSION10))
+    control->pgc_gpg = (dbb->dbb_page_size - OFFSETA (GPG, gpg_values)) / sizeof (((GPG)0)->gpg_values);
+else
+    control->pgc_gpg = (dbb->dbb_page_size - OFFSETA (PPG, ppg_page)) / sizeof (((PPG)0)->ppg_page);
+
+
+
 
 /* Compute the number of data pages per pointer page.  Each data page
    requires a 32 bit pointer and a 2 bit control field. */

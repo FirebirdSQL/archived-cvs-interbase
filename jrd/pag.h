@@ -21,6 +21,16 @@
  * Contributor(s): ______________________________________.
  */
 
+/*
+ * Modified by: Patrick J. P. Griffin
+ * Date: 11/29/2000
+ * Problem:   Bug 116733 Too many generators corrupt database.
+ *            DPM_gen_id was not calculating page and offset correctly.
+ * Change:    Add pgc_gpg, number of generators per page,
+ *            for use in DPM_gen_id.
+ */
+
+
 #ifndef _JRD_PAG_H_
 #define _JRD_PAG_H_
 
@@ -34,6 +44,7 @@ typedef struct pgc {
     SLONG	pgc_pip;		/* First pointer page */
     int		pgc_bytes;		/* Number of bytes of bit in PIP */
     int		pgc_tpt;		/* Transactions per TIP */
+    int		pgc_gpg;		/* Generators per generator page */
 } *PGC;
 
 #endif /* _JRD_PAG_H_ */
