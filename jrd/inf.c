@@ -53,6 +53,19 @@
 #include "../jrd/tra_proto.h"
 #include "../jrd/gds_proto.h"
 
+
+/*
+ * The variable DBSERVER_BASE_LEVEL was originally IB_MAJOR_VER but with
+ * the change to Firebird this number could no longer be used.
+ * The DBSERVER_BASE_LEVEL for firebird starts at 6 which is the base level
+ * of InterBase(r) from which Firebird was derived.
+ * It is expected that this value will increase as changes are added to 
+ * Firebird
+ */
+
+#define DBSERVER_BASE_LEVEL 6
+
+
 #define STUFF_WORD(p, value)	{*p++ = value; *p++ = value >> 8;}
 #define STUFF(p, value)		*p++ = value
 
@@ -472,7 +485,7 @@ while (items < end_items && *items != gds__info_end)
 	    STUFF (p, 5);		/* base level of scrollable cursors */
 #else
 	    /* IB_MAJOR_VER is defined as a character string */
-	    STUFF (p, atoi(IB_MAJOR_VER));		/* base level of current version */
+	    STUFF (p, DBSERVER_BASE_LEVEL);		/* base level of current version */
 #endif
 	    length = p - buffer;
 	    break;

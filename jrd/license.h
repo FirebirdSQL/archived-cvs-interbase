@@ -44,81 +44,81 @@
 #ifdef hpux
 #ifdef hp9000s300
 #ifdef HP300
-#define IB_PLATFORM	"H3"
+#define FB_PLATFORM	"H3"
 #endif
 #ifdef HM300
-#define IB_PLATFORM	"HM"
+#define FB_PLATFORM	"HM"
 #endif
 #else
 #ifdef HP700
-#define IB_PLATFORM	"HP"
+#define FB_PLATFORM	"HP"
 #endif
 #ifdef HP800
-#define IB_PLATFORM	"HO"
+#define FB_PLATFORM	"HO"
 #endif
 #ifdef HP10
-#define IB_PLATFORM	"HU"
+#define FB_PLATFORM	"HU"
 #endif /* HP10 */
 #endif
 #endif
 
 #ifdef mpexl
-#define IB_PLATFORM	"HX"		/* HP MPE/XL */
+#define FB_PLATFORM	"HX"		/* HP MPE/XL */
 #endif
 
 #ifdef apollo
 #if _ISP__A88K
-#define IB_PLATFORM	"AP"
+#define FB_PLATFORM	"AP"
 #else
-#define IB_PLATFORM	"AX"
+#define FB_PLATFORM	"AX"
 #endif
 #endif
 
 #ifdef sun
 #ifdef sparc
 #ifdef SOLARIS
-#define IB_PLATFORM	"SO"
+#define FB_PLATFORM	"SO"
 #else
-#define IB_PLATFORM	"S4"
+#define FB_PLATFORM	"S4"
 #endif
 #endif
 #ifdef i386
-#define IB_PLATFORM     "SI"
+#define FB_PLATFORM     "SI"
 #endif
 #ifdef SUN3_3
-#define IB_PLATFORM	"SU"
+#define FB_PLATFORM	"SU"
 #endif
-#ifndef IB_PLATFORM
-#define IB_PLATFORM	"S3"
+#ifndef FB_PLATFORM
+#define FB_PLATFORM	"S3"
 #endif
 #endif
 
 #ifdef ultrix
 #ifdef mips
-#define IB_PLATFORM	"MU"
+#define FB_PLATFORM	"MU"
 #else
-#define IB_PLATFORM	"UL"
+#define FB_PLATFORM	"UL"
 #endif
 #endif
 
 #ifdef VMS
 #ifdef __ALPHA
-#define IB_PLATFORM     "AV"
+#define FB_PLATFORM     "AV"
 #else
-#define IB_PLATFORM	"VM"
+#define FB_PLATFORM	"VM"
 #endif
 #endif
 
 #ifdef MAC
-#define IB_PLATFORM	"MA"
+#define FB_PLATFORM	"MA"
 #endif
 
 #ifdef PC_PLATFORM
 #ifdef WINDOWS_ONLY
-#define IB_PLATFORM     "WS"
+#define FB_PLATFORM     "WS"
 #else
 #ifdef DOS_ONLY
-#define IB_PLATFORM     "DS"
+#define FB_PLATFORM     "DS"
 #endif
 #endif
 #undef NODE_CHECK
@@ -126,46 +126,46 @@
 #endif
 
 #ifdef NETWARE_386
-#define IB_PLATFORM     "NW"
+#define FB_PLATFORM     "NW"
 #endif
 
 #ifdef OS2_ONLY
-#define IB_PLATFORM     "O2"
+#define FB_PLATFORM     "O2"
 #endif
 
 #ifdef AIX
-#define IB_PLATFORM	"IA"
+#define FB_PLATFORM	"IA"
 #endif
 
 #ifdef AIX_PPC
-#define IB_PLATFORM	"PA"
+#define FB_PLATFORM	"PA"
 #endif
 
 #ifdef IMP
-#define IB_PLATFORM	"IM"
+#define FB_PLATFORM	"IM"
 #endif
 
 #ifdef DELTA
-#define IB_PLATFORM	"DL"
+#define FB_PLATFORM	"DL"
 #endif
 
 #ifdef XENIX
 #ifdef SCO_UNIX
-#define IB_PLATFORM	"SI"	/* 5.5 SCO Port */
+#define FB_PLATFORM	"SI"	/* 5.5 SCO Port */
 #else
-#define IB_PLATFORM	"XN"
+#define FB_PLATFORM	"XN"
 #endif
 #endif
 
 #ifdef sgi
-#define IB_PLATFORM	"SG"
+#define FB_PLATFORM	"SG"
 #endif
 
 #ifdef DGUX
 #ifdef DG_X86
-#define IB_PLATFORM     "DI"          /* DG INTEL */
+#define FB_PLATFORM     "DI"          /* DG INTEL */
 #else
-#define IB_PLATFORM	"DA"		/* DG AViiON */
+#define FB_PLATFORM	"DA"		/* DG AViiON */
 #define M88K_DEFINED
 #endif /* DG_X86 */
 #endif /* DGUX */
@@ -174,21 +174,21 @@
 #ifdef i386
 #if (defined SUPERCLIENT || defined SUPERSERVER)
 #if (defined WIN95)
-#define IB_PLATFORM	"WI"
+#define FB_PLATFORM	"WI"
 #else
-#define IB_PLATFORM	"NIS"
+#define FB_PLATFORM	"NIS"
 #endif /* WIN95 */
 #else
-#define IB_PLATFORM	"NI"
+#define FB_PLATFORM	"NI"
 #endif
 #else
 #ifdef alpha
-#define IB_PLATFORM	"NA"
+#define FB_PLATFORM	"NA"
 #else
 #ifdef mips
-#define IB_PLATFORM	"NM"
+#define FB_PLATFORM	"NM"
 #else /* PowerPC */
-#define IB_PLATFORM	"NP"
+#define FB_PLATFORM	"NP"
 #endif
 #endif
 #endif
@@ -196,54 +196,54 @@
 
 #ifdef NeXT
 #ifdef	i386
-#define IB_PLATFORM	"XI"
+#define FB_PLATFORM	"XI"
 #else	/* m68040 */
-#define IB_PLATFORM	"XM"
+#define FB_PLATFORM	"XM"
 #endif
 #endif
 
 #ifdef EPSON
-#define IB_PLATFORM	"EP"		/* epson */
+#define FB_PLATFORM	"EP"		/* epson */
 #endif
 
 #ifdef _CRAY
-#define IB_PLATFORM	"CR"		/* Cray */
+#define FB_PLATFORM	"CR"		/* Cray */
 #endif
 
 #ifdef ALPHA_NT
-#define	IB_PLATFORM	"AN"		/* Alpha NT */
+#define	FB_PLATFORM	"AN"		/* Alpha NT */
 #endif
 
 #ifdef DECOSF
-#define	IB_PLATFORM	"AO"		/* Alpha OSF-1 */
+#define	FB_PLATFORM	"AO"		/* Alpha OSF-1 */
 #endif
 
 #ifdef M88K
-#define	IB_PLATFORM	"M8"		/* Motorola 88k */
+#define	FB_PLATFORM	"M8"		/* Motorola 88k */
 #endif
 
 #ifdef UNIXWARE
-#define	IB_PLATFORM	"UW"		/* Unixware */
+#define	FB_PLATFORM	"UW"		/* Unixware */
 #endif
 
 #ifdef NCR3000
-#define	IB_PLATFORM	"NC"		/* NCR3000 */
+#define	FB_PLATFORM	"NC"		/* NCR3000 */
 #endif
 
 #ifdef LINUX
-#define IB_PLATFORM     "LI"         /* Linux on Intel */
+#define FB_PLATFORM     "LI"         /* Linux on Intel */
 #endif
 
 #ifdef FREEBSD
-#define IB_PLATFORM     "FB"         /* FreeBSD/i386 */
+#define FB_PLATFORM     "FB"         /* FreeBSD/i386 */
 #endif
 
 #ifdef NETBSD
-#define IB_PLATFORM     "NB"         /* NetBSD */
+#define FB_PLATFORM     "NB"         /* NetBSD */
 #endif
 
 #ifndef GDS_VERSION
-#define GDS_VERSION	IB_PLATFORM "-" IB_BUILD_TYPE IB_MAJOR_VER "." IB_MINOR_VER "." IB_REV_NO "." IB_BUILD_NO
+#define GDS_VERSION	FB_PLATFORM "-" FB_BUILD_TYPE FB_MAJOR_VER "." FB_MINOR_VER "." FB_REV_NO "." FB_BUILD_NO " " FB_BUILD_SUFFIX
 #endif
 
 #endif /* _JRD_LICENSE_H_ */

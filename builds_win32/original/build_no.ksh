@@ -39,10 +39,17 @@
 # the variable BUILD_TYPE can be used for more complex manipulations of the
 # the version resource flags, depending on if it is I B or V
 
+# For Firebird we also are adopting an odd minor number => dev/test/beta 
+# and even minor number => production release.
+# That way 0.9 is precursor to production 1.0 and 1.1 versions are dev/test
+# versions of the upcomming production 1.2 version.
+# This method is also used in a few other projects (linux kernel, gcc etc).
+
 BUILD_TYPE=T
-MAJOR_VER=6
-MINOR_VER=0
-REV_NO=9
+MAJOR_VER=0
+MINOR_VER=9
+REV_NO=4
+BUILD_SUFFIX="Firebird Test1"
 
 if [ ! -f this_build ]
 then
@@ -63,8 +70,9 @@ echo '#define PRODUCT_VER_STRING '\"${PRODUCT_VER_STRING}\\\\0\" >> jrd/build_no
 echo '#define FILE_VER_STRING '\"${FILE_VER_STRING}\\\\0\" >> jrd/build_no.h
 echo '#define LICENSE_VER_STRING '\"${FILE_VER_STRING}\" >> jrd/build_no.h
 echo '#define FILE_VER_NUMBER '${FILE_VER_NUMBER} >> jrd/build_no.h
-echo '#define IB_MAJOR_VER '\"${MAJOR_VER}\" >> jrd/build_no.h
-echo '#define IB_MINOR_VER '\"${MINOR_VER}\" >> jrd/build_no.h
-echo '#define IB_REV_NO '\"${REV_NO}\" >> jrd/build_no.h
-echo '#define IB_BUILD_NO '\"${THISBUILD}\" >> jrd/build_no.h
-echo '#define IB_BUILD_TYPE '\"${BUILD_TYPE}\" >> jrd/build_no.h
+echo '#define FB_MAJOR_VER '\"${MAJOR_VER}\" >> jrd/build_no.h
+echo '#define FB_MINOR_VER '\"${MINOR_VER}\" >> jrd/build_no.h
+echo '#define FB_REV_NO '\"${REV_NO}\" >> jrd/build_no.h
+echo '#define FB_BUILD_NO '\"${THISBUILD}\" >> jrd/build_no.h
+echo '#define FB_BUILD_TYPE '\"${BUILD_TYPE}\" >> jrd/build_no.h
+echo '#define FB_BUILD_SUFFIX '\"${BUILD_SUFFIX}\" >> jrd/build_no.h
