@@ -1,3 +1,40 @@
+2001-07-10 23:07  awharrison
+
+	* interbase/misc/help.gbak:
+	
+	backups work better when they are marked as binary
+
+2001-07-10 22:59  awharrison
+
+	* interbase/misc/help.gbak:
+	
+	get rid of empty backup to be replaced and marked binary
+
+2001-07-10 22:20  awharrison
+
+	* interbase/: jrd/dpm.e, jrd/netware.c, jrd/unix.c, jrd/winnt.c,
+	alice/alice.c:
+	
+	straighten up a bit
+
+2001-07-10 19:38  awharrison
+
+	* interbase/jrd/jrd.c:
+	
+	forced write is the default for windows
+
+2001-07-10 18:31  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	and check constraints
+
+2001-07-10 18:18  awharrison
+
+	* interbase/jrd/idx.h:
+	
+	allow multi-dimensional arrays again
+
 2001-07-09 22:39  awharrison
 
 	* interbase/: alice/alice.c, alice/aliceswi.h, alice/exe.c,
