@@ -1,3 +1,31 @@
+2001-08-24 02:42  bellardo
+
+	* interbase/: builds/original/prefix.darwin,
+	firebird/bellardo/darwin/install:
+	
+	Fine tuned some permissions on the Classic install.  Removed PYXIS
+	from the Darwin build.
+
+2001-08-24 01:12  skywalker
+
+	* interbase/firebird/skywalker/install/: Makefile,
+	classic/CSinstall.sh, classic/CSrpmfiles.txt,
+	classic/CSrpmheader.txt, super/SSinstall.sh, super/SSrpmfiles.txt,
+	super/SSrpmheader.txt:
+	
+	Change install to not install pyxis module and fix copy of init.d
+	file so it works for redhat6.2 systems.  Also check port 3050 when
+	trying to determine if firebird is already installed.
+
+2001-08-24 01:09  skywalker
+
+	* interbase/builds/original/: boot.sfx.interbase, prefix.linux,
+	sfx.interbase:
+	
+	Change install to remove pyxis module.	It was not used and
+	required ncurses module which is not installed on most systems by
+	default
+
 2001-08-22 23:09  bellardo
 
 	* interbase/: jrd/codes.h, jrd/codetext.h, jrd/iberror.h,
